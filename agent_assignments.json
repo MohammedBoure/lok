@@ -25,7 +25,7 @@
       "branch": "test/agy100-pipeline-validation",
       "scope": "Pragmatic integration testing of MCP frame extractor, TTS audio, assembly sync, and merge verification into develop",
       "dependencies": ["backend/agy11-frame-extraction-mcp", "frontend/agy51-video-assembly-pipeline"],
-      "state": "PENDING"
+      "state": "READY"
     }
   ]
 }
