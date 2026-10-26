@@ -7,7 +7,7 @@
       "branch": "backend/agy11-frame-extraction-mcp",
       "scope": "Build and expose MCP tool 'mcp_get_image_from_video' and extraction engine to sample keyframes with timestamps from raw video",
       "dependencies": [],
-      "state": "DISPATCHING"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-video-assembly-pipeline",
       "scope": "Generate TTS narration via local repo service, implement FFmpeg editing assembly with audio sync and dynamic background music ducking",
       "dependencies": ["backend/agy11-frame-extraction-mcp"],
-      "state": "DISPATCHING"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
@@ -25,7 +25,7 @@
       "branch": "test/agy100-pipeline-validation",
       "scope": "Pragmatic integration testing of MCP frame extractor, TTS audio, assembly sync, and merge verification into develop",
       "dependencies": ["backend/agy11-frame-extraction-mcp", "frontend/agy51-video-assembly-pipeline"],
-      "state": "PENDING"
+      "state": "READY"
     }
   ]
 }
