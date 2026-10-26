@@ -44,6 +44,26 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Upload validation and error response for missing video (`test_api_upload_missing_video`).
   - Host LAN IP detection and format validation (`test_detect_lan_ip`).
   - Terminal QR code and banner generator execution (`test_server_banner_execution`).
+- [`test_frontend_assets.py`](test_frontend_assets.py): Mobile web UI static asset and typography validation suite verifying:
+  - Static asset files existence (`index.html`, `app.js`, `style.css`).
+  - Required DOM elements for recording, presets, and studio controls.
+  - DOM event listener references in `app.js`.
+  - User Rule 5 character mapping compliance (no unmapped '٩').
+  - Starlette static route file serving and content-type headers.
+- [`test_mobile_verification.py`](test_mobile_verification.py): Pragmatic mobile pipeline gatekeeper verification suite authored by Quality Gatekeeper `agy100` verifying:
+  - Algerian real estate preset catalog integrity, bilingual metadata, and descriptions (`test_algerian_presets_metadata_completeness`, `test_algerian_presets_descriptions_arabic`).
+  - Synthetic harmonic voiceover generation, WAV headers, 24kHz PCM, and duration boundaries (`test_synthetic_voice_wav_header_and_duration`, `test_synthetic_voice_empty_text_fallback`).
+  - Presets catalog serialization for web client consumption (`test_pipeline_bridge_get_presets_list_structure`).
+  - Mobile video post-production error handling and missing file detection (`test_process_mobile_video_missing_file_raises_error`).
+  - Graceful fallback for unsupported preset IDs (`test_process_mobile_video_unsupported_preset_fallback`).
+  - Mobile cut execution summary schema and keyframe metadata persistence (`test_mobile_video_summary_metadata_schema`).
+  - Custom audio ducking level override dynamics (`test_mobile_video_custom_ducking_volume`).
+  - Host LAN IP detection and fallback socket error handling (`test_lan_ip_detection_format`, `test_lan_ip_fallback_handling`).
+  - Starlette application route registration across all endpoints and static mounts (`test_server_app_routes_registered`).
+  - Mobile responsive viewport and PWA metadata compliance (`test_mobile_html_responsive_viewport_and_pwa_tags`).
+  - RTL directionality and User Rule 5 Arabic typography compliance (`test_mobile_html_arabic_rtl_and_character_mapping`).
+  - Smartphone CSS media queries and luxury theme variables (`test_mobile_css_responsive_media_queries`).
+  - Thread-safe parallel generation of synthetic audio (`test_concurrent_synthetic_voice_generation`).
 - [`test_assemble_video.py`](test_assemble_video.py): Video editorial assembly test suite verifying:
   - Source video stream and format probing (`test_probe_file_inputs`).
   - Voiceover narration audio properties, duration, and sampling (`test_ensure_narration_audio_metadata`).

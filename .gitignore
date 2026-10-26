@@ -6,3 +6,11 @@ __pycache__/
 .env*
 **/.env
 **/.env*
+
+# Mobile test uploads and cuts
+inputs/mobile_uploads/*
+!inputs/mobile_uploads/.gitkeep
+outputs/mobile_cuts/*
+!outputs/mobile_cuts/.gitkeep
+outputs/keyframes/mobile_*
+
