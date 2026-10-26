@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "video-extractor": {
+      "command": "python3",
+      "args": ["-m", "frame_extractor", "--mcp"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
