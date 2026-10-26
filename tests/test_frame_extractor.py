@@ -3,6 +3,7 @@ Unit and integration tests for frame_extractor and mcp_get_image_from_video.
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -10,9 +11,9 @@ import pytest
 
 import frame_extractor
 
-
-FOX_VIDEO = "inputs/source_fox_cub.mp4"
-SQUIRREL_VIDEO = "inputs/source_squirrel.mp4"
+ROOT_DIR = Path(__file__).resolve().parent.parent
+FOX_VIDEO = str(ROOT_DIR / "inputs/source_fox_cub.mp4")
+SQUIRREL_VIDEO = str(ROOT_DIR / "inputs/source_squirrel.mp4")
 
 
 def test_get_video_metadata_success():
@@ -116,7 +117,16 @@ def test_cli_invocation_json(tmp_path):
         "--output-dir", str(out_dir),
         "--json",
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    sub_env = dict(os.environ)
+    sub_env["PYTHONPATH"] = str(ROOT_DIR)
+    proc = subprocess.run(
+        cmd,
+        cwd=str(ROOT_DIR),
+        env=sub_env,
+        capture_output=True,
+        text=True,
+        check=True
+    )
     payload = json.loads(proc.stdout)
     assert payload["total_frames_extracted"] == 2
     assert payload["codec"] == "h264"
