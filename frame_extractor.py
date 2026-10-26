@@ -383,6 +383,10 @@ def extract_frames(
     return payload
 
 
+# Programmatic keyframe extraction alias
+extract_keyframes = extract_frames
+
+
 # ---------------------------------------------------------------------------
 # MCP Tool Interface
 # ---------------------------------------------------------------------------
