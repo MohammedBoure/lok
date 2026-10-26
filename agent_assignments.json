@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-video-assembly-pipeline",
       "scope": "Generate TTS narration via local repo service, implement FFmpeg editing assembly with audio sync and dynamic background music ducking",
       "dependencies": ["backend/agy11-frame-extraction-mcp"],
-      "state": "DISPATCHING"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
