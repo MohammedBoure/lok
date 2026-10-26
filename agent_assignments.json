@@ -15,8 +15,8 @@
       "role": "Mobile Front-End & Real Estate UI/UX",
       "branch": "frontend/agy51-mobile-web-system",
       "scope": "Build responsive mobile PWA UI (web/static/index.html, app.js, style.css) with live phone camera recording, HTML5 capture fallback, Algerian real estate marketing presets, progress tracker, and final cut player",
-      "dependencies": [],
-      "state": "IN_PROGRESS"
+      "dependencies": ["backend/agy11-mobile-api-server"],
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",

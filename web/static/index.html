@@ -2,788 +2,529 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="منصة إنتاج الفيديو الذكية لتصوير وتسويق عقارات الجزائر عبر الهاتف الجوال مع تعليق صوتي وموسيقى ديناميكية.">
   <title>استوديو عقارات الجزائر | Algerian Real Estate Mobile Studio</title>
+
+  <!-- Google Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-dark: #0b1120;
-      --card-bg: #131c31;
-      --card-border: #1e293b;
-      --accent-green: #10b981;
-      --accent-emerald: #059669;
-      --accent-gold: #f59e0b;
-      --accent-cyan: #06b6d4;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --input-bg: #0f172a;
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-primary);
-      min-height: 100vh;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 680px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      padding-bottom: 40px;
-    }
-
-    /* Header */
-    header {
-      text-align: center;
-      padding: 18px 12px;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08));
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      border-radius: var(--radius-lg);
-      backdrop-filter: blur(10px);
-    }
-
-    .brand-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-green);
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    h1 {
-      font-size: 1.55rem;
-      font-weight: 800;
-      line-height: 1.3;
-      margin-bottom: 6px;
-      background: linear-gradient(to left, #ffffff, #d1fae5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .subtitle {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Card Box */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .card-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #e2e8f0;
-    }
-
-    .card-title .icon {
-      font-size: 1.25rem;
-    }
-
-    /* Upload & Record Area */
-    .upload-zone {
-      border: 2px dashed #334155;
-      border-radius: var(--radius-md);
-      padding: 24px 16px;
-      text-align: center;
-      cursor: pointer;
-      background: rgba(15, 23, 42, 0.5);
-      transition: all 0.2s ease;
-      position: relative;
-    }
-
-    .upload-zone:hover, .upload-zone.dragover {
-      border-color: var(--accent-green);
-      background: rgba(16, 185, 129, 0.05);
-    }
-
-    .upload-zone input[type="file"] {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .upload-icon {
-      font-size: 2.8rem;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .upload-label-main {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #f1f5f9;
-      margin-bottom: 4px;
-    }
-
-    .upload-label-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .preview-box {
-      margin-top: 14px;
-      display: none;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      background: #000;
-      text-align: center;
-    }
-
-    .preview-box video {
-      width: 100%;
-      max-height: 280px;
-      object-fit: contain;
-    }
-
-    /* Preset Buttons */
-    .presets-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    @media (max-width: 480px) {
-      .presets-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .preset-card {
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      cursor: pointer;
-      text-align: right;
-      transition: all 0.2s ease;
-    }
-
-    .preset-card:hover {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.08);
-    }
-
-    .preset-card.active {
-      border-color: var(--accent-green);
-      background: rgba(16, 185, 129, 0.12);
-      box-shadow: 0 0 0 1px var(--accent-green);
-    }
-
-    .preset-title-ar {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #f8fafc;
-      margin-bottom: 2px;
-    }
-
-    .preset-title-fr {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      direction: ltr;
-      text-align: right;
-    }
-
-    /* Inputs */
-    label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text-secondary);
-    }
-
-    textarea, select, input[type="range"] {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: inherit;
-      padding: 10px 12px;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s ease;
-    }
-
-    textarea:focus, select:focus {
-      border-color: var(--accent-green);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-      line-height: 1.5;
-    }
-
-    .slider-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .slider-val {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.85rem;
-      color: var(--accent-gold);
-      font-weight: 700;
-    }
-
-    /* Process CTA */
-    .btn-submit {
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-emerald));
-      color: #ffffff;
-      border: none;
-      border-radius: var(--radius-md);
-      padding: 15px;
-      font-size: 1.1rem;
-      font-weight: 800;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-      transition: all 0.2s ease;
-    }
-
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* Progress & Loader */
-    .progress-box {
-      display: none;
-      margin-top: 14px;
-      padding: 14px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid #334155;
-      border-radius: var(--radius-sm);
-      text-align: center;
-    }
-
-    .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid rgba(16, 185, 129, 0.2);
-      border-top-color: var(--accent-green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 8px auto;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .progress-text {
-      font-size: 0.88rem;
-      color: #cbd5e1;
-    }
-
-    /* Result Box */
-    .result-box {
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-player {
-      width: 100%;
-      border-radius: var(--radius-sm);
-      background: #000;
-      margin-bottom: 12px;
-      max-height: 440px;
-    }
-
-    .meta-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .badge {
-      background: #1e293b;
-      color: #e2e8f0;
-      font-size: 0.78rem;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .badge-accent {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-green);
-      font-weight: 600;
-    }
-
-    .keyframes-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      scrollbar-width: thin;
-      margin-top: 8px;
-    }
-
-    .keyframe-item {
-      flex: 0 0 110px;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #334155;
-      background: #000;
-      position: relative;
-    }
-
-    .keyframe-item img {
-      width: 100%;
-      height: 75px;
-      object-fit: cover;
-      display: block;
-    }
-
-    .keyframe-ts {
-      position: absolute;
-      bottom: 2px;
-      left: 2px;
-      background: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      font-size: 0.65rem;
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .action-links {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .btn-download {
-      flex: 1;
-      text-align: center;
-      background: #2563eb;
-      color: #fff;
-      text-decoration: none;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: background 0.2s ease;
-    }
-
-    .btn-download:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-audio {
-      background: #334155;
-    }
-
-    .btn-audio:hover {
-      background: #475569;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 10px;
-    }
-  </style>
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-
-    <!-- Header -->
-    <header>
-      <div class="brand-tag">⚡ منصة إنتاج الفيديو الذكية | agy11</div>
-      <h1>استوديو عقارات الجزائر</h1>
-      <p class="subtitle">تصوير الهاتف الجوال ⟵ إنتاج تسويقي فوري مع تعليق صوتي وموسيقى ديناميكية</p>
+  <div class="app-layout">
+    <!-- Top Global App Bar -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand-row">
+          <div class="brand-icon">
+            <span>🏢</span>
+          </div>
+          <div class="brand-text">
+            <div class="brand-badge">⚡ استوديو الإنتاج الذكي | agy51</div>
+            <h1 class="brand-title">استوديو عقارات الجزائر</h1>
+          </div>
+        </div>
+        <p class="brand-subtitle">
+          تصوير الهاتف الجوال ⟵ توليد تعليق صوتي عربي احترافي ⟵ مونتاج سينمائي بموسيقى تفاعلية (Sidechain)
+        </p>
+        <div class="system-status-chip" id="systemStatusChip">
+          <span class="status-indicator online"></span>
+          <span class="status-label">نظام المعالجة متصل وجاهز</span>
+        </div>
+      </div>
     </header>
 
-    <!-- Upload Card -->
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">📱</span>
-        <span>تسجيل أو اختيار فيديو الهاتف</span>
-      </div>
-      <div class="upload-zone" id="dropZone">
-        <input type="file" id="videoFile" accept="video/*" capture="environment">
-        <span class="upload-icon">🎥</span>
-        <div class="upload-label-main">المس لتصوير فيديو جديد أو اختيار من المعرض</div>
-        <div class="upload-label-sub">يدعم الفيديوهات العمودية (9:16) والأفقية (16:9) بصيغ MP4 / MOV</div>
-      </div>
-      <div class="preview-box" id="previewBox">
-        <video id="previewPlayer" controls playsinline></video>
-      </div>
-    </div>
-
-    <!-- Presets Card -->
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">🏛️</span>
-        <span>قوالب العقارات الجزائرية الجاهزة</span>
-      </div>
-      <div class="presets-grid" id="presetsGrid">
-        <!-- Dynamically injected or loaded from API -->
-      </div>
-
-      <div style="margin-top: 10px;">
-        <label for="scriptText">نص التعليق الصوتي المخصص (أو عدل القالب):</label>
-        <textarea id="scriptText" placeholder="اكتب نص الترويج العقاري هنا..."></textarea>
-      </div>
-    </div>
-
-    <!-- Audio & Ducking Settings -->
-    <div class="card">
-      <div class="card-title">
-        <span class="icon">🎚️</span>
-        <span>إعدادات التعليق والموسيقى الديناميكية</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-        <div>
-          <label for="voiceSelect">الصوت الافتراضي:</label>
-          <select id="voiceSelect">
-            <option value="ar-XA-Standard-A">العربية - Standard A (أنثوي رصين)</option>
-            <option value="ar-XA-Standard-B">العربية - Standard B (ذكوري دافئ)</option>
-            <option value="Aoede">Aoede (وثائقي احترافي)</option>
-            <option value="Puck">Puck (حيوي وتفاعلي)</option>
-          </select>
-        </div>
-        <div>
-          <div class="slider-row">
-            <label for="duckSlider" style="margin-bottom: 0;">مستوى خفض الموسيقى (Sidechain):</label>
-            <span class="slider-val" id="duckVal">25%</span>
+    <main class="main-content">
+      <!-- SECTION 1: VIDEO INGESTION & CAMERA RECORDING -->
+      <section class="card capture-card" aria-labelledby="sectionCaptureTitle">
+        <div class="card-header">
+          <div class="card-icon-wrap emerald">
+            <span>📹</span>
           </div>
-          <input type="range" id="duckSlider" min="0.05" max="0.50" step="0.05" value="0.25">
+          <div class="card-title-group">
+            <h2 id="sectionCaptureTitle" class="card-title">تسجيل واختيار فيديو الهاتف</h2>
+            <p class="card-subtitle">التقاط فوري بكاميرا الهاتف بجودة 4K/HD أو تسجيل حي من المتصفح</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Hidden Native File Inputs -->
+          <!-- 1. Native Environment Camera Capture (Direct mobile hardware camera, iOS Safari & Android Chrome) -->
+          <input type="file" id="cameraInput" accept="video/*" capture="environment" class="visually-hidden" aria-label="تسجيل بالكاميرا مباشرة">
+          <!-- 2. Gallery / Disk Picker -->
+          <input type="file" id="galleryInput" accept="video/*" class="visually-hidden" aria-label="اختيار فيديو من المعرض">
+
+          <!-- Primary Capture Action Buttons -->
+          <div class="capture-actions-grid">
+            <!-- Native Camera Button -->
+            <button type="button" class="action-btn btn-camera" id="btnNativeCamera">
+              <div class="btn-icon">📸</div>
+              <div class="btn-content">
+                <span class="btn-primary-text">تسجيل بالكاميرا</span>
+                <span class="btn-secondary-text">كاميرا الهاتف الأساسية (بدون قيود)</span>
+              </div>
+            </button>
+
+            <!-- In-Browser Live Viewfinder Toggle Button -->
+            <button type="button" class="action-btn btn-viewfinder" id="btnToggleViewfinder">
+              <div class="btn-icon">🔴</div>
+              <div class="btn-content">
+                <span class="btn-primary-text">معاينة مباشرة بالمتصفح</span>
+                <span class="btn-secondary-text">تسجيل فوري مع عداد ومبدل كاميرا</span>
+              </div>
+            </button>
+
+            <!-- Gallery Upload Button -->
+            <button type="button" class="action-btn btn-gallery" id="btnGalleryUpload">
+              <div class="btn-icon">🖼️</div>
+              <div class="btn-content">
+                <span class="btn-primary-text">اختر من المعرض</span>
+                <span class="btn-secondary-text">رفع ملف فيديو مسجل مسبقاً (MP4/MOV)</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Drag and Drop Desktop Fallback Zone -->
+          <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="منطقة سحب وإفلات مقاطع الفيديو">
+            <div class="drop-zone-icon">📥</div>
+            <div class="drop-zone-text">أو اسحب ملف الفيديو وأفلته هنا مباشرة</div>
+            <div class="drop-zone-hint">يدعم الفيديوهات العمودية (9:16) ومقاطع الريلز والأفقية (16:9)</div>
+          </div>
+
+          <!-- In-Browser Viewfinder Modal / Panel -->
+          <div class="viewfinder-panel" id="viewfinderPanel" style="display: none;">
+            <div class="viewfinder-header">
+              <div class="viewfinder-rec-badge" id="recBadge">
+                <span class="rec-dot"></span>
+                <span class="rec-status-text" id="recStatusText">جاهز للتسجيل</span>
+                <span class="rec-timer" id="recTimer">00:00</span>
+              </div>
+              <button type="button" class="icon-btn" id="btnCloseViewfinder" title="إغلاق المعاينة" aria-label="إغلاق">
+                <span>✕</span>
+              </button>
+            </div>
+
+            <div class="viewfinder-screen">
+              <video id="viewfinderVideo" autoplay playsinline muted></video>
+              <div class="viewfinder-crosshairs" aria-hidden="true">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+                <div class="crosshair-box"></div>
+              </div>
+              <div class="viewfinder-notice" id="viewfinderNotice" style="display: none;">
+                <p id="viewfinderNoticeText"></p>
+              </div>
+            </div>
+
+            <div class="viewfinder-controls">
+              <!-- Camera Flip / Facing Mode Toggle -->
+              <button type="button" class="vf-control-btn" id="btnFlipCamera" title="تبديل الكاميرا (أمامية / خلفية)">
+                <span class="vf-btn-icon">🔄</span>
+                <span class="vf-btn-label">قلب الكاميرا</span>
+              </button>
+
+              <!-- Central Record/Stop Trigger -->
+              <button type="button" class="vf-record-btn" id="btnRecordToggle" aria-label="بدء التسجيل">
+                <span class="record-inner-circle"></span>
+              </button>
+
+              <!-- Flash / Torch or Guide Placeholder -->
+              <button type="button" class="vf-control-btn" id="btnViewfinderCancel" title="إلغاء المعاينة">
+                <span class="vf-btn-icon">⏹️</span>
+                <span class="vf-btn-label">إلغاء</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selected / Recorded Video Preview Player Box -->
+          <div class="video-preview-card" id="videoPreviewCard" style="display: none;">
+            <div class="preview-media-container">
+              <video id="previewPlayer" controls playsinline preload="metadata"></video>
+            </div>
+
+            <div class="preview-meta-row">
+              <div class="meta-item">
+                <span class="meta-label">⏱️ المدة:</span>
+                <span class="meta-val" id="previewDuration">--:--</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">💾 الحجم:</span>
+                <span class="meta-val" id="previewSize">-- MB</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">📐 الأبعاد:</span>
+                <span class="meta-val" id="previewDimensions">--</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">📱 الاتجاه:</span>
+                <span class="meta-val" id="previewOrientation">--</span>
+              </div>
+            </div>
+
+            <div class="preview-actions-row">
+              <button type="button" class="btn-subtle" id="btnChangeVideo">
+                <span>🔄 تغيير الفيديو أو إعادة التسجيل</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: ALGERIAN REAL ESTATE PRESETS & SCRIPT CUSTOMIZATION -->
+      <section class="card presets-card" aria-labelledby="sectionPresetsTitle">
+        <div class="card-header">
+          <div class="card-icon-wrap gold">
+            <span>🏛️</span>
+          </div>
+          <div class="card-title-group">
+            <h2 id="sectionPresetsTitle" class="card-title">قوالب العقارات الجزائرية والتعليق الصوتي</h2>
+            <p class="card-subtitle">اختر قالباً تسويقياً جاهزاً أو خصص نص الإعلان بضغطة زر</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Preset Selector Grid -->
+          <div class="presets-selector-grid" id="presetsSelectorGrid" role="radiogroup" aria-label="قوالب العقارات الجزائرية">
+            <!-- Dynamically injected with fallbacks for Algiers F4, Oran Villa, Constantine Store, Rental -->
+          </div>
+
+          <!-- Script Editor Area -->
+          <div class="script-editor-container">
+            <div class="script-editor-header">
+              <label for="scriptText" class="input-label">
+                <span>🎙️ نص التعليق الصوتي التسويقي (Script)</span>
+              </label>
+              <div class="script-quick-actions">
+                <button type="button" class="chip-btn" id="btnResetScript" title="إعادة نص القالب المختار">
+                  <span>↺ استعادة القالب</span>
+                </button>
+                <button type="button" class="chip-btn" id="btnClearScript" title="مسح النص بالكامل">
+                  <span>✕ مسح</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="textarea-wrap">
+              <textarea id="scriptText" rows="4" placeholder="اكتب أو عدل النص الترويجي للعقار هنا، وسيتم تحويله فوراً لتعليق صوتي ذكي ومتقن..." dir="rtl"></textarea>
+            </div>
+
+            <!-- Live Script Analytics Bar -->
+            <div class="script-analytics-bar">
+              <div class="analytic-chip">
+                <span class="analytic-icon">✍️</span>
+                <span class="analytic-text">الكلمات: <strong id="wordCount">0</strong></span>
+              </div>
+              <div class="analytic-chip">
+                <span class="analytic-icon">📝</span>
+                <span class="analytic-text">الأحرف: <strong id="charCount">0</strong></span>
+              </div>
+              <div class="analytic-chip highlight-gold">
+                <span class="analytic-icon">⏱️</span>
+                <span class="analytic-text">مدة الإلقاء المقدرة: <strong id="speechEstDuration">~0 ثانية</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: AUDIO & DYNAMIC DUCKING CONFIGURATION -->
+      <section class="card audio-card" aria-labelledby="sectionAudioTitle">
+        <div class="card-header">
+          <div class="card-icon-wrap cyan">
+            <span>🎚️</span>
+          </div>
+          <div class="card-title-group">
+            <h2 id="sectionAudioTitle" class="card-title">إعدادات الصوت والموسيقى التفاعلية</h2>
+            <p class="card-subtitle">التعليق الصوتي العصبي مع تقنية الـ Sidechain لخفض الموسيقى تلقائياً</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="audio-controls-grid">
+            <!-- Voice Selector -->
+            <div class="form-group">
+              <label for="voiceSelect" class="input-label">
+                <span>🗣️ الصوت العصبي المعتمد:</span>
+              </label>
+              <div class="select-wrap">
+                <select id="voiceSelect" class="form-select">
+                  <optgroup label="أصوات الفصحى المعتمدة">
+                    <option value="ar-XA-Standard-A" selected>العربية الفصحى (أنثوي رصين ومحترف - Standard A)</option>
+                    <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق وواثق - Standard B)</option>
+                  </optgroup>
+                  <optgroup label="محركات الذكاء الاصطناعي (Gemini Neural)">
+                    <option value="Aoede">Aoede (وثائقي عقاري فخم)</option>
+                    <option value="Puck">Puck (حيوي وتفاعلي للعروض السريعة)</option>
+                    <option value="Charon">Charon (هادئ ووقور للمشاريع الكبرى)</option>
+                    <option value="Kore">Kore (عصري وأنيق للوحدات السكنية)</option>
+                    <option value="Fenrir">Fenrir (رسمي وموثوق للمكاتب والمحلات)</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+
+            <!-- Music Volume & Ducking Slider -->
+            <div class="form-group">
+              <div class="slider-header-row">
+                <label for="duckSlider" class="input-label mb-0">
+                  <span>🎵 خفض الموسيقى أثناء الكلام (Ducking Level):</span>
+                </label>
+                <div class="ducking-value-badge" id="duckValBadge">25%</div>
+              </div>
+              <div class="slider-track-wrap">
+                <input type="range" id="duckSlider" min="0.05" max="0.50" step="0.05" value="0.25" class="custom-range" aria-label="مستوى خفض الموسيقى">
+              </div>
+              <div class="slider-scale-labels">
+                <span>خفوت تام (5%)</span>
+                <span>متوازن (25%)</span>
+                <span>موسيقى بارزة (50%)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="audio-info-tip">
+            <span class="tip-icon">💡</span>
+            <p class="tip-text">
+              تعتمد المعالجة نغمة سنث هوائية فاخرة بمقام <strong>D Minor</strong>. تقوم خوارزمية الـ <strong>Sidechain Compressor</strong> بخفض النغمة بسلاسة أثناء تحدث المعلق ورفعها تلقائياً عند فواصل الصمت والخاتمة لإنتاج إعلان سينمائي متكامل.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: PRODUCTION CTA & MULTI-STAGE STEPPER -->
+      <section class="card action-card">
+        <!-- Big Gradient CTA Button -->
+        <button type="button" class="btn-produce" id="btnProduce">
+          <span class="btn-glow"></span>
+          <span class="btn-produce-icon">🚀</span>
+          <div class="btn-produce-text">
+            <span class="btn-produce-title">إنتاج الفيديو التسويقي</span>
+            <span class="btn-produce-sub">معالجة الفيديو • استخراج الإطارات • دمج الصوت والموسيقى</span>
+          </div>
+        </button>
+
+        <!-- Animated Multi-Stage Processing Stepper -->
+        <div class="stepper-box" id="stepperBox" style="display: none;">
+          <div class="stepper-header">
+            <div class="stepper-title-row">
+              <div class="spinner-mini"></div>
+              <h3 class="stepper-title">جاري معالجة الفيديو وإنتاج الإعلان...</h3>
+            </div>
+            <div class="stepper-timer" id="stepperTimer">00:00</div>
+          </div>
+
+          <!-- Overall Progress Bar -->
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 15%;"></div>
+          </div>
+
+          <!-- 5-Step Process Tracker -->
+          <ul class="steps-list" id="stepsList">
+            <!-- Step 1 -->
+            <li class="step-item active" data-step="1" id="step1">
+              <div class="step-icon-wrapper">
+                <span class="step-icon-normal">1</span>
+                <span class="step-icon-spinner"></span>
+                <span class="step-icon-done">✓</span>
+              </div>
+              <div class="step-content">
+                <h4 class="step-title">رفع الفيديو من الهاتف</h4>
+                <p class="step-desc">نقل بيانات الفيديو بأمان إلى خادم المعالجة...</p>
+              </div>
+            </li>
+
+            <!-- Step 2 -->
+            <li class="step-item" data-step="2" id="step2">
+              <div class="step-icon-wrapper">
+                <span class="step-icon-normal">2</span>
+                <span class="step-icon-spinner"></span>
+                <span class="step-icon-done">✓</span>
+              </div>
+              <div class="step-content">
+                <h4 class="step-title">تحليل واستخراج لقطات المعاينة</h4>
+                <p class="step-desc">فحص أبعاد الفيديو واستخراج أهم الإطارات المفتاحية...</p>
+              </div>
+            </li>
+
+            <!-- Step 3 -->
+            <li class="step-item" data-step="3" id="step3">
+              <div class="step-icon-wrapper">
+                <span class="step-icon-normal">3</span>
+                <span class="step-icon-spinner"></span>
+                <span class="step-icon-done">✓</span>
+              </div>
+              <div class="step-content">
+                <h4 class="step-title">توليد التعليق الصوتي العصبي</h4>
+                <p class="step-desc">توليف الصوت العربي بجودة عالية متناسقة مع النص...</p>
+              </div>
+            </li>
+
+            <!-- Step 4 -->
+            <li class="step-item" data-step="4" id="step4">
+              <div class="step-icon-wrapper">
+                <span class="step-icon-normal">4</span>
+                <span class="step-icon-spinner"></span>
+                <span class="step-icon-done">✓</span>
+              </div>
+              <div class="step-content">
+                <h4 class="step-title">دمج الموسيقى وخفض الصوت التلقائي</h4>
+                <p class="step-desc">تطبيق الـ Sidechain Ducking والمونتاج السينمائي النهائي...</p>
+              </div>
+            </li>
+
+            <!-- Step 5 -->
+            <li class="step-item" data-step="5" id="step5">
+              <div class="step-icon-wrapper">
+                <span class="step-icon-normal">5</span>
+                <span class="step-icon-spinner"></span>
+                <span class="step-icon-done">✓</span>
+              </div>
+              <div class="step-content">
+                <h4 class="step-title">اكتمل الإنتاج بنجاح!</h4>
+                <p class="step-desc">الفيديو جاهز للعرض والمشاركة والتحميل الفوري.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- SECTION 5: DELIVERY & VIDEO PLAYBACK STUDIO -->
+      <section class="card result-card" id="resultSection" style="display: none;" aria-labelledby="sectionResultTitle">
+        <div class="card-header">
+          <div class="card-icon-wrap emerald pulse">
+            <span>✨</span>
+          </div>
+          <div class="card-title-group">
+            <h2 id="sectionResultTitle" class="card-title">الفيديو التسويقي النهائي الجاهز</h2>
+            <p class="card-subtitle">تم إنجاز المونتاج والميكساج الصوتي بأعلى معايير الجودة</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Final Video Player -->
+          <div class="final-player-wrap">
+            <video id="finalVideoPlayer" class="final-video-player" controls playsinline preload="auto"></video>
+          </div>
+
+          <!-- Production Metadata Badges Grid -->
+          <div class="telemetry-badges-grid" id="telemetryBadgesGrid">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Delivery Action Buttons -->
+          <div class="delivery-actions-grid">
+            <!-- Download MP4 -->
+            <a id="btnDownloadVideo" class="action-btn-delivery btn-download-primary" download target="_blank">
+              <span class="btn-icon">⬇️</span>
+              <div class="btn-text-block">
+                <span class="btn-bold">تحميل الفيديو (MP4)</span>
+                <span class="btn-small">أعلى دقة جاهز للنشر</span>
+              </div>
+            </a>
+
+            <!-- Web Share API Button -->
+            <button type="button" class="action-btn-delivery btn-share-accent" id="btnShareVideo">
+              <span class="btn-icon">📲</span>
+              <div class="btn-text-block">
+                <span class="btn-bold">مشاركة الفيديو</span>
+                <span class="btn-small">واتساب، إنستغرام، تيك توك</span>
+              </div>
+            </button>
+
+            <!-- Download Audio WAV -->
+            <a id="btnDownloadAudio" class="action-btn-delivery btn-audio-secondary" download target="_blank">
+              <span class="btn-icon">🎙️</span>
+              <div class="btn-text-block">
+                <span class="btn-bold">تحميل التعليق الصوتي</span>
+                <span class="btn-small">ملف صوتي عالي النقاوة (WAV)</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Quick Social Share Shortcuts -->
+          <div class="social-share-row">
+            <span class="social-share-label">نشر مباشر سريع:</span>
+            <div class="social-chips">
+              <button type="button" class="social-chip chip-whatsapp" id="btnShareWhatsApp">
+                <span>💬 واتساب</span>
+              </button>
+              <button type="button" class="social-chip chip-telegram" id="btnShareTelegram">
+                <span>✈️ تيليجرام</span>
+              </button>
+              <button type="button" class="social-chip chip-copy" id="btnCopyVideoLink">
+                <span>📋 نسخ الرابط</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Keyframes Thumbnail Carousel -->
+          <div class="keyframes-container">
+            <div class="keyframes-header">
+              <div class="keyframes-title">
+                <span>🖼️ لقطات المعاينة المفتاحية (Keyframes):</span>
+                <span class="keyframes-count-badge" id="keyframesCountBadge">0 لقطة</span>
+              </div>
+              <span class="keyframes-sub">اضغط على أي لقطة لتكبيرها وفحصها</span>
+            </div>
+
+            <div class="keyframes-carousel" id="keyframesCarousel" role="region" aria-label="معرض الإطارات المفتاحية">
+              <!-- Dynamically populated with keyframe thumbnails -->
+            </div>
+          </div>
+
+          <!-- Produce Another Video Reset -->
+          <div class="reset-row">
+            <button type="button" class="btn-subtle" id="btnStartNewProduction">
+              <span>➕ تصوير أو إنتاج فيديو عقاري جديد</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Global Keyframe Modal Viewer -->
+    <div class="modal-backdrop" id="keyframeModal" style="display: none;" role="dialog" aria-modal="true" aria-label="معاينة اللقطة المفتاحية">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title" id="modalFrameTitle">لقطة مفتاحية</span>
+          <button type="button" class="icon-btn modal-close" id="btnModalClose" aria-label="إغلاق">✕</button>
+        </div>
+        <div class="modal-image-wrap">
+          <img id="modalFrameImg" src="" alt="Keyframe Preview">
+        </div>
+        <div class="modal-footer">
+          <span class="modal-timestamp" id="modalFrameTimestamp">0.0s</span>
+          <a id="btnModalDownload" class="btn-subtle" download target="_blank">⬇️ حفظ اللقطة</a>
         </div>
       </div>
-      <p style="font-size: 0.75rem; color: var(--text-muted);">
-        🎵 تستخدم المعالجة نغمة السنث الفضائية في مقام D minor مع تقنية الـ Sidechain Compress لتخفيض الموسيقى أثناء الكلام ورفعها بنعومة عند فواصل الصمت والخاتمة.
-      </p>
     </div>
 
-    <!-- Submit CTA -->
-    <button class="btn-submit" id="submitBtn">
-      <span>🚀</span>
-      <span>معالجة وإنتاج الفيديو التسويقي</span>
-    </button>
+    <!-- Feedback Toast -->
+    <div class="toast" id="appToast" role="alert" aria-live="polite"></div>
 
-    <!-- Progress Indicator -->
-    <div class="progress-box" id="progressBox">
-      <div class="spinner"></div>
-      <div class="progress-text" id="progressMsg">جاري رفع الفيديو واستخراج الإطارات المفتاحية...</div>
-    </div>
-
-    <!-- Results Display -->
-    <div class="card result-box" id="resultBox">
-      <div class="card-title">
-        <span class="icon">✨</span>
-        <span>الفيديو التسويقي النهائي الجاهز</span>
+    <!-- Application Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <p class="footer-text">
+          منصة استوديو عقارات الجزائر | Mobile Real Estate Front-End Suite
+        </p>
+        <p class="footer-meta">
+          فريق التطوير: agy51 & agy11 | المؤلف: MohammedBoure | الفرع: frontend/agy51-mobile-web-system
+        </p>
       </div>
-
-      <video id="resultPlayer" class="result-player" controls playsinline></video>
-
-      <div class="meta-badges" id="metaBadges"></div>
-
-      <label>الإطارات المفتاحية المستخرجة (Keyframes):</label>
-      <div class="keyframes-scroll" id="keyframesScroll"></div>
-
-      <div class="action-links">
-        <a id="downloadCutBtn" class="btn-download" download target="_blank">
-          <span>⬇️</span> تحميل الفيديو النهائي
-        </a>
-        <a id="downloadAudioBtn" class="btn-download btn-audio" download target="_blank">
-          <span>🎙️</span> تحميل التعليق الصوتي
-        </a>
-      </div>
-    </div>
-
-    <footer>
-      منصة Video Post-Production & Mobile API Server | Squad: agy11 | المؤلف: MohammedBoure
     </footer>
   </div>
 
-  <script>
-    const DEFAULT_PRESETS = [
-      {
-        id: "algiers_f4_luxury",
-        title_ar: "شقة فاخرة F4 - الجزائر العاصمة",
-        title_fr: "Appartement F4 Haut Standing - Alger",
-        description: "شقة فاخرة من أربع غرف بتشطيبات عالية الجودة في قلب العاصمة، إطلالة ساحرة وموقع هادئ قريب من كل المرافق الحيوية."
-      },
-      {
-        id: "oran_seaview_villa",
-        title_ar: "فيلا عصرية بواجهة بحرية - وهران",
-        title_fr: "Villa Moderne Vue sur Mer - Oran",
-        description: "فيلا عصرية بواجهة بحرية خلابة في وهران، حديقة خاصة ومسبح وتصميم معماري رفيع يلبي أعلى معايير الرفاهية."
-      },
-      {
-        id: "constantine_commercial",
-        title_ar: "محل تجاري استراتيجي - قسنطينة",
-        title_fr: "Local Commercial Stratégique - Constantine",
-        description: "محل تجاري في موقع استراتيجي نشط بمدينة قسنطينة، واجهة واسعة وحركة تجارية ممتازة مناسب لكافة المشاريع."
-      },
-      {
-        id: "rental_apartment",
-        title_ar: "شقة مجهزة ومؤثثة للكراء",
-        title_fr: "Appartement Équipé en Location",
-        description: "شقة مؤثثة بالكامل ومجهزة بأحدث التجهيزات للكراء في موقع متميز، راحة وأمان لعائلتك."
-      }
-    ];
-
-    let currentPresetId = "algiers_f4_luxury";
-    let selectedFile = null;
-
-    // DOM Elements
-    const videoFileInput = document.getElementById("videoFile");
-    const dropZone = document.getElementById("dropZone");
-    const previewBox = document.getElementById("previewBox");
-    const previewPlayer = document.getElementById("previewPlayer");
-    const presetsGrid = document.getElementById("presetsGrid");
-    const scriptText = document.getElementById("scriptText");
-    const voiceSelect = document.getElementById("voiceSelect");
-    const duckSlider = document.getElementById("duckSlider");
-    const duckVal = document.getElementById("duckVal");
-    const submitBtn = document.getElementById("submitBtn");
-    const progressBox = document.getElementById("progressBox");
-    const progressMsg = document.getElementById("progressMsg");
-    const resultBox = document.getElementById("resultBox");
-    const resultPlayer = document.getElementById("resultPlayer");
-    const metaBadges = document.getElementById("metaBadges");
-    const keyframesScroll = document.getElementById("keyframesScroll");
-    const downloadCutBtn = document.getElementById("downloadCutBtn");
-    const downloadAudioBtn = document.getElementById("downloadAudioBtn");
-
-    // Initialize Ducking Slider Label
-    duckSlider.addEventListener("input", (e) => {
-      duckVal.textContent = Math.round(e.target.value * 100) + "%";
-    });
-
-    // Populate Presets
-    function renderPresets(presets) {
-      presetsGrid.innerHTML = "";
-      presets.forEach((p, index) => {
-        const div = document.createElement("div");
-        div.className = "preset-card" + (p.id === currentPresetId ? " active" : "");
-        div.innerHTML = `
-          <div class="preset-title-ar">${p.title_ar}</div>
-          <div class="preset-title-fr">${p.title_fr}</div>
-        `;
-        div.addEventListener("click", () => {
-          document.querySelectorAll(".preset-card").forEach(c => c.classList.remove("active"));
-          div.classList.add("active");
-          currentPresetId = p.id;
-          scriptText.value = p.description;
-        });
-        presetsGrid.appendChild(div);
-      });
-      // Set initial description
-      const active = presets.find(p => p.id === currentPresetId) || presets[0];
-      if (active && !scriptText.value) {
-        scriptText.value = active.description;
-      }
-    }
-
-    // Fetch Presets from API
-    async function loadPresets() {
-      try {
-        const res = await fetch("/api/presets");
-        if (res.ok) {
-          const list = await res.json();
-          renderPresets(list);
-          return;
-        }
-      } catch (err) {
-        console.warn("Could not fetch remote presets, using defaults:", err);
-      }
-      renderPresets(DEFAULT_PRESETS);
-    }
-    loadPresets();
-
-    // File Selection & Preview Handling
-    videoFileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      selectedFile = file;
-      const url = URL.createObjectURL(file);
-      previewPlayer.src = url;
-      previewBox.style.display = "block";
-      dropZone.querySelector(".upload-label-main").textContent = "تم اختيار: " + file.name;
-    });
-
-    // Drag and Drop
-    dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("dragover"); });
-    dropZone.addEventListener("dragleave", () => { dropZone.classList.remove("dragover"); });
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("dragover");
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        videoFileInput.files = e.dataTransfer.files;
-        const event = new Event('change');
-        videoFileInput.dispatchEvent(event);
-      }
-    });
-
-    // Submit & Process Video
-    submitBtn.addEventListener("click", async () => {
-      if (!selectedFile && (!videoFileInput.files || !videoFileInput.files[0])) {
-        alert("يرجى اختيار أو تسجيل مقطع فيديو أولاً!");
-        return;
-      }
-      const fileToUpload = selectedFile || videoFileInput.files[0];
-
-      // Form Data
-      const formData = new FormData();
-      formData.append("video", fileToUpload);
-      formData.append("script", scriptText.value.trim());
-      formData.append("preset", currentPresetId);
-      formData.append("voice", voiceSelect.value);
-      formData.append("duck_level", duckSlider.value);
-
-      // UI State
-      submitBtn.disabled = true;
-      progressBox.style.display = "block";
-      resultBox.style.display = "none";
-      progressMsg.textContent = "جاري رفع الفيديو وتحليله...";
-
-      const msgSteps = [
-        "جاري استخراج الإطارات المفتاحية (Keyframes)...",
-        "توليد التعليق الصوتي الاحترافي باللغة العربية...",
-        "تأليف وتنسيق نغمة السنث الهوائية (D Minor Pad)...",
-        "تطبيق خفض الموسيقى الذكي (Sidechain Ducking)...",
-        "المونتاج النهائي وترميز الفيديو بأعلى دقة..."
-      ];
-      let stepIdx = 0;
-      const stepTimer = setInterval(() => {
-        if (stepIdx < msgSteps.length) {
-          progressMsg.textContent = msgSteps[stepIdx++];
-        }
-      }, 2500);
-
-      try {
-        const response = await fetch("/api/upload-and-process", {
-          method: "POST",
-          body: formData,
-        });
-
-        clearInterval(stepTimer);
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || "فشل معالجة الفيديو");
-        }
-
-        const data = await response.json();
-        progressBox.style.display = "none";
-        submitBtn.disabled = false;
-
-        // Display Results
-        displayResult(data);
-
-      } catch (err) {
-        clearInterval(stepTimer);
-        progressBox.style.display = "none";
-        submitBtn.disabled = false;
-        alert("حدث خطأ أثناء المعالجة: " + err.message);
-      }
-    });
-
-    function displayResult(data) {
-      resultBox.style.display = "block";
-      resultPlayer.src = data.video_url;
-      downloadCutBtn.href = data.video_url;
-      downloadAudioBtn.href = data.narration_audio_url || "#";
-
-      // Meta Badges
-      metaBadges.innerHTML = `
-        <span class="badge badge-accent">المدة: ${data.duration} ثانية</span>
-        <span class="badge">الأبعاد: ${data.resolution} (${data.orientation === 'portrait' ? 'عمودي 9:16' : 'أفقي 16:9'})</span>
-        <span class="badge">المحرك الصوتي: ${data.synthesizer}</span>
-        <span class="badge">عدد الإطارات: ${data.total_keyframes}</span>
-        <span class="badge">معرف المعالجة: ${data.job_id}</span>
-      `;
-
-      // Keyframes Gallery
-      keyframesScroll.innerHTML = "";
-      if (data.keyframes && data.keyframes.length > 0) {
-        data.keyframes.forEach(kf => {
-          const item = document.createElement("div");
-          item.className = "keyframe-item";
-          item.innerHTML = `
-            <img src="${kf.url}" alt="Frame ${kf.frame_index}" loading="lazy">
-            <span class="keyframe-ts">${kf.timestamp.toFixed(1)}s</span>
-          `;
-          keyframesScroll.appendChild(item);
-        });
-      }
-
-      // Smooth scroll into view
-      resultBox.scrollIntoView({ behavior: 'smooth' });
-    }
-  </script>
+  <!-- Application Script -->
+  <script src="/static/app.js" defer></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
