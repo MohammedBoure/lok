@@ -31,6 +31,19 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Command Line Interface execution and structured JSON stdout (`test_cli_invocation_json`).
   - Multi-video batch processing and index file generation (`test_process_videos_batch`).
   - MCP server initialization and tool registration (`test_mcp_server_tool_registration`).
+- [`test_mobile_api.py`](test_mobile_api.py): Mobile API server and post-production bridge test suite verifying:
+  - Algerian real estate presets catalog and bilingual metadata (`test_algerian_presets_catalog`).
+  - Synthetic voiceover generation with harmonic formants and valid WAV headers (`test_synthetic_voice_generation`).
+  - Portrait (9:16) video processing, keyframe extraction, and ducking assembly (`test_process_mobile_video_portrait`).
+  - Landscape (16:9) video processing with custom narration script (`test_process_mobile_video_landscape_custom_script`).
+  - Health check endpoint `GET /api/health` (`test_api_health_endpoint`).
+  - Presets catalog endpoint `GET /api/presets` (`test_api_presets_endpoint`).
+  - Mobile web studio frontend serving `GET /` (`test_api_index_endpoint`).
+  - Multipart upload and post-production execution `POST /api/upload-and-process` (`test_api_upload_and_process_endpoint`).
+  - Job status tracking `GET /api/status/{job_id}` and not-found handling (`test_api_status_not_found`).
+  - Upload validation and error response for missing video (`test_api_upload_missing_video`).
+  - Host LAN IP detection and format validation (`test_detect_lan_ip`).
+  - Terminal QR code and banner generator execution (`test_server_banner_execution`).
 - [`test_assemble_video.py`](test_assemble_video.py): Video editorial assembly test suite verifying:
   - Source video stream and format probing (`test_probe_file_inputs`).
   - Voiceover narration audio properties, duration, and sampling (`test_ensure_narration_audio_metadata`).

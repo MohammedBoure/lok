@@ -31,7 +31,12 @@ This directory stores rendered intermediate assets, extracted keyframes, TTS aud
   - Bit Rate: 192 kbps.
   - Mix Structure: Front-centered voiceover dynamically sidechained over a harmonic woodland ambient synth pad drone (Open D pentatonic chord with pink noise breeze texture).
 
-### 4. Shared Execution Summary (`execution_summary.json`)
+### 4. Mobile Cuts Directory (`mobile_cuts/`)
+- Contains rendered marketing promo cuts produced by the mobile video bridge (`cut_<job_id>.mp4`).
+- Accompanied by synthesized voiceover audio tracks (`narration_<job_id>.wav`) and per-job execution summaries (`summary_<job_id>.json`).
+- Keyframes extracted for each mobile processing job are stored in `outputs/keyframes/mobile_<job_id>/`.
+
+### 5. Shared Execution Summary (`execution_summary.json`)
 - Comprehensive post-production record containing:
   - Source clips used, selected segment start/end timestamps.
   - TTS voiceover metadata, duration, and pacing analysis.

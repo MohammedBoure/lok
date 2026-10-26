@@ -88,15 +88,37 @@ python3 -m frame_extractor --batch inputs/source_fox_cub.mp4 inputs/source_squir
 python3 -m frame_extractor --mcp
 ```
 
+## Mobile API Server & Smartphone Video Post-Production (`web/`)
+
+The mobile gateway subsystem in [`web/`](web/) enables real-time ingestion, processing, and assembly of smartphone camera recordings into Algerian real estate promotional videos.
+
+### Key Capabilities
+- **Universal Mobile Video Support**: Automatically formats portrait (9:16 vertical) and landscape (16:9 widescreen) mobile recordings.
+- **Algerian Real Estate Presets**: Built-in bilingual templates (`algiers_f4_luxury`, `oran_seaview_villa`, `constantine_commercial`, `rental_apartment`).
+- **Dynamic Synth Music & Ducking**: Layered D minor ambient synth pad with `sidechaincompress` ducking under Arabic voiceover narration, swelling during pauses and outro.
+- **Zero-Config LAN Access**: Terminal launcher with ASCII QR code pointing to `http://<LAN_IP>:8000` for instant smartphone camera connectivity.
+- **REST API & Web Studio**: Starlette backend with CORS, multipart upload (`/api/upload-and-process`), preset listing (`/api/presets`), and interactive mobile interface (`/`).
+
+### Launching Mobile Server
+```bash
+python3 -m web.run_server
+```
+
 ## Directory Structure
 - [`.agent/`](.agent/): Operational directives and agent principles (`agy1.md`, `agy11.md`, `agy51.md`).
-- [`inputs/`](inputs/): Raw incoming video footage (`source_fox_cub.mp4`, `source_squirrel.mp4`) and production requests.
-- [`outputs/`](outputs/): Rendered assets, keyframes, TTS audio, and final cut exports.
+- [`inputs/`](inputs/): Raw incoming video footage (`source_fox_cub.mp4`, `source_squirrel.mp4`), mobile uploads, and production requests.
+- [`outputs/`](outputs/): Rendered assets, keyframes, mobile cuts, TTS audio, and final cut exports.
   - [`outputs/keyframes/`](outputs/keyframes/): Extracted keyframe images and `frame_index.json`.
+  - [`outputs/mobile_cuts/`](outputs/mobile_cuts/): Rendered mobile promo cuts (`cut_<job_id>.mp4`) and summaries.
   - [`outputs/narration.wav`](outputs/narration.wav): High-quality Gemini TTS voiceover track.
   - [`outputs/final_cut.mp4`](outputs/final_cut.mp4): Completed 17-second synchronized video with ducked audio.
   - [`outputs/execution_summary.json`](outputs/execution_summary.json): Complete editorial and audio mixing metadata.
-- [`tests/`](tests/): Automated test suite for frame extraction, MCP tool, and video processing.
+- [`web/`](web/): Mobile API server, post-production bridge, QR launcher, and mobile web studio.
+  - [`web/pipeline_bridge.py`](web/pipeline_bridge.py): Core mobile video processing and FFmpeg assembly engine.
+  - [`web/server.py`](web/server.py): Starlette REST API server with CORS and static file mounting.
+  - [`web/run_server.py`](web/run_server.py): LAN IP detector and ASCII QR code launcher.
+  - [`web/static/`](web/static/): Mobile web studio single-page application.
+- [`tests/`](tests/): Automated test suite for frame extraction, MCP tool, video processing, and mobile API.
 - [`tts/`](tts/): Local Gemini TTS speech synthesis client library.
 - [`assemble_video.py`](assemble_video.py): Editorial decision engine and FFmpeg video assembly script.
 - [`frame_extractor.py`](frame_extractor.py): Visual extraction engine, CLI, and MCP tool provider.

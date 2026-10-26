@@ -3,29 +3,29 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Tool Development & Visual Extraction Squad",
-      "branch": "backend/agy11-frame-extraction-mcp",
-      "scope": "Build and expose MCP tool 'mcp_get_image_from_video' and extraction engine to sample keyframes with timestamps from raw video",
+      "role": "Backend Architecture & Processing Bridge",
+      "branch": "backend/agy11-mobile-api-server",
+      "scope": "Develop Starlette/Uvicorn server (web/server.py, web/pipeline_bridge.py, web/run_server.py) with QR code generator, mobile video upload & async processing pipeline integration",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Audio, Narration & Editing Collective",
-      "branch": "frontend/agy51-video-assembly-pipeline",
-      "scope": "Generate TTS narration via local repo service, implement FFmpeg editing assembly with audio sync and dynamic background music ducking",
-      "dependencies": ["backend/agy11-frame-extraction-mcp"],
+      "role": "Mobile Front-End & Real Estate UI/UX",
+      "branch": "frontend/agy51-mobile-web-system",
+      "scope": "Build responsive mobile PWA UI (web/static/index.html, app.js, style.css) with live phone camera recording, HTML5 capture fallback, Algerian real estate marketing presets, progress tracker, and final cut player",
+      "dependencies": ["backend/agy11-mobile-api-server"],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Quality Control & Gatekeeper",
-      "branch": "test/agy100-pipeline-validation",
-      "scope": "Pragmatic integration testing of MCP frame extractor, TTS audio, assembly sync, and merge verification into develop",
-      "dependencies": ["backend/agy11-frame-extraction-mcp", "frontend/agy51-video-assembly-pipeline"],
-      "state": "COMPLETED"
+      "role": "Quality Gatekeeper & Integration Testing",
+      "branch": "test/agy100-mobile-verification",
+      "scope": "Pragmatic integration testing of mobile API endpoints, upload workflow, video pipeline assembly, and gatekeeper merge into develop",
+      "dependencies": ["backend/agy11-mobile-api-server", "frontend/agy51-mobile-web-system"],
+      "state": "PENDING"
     }
   ]
 }
