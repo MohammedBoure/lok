@@ -3980,3 +3980,274 @@ textarea#scriptText:focus {
   gap: 12px;
   margin-top: 18px;
 }
+
+
+/* ==========================================================================
+   Clean Studio, Session Login Gateway & Voice Audition Player Polish
+   ========================================================================== */
+
+/* Auth Header Action Buttons */
+.auth-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-auth-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn-auth-header.btn-logout {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.btn-auth-header.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-auth-header.btn-login {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35));
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #6ee7b7;
+}
+
+.btn-auth-header.btn-login:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Highlighted Linguistic Guidance */
+.highlight-guidance {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  transition: border-color 0.25s ease;
+}
+
+.highlight-guidance:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.guidance-main-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.sub-label-dim {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: normal;
+  margin-right: 6px;
+}
+
+/* Session Login Modal */
+.modal-login-card {
+  max-width: 520px;
+  width: 95%;
+  background: #0b1120;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+  padding: 24px;
+}
+
+.login-role-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-role-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-role-tab.active {
+  background: #1e293b;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btn-role-tab[data-role="admin"].active {
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.btn-role-tab[data-role="merchant"].active {
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
+.login-helper-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  color: #fde68a;
+  line-height: 1.5;
+}
+
+.login-helper-note .note-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.login-helper-note code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #fef08a;
+  font-family: monospace;
+}
+
+.merchant-login-hint {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.merchant-quick-login-wrap {
+  margin-bottom: 16px;
+}
+
+.quick-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 8px;
+}
+
+.merchant-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px;
+}
+
+.btn-merchant-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-merchant-quick:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+.btn-merchant-quick .quick-biz-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.btn-merchant-quick .quick-biz-cat {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.btn-login-submit {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.btn-login-submit.admin {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0b1120;
+}
+
+.btn-login-submit.admin:hover {
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.btn-login-submit.merchant {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+}
+
+.btn-login-submit.merchant:hover {
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+/* Polished Voice Audition Soundwave States */
+.btn-voice-preview.playing {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
+  color: #fbbf24;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-voice-preview.playing::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent);
+  animation: waveSweep 1.5s infinite;
+}
+
+@keyframes waveSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
