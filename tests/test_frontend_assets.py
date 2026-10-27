@@ -2,7 +2,7 @@
 Unit & Integration Tests for Mobile Web Front-End Assets (tests/test_frontend_assets.py)
 Author: MohammedBoure
 Role: Mobile Front-End & Real Estate UI/UX Lead (agy51)
-Branch: frontend/agy51-mobile-web-system
+Branch: frontend/agy51-one-click-ux-and-session-persistence
 """
 
 import re
@@ -44,7 +44,9 @@ def test_index_html_dom_elements():
     assert 'id="dropZone"' in html_content
     assert 'id="previewPlayer"' in html_content
 
-    # Real Estate Presets & Script
+    # Real Estate Presets & Script (inside optional accordion)
+    assert 'id="advancedAccordion"' in html_content
+    assert 'id="accordionSummary"' in html_content
     assert 'id="presetsSelectorGrid"' in html_content
     assert 'id="scriptText"' in html_content
     assert 'id="wordCount"' in html_content
@@ -53,16 +55,27 @@ def test_index_html_dom_elements():
 
     # Audio Controls
     assert 'id="voiceSelect"' in html_content
+    assert 'id="musicSelect"' in html_content
     assert 'id="duckSlider"' in html_content
 
-    # Production CTA & Stepper
+    # 1-Click Production CTA & Stepper
     assert 'id="btnProduce"' in html_content
+    assert "إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة" in html_content
     assert 'id="stepperBox"' in html_content
     assert 'id="step1"' in html_content
     assert 'id="step2"' in html_content
     assert 'id="step3"' in html_content
     assert 'id="step4"' in html_content
     assert 'id="step5"' in html_content
+
+    # Session Reset & Reconnection Buttons
+    assert 'id="btnResetNewVideo"' in html_content
+    assert 'id="btnStartNewProduction"' in html_content
+    assert 'id="btnCancelSession"' in html_content
+
+    # Emotional Tone Spotlight & Badges
+    assert 'id="emotionalToneSpotlight"' in html_content
+    assert 'id="emotionalToneVal"' in html_content
 
     # Video Player & Delivery
     assert 'id="finalVideoPlayer"' in html_content
@@ -85,6 +98,20 @@ def test_app_js_dom_references():
         assert f'id="{el_id}"' in html_content, f"ID '{el_id}' referenced in app.js not found in index.html"
 
 
+def test_session_persistence_and_one_click_logic():
+    """Verify app.js contains logic for localStorage session persistence and 1-click auto mode."""
+    js_content = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+    assert "ACTIVE_JOB_KEY = 'active_job_id'" in js_content
+    assert "localStorage.setItem(ACTIVE_JOB_KEY" in js_content
+    assert "localStorage.getItem(ACTIVE_JOB_KEY)" in js_content
+    assert "localStorage.removeItem(ACTIVE_JOB_KEY)" in js_content
+    assert "restoreSavedSession" in js_content
+    assert "resetSessionAndNewVideo" in js_content
+    assert "auto_mode" in js_content
+    assert "emotionalTone" in js_content
+
+
 def test_character_mapping_compliance():
     """Verify that the Arabic numeral ٩ (U+0669) does not appear in source files."""
     for fname in ["index.html", "style.css", "app.js", "README.md"]:
@@ -101,16 +128,18 @@ def test_static_routes_http_serving():
     assert r_index.status_code == 200
     assert "text/html" in r_index.headers["content-type"]
     assert "استوديو عقارات الجزائر" in r_index.text
+    assert "إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة" in r_index.text
 
     # 2. Static CSS
     r_css = client.get("/static/style.css")
     assert r_css.status_code == 200
     assert "--emerald-500" in r_css.text
+    assert ".btn-produce-1click" in r_css.text
 
     # 3. Static JS
     r_js = client.get("/static/app.js")
     assert r_js.status_code == 200
-    assert "handleSelectedVideo" in r_js.text
+    assert "restoreSavedSession" in r_js.text
 
     # 4. Presets API
     r_presets = client.get("/api/presets")

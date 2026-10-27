@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1120">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="منصة إنتاج الفيديو الذكية لتصوير وتسويق عقارات الجزائر عبر الهاتف الجوال مع تعليق صوتي وموسيقى ديناميكية.">
+  <meta name="description" content="منصة إنتاج الفيديو الذكية لتصوير وتسويق عقارات الجزائر عبر الهاتف الجوال بنقرة واحدة مع تعليق صوتي وموسيقى ديناميكية.">
   <title>استوديو عقارات الجزائر | Algerian Real Estate Mobile Studio</title>
 
   <!-- Google Typography -->
@@ -33,7 +33,7 @@
           </div>
         </div>
         <p class="brand-subtitle">
-          تصوير الهاتف الجوال ⟵ توليد تعليق صوتي عربي احترافي ⟵ مونتاج سينمائي بموسيقى تفاعلية (Sidechain)
+          إنتاج تسويقي فوري بنقرة واحدة ⟵ تحليل بصري ذكي ⟵ تعليق صوتي وموسيقى تفاعلية (Sidechain)
         </p>
         <div class="system-status-chip" id="systemStatusChip">
           <span class="status-indicator online"></span>
@@ -44,14 +44,14 @@
 
     <main class="main-content">
       <!-- SECTION 1: VIDEO INGESTION & CAMERA RECORDING -->
-      <section class="card capture-card" aria-labelledby="sectionCaptureTitle">
+      <section class="card capture-card" id="captureSection" aria-labelledby="sectionCaptureTitle">
         <div class="card-header">
           <div class="card-icon-wrap emerald">
             <span>📹</span>
           </div>
           <div class="card-title-group">
-            <h2 id="sectionCaptureTitle" class="card-title">تسجيل واختيار فيديو الهاتف</h2>
-            <p class="card-subtitle">التقاط فوري بكاميرا الهاتف بجودة 4K/HD أو تسجيل حي من المتصفح</p>
+            <h2 id="sectionCaptureTitle" class="card-title">الخطوة 1: تسجيل أو اختيار فيديو الهاتف</h2>
+            <p class="card-subtitle">التقاط فوري بكاميرا الهاتف بجودة عالية أو تسجيل حي بالمتصفح</p>
           </div>
         </div>
 
@@ -178,162 +178,167 @@
         </div>
       </section>
 
-      <!-- SECTION 2: ALGERIAN REAL ESTATE PRESETS & SCRIPT CUSTOMIZATION -->
-      <section class="card presets-card" aria-labelledby="sectionPresetsTitle">
-        <div class="card-header">
-          <div class="card-icon-wrap gold">
-            <span>🏛️</span>
-          </div>
-          <div class="card-title-group">
-            <h2 id="sectionPresetsTitle" class="card-title">قوالب العقارات الجزائرية والتعليق الصوتي</h2>
-            <p class="card-subtitle">اختر قالباً تسويقياً جاهزاً أو خصص نص الإعلان بضغطة زر</p>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <!-- Preset Selector Grid -->
-          <div class="presets-selector-grid" id="presetsSelectorGrid" role="radiogroup" aria-label="قوالب العقارات الجزائرية">
-            <!-- Dynamically injected with fallbacks for Algiers F4, Oran Villa, Constantine Store, Rental -->
-          </div>
-
-          <!-- Script Editor Area -->
-          <div class="script-editor-container">
-            <div class="script-editor-header">
-              <label for="scriptText" class="input-label">
-                <span>🎙️ نص التعليق الصوتي التسويقي (Script)</span>
-              </label>
-              <div class="script-quick-actions">
-                <button type="button" class="chip-btn" id="btnResetScript" title="إعادة نص القالب المختار">
-                  <span>↺ استعادة القالب</span>
-                </button>
-                <button type="button" class="chip-btn" id="btnClearScript" title="مسح النص بالكامل">
-                  <span>✕ مسح</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="textarea-wrap">
-              <textarea id="scriptText" rows="4" placeholder="اكتب أو عدل النص الترويجي للعقار هنا، وسيتم تحويله فوراً لتعليق صوتي ذكي ومتقن..." dir="rtl"></textarea>
-            </div>
-
-            <!-- Live Script Analytics Bar -->
-            <div class="script-analytics-bar">
-              <div class="analytic-chip">
-                <span class="analytic-icon">✍️</span>
-                <span class="analytic-text">الكلمات: <strong id="wordCount">0</strong></span>
-              </div>
-              <div class="analytic-chip">
-                <span class="analytic-icon">📝</span>
-                <span class="analytic-text">الأحرف: <strong id="charCount">0</strong></span>
-              </div>
-              <div class="analytic-chip highlight-gold">
-                <span class="analytic-icon">⏱️</span>
-                <span class="analytic-text">مدة الإلقاء المقدرة: <strong id="speechEstDuration">~0 ثانية</strong></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION 3: AUDIO & DYNAMIC DUCKING CONFIGURATION -->
-      <section class="card audio-card" aria-labelledby="sectionAudioTitle">
-        <div class="card-header">
-          <div class="card-icon-wrap cyan">
-            <span>🎚️</span>
-          </div>
-          <div class="card-title-group">
-            <h2 id="sectionAudioTitle" class="card-title">إعدادات الصوت والموسيقى التفاعلية</h2>
-            <p class="card-subtitle">التعليق الصوتي العصبي مع تقنية الـ Sidechain لخفض الموسيقى تلقائياً</p>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="audio-controls-grid">
-            <!-- Voice Selector -->
-            <div class="form-group">
-              <label for="voiceSelect" class="input-label">
-                <span>🗣️ الصوت العصبي المعتمد (Gemini Neural TTS):</span>
-              </label>
-              <div class="select-wrap">
-                <select id="voiceSelect" class="form-select">
-                  <optgroup label="أصوات الفصحى المعتمدة (الرسمية)">
-                    <option value="Aoede" selected>عايدة (Aoede) - صوت أنثوي رخيم وواضح (مثالي للعقارات الفاخرة)</option>
-                    <option value="Charon">شارون (Charon) - صوت ذكوري عميق وواثق (مثالي للفلل والشركات)</option>
-                    <option value="Kore">كوري (Kore) - صوت أنثوي دافئ وهادئ (مثالي للمنازل العائلية)</option>
-                    <option value="Fenrir">فنرير (Fenrir) - صوت ذكوري حيوي وقوي (مثالي للمحلات والفرص التجارية)</option>
-                    <option value="Puck">باك (Puck) - صوت شبابي خفيف ومرح (للعروض السريعة والاستوديوهات)</option>
-                  </optgroup>
-                  <optgroup label="معايير الويب المتوافقة">
-                    <option value="ar-XA-Standard-A">العربية الفصحى (أنثوي رصين - Standard A)</option>
-                    <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق - Standard B)</option>
-                  </optgroup>
-                </select>
-              </div>
-            </div>
-
-            <!-- Open Source Background Music Library -->
-            <div class="form-group">
-              <label for="musicSelect" class="input-label">
-                <span>🎼 الموسيقى التصويرية مفتوحة المصدر:</span>
-              </label>
-              <div class="select-wrap">
-                <select id="musicSelect" class="form-select">
-                  <option value="auto" selected>✨ تلقائي ذكي حسب نوع العقار (موصى به)</option>
-                  <option value="luxury_piano">🎹 بيانو كلاسيكي راقي (Gymnopédie No. 1) - للعقارات الفاخرة</option>
-                  <option value="acoustic_guitar">🎸 غيتار أكوستيك مشرق وهادئ (Jason Shaw) - للمنازل والشقق</option>
-                  <option value="ambient_meditation">🌊 موسيقى تأملية مهدئة بإطلالة بحرية (Jason Shaw) - للفلل والشاليهات</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Music Volume & Ducking Slider -->
-            <div class="form-group">
-              <div class="slider-header-row">
-                <label for="duckSlider" class="input-label mb-0">
-                  <span>🎵 خفض الموسيقى أثناء الكلام (Ducking Level):</span>
-                </label>
-                <div class="ducking-value-badge" id="duckValBadge">25%</div>
-              </div>
-              <div class="slider-track-wrap">
-                <input type="range" id="duckSlider" min="0.05" max="0.50" step="0.05" value="0.25" class="custom-range" aria-label="مستوى خفض الموسيقى">
-              </div>
-              <div class="slider-scale-labels">
-                <span>خفوت تام (5%)</span>
-                <span>متوازن (25%)</span>
-                <span>موسيقى بارزة (50%)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="audio-info-tip">
-            <span class="tip-icon">💡</span>
-            <p class="tip-text">
-              تستخدم المنظومة تعليقاً صوتياً عصبياً حقيقياً عبر <strong>Google Gemini TTS API</strong> مدمجاً مع مكتبة موسيقى حقيقية مفتوحة المصدر (بيانو وغيتار أكوستيك). تقوم خوارزمية <strong>Sidechain Ducking</strong> بخفض صوت الموسيقى بسلاسة أثناء الكلام ورفعها تلقائياً عند فواصل الصمت والخاتمة.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION 4: PRODUCTION CTA & MULTI-STAGE STEPPER -->
-      <section class="card action-card">
-        <!-- Big Gradient CTA Button -->
-        <button type="button" class="btn-produce" id="btnProduce">
+      <!-- SECTION 2: 1-CLICK PRODUCTION HUB & OPTIONAL ADVANCED ACCORDION -->
+      <section class="card action-card" id="actionSection">
+        <!-- Prominent 1-Click Gold & Emerald AI Production Button -->
+        <button type="button" class="btn-produce btn-produce-1click" id="btnProduce">
           <span class="btn-glow"></span>
-          <span class="btn-produce-icon">🚀</span>
+          <span class="btn-produce-icon">✨</span>
           <div class="btn-produce-text">
-            <span class="btn-produce-title">إنتاج الفيديو التسويقي</span>
-            <span class="btn-produce-sub">معالجة الفيديو • استخراج الإطارات • دمج الصوت والموسيقى</span>
+            <span class="btn-produce-title">✨ إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة</span>
+            <span class="btn-produce-sub">تحليل بصري فوري • تعليق صوتي عصبي • موسيقى ديناميكية</span>
           </div>
         </button>
 
-        <!-- Animated Multi-Stage Processing Stepper -->
+        <!-- Optional Collapsible Accordion: Advanced Customization -->
+        <details class="advanced-accordion" id="advancedAccordion">
+          <summary class="accordion-summary" id="accordionSummary">
+            <div class="summary-left">
+              <span class="summary-icon">⚙️</span>
+              <span class="summary-title">تخصيص متقدم (اختياري - يحدده الذكاء الاصطناعي تلقائياً)</span>
+            </div>
+            <span class="summary-chevron" aria-hidden="true">▼</span>
+          </summary>
+
+          <div class="accordion-body">
+            <!-- Sub-Section: Algerian Presets -->
+            <div class="accordion-sub-section">
+              <div class="accordion-sub-header">
+                <span class="sub-icon">🏛️</span>
+                <h3 class="accordion-sub-title">قوالب العقارات الجزائرية</h3>
+              </div>
+              <div class="presets-selector-grid" id="presetsSelectorGrid" role="radiogroup" aria-label="قوالب العقارات الجزائرية">
+                <!-- Dynamically injected with fallbacks for Algiers F4, Oran Villa, Constantine Store, Rental -->
+              </div>
+            </div>
+
+            <!-- Sub-Section: Custom Script Editor -->
+            <div class="accordion-sub-section">
+              <div class="script-editor-container">
+                <div class="script-editor-header">
+                  <label for="scriptText" class="input-label">
+                    <span>🎙️ نص التعليق الصوتي التسويقي (Script)</span>
+                  </label>
+                  <div class="script-quick-actions">
+                    <button type="button" class="chip-btn" id="btnResetScript" title="إعادة نص القالب المختار">
+                      <span>↺ استعادة القالب</span>
+                    </button>
+                    <button type="button" class="chip-btn" id="btnClearScript" title="مسح النص بالكامل">
+                      <span>✕ مسح</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="textarea-wrap">
+                  <textarea id="scriptText" rows="4" placeholder="اتركه فارغاً ليقوم الذكاء الاصطناعي بتوليده تلقائياً من محتوى الفيديو، أو اكتب نصك المخصص هنا..." dir="rtl"></textarea>
+                </div>
+
+                <!-- Live Script Analytics Bar -->
+                <div class="script-analytics-bar">
+                  <div class="analytic-chip">
+                    <span class="analytic-icon">✍️</span>
+                    <span class="analytic-text">الكلمات: <strong id="wordCount">0</strong></span>
+                  </div>
+                  <div class="analytic-chip">
+                    <span class="analytic-icon">📝</span>
+                    <span class="analytic-text">الأحرف: <strong id="charCount">0</strong></span>
+                  </div>
+                  <div class="analytic-chip highlight-gold">
+                    <span class="analytic-icon">⏱️</span>
+                    <span class="analytic-text">مدة الإلقاء المقدرة: <strong id="speechEstDuration">~0 ثانية</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sub-Section: Audio & Dynamic Ducking Settings -->
+            <div class="accordion-sub-section">
+              <div class="accordion-sub-header">
+                <span class="sub-icon">🎚️</span>
+                <h3 class="accordion-sub-title">إعدادات الصوت والموسيقى</h3>
+              </div>
+
+              <div class="audio-controls-grid">
+                <!-- Voice Selector -->
+                <div class="form-group">
+                  <label for="voiceSelect" class="input-label">
+                    <span>🗣️ الصوت العصبي المعتمد (Gemini Neural TTS):</span>
+                  </label>
+                  <div class="select-wrap">
+                    <select id="voiceSelect" class="form-select">
+                      <option value="auto" selected>✨ اختيار تلقائي ذكي حسب نبرة العقار (موصى به)</option>
+                      <optgroup label="أصوات الفصحى المعتمدة (الرسمية)">
+                        <option value="Aoede">عايدة (Aoede) - صوت أنثوي رخيم وواضح (مثالي للعقارات الفاخرة)</option>
+                        <option value="Charon">شارون (Charon) - صوت ذكوري عميق وواثق (مثالي للفلل والشركات)</option>
+                        <option value="Kore">كوري (Kore) - صوت أنثوي دافئ وهادئ (مثالي للمنازل العائلية)</option>
+                        <option value="Fenrir">فنرير (Fenrir) - صوت ذكوري حيوي وقوي (مثالي للمحلات والفرص التجارية)</option>
+                        <option value="Puck">باك (Puck) - صوت شبابي خفيف ومرح (للعروض السريعة)</option>
+                      </optgroup>
+                      <optgroup label="معايير الويب المتوافقة">
+                        <option value="ar-XA-Standard-A">العربية الفصحى (أنثوي رصين - Standard A)</option>
+                        <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق - Standard B)</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Open Source Background Music Library -->
+                <div class="form-group">
+                  <label for="musicSelect" class="input-label">
+                    <span>🎼 الموسيقى التصويرية:</span>
+                  </label>
+                  <div class="select-wrap">
+                    <select id="musicSelect" class="form-select">
+                      <option value="auto" selected>✨ تلقائي ذكي حسب نوع العقار (موصى به)</option>
+                      <option value="luxury_piano">🎹 بيانو كلاسيكي راقي (Gymnopédie No. 1) - للعقارات الفاخرة</option>
+                      <option value="acoustic_guitar">🎸 غيتار أكوستيك مشرق وهادئ (Jason Shaw) - للمنازل والشقق</option>
+                      <option value="ambient_meditation">🌊 موسيقى تأملية مهدئة بإطلالة بحرية (Jason Shaw) - للفلل والشاليهات</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Music Volume & Ducking Slider -->
+                <div class="form-group">
+                  <div class="slider-header-row">
+                    <label for="duckSlider" class="input-label mb-0">
+                      <span>🎵 خفض الموسيقى أثناء الكلام (Ducking Level):</span>
+                    </label>
+                    <div class="ducking-value-badge" id="duckValBadge">25%</div>
+                  </div>
+                  <div class="slider-track-wrap">
+                    <input type="range" id="duckSlider" min="0.05" max="0.50" step="0.05" value="0.25" class="custom-range" aria-label="مستوى خفض الموسيقى">
+                  </div>
+                  <div class="slider-scale-labels">
+                    <span>خفوت تام (5%)</span>
+                    <span>متوازن (25%)</span>
+                    <span>موسيقى بارزة (50%)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="audio-info-tip">
+                <span class="tip-icon">💡</span>
+                <p class="tip-text">
+                  تستخدم المنظومة تعليقاً صوتياً عصبياً حقيقياً عبر <strong>Google Gemini TTS API</strong> مدمجاً مع مكتبة موسيقى حقيقية مفتوحة المصدر (بيانو وغيتار أكوستيك). تقوم خوارزمية <strong>Sidechain Ducking</strong> بخفض صوت الموسيقى بسلاسة أثناء الكلام ورفعها تلقائياً عند فواصل الصمت والخاتمة.
+                </p>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Animated Multi-Stage Processing Stepper & Live Telemetry -->
         <div class="stepper-box" id="stepperBox" style="display: none;">
           <div class="stepper-header">
             <div class="stepper-title-row">
               <div class="spinner-mini"></div>
               <h3 class="stepper-title">جاري معالجة الفيديو وإنتاج الإعلان...</h3>
             </div>
-            <div class="stepper-timer" id="stepperTimer">00:00</div>
+            <div class="stepper-controls-row">
+              <div class="stepper-timer" id="stepperTimer">00:00</div>
+              <button type="button" class="btn-subtle btn-cancel-job" id="btnCancelSession" title="إلغاء والمعالجة من جديد">
+                <span>✕ إلغاء الجلسة</span>
+              </button>
+            </div>
           </div>
 
           <!-- Overall Progress Bar -->
@@ -433,22 +438,37 @@
         </div>
       </section>
 
-      <!-- SECTION 5: DELIVERY & VIDEO PLAYBACK STUDIO -->
+      <!-- SECTION 3: DELIVERY & VIDEO PLAYBACK STUDIO -->
       <section class="card result-card" id="resultSection" style="display: none;" aria-labelledby="sectionResultTitle">
-        <div class="card-header">
-          <div class="card-icon-wrap emerald pulse">
-            <span>✨</span>
+        <div class="card-header result-header-flex">
+          <div class="result-title-wrap">
+            <div class="card-icon-wrap emerald pulse">
+              <span>✨</span>
+            </div>
+            <div class="card-title-group">
+              <h2 id="sectionResultTitle" class="card-title">الفيديو التسويقي النهائي الجاهز</h2>
+              <p class="card-subtitle">تم إنجاز المونتاج والميكساج الصوتي بأعلى معايير الجودة</p>
+            </div>
           </div>
-          <div class="card-title-group">
-            <h2 id="sectionResultTitle" class="card-title">الفيديو التسويقي النهائي الجاهز</h2>
-            <p class="card-subtitle">تم إنجاز المونتاج والميكساج الصوتي بأعلى معايير الجودة</p>
-          </div>
+          <!-- Prominent New Video Button in Header -->
+          <button type="button" class="btn-new-video-prominent" id="btnResetNewVideo">
+            <span>🔄 معالجة فيديو جديد</span>
+          </button>
         </div>
 
         <div class="card-body">
           <!-- Final Video Player -->
           <div class="final-player-wrap">
             <video id="finalVideoPlayer" class="final-video-player" controls playsinline preload="auto"></video>
+          </div>
+
+          <!-- Emotional Tone Spotlight Banner (Dynamically injected if present) -->
+          <div class="emotional-tone-spotlight" id="emotionalToneSpotlight" style="display: none;">
+            <div class="tone-icon">🎭</div>
+            <div class="tone-content">
+              <div class="tone-title">الحالة الشعورية والرؤية السينمائية المكتشفة:</div>
+              <div class="tone-badge-val" id="emotionalToneVal">فاخر وهادئ</div>
+            </div>
           </div>
 
           <!-- Production Metadata Badges Grid -->
@@ -517,10 +537,10 @@
             </div>
           </div>
 
-          <!-- Produce Another Video Reset -->
+          <!-- Produce Another Video Reset Row -->
           <div class="reset-row">
-            <button type="button" class="btn-subtle" id="btnStartNewProduction">
-              <span>➕ تصوير أو إنتاج فيديو عقاري جديد</span>
+            <button type="button" class="btn-new-video-prominent wide" id="btnStartNewProduction">
+              <span>🔄 معالجة فيديو جديد (بدء جلسة جديدة)</span>
             </button>
           </div>
         </div>
@@ -554,7 +574,7 @@
           منصة استوديو عقارات الجزائر | Mobile Real Estate Front-End Suite
         </p>
         <p class="footer-meta">
-          فريق التطوير: agy51 & agy11 | المؤلف: MohammedBoure | الفرع: frontend/agy51-mobile-web-system
+          فريق التطوير: agy51 & agy11 | المؤلف: MohammedBoure | الفرع: frontend/agy51-one-click-ux-and-session-persistence
         </p>
       </div>
     </footer>

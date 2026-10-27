@@ -2,11 +2,16 @@
  * Algerian Real Estate Mobile Studio - Client Application Logic (web/static/app.js)
  * Author: MohammedBoure
  * Role: Mobile Front-End & Real Estate UI/UX Lead (agy51)
- * Branch: frontend/agy51-mobile-web-system
+ * Branch: frontend/agy51-one-click-ux-and-session-persistence
  */
 
 (() => {
   'use strict';
+
+  // ---------------------------------------------------------------------------
+  // Session Persistence Constants
+  // ---------------------------------------------------------------------------
+  const ACTIVE_JOB_KEY = 'active_job_id';
 
   // ---------------------------------------------------------------------------
   // Catalog of Algerian Real Estate Presets (Offline Defaults & Fallback)
@@ -58,8 +63,10 @@
 
     // Production & Pipeline State
     isProcessing: false,
+    activeJobId: null,
     processingSecondsElapsed: 0,
     processingTimerInterval: null,
+    statusPollInterval: null,
     stepAnimationTimeout: null,
     currentJobResult: null,
   };
@@ -100,7 +107,8 @@
     previewOrientation: document.getElementById("previewOrientation"),
     btnChangeVideo: document.getElementById("btnChangeVideo"),
 
-    // Presets & Script
+    // 1-Click & Advanced Accordion
+    advancedAccordion: document.getElementById("advancedAccordion"),
     presetsSelectorGrid: document.getElementById("presetsSelectorGrid"),
     scriptText: document.getElementById("scriptText"),
     wordCount: document.getElementById("wordCount"),
@@ -121,6 +129,7 @@
     stepperTimer: document.getElementById("stepperTimer"),
     progressBarFill: document.getElementById("progressBarFill"),
     stepsList: document.getElementById("stepsList"),
+    btnCancelSession: document.getElementById("btnCancelSession"),
 
     // AI Agent Live Telemetry Elements
     aiAgentLiveCard: document.getElementById("aiAgentLiveCard"),
@@ -132,6 +141,9 @@
     resultSection: document.getElementById("resultSection"),
     finalVideoPlayer: document.getElementById("finalVideoPlayer"),
     telemetryBadgesGrid: document.getElementById("telemetryBadgesGrid"),
+    emotionalToneSpotlight: document.getElementById("emotionalToneSpotlight"),
+    emotionalToneVal: document.getElementById("emotionalToneVal"),
+    btnResetNewVideo: document.getElementById("btnResetNewVideo"),
     btnDownloadVideo: document.getElementById("btnDownloadVideo"),
     btnShareVideo: document.getElementById("btnShareVideo"),
     btnDownloadAudio: document.getElementById("btnDownloadAudio"),
@@ -198,7 +210,7 @@
         return true;
       }
     } catch {
-      // Backend might be offline or starting
+      // Backend offline or booting
     }
     if (dom.systemStatusChip) {
       dom.systemStatusChip.innerHTML = `
@@ -267,7 +279,6 @@
   // Modality 1: Native HTML5 Camera Capture (Environment Facing)
   if (dom.btnNativeCamera && dom.cameraInput) {
     dom.btnNativeCamera.addEventListener("click", () => {
-      // Close viewfinder if open
       stopViewfinderStream();
       dom.cameraInput.click();
     });
@@ -341,7 +352,6 @@
     }
 
     try {
-      // Release existing tracks
       stopViewfinderStream();
 
       const constraints = {
@@ -548,13 +558,6 @@
 
       dom.presetsSelectorGrid.appendChild(card);
     });
-
-    // Populate initial text if textarea is empty
-    const active = presets.find((p) => p.id === state.currentPresetId) || presets[0];
-    if (active && !dom.scriptText.value.trim()) {
-      dom.scriptText.value = active.description;
-      updateScriptAnalytics();
-    }
   }
 
   async function loadPresetsFromAPI() {
@@ -665,13 +668,14 @@
     }
   }
 
-  function startProcessingStepper() {
+  function startProcessingStepper(existingJobId = null) {
     state.isProcessing = true;
+    state.activeJobId = existingJobId;
     state.processingSecondsElapsed = 0;
-    dom.btnProduce.disabled = true;
-    dom.stepperBox.style.display = "block";
-    dom.resultSection.style.display = "none";
-    dom.stepperTimer.textContent = "00:00";
+    if (dom.btnProduce) dom.btnProduce.disabled = true;
+    if (dom.stepperBox) dom.stepperBox.style.display = "block";
+    if (dom.resultSection) dom.resultSection.style.display = "none";
+    if (dom.stepperTimer) dom.stepperTimer.textContent = "00:00";
 
     updateAIAgentStatus(
       1,
@@ -684,7 +688,9 @@
     if (state.processingTimerInterval) clearInterval(state.processingTimerInterval);
     state.processingTimerInterval = setInterval(() => {
       state.processingSecondsElapsed++;
-      dom.stepperTimer.textContent = formatSeconds(state.processingSecondsElapsed);
+      if (dom.stepperTimer) {
+        dom.stepperTimer.textContent = formatSeconds(state.processingSecondsElapsed);
+      }
     }, 1000);
   }
 
@@ -692,19 +698,168 @@
     state.isProcessing = false;
     if (state.processingTimerInterval) clearInterval(state.processingTimerInterval);
     if (state.statusPollInterval) clearInterval(state.statusPollInterval);
-    dom.btnProduce.disabled = false;
+    state.statusPollInterval = null;
+    if (dom.btnProduce) dom.btnProduce.disabled = false;
 
     if (success) {
       setStepperState(5, 100);
       if (dom.aiStepBadge) dom.aiStepBadge.textContent = "المرحلة النهائية: مكتمل";
       if (dom.aiAgentMessage) dom.aiAgentMessage.textContent = "اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والمشاركة.";
     } else {
-      dom.stepperBox.style.display = "none";
+      if (dom.stepperBox) dom.stepperBox.style.display = "none";
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Video Production Action & API Dispatch
+  // Polling Engine (600ms Live Telemetry)
+  // ---------------------------------------------------------------------------
+  function pollJobStatus(jobId) {
+    if (state.statusPollInterval) clearInterval(state.statusPollInterval);
+
+    return new Promise((resolve, reject) => {
+      state.statusPollInterval = setInterval(async () => {
+        try {
+          const sResp = await fetch(`/api/status/${jobId}`);
+          if (sResp.status === 404) {
+            clearInterval(state.statusPollInterval);
+            state.statusPollInterval = null;
+            reject(new Error("Job not found (404)"));
+            return;
+          }
+          if (!sResp.ok) return;
+          const sData = await sResp.json();
+
+          if (sData.status === "completed" || sData.video_url) {
+            clearInterval(state.statusPollInterval);
+            state.statusPollInterval = null;
+            resolve(sData.result || sData);
+          } else if (sData.status === "failed") {
+            clearInterval(state.statusPollInterval);
+            state.statusPollInterval = null;
+            reject(new Error(sData.error || sData.message || "فشلت معالجة الفيديو"));
+          } else if (sData.status === "processing" || sData.status === "queued") {
+            updateAIAgentStatus(
+              sData.step || 2,
+              sData.progress_percent || 30,
+              sData.message,
+              sData.agent_logs
+            );
+          }
+        } catch (pollErr) {
+          console.warn("Poll check error:", pollErr);
+        }
+      }, 600);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Session Persistence & Seamless Reconnection
+  // ---------------------------------------------------------------------------
+  async function restoreSavedSession() {
+    const savedJobId = localStorage.getItem(ACTIVE_JOB_KEY);
+    if (!savedJobId) return;
+
+    console.info(`[Session Persistence] Found active job ID: ${savedJobId}. Checking live status...`);
+
+    // Immediately display the telemetry / progress section
+    if (dom.stepperBox) dom.stepperBox.style.display = "block";
+    if (dom.resultSection) dom.resultSection.style.display = "none";
+    updateAIAgentStatus(
+      1,
+      20,
+      `جاري استعادة حالة الجلسة السابقة (المعرف: #${savedJobId.substring(0, 8)})...`,
+      [`تم استئناف الاتصال بالجلسة السابقة #${savedJobId}. جاري فحص الحالة اللحظية من الخادم...`]
+    );
+
+    try {
+      const resp = await fetch(`/api/status/${savedJobId}`);
+      if (resp.status === 404) {
+        console.warn(`[Session Persistence] Job ${savedJobId} returned 404 Not Found.`);
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+        finishProcessingStepper(false);
+        showToast("انتهت صلاحية الجلسة السابقة أو لم تعد موجودة.");
+        return;
+      }
+
+      if (!resp.ok) {
+        console.warn(`[Session Persistence] HTTP ${resp.status} checking job status`);
+        return;
+      }
+
+      const sData = await resp.json();
+
+      if (sData.status === "completed" || sData.video_url) {
+        console.info(`[Session Persistence] Job ${savedJobId} is completed. Switching to final cut player.`);
+        finishProcessingStepper(true);
+        displayFinalResult(sData.result || sData);
+        showToast("تمت استعادة الفيديو المكتمل بنجاح!");
+      } else if (sData.status === "processing" || sData.status === "queued") {
+        console.info(`[Session Persistence] Job ${savedJobId} is still processing. Resuming 600ms polling.`);
+        startProcessingStepper(savedJobId);
+        updateAIAgentStatus(
+          sData.step || 2,
+          sData.progress_percent || 25,
+          sData.message || "جاري استكمال المعالجة...",
+          sData.agent_logs || []
+        );
+
+        try {
+          const finalData = await pollJobStatus(savedJobId);
+          finishProcessingStepper(true);
+          setTimeout(() => {
+            displayFinalResult(finalData);
+          }, 400);
+        } catch (pollErr) {
+          finishProcessingStepper(false);
+          localStorage.removeItem(ACTIVE_JOB_KEY);
+          alert("فشلت معالجة الفيديو في الجلسة المستعادة: " + pollErr.message);
+        }
+      } else if (sData.status === "failed") {
+        console.warn(`[Session Persistence] Job ${savedJobId} is failed.`);
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+        finishProcessingStepper(false);
+        alert("فشلت معالجة الفيديو في الجلسة السابقة: " + (sData.error || sData.message || "خطأ غير معروف"));
+      }
+    } catch (err) {
+      console.error("[Session Persistence] Failed to reconnect to job:", err);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reset & New Video Action
+  // ---------------------------------------------------------------------------
+  function resetSessionAndNewVideo() {
+    localStorage.removeItem(ACTIVE_JOB_KEY);
+    if (state.statusPollInterval) {
+      clearInterval(state.statusPollInterval);
+      state.statusPollInterval = null;
+    }
+    if (state.processingTimerInterval) {
+      clearInterval(state.processingTimerInterval);
+      state.processingTimerInterval = null;
+    }
+
+    state.isProcessing = false;
+    state.activeJobId = null;
+    state.selectedFile = null;
+    state.currentJobResult = null;
+
+    if (dom.previewPlayer) dom.previewPlayer.src = "";
+    if (dom.finalVideoPlayer) dom.finalVideoPlayer.src = "";
+    if (dom.videoPreviewCard) dom.videoPreviewCard.style.display = "none";
+    if (dom.resultSection) dom.resultSection.style.display = "none";
+    if (dom.stepperBox) dom.stepperBox.style.display = "none";
+    if (dom.cameraInput) dom.cameraInput.value = "";
+    if (dom.galleryInput) dom.galleryInput.value = "";
+    if (dom.scriptText) dom.scriptText.value = "";
+    if (dom.btnProduce) dom.btnProduce.disabled = false;
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast("تم بدء جلسة جديدة جاهزة لتصوير أو اختيار فيديو جديد");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Video Production Action & 1-Click Zero-Effort Dispatch
   // ---------------------------------------------------------------------------
   if (dom.btnProduce) {
     dom.btnProduce.addEventListener("click", async () => {
@@ -719,29 +874,36 @@
         return;
       }
 
-      // 2. Prepare FormData matching web/server.py upload-and-process contract
+      // 2. Prepare FormData matching 1-Click zero-effort mode or advanced overrides
       const formData = new FormData();
       formData.append("video", state.selectedFile);
 
+      const isAccordionOpen = dom.advancedAccordion && dom.advancedAccordion.open;
       const scriptVal = (dom.scriptText?.value || "").trim();
-      if (scriptVal) {
-        formData.append("script", scriptVal);
-      }
 
-      if (state.currentPresetId) {
-        formData.append("preset", state.currentPresetId);
-      }
-
-      if (dom.voiceSelect?.value) {
-        formData.append("voice", dom.voiceSelect.value);
-      }
-
-      if (dom.musicSelect?.value) {
-        formData.append("music", dom.musicSelect.value);
-      }
-
-      if (dom.duckSlider?.value) {
-        formData.append("duck_level", dom.duckSlider.value);
+      if (!isAccordionOpen || !scriptVal) {
+        // Zero-effort 1-click mode: AI agent infers script, emotional tone & music automatically
+        formData.append("auto_mode", "true");
+        if (scriptVal) {
+          formData.append("script", scriptVal);
+        }
+      } else {
+        // Advanced Customization Mode (user explicitly expanded and configured)
+        if (scriptVal) {
+          formData.append("script", scriptVal);
+        }
+        if (state.currentPresetId) {
+          formData.append("preset", state.currentPresetId);
+        }
+        if (dom.voiceSelect?.value && dom.voiceSelect.value !== "auto") {
+          formData.append("voice", dom.voiceSelect.value);
+        }
+        if (dom.musicSelect?.value) {
+          formData.append("music", dom.musicSelect.value);
+        }
+        if (dom.duckSlider?.value) {
+          formData.append("duck_level", dom.duckSlider.value);
+        }
       }
 
       // 3. Initiate Stepper & Request
@@ -749,7 +911,6 @@
       dom.stepperBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
       try {
-        // Try asynchronous job submission with live telemetry polling first
         let jobId = null;
         try {
           const createResp = await fetch("/api/jobs/create", {
@@ -765,35 +926,11 @@
         }
 
         if (jobId) {
-          // Poll /api/status/{job_id} until completed
-          const pollPromise = new Promise((resolve, reject) => {
-            const pollTimer = setInterval(async () => {
-              try {
-                const sResp = await fetch(`/api/status/${jobId}`);
-                if (!sResp.ok) return;
-                const sData = await sResp.json();
+          state.activeJobId = jobId;
+          // Store active job in localStorage for session persistence & seamless reconnection
+          localStorage.setItem(ACTIVE_JOB_KEY, jobId);
 
-                if (sData.status === "completed" || sData.video_url) {
-                  clearInterval(pollTimer);
-                  resolve(sData.result || sData);
-                } else if (sData.status === "failed") {
-                  clearInterval(pollTimer);
-                  reject(new Error(sData.error || sData.message || "فشلت معالجة الفيديو"));
-                } else if (sData.status === "processing") {
-                  updateAIAgentStatus(
-                    sData.step || 2,
-                    sData.progress_percent || 30,
-                    sData.message,
-                    sData.agent_logs
-                  );
-                }
-              } catch (pollErr) {
-                console.warn("Poll check error:", pollErr);
-              }
-            }, 600);
-          });
-
-          const finalData = await pollPromise;
+          const finalData = await pollJobStatus(jobId);
           finishProcessingStepper(true);
           setTimeout(() => {
             displayFinalResult(finalData);
@@ -812,6 +949,9 @@
           }
 
           const data = await response.json();
+          if (data.job_id) {
+            localStorage.setItem(ACTIVE_JOB_KEY, data.job_id);
+          }
           finishProcessingStepper(true);
           setTimeout(() => {
             displayFinalResult(data);
@@ -820,6 +960,7 @@
 
       } catch (err) {
         finishProcessingStepper(false);
+        localStorage.removeItem(ACTIVE_JOB_KEY);
         console.error("Video processing failed:", err);
         showToast(`فشل الإنتاج: ${err.message}`);
       }
@@ -840,6 +981,19 @@
     dom.btnDownloadVideo.href = data.video_url;
     dom.btnDownloadAudio.href = data.narration_audio_url || "#";
 
+    // Emotional Tone & Vision Telemetry Display
+    const emotionalTone = data.emotional_tone ||
+      data.metadata?.emotional_tone ||
+      (data.result && (data.result.emotional_tone || data.result.metadata?.emotional_tone)) ||
+      null;
+
+    if (emotionalTone) {
+      if (dom.emotionalToneVal) dom.emotionalToneVal.textContent = emotionalTone;
+      if (dom.emotionalToneSpotlight) dom.emotionalToneSpotlight.style.display = "flex";
+    } else {
+      if (dom.emotionalToneSpotlight) dom.emotionalToneSpotlight.style.display = "none";
+    }
+
     // Telemetry Badges
     const duration = data.duration ? `${data.duration.toFixed(1)} ثانية` : "--";
     const res = data.resolution || "--";
@@ -849,7 +1003,18 @@
     const fileSize = data.file_size_bytes ? formatBytes(data.file_size_bytes) : "--";
     const jobId = data.job_id || "--";
 
+    let toneChipHtml = "";
+    if (emotionalTone) {
+      toneChipHtml = `
+        <div class="telemetry-chip highlight-tone">
+          <span class="chip-label">🎭 الحالة الشعورية:</span>
+          <span class="chip-val">${emotionalTone}</span>
+        </div>
+      `;
+    }
+
     dom.telemetryBadgesGrid.innerHTML = `
+      ${toneChipHtml}
       <div class="telemetry-chip accent">
         <span class="chip-label">⏱️ المدة:</span>
         <span class="chip-val">${duration}</span>
@@ -1031,26 +1196,27 @@
     });
   }
 
-  // New production reset button
+  // ---------------------------------------------------------------------------
+  // Reset & New Video Handlers
+  // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
-    dom.btnStartNewProduction.addEventListener("click", () => {
-      state.selectedFile = null;
-      dom.previewPlayer.src = "";
-      dom.videoPreviewCard.style.display = "none";
-      dom.resultSection.style.display = "none";
-      dom.stepperBox.style.display = "none";
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      showToast("جاهز لتصوير أو اختيار فيديو جديد");
-    });
+    dom.btnStartNewProduction.addEventListener("click", resetSessionAndNewVideo);
+  }
+  if (dom.btnResetNewVideo) {
+    dom.btnResetNewVideo.addEventListener("click", resetSessionAndNewVideo);
+  }
+  if (dom.btnCancelSession) {
+    dom.btnCancelSession.addEventListener("click", resetSessionAndNewVideo);
   }
 
   // ---------------------------------------------------------------------------
-  // Initialization
+  // Initialization & Session Reconnection on Load
   // ---------------------------------------------------------------------------
   async function init() {
     checkServerHealth();
     await loadPresetsFromAPI();
     updateScriptAnalytics();
+    await restoreSavedSession();
   }
 
   if (document.readyState === "loading") {

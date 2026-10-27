@@ -4,28 +4,28 @@
       "agent_id": "agy11",
       "worker_id": "worker-1",
       "role": "Backend Architecture & Processing Bridge",
-      "branch": "backend/agy11-mobile-api-server",
-      "scope": "Develop Starlette/Uvicorn server (web/server.py, web/pipeline_bridge.py, web/run_server.py) with QR code generator, mobile video upload & async processing pipeline integration",
+      "branch": "backend/agy11-auto-vision-script-and-app-runner",
+      "scope": "Implement automated video vision analysis using Gemini Flash to infer Arabic script & emotional tone/mood, pass emotional prompt/tone to Gemini TTS, add auto-generation mode in pipeline_bridge and server API, and create root app.py for 1-command startup",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
       "role": "Mobile Front-End & Real Estate UI/UX",
-      "branch": "frontend/agy51-mobile-web-system",
-      "scope": "Build responsive mobile PWA UI (web/static/index.html, app.js, style.css) with live phone camera recording, HTML5 capture fallback, Algerian real estate marketing presets, progress tracker, and final cut player",
-      "dependencies": ["backend/agy11-mobile-api-server"],
+      "branch": "frontend/agy51-one-click-ux-and-session-persistence",
+      "scope": "Streamline mobile UI to extreme 1-click simplicity, add session persistence via localStorage so user can leave/return without losing state, restore active job telemetry on reload, and add Reset/New Video control",
+      "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
       "role": "Quality Gatekeeper & Integration Testing",
-      "branch": "test/agy100-mobile-verification",
-      "scope": "Pragmatic integration testing of mobile API endpoints, upload workflow, video pipeline assembly, and gatekeeper merge into develop",
-      "dependencies": ["backend/agy11-mobile-api-server", "frontend/agy51-mobile-web-system"],
-      "state": "COMPLETED"
+      "branch": "test/agy100-auto-vision-and-persistence-gatekeeper",
+      "scope": "Write integration tests for auto-vision inference, emotional TTS parameter pass-through, root app.py execution, and session reconnection endpoints, then gatekeeper merge into develop",
+      "dependencies": ["backend/agy11-auto-vision-script-and-app-runner", "frontend/agy51-one-click-ux-and-session-persistence"],
+      "state": "PENDING"
     }
   ]
 }

@@ -2,13 +2,11 @@
 
 ## 1. Overview & System Mission
 The `web/static/` directory houses the client-side architecture for the **Algerian Real Estate Mobile Studio** (`استوديو عقارات الجزائر`). Engineered specifically for mobile smartphone field workflows, this interface empowers Algerian real estate agents, videographers, and property promoters to:
-1. Capture high-definition on-site video footage directly using their smartphone's native camera hardware (iPhone Safari & Android Chrome) or in-browser live viewfinder.
-2. Select curated Algerian real estate marketing presets (Algiers Luxury F4, Oran Seaview Villa, Constantine Commercial Store, and Furnished Rental Apartment) with automatic script synchronization and live speech pacing analytics.
-3. Configure Gemini neural Arabic speech synthesis voices and dynamic background ambient music sidechain ducking (0% to 50%).
-4. Track multi-stage post-production execution through an animated 5-step progress stepper.
-5. Preview the exported high-definition marketing cut, inspect extracted keyframe thumbnails via interactive modal carousels, and instantly distribute media via Web Share API, WhatsApp, and Telegram.
-
-The application adheres to clean separation of concerns, strict RTL layout ergonomics, and zero-dependency vanilla web standards for lightweight load performance.
+1. **Ultra-Clean 1-Click Mobile UX**: Capture or select phone footage and trigger complete AI post-production with a single prominent tap (**"✨ إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة"**).
+2. **Autonomous Vision & Audio Inference**: When advanced customization is left collapsed/empty, the client sends `auto_mode=true`, letting the backend AI vision agent infer property features, promotional Arabic narration, emotional tone/mood, and matching background music automatically.
+3. **Session Persistence & Seamless Reconnection**: Persists in-flight processing jobs across page refreshes, browser reloads, and mobile network disconnects via `localStorage['active_job_id']`. Reconnecting sessions seamlessly resume live 600ms telemetry polling or immediately display the completed marketing cut.
+4. **Emotional Tone & Vision Telemetry**: Highlights the AI-inferred emotional atmosphere (e.g. *الحالة الشعورية: فاخر وهادئ*) through dedicated spotlight cards and telemetry badges.
+5. **Mobile-First Video Ingestion & Delivery**: Hardware camera capture, in-browser live viewfinder with lens flip, Web Share API distribution, interactive keyframe carousels, and one-tap **"🔄 معالجة فيديو جديد"** session reset.
 
 ---
 
@@ -16,143 +14,105 @@ The application adheres to clean separation of concerns, strict RTL layout ergon
 
 | File | Language / Format | Primary Responsibility |
 | :--- | :--- | :--- |
-| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | Document structure, accessible DOM hierarchy, modal dialogs, video players, and form controls for mobile capture and preset selection. |
-| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | Luxury real estate dark UI theme, CSS custom properties, responsive breakpoints, stepper animations, and touch-target ergonomics. |
-| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | State engine, native camera/MediaRecorder management, API client bridge, script analytics, Web Share API, and UI event binding. |
-| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete architectural documentation, component interface specifications, and integration guide. |
+| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | 1-Click layout, collapsible advanced accordion, native camera inputs, live viewfinder, telemetry stepper, and result playback player. |
+| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | Emerald & gold luxury dark UI theme, 1-click glowing button styles, accordion transition animations, and responsive touch ergonomics. |
+| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | State engine, `localStorage` session persistence, automated reconnection lifecycle, 600ms polling, and emotional tone display. |
+| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete architectural documentation, session lifecycle specification, and UI component reference. |
 
 ---
 
-## 3. UI Component Breakdown & Architecture
+## 3. UI Architecture & 1-Click Workflow
 
 ```mermaid
 flowchart TD
-    subgraph UI_Modules["Frontend Interface Modules (web/static)"]
-        A["App Header & Health Status"]
-        B["Mobile Camera & Ingestion Hub"]
-        C["Preset Selector & Script Studio"]
-        D["Audio Synthesis & Sidechain Controls"]
-        E["Production CTA & 5-Step Animated Tracker"]
-        F["Final Video Studio & Keyframes Carousel"]
-        G["Modal Viewer & Web Share Suite"]
+    subgraph User_Action["Zero-Effort Mobile Workflow"]
+        A["1. Record or Pick Video (Phone Camera / Gallery)"]
+        B["2. Tap Prominent 1-Click Button (✨ إنتاج الفيديو تلقائياً)"]
     end
 
-    subgraph State_Engine["Client State Management (app.js)"]
-        S1["selectedFile & Source"]
-        S2["currentPresetId & Script"]
-        S3["MediaRecorder & Stream Controller"]
-        S4["Progress Stepper Timer"]
-        S5["Job Execution Summary Store"]
+    subgraph Mode_Branch["Execution Mode Branching"]
+        C{"Is Advanced Accordion Open & Filled?"}
+        D["Auto Vision Mode (auto_mode=true)"]
+        E["Manual Custom Mode (User Script, Preset, Voice)"]
     end
 
-    subgraph Backend_APIs["Backend REST Endpoints (web/server.py)"]
-        API1["GET /api/health"]
-        API2["GET /api/presets"]
-        API3["POST /api/upload-and-process"]
-        API4["GET /outputs/mobile_cuts/*"]
+    subgraph Session_Persistence["Session Persistence & Reconnection"]
+        F["Store active_job_id in localStorage"]
+        G["DOMContentLoaded Check: localStorage.getItem('active_job_id')"]
+        H{"Status at /api/status/{job_id}"}
+        I["Resume 600ms Polling Loop"]
+        J["Direct Switch to Final Results View"]
+        K["Clear localStorage & Reset UI"]
     end
 
-    A --> API1
-    B --> S1
-    B --> S3
-    C --> S2
-    C --> API2
-    D --> S2
-    E --> API3
-    API3 --> S5
-    S5 --> F
-    F --> API4
+    A --> B
+    B --> C
+    C -- No (Default) --> D
+    C -- Yes --> E
+    D --> F
+    E --> F
     F --> G
+    G --> H
+    H -- processing / queued --> I
+    H -- completed --> J
+    H -- failed / 404 --> K
 ```
 
-### 3.1 Mobile Camera & Ingestion Hub
-- **Native Hardware Capture**: Employs `<input type="file" id="cameraInput" accept="video/*" capture="environment">`. When invoked via the prominent **"تسجيل بالكاميرا (Record with Camera)"** button, mobile browsers (iOS Safari, Android Chrome) trigger the native system camera app with full hardware autofocus, stabilization, and HDR without requiring HTTPS/localhost permissions.
-- **In-Browser Live Viewfinder**: Uses `navigator.mediaDevices.getUserMedia()` with `MediaRecorder` API. Features live video preview, camera lens flipping (`facingMode: "environment"` ↔ `"user"`), a visual pulsing recording badge, and a real-time elapsed recording timer.
-- **Gallery & Drag-and-Drop Ingestion**: Secondary `<input type="file" id="galleryInput">` alongside an interactive drag-and-drop target for pre-recorded studio files.
-- **Inspection Preview Player**: Displays the captured video immediately, extracting metadata (duration, file size in MB, resolution dimensions, and 9:16 vertical vs 16:9 horizontal orientation).
+### 3.1 1-Click Zero-Effort UX
+- **Primary CTA**: A single luminous button (`.btn-produce-1click`) styled with an emerald-to-gold luxury gradient. It immediately triggers AI video production without requiring the user to type text or pick presets.
+- **Collapsible Advanced Accordion (`#advancedAccordion`)**:
+  - Implemented using native semantic `<details>` and `<summary>` elements.
+  - Titled: **"⚙️ تخصيص متقدم (اختياري - يحدده الذكاء الاصطناعي تلقائياً)"**.
+  - Houses the Algerian real estate presets grid, the custom script textarea with live speech analytics, the voice persona dropdown (Gemini TTS), and the royalty-free music selector.
+  - When left collapsed or empty, `app.js` automatically passes `auto_mode=true` in `FormData`, enabling end-to-end AI vision analysis.
 
-### 3.2 Algerian Real Estate Presets & Script Studio
-- **Dynamic Catalog Ingestion**: Fetches presets from `/api/presets` on startup, automatically falling back to built-in presets if running offline or disconnected.
-  1. `algiers_f4_luxury`: *شقة فاخرة F4 - الجزائر العاصمة* (Appartement F4 Haut Standing - Alger).
-  2. `oran_seaview_villa`: *فيلا عصرية بواجهة بحرية - وهران* (Villa Moderne Vue sur Mer - Oran).
-  3. `constantine_commercial`: *محل تجاري استراتيجي - قسنطينة* (Local Commercial Stratégique - Constantine).
-  4. `rental_apartment`: *شقة مجهزة ومؤثثة للكراء* (Appartement Équipé en Location).
-- **Interactive Script Editor**: Single-click preset injection populates the script textarea. Features an instant reset button, clear button, and real-time analytics bar tracking word count, character count, and estimated voiceover speech duration (calibrated at ~2.4 Arabic words/second).
+### 3.2 Session Persistence & Seamless Reconnection Lifecycle
+1. **Job Registration**: When `/api/jobs/create` returns `job_id`, `localStorage.setItem('active_job_id', jobId)` is called immediately.
+2. **Page Reload & Return**: On `window.addEventListener('DOMContentLoaded', ...)`, `app.js` checks for `active_job_id`:
+   - If present, the UI skips the initial upload prompt and reveals `#stepperBox` with real-time status.
+   - It queries `GET /api/status/{job_id}`:
+     - **`processing` or `queued`**: Seamlessly resumes the 600ms polling timer, updating the 5-step progress bar, message banner, and live AI agent logs.
+     - **`completed`**: Immediately renders `#resultSection` with video playback, download buttons, keyframes, and the emotional tone badge.
+     - **`failed` or `404`**: Automatically cleans up `localStorage.removeItem('active_job_id')`, presents an informative alert, and resets the interface.
+3. **Session Reset ("🔄 معالجة فيديو جديد")**:
+   - Prominently placed at the top of the completed results card (`#btnResetNewVideo`) and at the bottom (`#btnStartNewProduction`).
+   - Clears `localStorage['active_job_id']`, aborts active polling intervals, clears preview buffers, and scrolls smoothly back to the top.
 
-### 3.3 Audio Synthesis & Dynamic Ducking Controls
-- **Voice Selection**: Dropdown configuring neural TTS engines:
-  - Official Google Gemini neural personas with Arabic fluency: `Aoede` (luxury real estate feminine), `Charon` (deep authoritative masculine), `Kore` (warm residential feminine), `Fenrir` (energetic commercial masculine), and `Puck` (youthful upbeat).
-  - Standard Arabic mapping: `ar-XA-Standard-A` → `Aoede`, `ar-XA-Standard-B` → `Charon`.
-- **Open-Source Royalty-Free Music**:
-  - `luxury_piano`: Gymnopédie No. 1 (Erik Satie, Public Domain / CC0).
-  - `acoustic_guitar`: Solo Acoustic Guitar (Jason Shaw, CC-BY 3.0).
-  - `ambient_meditation`: Acoustic Meditation (Jason Shaw, CC-BY 3.0).
-- **Sidechain Ducking Slider**: Range `0.05` to `0.50` (5% to 50%, default 25%). Controls the dynamic compression threshold that dips the background music smoothly under spoken narration.
-
-### 3.4 Multi-Stage Animated Processing Stepper & Live AI Agent Telemetry
-Visual progress tracker and live AI agent feed activated when the user clicks **"إنتاج الفيديو التسويقي (Produce Marketing Video)"**:
-- **Live AI Agent Status Banner**: Real-time state indicator reflecting the active processing milestone.
-- **Real-Time Telemetry Log**: Terminal-style stream updating live as the AI agent completes keyframe extraction, neural voiceover synthesis, and ducking assembly.
-- **Multi-Stage Stepper**:
-  - **Step 1**: رفع واستلام الفيديو من الهاتف (Uploading & probing video from phone...)
-  - **Step 2**: تحليل واستخراج لقطات المعاينة (Analyzing & extracting keyframes...)
-  - **Step 3**: توليد التعليق الصوتي العصبي عبر Gemini TTS (Synthesizing promotional voiceover...)
-  - **Step 4**: دمج الموسيقى مفتوحة المصدر وخفض الصوت التلقائي (Ducking ambient music & assembling final cut...)
-  - **Step 5**: اكتمل الإنتاج بنجاح! (Production Complete!)
-
-### 3.5 Delivery, Playback & Social Sharing
-- **Final Cut Video Player**: HTML5 video playback with native controls, loop capability, and playsinline attributes.
-- **Keyframes Thumbnail Carousel**: Horizontally scrollable carousel displaying timestamped keyframe snapshots extracted during FFmpeg analysis. Clicking any keyframe opens a high-resolution modal inspection view with a direct download link.
-- **One-Touch Distribution**:
-  - `navigator.share()` integration for native operating system sharing to WhatsApp, Instagram Stories, and TikTok.
-  - Dedicated quick-share action chips for WhatsApp Web/App, Telegram, and instant clipboard URL copying.
-  - Direct download links for the rendered video (`cut_<job_id>.mp4`) and the isolated voiceover audio track (`narration_<job_id>.wav`).
+### 3.3 Emotional Tone & Vision Telemetry Display
+- When the backend Vision AI model analyzes video keyframes, it determines the listing's emotional atmosphere (e.g. *فاخر وهادئ*, *عصري وحيوي*, *تجاري نشط*).
+- **Spotlight Banner (`#emotionalToneSpotlight`)**: Rendered in a glowing purple/gold gradient displaying:
+  `الرؤية والحالة الشعورية للذكاء الاصطناعي: [الحالة الشعورية]`
+- **Telemetry Chip**: Rendered in `#telemetryBadgesGrid` as:
+  `🎭 الحالة الشعورية: [emotional_tone]`
 
 ---
 
-## 4. Visual Patterns, Design Tokens & Styling Framework
+## 4. Design Tokens & Visual Hierarchy (`style.css`)
 
-### 4.1 Theme Design Tokens (`style.css`)
 ```css
---bg-dark: #070b14;                  /* Deep slate canvas background */
---bg-surface: #0b1120;               /* Primary container surface */
---card-bg: #111a2e;                  /* Standard card background */
---card-bg-elevated: #16223b;         /* Interactive card background */
+/* 1-Click Luxury AI Production Gradient */
+--btn-1click-bg: linear-gradient(135deg, #047857 0%, #059669 30%, #b45309 70%, #d97706 100%);
+--btn-1click-glow: rgba(245, 158, 11, 0.35);
 
---emerald-500: #10b981;              /* Primary emerald accent */
---emerald-400: #34d399;              /* Hover & highlight emerald */
---gold-500: #f59e0b;                 /* Real estate luxury gold */
---gold-400: #fbbf24;                 /* Gold text highlight */
---cyan-500: #06b6d4;                 /* Audio & telemetry cyan */
---rose-500: #f43f5e;                 /* Live recording indicator */
+/* Emotional Tone Highlight Palette */
+--tone-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(245, 158, 11, 0.12));
+--tone-border: rgba(168, 85, 247, 0.45);
+--tone-text: #e9d5ff;
+
+/* Accordion Component Tokens */
+--accordion-bg: var(--card-bg-elevated);
+--accordion-summary-bg: rgba(15, 23, 42, 0.55);
 ```
 
-### 4.2 Typography & RTL Standards
-- **Arabic Body & Headings**: Google `Cairo` font (weights 400, 500, 600, 700, 800, 900) ensures crisp readability for Arabic calligraphic curves and property descriptions.
-- **Numeric & Metric Badges**: `Inter` font family for timestamps, byte counters, aspect ratios, and numerical statistics.
-- **Directionality**: Document root is set to `dir="rtl"`, aligning flex containers, padding, and form controls to natural right-to-left scanning patterns.
-- **Mobile Touch Targets**: All interactive elements (buttons, inputs, cards) maintain a minimum touch target height of 48px to prevent touch collisions on mobile screens.
-
 ---
 
-## 5. API Contracts & Backend Integration
+## 5. REST API Integration Matrix
 
-The client communicates with the Starlette backend (`web/server.py`):
-
-| Endpoint | Method | Payload | Expected Client Response |
+| Endpoint | Method | Sent from Frontend | Client Handling |
 | :--- | :--- | :--- | :--- |
-| `/api/health` | `GET` | None | `{"status": "ok", "service": "mobile-video-processing-api"}` |
-| `/api/presets` | `GET` | None | Array of presets: `[{"id": "...", "title_ar": "...", "title_fr": "...", "description": "..."}]` |
-| `/api/upload-and-process` | `POST` | `multipart/form-data`: `video` (file), `script` (str), `preset` (str), `voice` (str), `duck_level` (float) | JSON Execution Summary: `job_id`, `video_url`, `narration_audio_url`, `duration`, `resolution`, `keyframes`, `metadata` |
-| `/outputs/mobile_cuts/*` | `GET` | None | Direct static MP4 and WAV streaming via Starlette StaticFiles |
-
----
-
-## 6. Integration Notes & Operational Caveats
-
-1. **Camera Recording Reliability on Mobile**:
-   Using HTML5 `<input type="file" accept="video/*" capture="environment">` is the most resilient cross-platform pattern for mobile web. It works seamlessly across iOS Safari and Android Chrome regardless of whether the site is served over HTTPS or plain HTTP (LAN IP).
-2. **MediaDevices Viewfinder Origin Constraints**:
-   The in-browser live viewfinder (`navigator.mediaDevices.getUserMedia`) requires a Secure Context (`https://` or `http://localhost`). When accessed over a raw LAN IP (`http://192.168.x.x`), the browser may restrict getUserMedia; `app.js` detects this condition gracefully and directs the user to the Native Camera button.
-3. **Web Share API Fallback**:
-   On desktop browsers or mobile browsers without Web Share support, clicking **"مشاركة الفيديو"** automatically falls back to copying the absolute video URL to the clipboard and displaying an animated toast notification.
+| `/api/health` | `GET` | None | Updates `#systemStatusChip` indicator. |
+| `/api/presets` | `GET` | None | Injects cards into `#presetsSelectorGrid` inside accordion. |
+| `/api/music-tracks` | `GET` | None | Injects music options into `#musicSelect`. |
+| `/api/jobs/create` | `POST` | `multipart/form-data`: `video`, `auto_mode=true` (if collapsed), optional `script`, `preset`, `voice`, `music` | Stores `job_id` in `localStorage`, initiates 600ms polling. |
+| `/api/status/{job_id}` | `GET` | `job_id` in URL path | Returns live step, progress percent, logs, and final cut URL + `emotional_tone`. |
+| `/outputs/mobile_cuts/*` | `GET` | None | Direct HTML5 video and keyframe image streaming. |
