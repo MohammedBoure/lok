@@ -104,12 +104,17 @@ This automatically:
 The platform features a multi-tenant SaaS architecture supporting autonomous commercial video generation across diverse merchant sectors with enterprise administrative controls:
 
 ### Key SaaS Capabilities
-1. **Admin Governance & Tenant Quotas**:
-   - Master Administrator account (`admin`, token `token_admin_master`) with full tenant management.
+1. **Session-Based Authentication & Gateway**:
+   - Master Administrator account (`admin`) with default password (`admin123`), full tenant governance, and session persistence.
+   - Session authentication endpoints: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`, and `GET /api/auth/me`.
+   - **Gated Service Execution**: Actual video post-production endpoints (`/api/upload-and-process`, `/api/jobs/create`) strictly require an authenticated active session or valid bearer token, rejecting unauthorized requests with HTTP 401.
+   - Interactive Login Gateway Modal: Switch seamlessly between Admin Login and 1-tap demo merchant quick login with visual credential hints.
+2. **Admin Governance & Tenant Quotas**:
+   - Master Administrator account (`admin`) with full tenant management.
    - Per-merchant quota ceilings: configurable daily video quota (`daily_quota`) and rolling 7-day weekly quota (`weekly_quota`).
    - Subscription lifecycle control: custom expiration dates (`expires_at`), instant account activation/suspension (`is_active`).
    - Real-time administrative metrics via `GET /api/admin/stats` and user usage audits via `GET /api/admin/users`.
-2. **Pre-Seeded Multi-Vertical Commercial Personas**:
+3. **Pre-Seeded Multi-Vertical Commercial Personas**:
    - Out-of-the-box pre-configured accounts across 10 distinct commercial sectors with custom branding, quotas, and expiration:
      1. *Real Estate (عقارات فاخرة)*: `merchant_realestate`
      2. *Seafood Restaurant (مطعم وبسترو مأكولات بحرية)*: `merchant_restaurant`
@@ -121,18 +126,21 @@ The platform features a multi-tenant SaaS architecture supporting autonomous com
      8. *Modern Home Decor (أثاث وديكور منزلي عصري)*: `merchant_decor`
      9. *Medical & Aesthetics Clinic (عيادة طبية وتجميلية)*: `merchant_clinic`
      10. *Fitness & Sports Club (نادي رياضي ولياقة بدنية)*: `merchant_gym`
-3. **Live Voice Audition Preview Player**:
-   - Interactive audio auditioning on voice persona cards (`ar-XA-Standard-A/B/C/D`).
-   - Merchants can click "▶ استمع للصوت" to hear a tailored commercial voiceover monologue streamed directly via `GET /api/voices/{voice_id}/sample` before selecting their narrator.
-4. **Commercial Video Framing & Fixed Screen Overlays**:
+4. **TTS Voice Reference Benchmarks & Live Audition Player**:
+   - High-fidelity voice reference audio synthesized directly via the project's internal `tts` library (`from tts import synthesize_narration` / `gemini_speech`) for all voice personas (`ar-XA-Standard-A/B/C/D`) and stored in `outputs/voice_samples/`.
+   - Merchants can click "▶ استمع للصوت" to stream the exact acoustic reference benchmark via `GET /api/voices/{voice_id}/sample` before selecting their narrator.
+5. **Commercial Video Framing & Fixed Screen Overlays**:
    - Aspect ratio formatting: Portrait (9:16 vertical for smartphones/Reels), Landscape (16:9 widescreen), and Square (1:1 feed).
    - Fixed text overlay customization: Merchant slogan, contact phone, or call-to-action placed in lower-third banner, top banner, or floating badge.
    - High-contrast visual themes: Modern White (أبيض عصري), Luxury Gold (ذهبي فاخر), and Commercial Red (تجاري بارز).
-5. **Ultra-Lightweight 3-Tab Interface**:
-   - *Tab 1: Production Studio (استوديو الإنتاج)*: Streamlined 1-click generation flow with live voice previews and style recommendations.
-   - *Tab 2: Merchant Dashboard (لوحة التاجر)*: Real-time quota progress meters (daily/weekly usage) and recent video archive.
-   - *Tab 3: Admin Dashboard (لوحة تحكم الأدمن)*: Tenant creation modal with custom quotas, expiration date picker, and platform-wide statistics.
-   - *1-Tap Quick Account Switcher*: Instant demo testing dropdown to switch between any merchant persona and admin in a single click.
+6. **Decluttered Non-Technical Merchant Studio UI**:
+   - Completely removes restrictive real estate presets and verbatim script inputs from the visible studio DOM.
+   - Empowers merchants to define visual scene intent and speech tone guidance with multi-sector recommendation chips (عقارات, مطاعم, أزياء, تقنية, سيارات).
+   - Ultra-Lightweight 3-Tab Interface:
+     - *Tab 1: Production Studio (استوديو الإنتاج)*: Clean 1-click video generation flow with live voice previews and dynamic overlay controls.
+     - *Tab 2: Merchant Dashboard (لوحة التاجر)*: Real-time quota meters (daily/weekly usage) and recent video archive.
+     - *Tab 3: Admin Dashboard (لوحة تحكم الأدمن)*: Tenant creation modal with custom quotas, expiration date picker, and platform-wide statistics.
+     - *Quick Switcher & Session Bar*: Displays current active user, role, remaining quota, and instant logout button.
 
 ## Autonomous Vision Script & Emotional Tone Inference
 - **Multimodal Video Analysis & Dense Vision Sampling**: Uses Gemini 2.5 Flash / Gemini Vision (`web/vision_analyzer.py`) to analyze extracted visual keyframes. Now extracts 8 to 16 keyframes uniformly distributed across the video timeline (5% to 95%), ensuring comprehensive visual comprehension across every room and architectural detail.
