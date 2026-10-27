@@ -7,7 +7,7 @@
       "branch": "backend/agy11-saas-auth-quotas-and-dashboard",
       "scope": "Implement multi-tenant SQLite auth and user database (web/auth_db.py) supporting admin user management, expiration dates, daily/weekly video quotas, and at least 10 pre-seeded diverse business merchant accounts; add admin REST endpoints (/api/admin/users, /api/admin/stats) and auth endpoints (/api/auth/login, /api/auth/me); integrate quota enforcement and voice preview sample endpoints into video pipeline; author tests; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",

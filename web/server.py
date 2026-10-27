@@ -70,6 +70,7 @@ from web.pipeline_bridge import (
     ALGERIAN_REAL_ESTATE_PRESETS,
     MUSIC_LIBRARY,
     get_music_tracks_list,
+    get_or_create_voice_sample,
     get_presets_list,
     get_voice_profiles_list,
     process_mobile_video,
@@ -81,6 +82,20 @@ from web.prompt_db import (
     get_recent_prompts,
     save_prompt,
     update_prompt_script,
+)
+from web.auth_db import (
+    authenticate_credentials,
+    authenticate_token,
+    check_quota,
+    create_user,
+    get_demo_accounts,
+    get_platform_stats,
+    get_user_by_id,
+    get_user_by_username,
+    get_user_history,
+    list_users,
+    record_generation,
+    update_user,
 )
 from web.video_annotator import annotate_video
 
@@ -128,6 +143,34 @@ async def get_music_tracks(request: Request) -> JSONResponse:
     return JSONResponse(get_music_tracks_list())
 
 
+def _get_authenticated_user_from_form_or_header(request: Request, form: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    """
+    Authenticate user from Form data (token / auth_token), Authorization header,
+    query parameters (?token=...), or fallback to the default commercial merchant.
+    """
+    token = None
+    if form:
+        token = form.get("auth_token") or form.get("token")
+
+    if not token:
+        auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+        if auth_header and "bearer " in auth_header.lower():
+            token = auth_header.split(None, 1)[1].strip() if len(auth_header.split(None, 1)) > 1 else None
+        elif auth_header:
+            token = auth_header.strip()
+
+    if not token:
+        token = request.query_params.get("token") or request.query_params.get("auth_token")
+
+    user = authenticate_token(token) if token else None
+
+    # Fallback to default active merchant (algiers_luxury_re) for backward compatibility
+    if not user:
+        user = get_user_by_username("algiers_luxury_re") or authenticate_credentials("algiers_luxury_re")
+
+    return user
+
+
 def _execute_processing_job(
     job_id: str,
     saved_video_path: Path,
@@ -142,6 +185,11 @@ def _execute_processing_job(
     speech_description: Optional[str] = None,
     prompt_id: Optional[int] = None,
     visual_lead_in: float = 1.2,
+    user_id: Optional[int] = None,
+    fixed_text: Optional[str] = None,
+    text_position: Optional[str] = "lower_third",
+    text_style: Optional[str] = "modern_white",
+    video_orientation: Optional[str] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -161,6 +209,8 @@ def _execute_processing_job(
             "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
             "voice": voice,
             "visual_lead_in": visual_lead_in,
+            "user_id": user_id,
+            "fixed_text": fixed_text,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -179,7 +229,23 @@ def _execute_processing_job(
             visual_description=visual_description,
             speech_description=speech_description,
             visual_lead_in=visual_lead_in,
+            fixed_text=fixed_text,
+            text_position=text_position,
+            text_style=text_style,
+            video_orientation=video_orientation,
         )
+
+        # Record video generation in SaaS audit history
+        if user_id:
+            try:
+                record_generation(
+                    user_id=user_id,
+                    job_id=job_id,
+                    video_url=summary.get("video_url"),
+                    title=preset or fixed_text or f"فيديو {saved_video_path.stem}",
+                )
+            except Exception as re:
+                logger.warning("Failed to record video generation in auth_db: %s", re)
 
         # Auto-update or save prompt descriptions in SQLite prompt_db
         if prompt_id is not None:
@@ -215,6 +281,8 @@ def _execute_processing_job(
             "voice": voice,
             "visual_lead_in": visual_lead_in,
             "analyzed_frames_count": summary.get("analyzed_frames_count"),
+            "user_id": user_id,
+            "fixed_text": fixed_text,
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -242,6 +310,24 @@ async def create_job_async(request: Request) -> JSONResponse:
         form = await request.form()
     except Exception as exc:
         return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    # SaaS Multi-tenant Authentication & Quota Enforcement
+    user = _get_authenticated_user_from_form_or_header(request, form)
+    if not user:
+        return JSONResponse({"status": "error", "message": "المستخدم غير مصرح له أو غير مسجل."}, status_code=401)
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    if not allowed:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": reason,
+                "message": reason,
+                "quota_exceeded": True,
+                "quota_details": quota_details,
+            },
+            status_code=403,
+        )
 
     video_field = form.get("video")
     if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
@@ -303,6 +389,31 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         speech_description = None
 
+    # Fixed text overlay and layout options
+    fixed_text = form.get("fixed_text")
+    if isinstance(fixed_text, str):
+        fixed_text = fixed_text.strip() or None
+    else:
+        fixed_text = None
+
+    text_position = form.get("text_position")
+    if isinstance(text_position, str):
+        text_position = text_position.strip() or "lower_third"
+    else:
+        text_position = "lower_third"
+
+    text_style = form.get("text_style")
+    if isinstance(text_style, str):
+        text_style = text_style.strip() or "modern_white"
+    else:
+        text_style = "modern_white"
+
+    video_orientation = form.get("video_orientation") or form.get("orientation")
+    if isinstance(video_orientation, str):
+        video_orientation = video_orientation.strip() or None
+    else:
+        video_orientation = None
+
     # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
@@ -346,6 +457,8 @@ async def create_job_async(request: Request) -> JSONResponse:
         "prompt_id": prompt_id,
         "voice": voice,
         "visual_lead_in": visual_lead_in,
+        "user_id": user["id"],
+        "fixed_text": fixed_text,
         "inferred_script": None,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -367,6 +480,11 @@ async def create_job_async(request: Request) -> JSONResponse:
             speech_description,
             prompt_id,
             visual_lead_in,
+            user["id"],
+            fixed_text,
+            text_position,
+            text_style,
+            video_orientation,
         ),
         daemon=True,
     )
@@ -383,6 +501,15 @@ async def create_job_async(request: Request) -> JSONResponse:
             "prompt_id": prompt_id,
             "voice": voice,
             "visual_lead_in_seconds": visual_lead_in,
+            "user": {
+                "id": user["id"],
+                "username": user["username"],
+                "business_name": user["business_name"],
+                "business_category": user["business_category"],
+            },
+            "quotas": quota_details,
+            "fixed_text": fixed_text,
+            "video_orientation": video_orientation,
         },
         status_code=202,
     )
@@ -398,6 +525,24 @@ async def upload_and_process(request: Request) -> JSONResponse:
         form = await request.form()
     except Exception as exc:
         return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    # SaaS Multi-tenant Authentication & Quota Enforcement
+    user = _get_authenticated_user_from_form_or_header(request, form)
+    if not user:
+        return JSONResponse({"status": "error", "message": "المستخدم غير مصرح له أو غير مسجل."}, status_code=401)
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    if not allowed:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": reason,
+                "message": reason,
+                "quota_exceeded": True,
+                "quota_details": quota_details,
+            },
+            status_code=403,
+        )
 
     video_field = form.get("video")
     if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
@@ -459,6 +604,31 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         speech_description = None
 
+    # Fixed text overlay and layout options
+    fixed_text = form.get("fixed_text")
+    if isinstance(fixed_text, str):
+        fixed_text = fixed_text.strip() or None
+    else:
+        fixed_text = None
+
+    text_position = form.get("text_position")
+    if isinstance(text_position, str):
+        text_position = text_position.strip() or "lower_third"
+    else:
+        text_position = "lower_third"
+
+    text_style = form.get("text_style")
+    if isinstance(text_style, str):
+        text_style = text_style.strip() or "modern_white"
+    else:
+        text_style = "modern_white"
+
+    video_orientation = form.get("video_orientation") or form.get("orientation")
+    if isinstance(video_orientation, str):
+        video_orientation = video_orientation.strip() or None
+    else:
+        video_orientation = None
+
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -481,6 +651,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
         "agent_logs": [f"تم رفع الفيديو '{original_filename}'."],
         "auto_mode": auto_mode,
         "emotional_tone": emotional_tone,
+        "user_id": user["id"],
+        "fixed_text": fixed_text,
         "inferred_script": None,
     }
 
@@ -499,6 +671,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "auto_mode": auto_mode,
             "emotional_tone": event.get("emotional_tone") or curr.get("emotional_tone") or emotional_tone,
             "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
+            "user_id": user["id"],
+            "fixed_text": fixed_text,
         }
 
     try:
@@ -516,7 +690,31 @@ async def upload_and_process(request: Request) -> JSONResponse:
             visual_description=visual_description,
             speech_description=speech_description,
             visual_lead_in=visual_lead_in,
+            fixed_text=fixed_text,
+            text_position=text_position,
+            text_style=text_style,
+            video_orientation=video_orientation,
         )
+
+        # Record video generation in SaaS audit history
+        try:
+            record_generation(
+                user_id=user["id"],
+                job_id=summary.get("job_id", job_id),
+                video_url=summary.get("video_url"),
+                title=preset or fixed_text or Path(original_filename).stem,
+            )
+        except Exception as re:
+            logger.warning("Failed to record generation in upload_and_process: %s", re)
+
+        _, _, updated_quotas = check_quota(user["id"])
+        summary["user"] = {
+            "id": user["id"],
+            "username": user["username"],
+            "business_name": user["business_name"],
+            "business_category": user["business_category"],
+        }
+        summary["quotas"] = updated_quotas
 
         # Auto-save prompt descriptions in SQLite prompt_db
         if visual_description or speech_description:
@@ -542,6 +740,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "auto_mode": summary.get("auto_mode", auto_mode),
             "emotional_tone": summary.get("emotional_tone"),
             "inferred_script": summary.get("inferred_script"),
+            "user_id": user["id"],
             "result": summary,
         }
         return JSONResponse(summary, status_code=200)
@@ -732,6 +931,170 @@ async def get_voices_endpoint(request: Request) -> JSONResponse:
     })
 
 
+async def voice_sample_endpoint(request: Request) -> Response:
+    """GET /api/voices/{voice_id}/sample - Stream audio preview sample for voice audition."""
+    voice_id = request.path_params.get("voice_id", "ar-XA-Standard-A")
+    try:
+        sample_path = get_or_create_voice_sample(voice_id)
+        if sample_path.is_file() and sample_path.stat().st_size > 0:
+            return FileResponse(
+                str(sample_path),
+                media_type="audio/wav",
+                filename=f"{voice_id}_sample.wav",
+            )
+        return JSONResponse({"status": "error", "message": f"Could not generate sample for {voice_id}"}, status_code=500)
+    except Exception as exc:
+        logger.exception("Voice sample generation error: %s", exc)
+        return JSONResponse({"status": "error", "message": str(exc)}, status_code=500)
+
+
+async def login_endpoint(request: Request) -> JSONResponse:
+    """POST /api/auth/login - Authenticate merchant or admin by username or token."""
+    username = None
+    token = None
+    try:
+        body = await request.json()
+        username = body.get("username")
+        token = body.get("token") or body.get("auth_token")
+    except Exception:
+        try:
+            form = await request.form()
+            username = form.get("username")
+            token = form.get("token") or form.get("auth_token")
+        except Exception:
+            pass
+
+    user = None
+    if token:
+        user = authenticate_token(token)
+    elif username:
+        user = authenticate_credentials(username)
+
+    if not user:
+        return JSONResponse({
+            "status": "error",
+            "message": "اسم المستخدم أو رمز الدخول غير صحيح",
+        }, status_code=401)
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    return JSONResponse({
+        "status": "ok",
+        "user": user,
+        "token": user["auth_token"],
+        "quotas": quota_details,
+    })
+
+
+async def auth_me_endpoint(request: Request) -> JSONResponse:
+    """GET /api/auth/me - Retrieve current merchant profile and quota details."""
+    user = _get_authenticated_user_from_form_or_header(request, form=None)
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    token = request.query_params.get("token") or request.query_params.get("auth_token")
+
+    if not auth_header and not token:
+        return JSONResponse({
+            "status": "error",
+            "message": "غير مصرح، يرجى تقديم رمز المصادقة (Bearer token)",
+        }, status_code=401)
+
+    if not user:
+        return JSONResponse({
+            "status": "error",
+            "message": "رمز المصادقة غير صالح أو منتهي",
+        }, status_code=401)
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    history = get_user_history(user["id"], limit=20)
+    return JSONResponse({
+        "status": "ok",
+        "user": user,
+        "quotas": quota_details,
+        "history": history,
+    })
+
+
+async def demo_accounts_endpoint(request: Request) -> JSONResponse:
+    """GET /api/auth/demo-accounts - Returns list of pre-seeded accounts for 1-tap switching."""
+    return JSONResponse({
+        "status": "ok",
+        "accounts": get_demo_accounts(),
+    })
+
+
+async def admin_list_users_endpoint(request: Request) -> JSONResponse:
+    """GET /api/admin/users - Returns all merchant accounts with usage and quota statistics."""
+    return JSONResponse({
+        "status": "ok",
+        "users": list_users(),
+    })
+
+
+async def admin_create_user_endpoint(request: Request) -> JSONResponse:
+    """POST /api/admin/users - Admin creates new commercial merchant account."""
+    try:
+        body = await request.json()
+    except Exception as exc:
+        return JSONResponse({"status": "error", "error": f"Invalid JSON body: {exc}"}, status_code=400)
+
+    username = body.get("username")
+    business_name = body.get("business_name")
+    if not username or not business_name:
+        return JSONResponse({"status": "error", "error": "Missing required 'username' or 'business_name'"}, status_code=400)
+
+    try:
+        new_user = create_user(
+            username=username,
+            business_name=business_name,
+            business_category=body.get("business_category", "ecommerce"),
+            role=body.get("role", "merchant"),
+            expires_at=body.get("expires_at"),
+            daily_quota=int(body.get("daily_quota", 5)),
+            weekly_quota=int(body.get("weekly_quota", 25)),
+            auth_token=body.get("auth_token"),
+            is_active=1 if body.get("is_active", True) else 0,
+        )
+        return JSONResponse({
+            "status": "ok",
+            "message": "تم إنشاء حساب التاجر بنجاح",
+            "user": new_user,
+        }, status_code=201)
+    except Exception as exc:
+        return JSONResponse({"status": "error", "error": str(exc)}, status_code=400)
+
+
+async def admin_update_user_endpoint(request: Request) -> JSONResponse:
+    """PATCH /api/admin/users/{user_id} - Admin updates user account status, quotas, or expiry."""
+    user_id_raw = request.path_params.get("user_id")
+    try:
+        user_id = int(user_id_raw)
+    except (ValueError, TypeError):
+        return JSONResponse({"status": "error", "error": "Invalid user_id parameter"}, status_code=400)
+
+    try:
+        body = await request.json()
+    except Exception as exc:
+        return JSONResponse({"status": "error", "error": f"Invalid JSON body: {exc}"}, status_code=400)
+
+    updated = update_user(user_id, **body)
+    if not updated:
+        return JSONResponse({"status": "error", "message": f"User {user_id} not found or no updates provided"}, status_code=404)
+
+    user = get_user_by_id(user_id)
+    return JSONResponse({
+        "status": "ok",
+        "message": "تم تحديث بيانات الحساب بنجاح",
+        "user": user,
+    })
+
+
+async def admin_stats_endpoint(request: Request) -> JSONResponse:
+    """GET /api/admin/stats - Macro platform statistics overview."""
+    return JSONResponse({
+        "status": "ok",
+        "stats": get_platform_stats(),
+    })
+
+
 # ---------------------------------------------------------------------------
 # Application Initialization & Static Mounts
 # ---------------------------------------------------------------------------
@@ -740,6 +1103,7 @@ routes = [
     Route("/api/health", health_check, methods=["GET"]),
     Route("/api/presets", get_presets, methods=["GET"]),
     Route("/api/voices", get_voices_endpoint, methods=["GET"]),
+    Route("/api/voices/{voice_id}/sample", voice_sample_endpoint, methods=["GET"]),
     Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
     Route("/api/principles", get_principles_endpoint, methods=["GET"]),
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
@@ -749,6 +1113,14 @@ routes = [
     Route("/api/prompts", create_prompt_endpoint, methods=["POST"]),
     Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),
     Route("/api/prompts/{prompt_id}", delete_prompt_endpoint, methods=["DELETE"]),
+    Route("/api/auth/login", login_endpoint, methods=["POST"]),
+    Route("/api/auth/me", auth_me_endpoint, methods=["GET"]),
+    Route("/api/auth/demo-accounts", demo_accounts_endpoint, methods=["GET"]),
+    Route("/api/admin/users", admin_list_users_endpoint, methods=["GET"]),
+    Route("/api/admin/users", admin_create_user_endpoint, methods=["POST"]),
+    Route("/api/admin/users/{user_id:int}", admin_update_user_endpoint, methods=["PATCH"]),
+    Route("/api/admin/users/{user_id}", admin_update_user_endpoint, methods=["PATCH"]),
+    Route("/api/admin/stats", admin_stats_endpoint, methods=["GET"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),

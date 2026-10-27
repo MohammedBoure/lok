@@ -105,6 +105,17 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - REST endpoints `GET /api/prompts/history`, `POST /api/prompts`, and `DELETE /api/prompts/{id}` (`test_api_prompts_history`, `test_api_prompts_post_and_delete`).
   - Automated prompt recording during asynchronous job processing (`test_api_jobs_create_with_descriptions`).
   - Linguistic intent transformation and lower-third badge extraction (`test_smart_fallback_linguistic_speech_intent`, `test_smart_fallback_visual_intent_badges`).
+- [`test_saas_auth_and_quotas.py`](test_saas_auth_and_quotas.py): Multi-tenant SaaS authentication, quota enforcement, admin governance, and voice audition preview test suite authored by `agy11`:
+  - Pre-seeding master admin and 10 commercial merchants across distinct industries (`test_auth_db_initial_preseed`).
+  - Token and credential authentication resolution (`test_auth_db_authenticate_token_and_credentials`).
+  - Daily and rolling weekly quota limit verification with Arabic messages (`test_auth_db_check_quota_logic`).
+  - Account deactivation and subscription expiration blocking (`test_auth_db_check_quota_expired_and_inactive`).
+  - Admin account CRUD lifecycle, user updates, and platform stats (`test_auth_db_admin_user_crud`).
+  - Auth REST API endpoints `POST /api/auth/login`, `GET /api/auth/me`, and `GET /api/auth/demo-accounts` (`test_api_auth_endpoints`).
+  - Admin REST API endpoints `GET /api/admin/users`, `POST /api/admin/users`, `PATCH /api/admin/users/{user_id}`, and `GET /api/admin/stats` with token gatekeeping (`test_api_admin_management_endpoints`).
+  - Voice audition preview endpoint `GET /api/voices/{voice_id}/sample` returning cached WAV audio (`test_api_voice_sample_preview_endpoint`).
+  - End-to-end video job creation with merchant token authentication, fixed text banner overlay, aspect ratio framing, and generation audit logging (`test_video_generation_with_auth_and_quota_audit`).
+  - Video job quota ceiling enforcement returning HTTP 403 Forbidden upon exhaustion (`test_video_generation_quota_rejection`).
 - [`test_audio_sync_and_dense_vision.py`](test_audio_sync_and_dense_vision.py): Audio-visual lead-in synchronization, dense keyframe sampling, and Algerian voice profiles catalog test suite authored by `agy11`:
   - Real estate voice profiles catalog and Gemini persona mapping (`test_supported_voice_profiles_catalog`).
   - Voice profile resolution across standard aliases and custom personas (`test_resolve_voice_profile`).

@@ -253,6 +253,47 @@ def resolve_voice_profile(voice_input: Optional[str]) -> Tuple[str, str]:
     return (clean, clean)
 
 
+VOICE_SAMPLE_SCRIPTS: Dict[str, Dict[str, str]] = {
+    "ar-XA-Standard-A": {
+        "text": "مرحباً بكم، هذا نموذج تجريبي للصوت الأنثوي الدافئ والطبيعي لإنتاج فيديوهاتكم التسويقية.",
+        "tone": "دافئ وأنيق",
+    },
+    "ar-XA-Standard-B": {
+        "text": "أهلاً وسهلاً، هذا استعراض للصوت الذكوري الوقور والرسمي المناسب للعروض التجارية والفخمة.",
+        "tone": "فاخر وهادئ",
+    },
+    "ar-XA-Standard-C": {
+        "text": "مرحباً، استمع إلى الصوت الذكوري الحيوي والعصري المصمم للترويج السريع والنشط.",
+        "tone": "متحمس وحيوي",
+    },
+    "ar-XA-Standard-D": {
+        "text": "أهلاً بكم، تجربة للصوت الأنثوي الراقي والهادئ لإبراز الفخامة والأناقة في إعلاناتكم.",
+        "tone": "فاخر وهادئ",
+    },
+}
+
+
+def get_or_create_voice_sample(voice_id: str) -> Path:
+    """
+    Return path to an audio sample file for voice audition preview,
+    generating it via speech synthesizer if not yet cached.
+    """
+    resolved_id, _ = resolve_voice_profile(voice_id)
+    samples_dir = Path("outputs/voice_samples").resolve()
+    samples_dir.mkdir(parents=True, exist_ok=True)
+    sample_file = samples_dir / f"{resolved_id}.wav"
+
+    if not sample_file.is_file() or sample_file.stat().st_size == 0:
+        meta = VOICE_SAMPLE_SCRIPTS.get(resolved_id, VOICE_SAMPLE_SCRIPTS["ar-XA-Standard-A"])
+        synthesize_narration(
+            script_text=meta["text"],
+            output_path=sample_file,
+            voice=resolved_id,
+            emotional_tone=meta["tone"],
+        )
+    return sample_file
+
+
 def compute_dense_keyframe_timestamps(
     duration: float,
     min_count: int = 8,
@@ -450,6 +491,10 @@ def process_mobile_video(
     visual_description: Optional[str] = None,
     visual_lead_in: float = 1.2,
     outro_buffer: float = 1.2,
+    fixed_text: Optional[str] = None,
+    text_position: Optional[str] = "lower_third",
+    text_style: Optional[str] = "modern_white",
+    video_orientation: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -521,8 +566,24 @@ def process_mobile_video(
     is_portrait = src_height > src_width
     orientation = "portrait" if is_portrait else "landscape"
 
-    # Standardize output resolution
-    if is_portrait:
+    # Standardize output resolution with optional video_orientation override
+    req_orient = str(video_orientation).lower().strip() if video_orientation else None
+    if req_orient in ("square", "1:1"):
+        target_w = 1080 if max(src_width, src_height) >= 900 else 720
+        target_h = target_w
+        orientation = "square"
+        aspect_label = "1:1"
+    elif req_orient in ("portrait", "9:16"):
+        target_w = 1080 if src_width >= 900 else 720
+        target_h = 1920 if src_width >= 900 else 1280
+        orientation = "portrait"
+        aspect_label = "9:16"
+    elif req_orient in ("landscape", "16:9"):
+        target_w = 1920 if src_width >= 1600 else 1280
+        target_h = 1080 if src_width >= 1600 else 720
+        orientation = "landscape"
+        aspect_label = "16:9"
+    elif is_portrait:
         target_w = 1080 if src_width >= 900 else 720
         target_h = 1920 if src_width >= 900 else 1280
         aspect_label = "9:16"
@@ -829,25 +890,38 @@ def process_mobile_video(
     render_seconds = (datetime.now(timezone.utc) - start_render).total_seconds()
     logger.info("Job %s: Final cut rendered in %.2fs (%d bytes)", job_id, render_seconds, final_cut_path.stat().st_size)
 
-    # 8. Apply Smart Video Annotations & Lower-Third Banners if enabled
+    # 8. Apply Smart Video Annotations, Lower-Third Banners & Merchant Fixed Text Overlays
     applied_annotations_count = 0
+    annotations_list: List[Dict[str, Any]] = []
+
+    # Insert fixed promotional text if supplied by merchant
+    if fixed_text and str(fixed_text).strip():
+        annotations_list.append({
+            "text": str(fixed_text).strip(),
+            "start_sec": 0.0,
+            "end_sec": total_duration,
+            "position": text_position or "lower_third",
+            "style": text_style or "modern_white",
+            "font_size": 34,
+        })
+
     if principles_annotation.get("enable_auto_annotations", True):
-        annotations_list: List[Dict[str, Any]] = []
         banner_title = ""
         if selected_preset and selected_preset in ALGERIAN_REAL_ESTATE_PRESETS:
             banner_title = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["title_ar"]
         elif is_auto_mode and inferred_script:
             banner_title = f"عقار استثنائي • {resolved_tone}"
-        else:
-            banner_title = "فرصة عقارية راقية"
+        elif not (fixed_text and str(fixed_text).strip()):
+            banner_title = "فرصة تجارية راقية"
 
-        annotations_list.append({
-            "text": banner_title,
-            "start_sec": 0.5,
-            "end_sec": min(4.5, total_duration),
-            "position": principles_annotation.get("position", "lower_third"),
-            "style": principles_annotation.get("font_style", "luxury_gold"),
-        })
+        if banner_title and not (fixed_text and str(fixed_text).strip()):
+            annotations_list.append({
+                "text": banner_title,
+                "start_sec": 0.5,
+                "end_sec": min(4.5, total_duration),
+                "position": principles_annotation.get("position", "lower_third"),
+                "style": principles_annotation.get("font_style", "luxury_gold"),
+            })
 
         if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict):
             hl_items = vision_result.get("highlights", [])
@@ -863,27 +937,27 @@ def process_mobile_video(
                         "style": "emerald_badge",
                     })
 
-        if annotations_list:
-            annotated_tmp = out_cuts_dir / f"annotated_{job_id}.mp4"
-            try:
-                annot_res = annotate_video(
-                    input_video_path=final_cut_path,
-                    output_video_path=annotated_tmp,
-                    annotations=annotations_list,
+    if annotations_list:
+        annotated_tmp = out_cuts_dir / f"annotated_{job_id}.mp4"
+        try:
+            annot_res = annotate_video(
+                input_video_path=final_cut_path,
+                output_video_path=annotated_tmp,
+                annotations=annotations_list,
+            )
+            ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
+            if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
+                annotated_tmp.replace(final_cut_path)
+                applied_annotations_count = len(annotations_list)
+                logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
+                _notify(
+                    step=5,
+                    percent=95,
+                    message="تمت إضافة الملصقات والنصوص التوضيحية على الفيديو بنجاح.",
+                    log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات توضيحية ذكية على المشاهد.",
                 )
-                ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
-                if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
-                    annotated_tmp.replace(final_cut_path)
-                    applied_annotations_count = len(annotations_list)
-                    logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
-                    _notify(
-                        step=5,
-                        percent=95,
-                        message="تمت إضافة الملصقات والنصوص التوضيحية على الفيديو بنجاح.",
-                        log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات توضيحية ذكية على المشاهد.",
-                    )
-            except Exception as annot_err:
-                logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
+        except Exception as annot_err:
+            logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
@@ -896,8 +970,12 @@ def process_mobile_video(
         "file_size_bytes": final_cut_path.stat().st_size,
         "duration": total_duration,
         "orientation": orientation,
+        "video_orientation": orientation,
         "aspect_ratio": aspect_label,
         "resolution": f"{target_w}x{target_h}",
+        "fixed_text": fixed_text,
+        "text_position": text_position,
+        "text_style": text_style,
         "auto_mode": is_auto_mode,
         "emotional_tone": resolved_tone,
         "speech_description": speech_description,

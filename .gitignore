@@ -13,6 +13,8 @@ inputs/mobile_uploads/*
 outputs/mobile_cuts/*
 !outputs/mobile_cuts/.gitkeep
 outputs/keyframes/mobile_*
+outputs/voice_samples/*
+!outputs/voice_samples/.gitkeep
 *.db
 outputs/*.db
 

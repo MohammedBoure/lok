@@ -72,6 +72,9 @@ def _build_drawtext_filter(
     elif style == "modern_white":
         font_color = "0xFFFFFF"
         box_color = "0x0F172A@0.80"
+    elif style == "commercial_red":
+        font_color = "0xFFFFFF"
+        box_color = "0xDC2626@0.90"
     else:  # luxury_gold
         font_color = "0xFBBF24"
         box_color = "0x18181B@0.85"
@@ -80,6 +83,9 @@ def _build_drawtext_filter(
     if position == "top_banner":
         coord_x = "(w-text_w)/2"
         coord_y = "60"
+    elif position == "badge":
+        coord_x = "40"
+        coord_y = "50"
     elif position == "center":
         coord_x = "(w-text_w)/2"
         coord_y = "(h-text_h)/2"

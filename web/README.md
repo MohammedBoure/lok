@@ -16,6 +16,7 @@ The system combines:
 
 | File | Purpose |
 | :--- | :--- |
+| [`auth_db.py`](file:///home/pluto/projects/lok/web/auth_db.py) | Multi-tenant SaaS SQLite database managing user authentication, admin governance, expiration tracking, daily/weekly generation quotas, and audit logs at `outputs/saas_platform.db`. |
 | [`prompt_db.py`](file:///home/pluto/projects/lok/web/prompt_db.py) | SQLite persistence layer for prompt descriptions history, managing visual & speech intent descriptions, pre-seeded Algerian presets, and script storage at `outputs/prompts.db`. |
 | [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, linguistic intent processing, and video assembly. |
 | [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music steered by linguistic speech and visual intent. |
@@ -117,6 +118,123 @@ Returns catalog of supported Algerian real estate voice profiles.
   }
   ```
 
+### `GET /api/voices/{voice_id}/sample`
+Streams real-time or cached WAV audio audition sample for the requested voice persona (`outputs/voice_samples/{voice_id}.wav`).
+- **Path Parameters**:
+  - `voice_id` (*Text*): Supported voice identifier (`ar-XA-Standard-A`, `ar-XA-Standard-B`, `ar-XA-Standard-C`, `ar-XA-Standard-D`, or custom voice name).
+- **Response (200 OK)**: Binary audio stream (`audio/wav`) containing a professional 3-4 second audition monologue tailored to that voice persona.
+
+### `POST /api/auth/login`
+Authenticates a user via username or auth token string.
+- **Payload**:
+  ```json
+  {
+    "username": "algiers_luxury_re"
+  }
+  ```
+  *(Or `{"auth_token": "token_algiers_re"}`)*
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "token": "token_algiers_re",
+    "user": {
+      "id": 2,
+      "username": "algiers_luxury_re",
+      "business_name": "عقارات الجزائر الفاخرة",
+      "business_category": "real_estate",
+      "role": "merchant",
+      "is_active": true,
+      "expires_at": "2027-12-31",
+      "daily_quota": 8,
+      "weekly_quota": 40
+    },
+    "quota": {
+      "allowed": true,
+      "reason": "",
+      "daily_used": 0,
+      "daily_quota": 8,
+      "daily_remaining": 8,
+      "weekly_used": 0,
+      "weekly_quota": 40,
+      "weekly_remaining": 40,
+      "expires_at": "2027-12-31"
+    }
+  }
+  ```
+
+### `GET /api/auth/me`
+Fetches authenticated user profile, active status, expiration date, and real-time daily/weekly quota allowance.
+- **Authentication**: `Authorization: Bearer <token>`, form field `auth_token`, query param `?token=...`, or header `x-auth-token`.
+- **Response (200 OK)**: JSON object with `status: "ok"`, `user`, and `quota` details.
+
+### `GET /api/auth/demo-accounts`
+Returns the public list of pre-seeded demo accounts (1 admin and 10 commercial merchants across distinct industries) for instant 1-click studio switching.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "accounts": [
+      {
+        "username": "admin",
+        "business_name": "إدارة منصة الفيديو الذكية",
+        "business_category": "platform_admin",
+        "role": "admin",
+        "daily_quota": 999,
+        "weekly_quota": 9999,
+        "auth_token": "token_admin_master"
+      },
+      ...
+    ]
+  }
+  ```
+
+### `GET /api/admin/users`
+Admin-only endpoint listing all registered platform accounts with real-time generation metrics (`videos_today`, `videos_this_week`, `total_videos`).
+- **Authentication**: Requires admin role token (`token_admin_master`).
+- **Response (200 OK)**: JSON array of users with quota usage metrics.
+- **Response (403 Forbidden)**: `{"status": "error", "message": "Admin authorization required."}`
+
+### `POST /api/admin/users`
+Admin-only endpoint provisioning a new merchant account with custom quotas and expiry.
+- **Authentication**: Requires admin role token.
+- **Payload**:
+  ```json
+  {
+    "username": "oran_boutique_hotel",
+    "business_name": "فندق ومسبح الباهية وهران",
+    "business_category": "tourism",
+    "role": "merchant",
+    "daily_quota": 10,
+    "weekly_quota": 50,
+    "expires_at": "2028-06-30"
+  }
+  ```
+- **Response (201 Created)**: Created user record with generated `auth_token`.
+
+### `PATCH /api/admin/users/{user_id}`
+Admin-only endpoint updating quotas, expiration date, business metadata, or active status.
+- **Authentication**: Requires admin role token.
+- **Payload**: Any of `{"daily_quota": 15, "weekly_quota": 70, "expires_at": "2028-12-31", "is_active": true}`
+- **Response (200 OK)**: `{"status": "ok", "message": "User 3 updated successfully."}`
+
+### `GET /api/admin/stats`
+Admin-only endpoint returning high-level platform SaaS analytics.
+- **Authentication**: Requires admin role token.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "stats": {
+      "total_users": 11,
+      "active_users": 11,
+      "total_videos_generated": 42,
+      "videos_today": 8,
+      "videos_this_week": 34
+    }
+  }
+  ```
+
 ### `GET /api/principles`
 Returns currently active production principles (voice, narrative, visual/music, and video annotations).
 - **Response (200 OK)**: JSON object containing active principles schema.
@@ -184,7 +302,9 @@ Deletes a prompt description record from SQLite database.
 - **Response (404 Not Found)**: `{"status": "error", "message": "Prompt with ID 4 not found.", "deleted": false}`
 
 ### `POST /api/jobs/create`
-Asynchronous upload and processing endpoint. Accepts video and options, auto-saves prompt descriptions to SQLite, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.
+Asynchronous upload and processing endpoint. Accepts video and options, authenticates merchant credentials, enforces daily/weekly quotas, auto-saves prompt descriptions to SQLite, audits generations to SaaS platform DB, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.
+- **Headers / Query / Form**:
+  - `Authorization: Bearer <token>` or form field `auth_token` (*Text, optional*): Merchant authentication token. Defaults to first active merchant if omitted.
 - **Fields**:
   - `video` (*File, required*): Smartphone video recording (MP4, MOV).
   - `visual_description` (*Text, optional*): Visual intent guidance of what appears in footage (auto-saved to SQLite).
@@ -192,24 +312,41 @@ Asynchronous upload and processing endpoint. Accepts video and options, auto-sav
   - `auto_mode` (*Boolean/Text, optional*): Enable AI Multimodal Vision inference.
   - `voice` (*Text, optional*): Voice profile (`ar-XA-Standard-A`, `ar-XA-Standard-B`, `ar-XA-Standard-C`, `ar-XA-Standard-D`, or custom string; default: `ar-XA-Standard-A`).
   - `visual_lead_in` (*Float, optional*): Establishing visual lead-in delay in seconds (default: `1.2`, range: `0.0` - `5.0`).
-- **Response (202 Accepted)**:
-  ```json
-  {
-    "job_id": "20261027_085000_1a2b3c",
-    "status": "processing",
-    "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
-    "status_url": "/api/status/20261027_085000_1a2b3c",
-    "prompt_id": 5,
-    "voice": "ar-XA-Standard-A",
-    "visual_lead_in_seconds": 1.2
-  }
-  ```
+  - `fixed_text` (*Text, optional*): Persistent commercial text overlay (e.g. business name, phone number, slogan, pricing).
+  - `text_position` (*Text, optional*): Overlay placement: `lower_third`, `top_banner`, or `badge` (default: `lower_third`).
+  - `text_style` (*Text, optional*): Graphic color theme: `modern_white`, `luxury_gold`, or `commercial_red` (default: `modern_white`).
+  - `video_orientation` (*Text, optional*): Frame aspect ratio override: `portrait` (9:16), `landscape` (16:9), or `square` (1:1).
+- **Responses**:
+  - **202 Accepted**: Job accepted and processing initiated.
+    ```json
+    {
+      "job_id": "20261027_085000_1a2b3c",
+      "status": "processing",
+      "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
+      "status_url": "/api/status/20261027_085000_1a2b3c",
+      "prompt_id": 5,
+      "voice": "ar-XA-Standard-A",
+      "visual_lead_in_seconds": 1.2,
+      "merchant": { "id": 2, "business_name": "عقارات الجزائر الفاخرة" },
+      "quota": { "allowed": true, "daily_remaining": 7, "weekly_remaining": 39 }
+    }
+    ```
+  - **403 Forbidden**: Quota exceeded or account expired.
+    ```json
+    {
+      "status": "error",
+      "error": "quota_exceeded",
+      "message": "عذراً، لقد استهلكت كامل حصتك اليومية المحددة بـ 5 فيديوهات اليوم.",
+      "quota": { "allowed": false, "daily_used": 5, "daily_quota": 5, "daily_remaining": 0 }
+    }
+    ```
 
 ### `POST /api/upload-and-process`
-Multipart form upload endpoint for synchronous video processing.
+Multipart form upload endpoint for synchronous video processing with authentication and quota verification.
 - **Content-Type**: `multipart/form-data`
 - **Fields**:
   - `video` (*File, required*): Smartphone video recording (MP4, MOV).
+  - `auth_token` (*Text, optional*): Merchant authentication bearer token.
   - `visual_description` (*Text, optional*): Visual description describing scenes, architecture, and focal points.
   - `speech_description` (*Text, optional*): Linguistic speech intent guidance describing what should be narrated (not literal text).
   - `auto_mode` (*Boolean/Text, optional*): When `true` (or when `speech_description` is supplied), triggers Gemini Multimodal Vision to infer script, emotional tone, badges, and music.
@@ -220,7 +357,12 @@ Multipart form upload endpoint for synchronous video processing.
   - `visual_lead_in` (*Float, optional*): Visual establishing lead-in delay in seconds before speech starts (default: `1.2`).
   - `duck_level` (*Float, optional*): Ambient music volume ratio during speech (default: `0.25`).
   - `music` or `music_track` (*Text, optional*): Music identifier (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
-- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `prompt_id`, `visual_description`, `speech_description`, `video_url`, `job_id`, `keyframes`, `analyzed_frames_count`, `visual_lead_in_seconds`, `voice`, and `duration`.
+  - `fixed_text` (*Text, optional*): Persistent promotional text banner or commercial watermark.
+  - `text_position` (*Text, optional*): `lower_third`, `top_banner`, or `badge`.
+  - `text_style` (*Text, optional*): `modern_white`, `luxury_gold`, or `commercial_red`.
+  - `video_orientation` (*Text, optional*): Target framing (`portrait`, `landscape`, `square`).
+- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `prompt_id`, `visual_description`, `speech_description`, `video_url`, `job_id`, `keyframes`, `analyzed_frames_count`, `visual_lead_in_seconds`, `voice`, `merchant_user_id`, `fixed_text`, `video_orientation`, and `duration`.
+- **Response (403 Forbidden)**: Returned immediately if account is expired, inactive, or daily/weekly generation quota is depleted.
 - **Response (200 OK)**:
   ```json
   {
@@ -410,4 +552,92 @@ Four dedicated voices optimized for Algerian real estate marketing are exposed v
 | **`ar-XA-Standard-D`** | Female | Kore | Elegant, tranquil, and prestigious for high-end beachfront residences and penthouses. |
 
 Custom voice strings (e.g., `Puck`, `Zephyr`, `ar-XA-Wavenet-A`) are automatically supported and routed to `GeminiSpeechClient` or the local synthesizer.
+
+---
+
+## 11. Multi-Tenant SaaS Architecture, Quotas, Admin Governance & Voice Preview
+
+### Multi-Tenant Database Schema (`outputs/saas_platform.db`)
+Multi-tenant identity, subscription status, and usage telemetry are persisted in SQLite at `outputs/saas_platform.db`:
+
+#### `users` Table
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    business_name TEXT NOT NULL,
+    business_category TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'merchant',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    expires_at TEXT,
+    daily_quota INTEGER NOT NULL DEFAULT 5,
+    weekly_quota INTEGER NOT NULL DEFAULT 25,
+    auth_token TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_users_token ON users(auth_token);
+CREATE INDEX idx_users_username ON users(username);
+```
+
+#### `video_generations` Table
+```sql
+CREATE TABLE video_generations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    job_id TEXT NOT NULL,
+    video_url TEXT,
+    title TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_generations_user_created ON video_generations(user_id, created_at);
+```
+
+### Pre-Seeded Catalog of Commercial Merchants
+The database automatically seeds 1 Master Administrator and 10 Commercial Merchants across diverse economic sectors upon initialization:
+
+| Username | Business Name | Category | Role | Daily Quota | Weekly Quota | Auth Token |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `admin` | إدارة منصة الفيديو الذكية | `platform_admin` | `admin` | 999 | 9999 | `token_admin_master` |
+| `algiers_luxury_re` | عقارات الجزائر الفاخرة | `real_estate` | `merchant` | 8 | 40 | `token_algiers_re` |
+| `oran_seafood_bistro` | مطعم وهران للمأكولات البحرية | `restaurant` | `merchant` | 6 | 30 | `token_oran_bistro` |
+| `annaba_elegance_couture` | أزياء عنابة الراقية | `fashion` | `merchant` | 5 | 25 | `token_annaba_fashion` |
+| `constantine_smart_tech` | قسنطينة للأجهزة الذكية | `tech` | `merchant` | 5 | 25 | `token_constantine_tech` |
+| `batna_auto_showroom` | معرض باتنة للسيارات | `automotive` | `merchant` | 4 | 20 | `token_batna_auto` |
+| `ghardaia_oasis_carpets` | زرابي وواحات غرداية التقليدية | `handcrafts` | `merchant` | 3 | 15 | `token_ghardaia_crafts` |
+| `bejaia_coast_tours` | وكالة بجاية للسياحة البحرية | `tourism` | `merchant` | 5 | 25 | `token_bejaia_tours` |
+| `setif_home_decor` | سطيف للمفروشات والديكور المنزلي | `ecommerce` | `merchant` | 6 | 30 | `token_setif_decor` |
+| `blida_wellness_clinic` | عيادة البليدة الطبية والصحية | `clinic` | `merchant` | 4 | 20 | `token_blida_clinic` |
+| `algiers_pro_fitness` | نادي العاصمة للرشاقة واللياقة | `fitness` | `merchant` | 5 | 25 | `token_algiers_fitness` |
+
+### Quota Enforcement & Subscription Lifecycle Governance
+The `check_quota(user_id)` function enforces four cascading layers of validation before any video post-production job is accepted:
+1. **Active Account Check**: Verifies `is_active == 1`. Inactive accounts are blocked immediately with Arabic notification `الحساب معطل حالياً`.
+2. **Expiration Lifecycle Check**: If `expires_at` is set, compares against current date (`YYYY-MM-DD`). Expired subscriptions receive HTTP 403 Forbidden with `انتهت صلاحية اشتراك هذا الحساب بتاريخ ...`.
+3. **Daily Quota Ceiling**: Queries `video_generations` where `date(created_at) = date('now')`. If count reaches or exceeds `daily_quota`, request is rejected with `عذراً، لقد استهلكت كامل حصتك اليومية المحددة بـ N فيديوهات اليوم`.
+4. **Rolling Weekly Quota Ceiling**: Queries `video_generations` where `created_at >= datetime('now', '-7 days')`. If count reaches or exceeds `weekly_quota`, request is rejected with `عذراً، لقد استهلكت كامل حصتك الأسبوعية المحددة بـ N فيديوهات للأيام السبعة الماضية`.
+
+### Voice Audition Sample Preview System
+To allow merchants to audition voices before committing a video render, `GET /api/voices/{voice_id}/sample` serves cached high-fidelity WAV samples (`outputs/voice_samples/{voice_id}.wav`):
+- **Aoede (`ar-XA-Standard-A`)**: Warm luxury interior design pitch.
+- **Charon (`ar-XA-Standard-B`)**: Authoritative commercial investment pitch.
+- **Fenrir (`ar-XA-Standard-C`)**: Modern fast-paced dynamic offer pitch.
+- **Kore (`ar-XA-Standard-D`)**: Elegant tranquil sea-view panoramic pitch.
+- Synthesized on-demand via `GeminiSpeechClient` or mathematical harmonic formant engine, then cached permanently to avoid redundant API or CPU cycles.
+
+### Fixed Commercial Overlays & Video Formatting
+The pipeline supports persistent branding overlays and versatile aspect ratio reframing:
+- **Placement**:
+  - `lower_third`: Centered lower banner (`y=h-th-80`).
+  - `top_banner`: Centered header banner (`y=80`).
+  - `badge`: Top-left corner promotional badge (`x=40`, `y=50`).
+- **Color Themes**:
+  - `modern_white`: Clean white lettering on charcoal black box (`0x111827@0.85`).
+  - `luxury_gold`: Warm golden text (`#F59E0B`) on dark gold/navy background (`0x1E1B18@0.90`).
+  - `commercial_red`: High-visibility white lettering on vibrant red promotional badge (`0xDC2626@0.90`).
+- **Video Framing & Aspect Ratios**:
+  - `portrait` (9:16): 1080x1920 or 720x1280 (vertical reels, TikTok, Instagram stories).
+  - `landscape` (16:9): 1920x1080 or 1280x720 (YouTube, website banners, desktop displays).
+  - `square` (1:1): 1080x1080 or 720x720 with uniform scaling and padding (Instagram grid, Facebook feeds).
+
 
