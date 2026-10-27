@@ -116,6 +116,19 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - FFmpeg `adelay` filter verification in `assemble_video.py` ensuring voiceover starts after visual establishing (`test_assemble_video_adelay_filter`).
   - Full pipeline bridge lead-in audio delay, outro music swell, and dense frame telemetry (`test_pipeline_bridge_adelay_audio_sync`).
   - Asynchronous video ingestion with custom voice and lead-in duration via `POST /api/jobs/create` (`test_api_jobs_create_with_voice_and_lead_in`).
+- [`test_gatekeeper_audio_sync_and_voice.py`](test_gatekeeper_audio_sync_and_voice.py): Gatekeeper integration test suite for audio-visual sync, dense vision sampling, voice profiles, and mobile UI declutter authored by Quality Gatekeeper `agy100`:
+  - Audio-visual lead-in delay filter insertion via FFmpeg `adelay` in `assemble_video.py` (`TestAudioVisualLeadInSync::test_assemble_video_adelay_filter_insertion`).
+  - Mobile pipeline bridge default 1.2s visual lead-in and filtergraph generation (`TestAudioVisualLeadInSync::test_pipeline_bridge_adelay_and_default_lead_in`).
+  - Dense keyframe timestamp distribution and boundary verification (8-16 frames) across video durations (`TestDenseVisionSampling::test_compute_dense_keyframe_timestamps_bounds`).
+  - Speaking window calculation (`duration - visual_lead_in - outro_buffer`) and keyframe downsampling to 16 frames (`TestDenseVisionSampling::test_dense_sampling_speaking_window_and_prompt_injection`).
+  - Algerian real estate voice catalog (ar-XA-Standard-A/B/C/D) and Gemini persona mapping (`TestVoiceSelectorAndApiContract::test_supported_voice_catalog_and_personas`).
+  - Voice profile resolution with whitespace, case normalization, and fallbacks (`TestVoiceSelectorAndApiContract::test_resolve_voice_profile_normalizations`).
+  - REST endpoint contract for `GET /api/voices` (`TestVoiceSelectorAndApiContract::test_get_voices_endpoint`).
+  - Asynchronous job ingestion with voice selection and custom visual lead-in via `POST /api/jobs/create` (`TestVoiceSelectorAndApiContract::test_post_jobs_create_receives_voice_and_lead_in`).
+  - Streamlined mobile UI layout: prominent voice selection card grid, single primary produce CTA button, and accessible `#submitBtn` alias (`TestMobileUiDeclutter::test_index_html_voice_cards_and_single_produce_cta`).
+  - Responsive CSS styling for voice cards and collapsible option cards (`TestMobileUiDeclutter::test_style_css_voice_and_declutter_classes`).
+  - Frontend voice state management, localStorage persistence, and `FormData` appending in `app.js` (`TestMobileUiDeclutter::test_app_js_voice_binding_and_localstorage_persistence`).
+  - User Rule 5 typography and character mapping compliance prohibiting U+0669 (`TestTypographyCharacterMapping::test_no_forbidden_arabic_character`).
 - [`test_gatekeeper_prompts_and_mobile_theme.py`](test_gatekeeper_prompts_and_mobile_theme.py): Comprehensive integration test suite authored by Quality Gatekeeper `agy100`:
   - Pragmatic SQLite CRUD operations and auto-seeding (`test_sqlite_auto_seed`, `test_sqlite_save_and_get_prompt`, `test_sqlite_get_recent_prompts_ordering`, `test_sqlite_update_prompt_script`, `test_sqlite_delete_prompt`).
   - REST API endpoint contracts and HTTP lifecycle (`test_api_prompts_history_endpoint`, `test_api_prompts_crud_lifecycle`).
@@ -131,7 +144,9 @@ Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
 # Targeted Gatekeeper sprint verification suite:
-pytest tests/test_gatekeeper_prompts_and_mobile_theme.py tests/test_prompt_descriptions_and_agent.py tests/test_frontend_assets.py -v
+pytest tests/test_gatekeeper_audio_sync_and_voice.py tests/test_audio_sync_and_dense_vision.py tests/test_frontend_assets.py -v
+# Prior sprint verification:
+pytest tests/test_gatekeeper_prompts_and_mobile_theme.py tests/test_prompt_descriptions_and_agent.py -v
 # Core pipeline integration:
 pytest tests/test_pipeline.py -v
 pytest tests/test_assemble_video.py -v
@@ -141,11 +156,13 @@ pytest tests/test_frame_extractor.py -v
 ## Critical Boundaries & Edge Cases
 1. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
 2. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
-3. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
-4. **SQLite Concurrency & Auto-Seeding:** Prompt database initializes table structure and populates initial Algerian real estate prompts with atomic transactions (`timeout=15.0`).
-5. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
-6. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
-7. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
+3. **Audio-Visual Lead-In Timing:** Video and background music establish for a configurable lead-in duration (default 1.2s - 1.5s) using FFmpeg `adelay` on narration audio before speech begins, preventing speech from preceding visual cues.
+4. **Dense Multimodal Vision Bounds:** Keyframe extraction dynamically samples 8 to 16 frames uniformly across the video timeline, guaranteeing comprehensive architectural context without exceeding vision API token limits.
+5. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
+6. **SQLite Concurrency & Auto-Seeding:** Prompt database initializes table structure and populates initial Algerian real estate prompts with atomic transactions (`timeout=15.0`).
+7. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
+8. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
+9. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
 
 ## Dependencies & Environment
 - **Python:** 3.12+
