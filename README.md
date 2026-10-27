@@ -88,6 +88,23 @@ python3 -m frame_extractor --batch inputs/source_fox_cub.mp4 inputs/source_squir
 python3 -m frame_extractor --mcp
 ```
 
+## 1-Command Startup: Root Platform Runner (`app.py`)
+
+Run the entire platform with one single command:
+```bash
+python app.py
+```
+This automatically:
+- Detects your local LAN IP (e.g. `192.168.1.7`).
+- Generates an ASCII QR code in your terminal pointing to `http://<LAN_IP>:8000`.
+- Starts the production Uvicorn server on `0.0.0.0:8000` with graceful shutdown handling.
+
+## Autonomous Vision Script & Emotional Tone Inference
+- **Multimodal Video Analysis**: Uses Gemini 2.5 Flash / Gemini Vision (`web/vision_analyzer.py`) to analyze extracted visual keyframes and autonomously infer engaging Arabic real estate voiceover text matched to duration.
+- **Emotional Tone Modulation**: Extracts the architectural atmosphere / mood (الحالة الشعورية - e.g. "فاخر وهادئ", "متحمس وحيوي", "دافئ وأنيق") and steers Gemini 3.8 Flash TTS via acoustic style prompts.
+- **Curated Music Matching**: Auto-selects the optimal soundtrack from the open-source library (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
+- **Smart Fallback Safety**: If offline or API unavailable, automatically activates intelligent heuristic fallback so video processing never halts.
+
 ## Mobile API Server & Smartphone Video Post-Production (`web/`)
 
 The mobile gateway subsystem in [`web/`](web/) enables real-time ingestion, processing, and assembly of smartphone camera recordings into Algerian real estate promotional videos.
@@ -105,6 +122,7 @@ python3 -m web.run_server
 ```
 
 ## Directory Structure
+- [`app.py`](app.py): 1-command platform runner with LAN IP detection, QR code generation, and Uvicorn server launcher.
 - [`.agent/`](.agent/): Operational directives and agent principles (`agy1.md`, `agy11.md`, `agy51.md`).
 - [`inputs/`](inputs/): Raw incoming video footage (`source_fox_cub.mp4`, `source_squirrel.mp4`), mobile uploads, and production requests.
 - [`outputs/`](outputs/): Rendered assets, keyframes, mobile cuts, TTS audio, and final cut exports.
@@ -115,6 +133,7 @@ python3 -m web.run_server
   - [`outputs/execution_summary.json`](outputs/execution_summary.json): Complete editorial and audio mixing metadata.
 - [`web/`](web/): Mobile API server, post-production bridge, QR launcher, and mobile web studio.
   - [`web/pipeline_bridge.py`](web/pipeline_bridge.py): Core mobile video processing and FFmpeg assembly engine.
+  - [`web/vision_analyzer.py`](web/vision_analyzer.py): Gemini Multimodal Vision analysis module for script & mood inference.
   - [`web/server.py`](web/server.py): Starlette REST API server with CORS and static file mounting.
   - [`web/run_server.py`](web/run_server.py): LAN IP detector and ASCII QR code launcher.
   - [`web/static/`](web/static/): Mobile web studio single-page application.

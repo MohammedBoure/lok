@@ -325,6 +325,8 @@ class GeminiSpeechClient:
         voice_style_prompt: Optional[str] = None,
         expressions: Optional[str] = None,
         output_path: Optional[str] = None,
+        style_prompt: Optional[str] = None,
+        emotional_tone: Optional[str] = None,
     ) -> SynthesisResult:
         """Synthesize natural speech from input text with acoustic steering and failover.
 
@@ -335,6 +337,8 @@ class GeminiSpeechClient:
             voice_style_prompt: Natural acoustic prompt (tone, mood, pacing, delivery).
             expressions: Nuanced emotion and delivery directives.
             output_path: Optional destination file path to save audio (.wav).
+            style_prompt: Optional alias for voice_style_prompt.
+            emotional_tone: Optional emotional atmosphere / mood description (e.g. 'فاخر وهادئ').
 
         Returns:
             SynthesisResult: Container with audio bytes, MIME type, and telemetry.
@@ -350,14 +354,19 @@ class GeminiSpeechClient:
         voice_info = get_voice_profile(selected_voice)
         effective_voice_name = voice_info.name if voice_info else selected_voice
 
+        # Resolve effective style prompt and emotional tone directives
+        effective_style = voice_style_prompt or style_prompt
+        directives: List[str] = []
+        if effective_style:
+            directives.append(f"Style: {effective_style.strip()}")
+        if emotional_tone:
+            directives.append(f"Tone: {emotional_tone.strip()}")
+        if expressions:
+            directives.append(f"Expressions: {expressions.strip()}")
+
         # Build speech content with acoustic style steering
         prompt_text = text.strip()
-        if voice_style_prompt or expressions:
-            directives: List[str] = []
-            if voice_style_prompt:
-                directives.append(f"Style: {voice_style_prompt.strip()}")
-            if expressions:
-                directives.append(f"Expressions: {expressions.strip()}")
+        if directives:
             prompt_text = f"({', '.join(directives)})\n{prompt_text}"
 
         request_body: Dict[str, Any] = {

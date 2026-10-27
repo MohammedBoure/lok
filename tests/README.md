@@ -44,6 +44,15 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Upload validation and error response for missing video (`test_api_upload_missing_video`).
   - Host LAN IP detection and format validation (`test_detect_lan_ip`).
   - Terminal QR code and banner generator execution (`test_server_banner_execution`).
+- [`test_vision_script_and_app.py`](test_vision_script_and_app.py): Multimodal vision inference, emotional tone passing, and root runner test suite verifying:
+  - Smart vision fallback logic and preset mapping (`test_smart_vision_fallback_logic`).
+  - Multimodal vision script and mood inference (`test_infer_video_script_and_mood_execution`).
+  - GeminiSpeechClient emotional tone and style prompt keyword parameters (`test_gemini_speech_client_emotional_tone_parameters`).
+  - Autonomous pipeline execution (`auto_mode=True`) and verification of the 4 required agent telemetry logs (`test_process_mobile_video_auto_mode`).
+  - Synchronous upload endpoint in auto_mode (`test_api_upload_and_process_auto_mode`).
+  - Asynchronous job creation in auto_mode and status polling (`test_api_jobs_create_auto_mode`).
+  - Host LAN IP detection in root `app.py` (`test_app_py_lan_ip_detection`).
+  - Terminal banner and QR code generator in root `app.py` (`test_app_py_banner_output`).
 - [`test_frontend_assets.py`](test_frontend_assets.py): Mobile web UI static asset and typography validation suite verifying:
   - Static asset files existence (`index.html`, `app.js`, `style.css`).
   - Required DOM elements for recording, presets, and studio controls.

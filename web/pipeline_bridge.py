@@ -242,10 +242,13 @@ def synthesize_narration(
     script_text: str,
     output_path: Union[str, Path],
     voice: str = "ar-XA-Standard-A",
+    style_prompt: Optional[str] = None,
+    emotional_tone: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Synthesize narration audio using GeminiSpeechClient via official Google Gemini API,
     or gracefully fall back to local synthetic audio engine if API is unreachable.
+    Supports emotional tone steering and acoustic style prompt modulation.
     """
     _ensure_env_loaded()
     out_file = Path(output_path).resolve()
@@ -264,12 +267,19 @@ def synthesize_narration(
     if has_api_key:
         try:
             from tts.gemini_speech.client import GeminiSpeechClient
-            logger.info("Synthesizing speech via GeminiSpeechClient (Voice persona: %s, request: %s)...", gemini_voice, voice)
+            logger.info(
+                "Synthesizing speech via GeminiSpeechClient (Voice: %s, tone: %s, style: %s)...",
+                gemini_voice,
+                emotional_tone,
+                style_prompt,
+            )
             client = GeminiSpeechClient()
             client.generate_speech(
                 text=script_text,
                 voice_name=gemini_voice,
                 output_path=str(out_file),
+                style_prompt=style_prompt,
+                emotional_tone=emotional_tone,
             )
             if out_file.is_file() and out_file.stat().st_size > 0:
                 synthesizer_engine = "gemini_tts"
@@ -294,6 +304,8 @@ def synthesize_narration(
         "voice": gemini_voice,
         "requested_voice": voice,
         "script": script_text,
+        "emotional_tone": emotional_tone,
+        "style_prompt": style_prompt,
     }
 
 
@@ -328,6 +340,9 @@ def process_mobile_video(
     music_track: Optional[str] = None,
     output_dir: Union[str, Path] = "outputs/mobile_cuts",
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    auto_mode: bool = False,
+    emotional_tone: Optional[str] = None,
+    style_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -335,9 +350,11 @@ def process_mobile_video(
     Workflow:
       1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9).
       2. Extract visual keyframes using frame_extractor into outputs/keyframes/mobile_<job_id>/
-      3. Synthesize neural narration voiceover with Gemini TTS API.
-      4. Assemble final video in FFmpeg with selected open-source royalty-free music and sidechain ducking.
-      5. Return comprehensive execution summary dictionary.
+      3. Perform Autonomous Multimodal Vision Analysis (if auto_mode or no script/preset provided)
+         to infer engaging Arabic real estate voiceover, emotional tone, and recommended music.
+      4. Synthesize expressive neural narration voiceover with Gemini TTS API modulated by emotional tone.
+      5. Assemble final video in FFmpeg with selected open-source royalty-free music and sidechain ducking.
+      6. Return comprehensive execution summary dictionary.
     """
     input_path = Path(video_path).resolve()
     if not input_path.is_file():
@@ -355,17 +372,20 @@ def process_mobile_video(
     keyframes_dest_dir.mkdir(parents=True, exist_ok=True)
 
     # Telemetry helper
-    def _notify(step: int, percent: int, message: str, log: str):
+    def _notify(step: int, percent: int, message: str, log: str, extra: Optional[Dict[str, Any]] = None):
         if progress_callback:
             try:
-                progress_callback({
+                payload = {
                     "job_id": job_id,
                     "status": "processing",
                     "step": step,
                     "progress_percent": percent,
                     "message": message,
                     "log": log,
-                })
+                }
+                if extra:
+                    payload.update(extra)
+                progress_callback(payload)
             except Exception as e:
                 logger.warning("Progress callback error: %s", e)
 
@@ -410,9 +430,9 @@ def process_mobile_video(
     # 2. Extract visual keyframes
     _notify(
         step=2,
-        percent=35,
+        percent=30,
         message="وكيل الذكاء الاصطناعي يستخرج اللقطات المفتاحية والمشاهد بدقة...",
-        log="استخراج اللقطات المفتاحية الذكية ومعاينة المشاهد عبر محرك FFmpeg...",
+        log="🖼️ استخراج لقطات المعاينة البصرية من الفيديو...",
     )
 
     logger.info("Job %s: Extracting keyframes to %s...", job_id, keyframes_dest_dir)
@@ -426,8 +446,12 @@ def process_mobile_video(
     raw_frames = keyframe_extraction.get("frames", [])
 
     formatted_keyframes: List[Dict[str, Any]] = []
+    keyframe_files: List[Path] = []
     for f in raw_frames:
         file_path_obj = Path(f["file_path"])
+        abs_path = Path(f.get("absolute_file_path", file_path_obj)).resolve()
+        if abs_path.is_file():
+            keyframe_files.append(abs_path)
         web_url = f"/outputs/keyframes/mobile_{job_id}/{file_path_obj.name}"
         formatted_keyframes.append({
             "frame_index": f.get("frame_index"),
@@ -438,34 +462,91 @@ def process_mobile_video(
             "is_scene_transition": f.get("is_scene_transition", False),
         })
 
-    # 3. Determine Narration Script & Recommended Music
-    if script and script.strip():
-        selected_script = script.strip()
+    # 3. Autonomous Vision Analysis & Script Determination
+    is_auto_mode = bool(auto_mode or (not script and not preset_id))
+    inferred_script: Optional[str] = None
+    vision_engine: Optional[str] = None
+    inferred_music: Optional[str] = None
+
+    if is_auto_mode:
+        _notify(
+            step=2,
+            percent=45,
+            message="تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
+            log="🧠 تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
+        )
+        try:
+            from web.vision_analyzer import infer_video_script_and_mood
+            vision_result = infer_video_script_and_mood(
+                keyframe_paths=keyframe_files,
+                video_duration=src_duration,
+                preset_hint=preset_id,
+            )
+            inferred_script = vision_result.get("script")
+            selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
+            resolved_tone = emotional_tone or vision_result.get("emotional_tone", "فاخر وهادئ")
+            resolved_style_prompt = style_prompt or vision_result.get("emotional_prompt")
+            inferred_music = vision_result.get("recommended_music")
+            vision_engine = vision_result.get("engine")
+        except Exception as exc:
+            logger.warning("Vision analysis error: %s. Using fallback.", exc)
+            selected_script = DEFAULT_PROMO_SCRIPT
+            inferred_script = selected_script
+            resolved_tone = emotional_tone or "فاخر وهادئ"
+            resolved_style_prompt = style_prompt or "Warm, luxurious and prestigious real estate tone"
+            inferred_music = "luxury_piano"
+            vision_engine = "fallback_on_error"
+
+        _notify(
+            step=3,
+            percent=60,
+            message=f"تم استنتاج الوصف التسويقي بنجاح. الحالة الشعورية: {resolved_tone}",
+            log=f"✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}]",
+            extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
+        )
         selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
-    elif preset_id and preset_id in ALGERIAN_REAL_ESTATE_PRESETS:
-        selected_script = ALGERIAN_REAL_ESTATE_PRESETS[preset_id]["description"]
-        selected_preset = preset_id
     else:
-        selected_script = DEFAULT_PROMO_SCRIPT
-        selected_preset = None
+        inferred_script = None
+        inferred_music = None
+        if script and script.strip():
+            selected_script = script.strip()
+            selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
+        elif preset_id and preset_id in ALGERIAN_REAL_ESTATE_PRESETS:
+            selected_script = ALGERIAN_REAL_ESTATE_PRESETS[preset_id]["description"]
+            selected_preset = preset_id
+        else:
+            selected_script = DEFAULT_PROMO_SCRIPT
+            selected_preset = None
+
+        preset_tones = {
+            "algiers_f4_luxury": "فاخر وهادئ",
+            "oran_seaview_villa": "دافئ ومشرق بإطلالة بحرية",
+            "constantine_commercial": "متحمس وحيوي",
+            "rental_apartment": "دافئ ومريح للعائلات",
+        }
+        resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", "فاخر وهادئ")
+        resolved_style_prompt = style_prompt or f"Warm and prestigious real estate presentation in {resolved_tone}"
 
     # Resolve background music track
     resolved_music_key = "luxury_piano"
     if music_track and music_track in MUSIC_LIBRARY:
         resolved_music_key = music_track
+    elif is_auto_mode and inferred_music and inferred_music in MUSIC_LIBRARY:
+        resolved_music_key = inferred_music
     elif selected_preset and "recommended_music" in ALGERIAN_REAL_ESTATE_PRESETS.get(selected_preset, {}):
         resolved_music_key = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["recommended_music"]
     music_meta = MUSIC_LIBRARY.get(resolved_music_key, MUSIC_LIBRARY["luxury_piano"])
     music_audio_file = music_meta["file"]
 
-    # 4. Synthesize Narration Audio
+    # 4. Synthesize Narration Audio with Emotional Tone Steering
     clean_voice_key = voice.strip().lower()
     resolved_voice_name = VOICE_MAPPING.get(clean_voice_key, "Aoede")
     _notify(
         step=3,
-        percent=65,
-        message=f"وكيل الذكاء الاصطناعي يولد التعليق الصوتي العصبي عبر Gemini TTS ({resolved_voice_name})...",
-        log=f"تم استخراج {len(formatted_keyframes)} لقطة مفتاحية. جاري توليد التعليق الصوتي العصبي بالذكاء الاصطناعي...",
+        percent=70,
+        message=f"توليد التعليق الصوتي العصبي عبر Gemini TTS ({resolved_voice_name}) بالحالة الشعورية ({resolved_tone})...",
+        log="🎙️ توليد التعليق الصوتي العصبي بالحالة الشعورية المحددة...",
+        extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
     )
 
     narration_wav = out_cuts_dir / f"narration_{job_id}.wav"
@@ -473,6 +554,8 @@ def process_mobile_video(
         script_text=selected_script,
         output_path=narration_wav,
         voice=voice,
+        style_prompt=resolved_style_prompt,
+        emotional_tone=resolved_tone,
     )
     narration_duration = narration_info["duration"]
 
@@ -613,6 +696,11 @@ def process_mobile_video(
         "orientation": orientation,
         "aspect_ratio": aspect_label,
         "resolution": f"{target_w}x{target_h}",
+        "auto_mode": is_auto_mode,
+        "emotional_tone": resolved_tone,
+        "inferred_script": inferred_script,
+        "vision_engine": vision_engine,
+        "style_prompt": resolved_style_prompt,
         "script": selected_script,
         "preset_id": selected_preset,
         "voice": narration_info["voice"],
