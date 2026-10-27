@@ -73,6 +73,13 @@ from web.pipeline_bridge import (
     get_presets_list,
     process_mobile_video,
 )
+from web.prompt_db import (
+    delete_prompt,
+    get_prompt_by_id,
+    get_recent_prompts,
+    save_prompt,
+    update_prompt_script,
+)
 from web.video_annotator import annotate_video
 
 logger = logging.getLogger("mobile_api_server")
@@ -129,6 +136,9 @@ def _execute_processing_job(
     music_track: Optional[str],
     auto_mode: bool = False,
     emotional_tone: Optional[str] = None,
+    visual_description: Optional[str] = None,
+    speech_description: Optional[str] = None,
+    prompt_id: Optional[int] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -161,7 +171,30 @@ def _execute_processing_job(
             progress_callback=_on_progress,
             auto_mode=auto_mode,
             emotional_tone=emotional_tone,
+            visual_description=visual_description,
+            speech_description=speech_description,
         )
+
+        # Auto-update or save prompt descriptions in SQLite prompt_db
+        if prompt_id is not None:
+            update_prompt_script(
+                prompt_id=prompt_id,
+                inferred_script=summary.get("inferred_script") or summary.get("script", ""),
+            )
+            summary["prompt_id"] = prompt_id
+        elif visual_description or speech_description:
+            try:
+                new_pid = save_prompt(
+                    visual_description=visual_description or "",
+                    speech_description=speech_description or "",
+                    inferred_script=summary.get("inferred_script") or summary.get("script"),
+                    title=preset or saved_video_path.stem,
+                    metadata={"job_id": job_id, "video": saved_video_path.name},
+                )
+                summary["prompt_id"] = new_pid
+            except Exception as pe:
+                logger.warning("Failed to auto-save prompt in background job: %s", pe)
+
         JOBS_STORE[job_id] = summary
         PROGRESS_STORE[job_id] = {
             "job_id": job_id,
@@ -242,6 +275,18 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         emotional_tone = None
 
+    visual_description = form.get("visual_description")
+    if isinstance(visual_description, str):
+        visual_description = visual_description.strip() or None
+    else:
+        visual_description = None
+
+    speech_description = form.get("speech_description")
+    if isinstance(speech_description, str):
+        speech_description = speech_description.strip() or None
+    else:
+        speech_description = None
+
     # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
@@ -256,6 +301,21 @@ async def create_job_async(request: Request) -> JSONResponse:
         return JSONResponse({"error": f"Failed to save file: {exc}"}, status_code=500)
 
     job_id = f"{timestamp_str}_{uuid.uuid4().hex[:6]}"
+
+    # Auto-save prompt description to SQLite prompt_db immediately
+    prompt_id: Optional[int] = None
+    if visual_description or speech_description:
+        try:
+            prompt_id = save_prompt(
+                visual_description=visual_description or "",
+                speech_description=speech_description or "",
+                inferred_script=None,
+                title=preset or Path(original_filename).stem,
+                metadata={"job_id": job_id, "video": original_filename},
+            )
+        except Exception as pe:
+            logger.warning("Failed to auto-save prompt in create_job_async: %s", pe)
+
     PROGRESS_STORE[job_id] = {
         "job_id": job_id,
         "status": "processing",
@@ -265,6 +325,9 @@ async def create_job_async(request: Request) -> JSONResponse:
         "agent_logs": [f"تم رفع الفيديو '{original_filename}' وحفظه على الخادم."],
         "auto_mode": auto_mode,
         "emotional_tone": emotional_tone,
+        "visual_description": visual_description,
+        "speech_description": speech_description,
+        "prompt_id": prompt_id,
         "inferred_script": None,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -272,7 +335,20 @@ async def create_job_async(request: Request) -> JSONResponse:
     # Launch background thread
     t = threading.Thread(
         target=_execute_processing_job,
-        args=(job_id, saved_video_path, script, preset, voice, duck_level, music_track, auto_mode, emotional_tone),
+        args=(
+            job_id,
+            saved_video_path,
+            script,
+            preset,
+            voice,
+            duck_level,
+            music_track,
+            auto_mode,
+            emotional_tone,
+            visual_description,
+            speech_description,
+            prompt_id,
+        ),
         daemon=True,
     )
     t.start()
@@ -285,6 +361,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             "status_url": f"/api/status/{job_id}",
             "auto_mode": auto_mode,
             "emotional_tone": emotional_tone,
+            "prompt_id": prompt_id,
         },
         status_code=202,
     )
@@ -342,6 +419,18 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         emotional_tone = None
 
+    visual_description = form.get("visual_description")
+    if isinstance(visual_description, str):
+        visual_description = visual_description.strip() or None
+    else:
+        visual_description = None
+
+    speech_description = form.get("speech_description")
+    if isinstance(speech_description, str):
+        speech_description = speech_description.strip() or None
+    else:
+        speech_description = None
+
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -396,7 +485,24 @@ async def upload_and_process(request: Request) -> JSONResponse:
             progress_callback=_on_progress,
             auto_mode=auto_mode,
             emotional_tone=emotional_tone,
+            visual_description=visual_description,
+            speech_description=speech_description,
         )
+
+        # Auto-save prompt descriptions in SQLite prompt_db
+        if visual_description or speech_description:
+            try:
+                prompt_id = save_prompt(
+                    visual_description=visual_description or "",
+                    speech_description=speech_description or "",
+                    inferred_script=summary.get("inferred_script") or summary.get("script"),
+                    title=preset or Path(original_filename).stem,
+                    metadata={"job_id": summary.get("job_id"), "video": original_filename},
+                )
+                summary["prompt_id"] = prompt_id
+            except Exception as pe:
+                logger.warning("Failed to auto-save prompt in upload_and_process: %s", pe)
+
         JOBS_STORE[summary["job_id"]] = summary
         PROGRESS_STORE[summary["job_id"]] = {
             "job_id": summary["job_id"],
@@ -521,6 +627,74 @@ async def annotate_video_endpoint(request: Request) -> JSONResponse:
         return JSONResponse({"status": "error", "error": str(exc)}, status_code=500)
 
 
+async def get_prompts_history_endpoint(request: Request) -> JSONResponse:
+    """GET /api/prompts/history - Retrieve recent prompt descriptions history."""
+    try:
+        limit_param = request.query_params.get("limit", "50")
+        limit = int(limit_param)
+    except (ValueError, TypeError):
+        limit = 50
+    prompts = get_recent_prompts(limit=limit)
+    return JSONResponse({
+        "status": "ok",
+        "prompts": prompts,
+    })
+
+
+async def create_prompt_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/prompts - Save prompt descriptions and title to SQLite.
+    Accepts JSON: {"visual_description": "...", "speech_description": "...", "title": "..."}
+    """
+    try:
+        body = await request.json()
+    except Exception as exc:
+        return JSONResponse({"status": "error", "error": f"Invalid JSON body: {exc}"}, status_code=400)
+
+    visual_description = body.get("visual_description", "")
+    speech_description = body.get("speech_description", "")
+    title = body.get("title")
+    inferred_script = body.get("inferred_script")
+    metadata = body.get("metadata")
+
+    prompt_id = save_prompt(
+        visual_description=visual_description,
+        speech_description=speech_description,
+        inferred_script=inferred_script,
+        title=title,
+        metadata=metadata,
+    )
+    prompt_record = get_prompt_by_id(prompt_id)
+    return JSONResponse({
+        "status": "ok",
+        "id": prompt_id,
+        "prompt": prompt_record,
+    }, status_code=200)
+
+
+async def delete_prompt_endpoint(request: Request) -> JSONResponse:
+    """DELETE /api/prompts/{prompt_id} - Delete prompt record from SQLite."""
+    prompt_id_raw = request.path_params.get("prompt_id")
+    try:
+        prompt_id = int(prompt_id_raw)
+    except (ValueError, TypeError):
+        return JSONResponse({"status": "error", "error": "Invalid prompt_id"}, status_code=400)
+
+    deleted = delete_prompt(prompt_id)
+    if not deleted:
+        return JSONResponse({
+            "status": "error",
+            "message": f"Prompt with ID {prompt_id} not found.",
+            "deleted": False,
+        }, status_code=404)
+
+    return JSONResponse({
+        "status": "ok",
+        "message": f"Prompt {prompt_id} deleted successfully.",
+        "deleted": True,
+    })
+
+
 # ---------------------------------------------------------------------------
 # Application Initialization & Static Mounts
 # ---------------------------------------------------------------------------
@@ -533,6 +707,10 @@ routes = [
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
     Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),
     Route("/api/video/annotate", annotate_video_endpoint, methods=["POST"]),
+    Route("/api/prompts/history", get_prompts_history_endpoint, methods=["GET"]),
+    Route("/api/prompts", create_prompt_endpoint, methods=["POST"]),
+    Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),
+    Route("/api/prompts/{prompt_id}", delete_prompt_endpoint, methods=["DELETE"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),

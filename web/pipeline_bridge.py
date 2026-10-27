@@ -343,6 +343,8 @@ def process_mobile_video(
     auto_mode: bool = False,
     emotional_tone: Optional[str] = None,
     style_prompt: Optional[str] = None,
+    speech_description: Optional[str] = None,
+    visual_description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -472,7 +474,9 @@ def process_mobile_video(
         })
 
     # 3. Autonomous Vision Analysis & Script Determination
-    is_auto_mode = bool(auto_mode or (not script and not preset_id))
+    # If speech_description or visual_description is provided, treat as linguistic intent guidance
+    # and invoke the multimodal agent to generate the full natural spoken script and focus.
+    is_auto_mode = bool(auto_mode or speech_description or (not script and not preset_id))
     inferred_script: Optional[str] = None
     vision_engine: Optional[str] = None
     inferred_music: Optional[str] = None
@@ -490,6 +494,8 @@ def process_mobile_video(
                 keyframe_paths=keyframe_files,
                 video_duration=src_duration,
                 preset_hint=preset_id,
+                speech_description=speech_description,
+                visual_description=visual_description,
             )
             inferred_script = vision_result.get("script")
             selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
@@ -499,11 +505,18 @@ def process_mobile_video(
             vision_engine = vision_result.get("engine")
         except Exception as exc:
             logger.warning("Vision analysis error: %s. Using fallback.", exc)
-            selected_script = DEFAULT_PROMO_SCRIPT
+            from web.vision_analyzer import _get_smart_fallback
+            fb_res = _get_smart_fallback(
+                duration=src_duration,
+                preset_hint=preset_id,
+                speech_description=speech_description,
+                visual_description=visual_description,
+            )
+            selected_script = fb_res.get("script") or DEFAULT_PROMO_SCRIPT
             inferred_script = selected_script
-            resolved_tone = emotional_tone or principles_voice.get("active_tone_bias", "فاخر وهادئ")
-            resolved_style_prompt = style_prompt or "Warm, luxurious and prestigious real estate tone"
-            inferred_music = "luxury_piano"
+            resolved_tone = emotional_tone or fb_res.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
+            resolved_style_prompt = style_prompt or fb_res.get("emotional_prompt") or "Warm, luxurious and prestigious real estate tone"
+            inferred_music = fb_res.get("recommended_music", "luxury_piano")
             vision_engine = "fallback_on_error"
 
         _notify(
@@ -768,6 +781,8 @@ def process_mobile_video(
         "resolution": f"{target_w}x{target_h}",
         "auto_mode": is_auto_mode,
         "emotional_tone": resolved_tone,
+        "speech_description": speech_description,
+        "visual_description": visual_description,
         "inferred_script": inferred_script,
         "vision_engine": vision_engine,
         "style_prompt": resolved_style_prompt,

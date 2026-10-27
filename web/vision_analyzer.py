@@ -96,6 +96,8 @@ FALLBACK_PROFILES = [
 def _get_smart_fallback(
     duration: float = 10.0,
     preset_hint: Optional[str] = None,
+    speech_description: Optional[str] = None,
+    visual_description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Provide intelligent fallback when Gemini Vision API is offline or unreachable."""
     principles = load_principles()
@@ -110,25 +112,52 @@ def _get_smart_fallback(
         or any(k in custom_text for k in ["جزائر", "دارجة", "يصور", "يتكلم", "جولة", "أنا"])
     )
 
-    if preset_hint == "oran_seaview_villa":
+    # Base profile selection from hint or visual/speech description keywords
+    desc_for_mood = f"{visual_description or ''} {speech_description or ''}".lower()
+    if preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"]):
         profile = FALLBACK_PROFILES[1]
-        script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة." if is_darja_or_walkthrough else profile["script"]
-    elif preset_hint == "constantine_commercial":
+    elif preset_hint == "constantine_commercial" or any(w in desc_for_mood for w in ["محل", "تجاري", "استثمار", "شارع", "commercial"]):
         profile = FALLBACK_PROFILES[2]
-        script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة." if is_darja_or_walkthrough else profile["script"]
-    elif preset_hint == "rental_apartment":
+    elif preset_hint == "rental_apartment" or any(w in desc_for_mood for w in ["كراء", "إيجار", "مؤثثة", "rental"]):
         profile = FALLBACK_PROFILES[3]
-        script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك." if is_darja_or_walkthrough else profile["script"]
     else:
         profile = FALLBACK_PROFILES[0]
+
+    # Synthesize fallback script incorporating speech_description intent if provided
+    if speech_description and speech_description.strip():
+        intent = speech_description.strip().rstrip(".،")
+        if is_darja_or_walkthrough:
+            script = f"شوفو معايا هاد العقار الاستثنائي، {intent}. موقع استراتيجي وتصميم راقي يلبي كل تطلعاتكم للراحة والفخامة."
+        else:
+            script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+    elif preset_hint == "oran_seaview_villa":
+        script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة." if is_darja_or_walkthrough else profile["script"]
+    elif preset_hint == "constantine_commercial":
+        script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة." if is_darja_or_walkthrough else profile["script"]
+    elif preset_hint == "rental_apartment":
+        script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك." if is_darja_or_walkthrough else profile["script"]
+    else:
         script = "شوفو معايا هاد الشقة الفاخرة F4 في قلب العاصمة، فينيسيون متقونة وإطلالة شابة بزاف، موقع هادئ وقريب من كل المرافق الحيوية." if is_darja_or_walkthrough else profile["script"]
+
+    # Synthesize badges / highlights incorporating visual_description if provided
+    highlights = list(profile.get("highlights", []))
+    if visual_description and visual_description.strip():
+        custom_badges = []
+        raw_parts = re.split(r"[،,.\n;]+", visual_description.strip())
+        for p in raw_parts:
+            p_clean = p.strip()
+            words = p_clean.split()
+            if 1 <= len(words) <= 7:
+                custom_badges.append(p_clean)
+        if custom_badges:
+            highlights = custom_badges[:3]
 
     return {
         "script": script,
         "emotional_tone": profile["emotional_tone"],
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
-        "highlights": profile.get("highlights", []),
+        "highlights": highlights,
         "engine": "smart_vision_fallback",
     }
 
@@ -141,6 +170,8 @@ def infer_video_script_and_mood(
     keyframe_paths: List[Union[str, Path]],
     video_duration: float = 10.0,
     preset_hint: Optional[str] = None,
+    speech_description: Optional[str] = None,
+    visual_description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Analyze extracted video keyframes via Gemini Multimodal Vision API to infer:
@@ -152,9 +183,11 @@ def infer_video_script_and_mood(
         keyframe_paths: List of file paths to extracted keyframe JPEG images.
         video_duration: Duration of the video in seconds to pace narrative word count.
         preset_hint: Optional preset ID hint to guide architectural context if available.
+        speech_description: Optional linguistic speech intent guidance ("وصف لغوي لما تريده أن يقال وليس نصاً حرفياً").
+        visual_description: Optional linguistic visual intent description ("وصف ما يظهر في الفيديو وتوجيه التركيز البصري").
 
     Returns:
-        Dict with keys 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'engine'.
+        Dict with keys 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'engine'.
     """
     _ensure_env_loaded()
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
@@ -167,7 +200,12 @@ def infer_video_script_and_mood(
             len(valid_keyframe_files),
             bool(api_key),
         )
-        return _get_smart_fallback(duration=video_duration, preset_hint=preset_hint)
+        return _get_smart_fallback(
+            duration=video_duration,
+            preset_hint=preset_hint,
+            speech_description=speech_description,
+            visual_description=visual_description,
+        )
 
     # Subsample up to 4 representative keyframes evenly
     selected_frames: List[Path] = []
@@ -185,15 +223,36 @@ def infer_video_script_and_mood(
 
     principles_section = build_vision_prompt_principles()
 
+    intent_guidance = ""
+    if speech_description and speech_description.strip():
+        intent_guidance += (
+            f"\n--- LINGUISTIC SPEECH INTENT GUIDANCE (وصف لغوي لما تريده أن يقال وليس نصاً حرفياً) ---\n"
+            f"User Linguistic Speech Guidance: \"{speech_description.strip()}\"\n"
+            f"CRITICAL INSTRUCTION: Treat this description strictly as linguistic intent and thematic guidance, NOT literal text. "
+            f"Orchestrate and expand this intent into a complete, natural spoken marketing script that coordinates with the visual "
+            f"camera movement across the {video_duration:.1f}s timeline, strictly conforming to the Algerian Darja dialect and "
+            f"walkthrough perspective rules set in the Production Principles below.\n"
+        )
+
+    if visual_description and visual_description.strip():
+        intent_guidance += (
+            f"\n--- LINGUISTIC VISUAL INTENT GUIDANCE (وصف ما يظهر في الفيديو وتوجيه التركيز البصري) ---\n"
+            f"User Visual Description: \"{visual_description.strip()}\"\n"
+            f"CRITICAL INSTRUCTION: Use this visual description to steer your visual focus, architectural interpretation, "
+            f"and lower-third highlight badges to prioritize and showcase the specific property areas and details described here.\n"
+        )
+
     prompt = (
         f"You are an expert Algerian real estate marketing director and creative videographer.\n"
         f"Analyze these {len(selected_frames)} representative visual keyframes extracted from a real estate smartphone video recording (duration: {video_duration:.1f}s).\n\n"
+        f"{intent_guidance}\n"
         f"{principles_section}\n\n"
-        f"Based on what you visually see in the architecture, interior, lighting, and finishes, return a JSON response with:\n"
+        f"Based on what you visually see in the architecture, interior, lighting, finishes, and the user's linguistic guidance above, return a JSON response with:\n"
         f"1. 'script': The marketing voiceover script describing this specific property in chronological visual order as the camera moves through the space.\n"
         f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
         f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
+        f"If linguistic speech intent guidance is provided above, organically transform its intent into the spoken script. "
         f"The script duration MUST match the video length: approximately {target_words} words (around {video_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
         f"2. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
         f"3. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
@@ -201,7 +260,8 @@ def infer_video_script_and_mood(
         f"   - 'luxury_piano' (best for luxury apartments, penthouses, high-end architecture, elegant finishes)\n"
         f"   - 'acoustic_guitar' (best for cozy family homes, bright apartments, cheerful or modern spaces)\n"
         f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
-        f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']).\n\n"
+        f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
+        f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n\n"
         f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights'."
     )
     parts.append({"text": prompt})
@@ -287,4 +347,9 @@ def infer_video_script_and_mood(
 
     # If all models fail, return smart fallback
     logger.warning("All Gemini Vision models failed or timed out. Activating smart fallback.")
-    return _get_smart_fallback(duration=video_duration, preset_hint=preset_hint)
+    return _get_smart_fallback(
+        duration=video_duration,
+        preset_hint=preset_hint,
+        speech_description=speech_description,
+        visual_description=visual_description,
+    )

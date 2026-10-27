@@ -13,4 +13,6 @@ inputs/mobile_uploads/*
 outputs/mobile_cuts/*
 !outputs/mobile_cuts/.gitkeep
 outputs/keyframes/mobile_*
+*.db
+outputs/*.db
 

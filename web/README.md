@@ -16,11 +16,12 @@ The system combines:
 
 | File | Purpose |
 | :--- | :--- |
-| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, and video assembly. |
-| [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music. |
+| [`prompt_db.py`](file:///home/pluto/projects/lok/web/prompt_db.py) | SQLite persistence layer for prompt descriptions history, managing visual & speech intent descriptions, pre-seeded Algerian presets, and script storage at `outputs/prompts.db`. |
+| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, linguistic intent processing, and video assembly. |
+| [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music steered by linguistic speech and visual intent. |
 | [`video_annotator.py`](file:///home/pluto/projects/lok/web/video_annotator.py) | Fast hardware-accelerated video annotation engine using FFmpeg drawtext filters for luxury badges, price tags, and lower-third captions. |
 | [`video_annotator_mcp.py`](file:///home/pluto/projects/lok/web/video_annotator_mcp.py) | MCP (Model Context Protocol) tool bridge and CLI interface exposing `annotate_video_cut` via stdio JSON-RPC. |
-| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), principles endpoints, and CORS middleware. |
+| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), principles endpoints, prompt history management, and CORS middleware. |
 | [`run_server.py`](file:///home/pluto/projects/lok/web/run_server.py) | Production CLI launcher that detects host LAN IP (`192.168.1.7`), generates terminal ASCII QR code, and boots Uvicorn. |
 | [`static/index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Mobile-first responsive web studio supporting live camera capture, preset selection, custom script editing, principles modal, live telemetry logs, and video preview. |
 | [`static/README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Documentation for static frontend assets and mobile camera interface. |
@@ -91,31 +92,87 @@ Direct fast video annotation endpoint to overlay text banners and badges.
 - **Payload**: JSON object `{"input_video": "...", "output_video": "...", "annotations": [...]}`
 - **Response (200 OK)**: `{"status": "ok", "annotations_applied": N, "output_video": "..."}`
 
+### `GET /api/prompts/history`
+Returns history of recent prompt descriptions stored in SQLite database (`outputs/prompts.db`).
+- **Query Parameters**:
+  - `limit` (*Integer, optional*): Maximum records to retrieve (default: `50`).
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "prompts": [
+      {
+        "id": 1,
+        "created_at": "2026-10-27 11:26:11",
+        "title": "فيلا عصرية فاخرة بواجهة بحرية - وهران",
+        "visual_description": "فيلا عصرية فاخرة مطلة على البحر...",
+        "speech_description": "التركيز على الفخامة والسكينة...",
+        "inferred_script": "شوفو معايا هاد الفيلا الساحرة في عين الترك...",
+        "metadata": "{\"preset\": \"oran_seaview_villa\"}"
+      }
+    ]
+  }
+  ```
+
+### `POST /api/prompts`
+Saves new prompt descriptions into SQLite prompt history.
+- **Payload**:
+  ```json
+  {
+    "title": "Downtown Penthouse",
+    "visual_description": "Luxury duplex penthouse with panoramic bay views",
+    "speech_description": "Focus on high-end prestige, master bedroom suite, and open terrace",
+    "inferred_script": "Optional pre-inferred script",
+    "metadata": {"city": "Algiers"}
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "id": 4,
+    "prompt": { "id": 4, "title": "Downtown Penthouse", ... }
+  }
+  ```
+
+### `DELETE /api/prompts/{prompt_id}`
+Deletes a prompt description record from SQLite database.
+- **Response (200 OK)**: `{"status": "ok", "message": "Prompt 4 deleted successfully.", "deleted": true}`
+- **Response (404 Not Found)**: `{"status": "error", "message": "Prompt with ID 4 not found.", "deleted": false}`
+
 ### `POST /api/jobs/create`
-Asynchronous upload and processing endpoint. Accepts video and options, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.
+Asynchronous upload and processing endpoint. Accepts video and options, auto-saves prompt descriptions to SQLite, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.
+- **Fields**:
+  - `video` (*File, required*): Smartphone video recording (MP4, MOV).
+  - `visual_description` (*Text, optional*): Visual intent guidance of what appears in footage (auto-saved to SQLite).
+  - `speech_description` (*Text, optional*): Linguistic speech guidance for voiceover intent (auto-saved to SQLite).
+  - `auto_mode` (*Boolean/Text, optional*): Enable AI Multimodal Vision inference.
 - **Response (202 Accepted)**:
   ```json
   {
     "job_id": "20261027_085000_1a2b3c",
     "status": "processing",
     "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
-    "status_url": "/api/status/20261027_085000_1a2b3c"
+    "status_url": "/api/status/20261027_085000_1a2b3c",
+    "prompt_id": 5
   }
   ```
 
 ### `POST /api/upload-and-process`
-Multipart form upload endpoint for video processing.
+Multipart form upload endpoint for synchronous video processing.
 - **Content-Type**: `multipart/form-data`
 - **Fields**:
   - `video` (*File, required*): Smartphone video recording (MP4, MOV).
-  - `auto_mode` (*Boolean/Text, optional*): When `true`, automatically triggers Gemini Multimodal Vision to infer script, emotional tone, and recommended music from keyframes.
-  - `script` (*Text, optional*): Custom Arabic or French narration script (overrides auto_mode).
+  - `visual_description` (*Text, optional*): Visual description describing scenes, architecture, and focal points.
+  - `speech_description` (*Text, optional*): Linguistic speech intent guidance describing what should be narrated (not literal text).
+  - `auto_mode` (*Boolean/Text, optional*): When `true` (or when `speech_description` is supplied), triggers Gemini Multimodal Vision to infer script, emotional tone, badges, and music.
+  - `script` (*Text, optional*): Custom Arabic or French narration script (literal text).
   - `preset` or `preset_id` (*Text, optional*): Preset identifier (`algiers_f4_luxury`, etc.).
   - `emotional_tone` (*Text, optional*): Explicit emotional tone steering (e.g. "فاخر وهادئ", "متحمس وحيوي", "دافئ وأنيق").
   - `voice` (*Text, optional*): Voice profile (default: `ar-XA-Standard-A`).
   - `duck_level` (*Float, optional*): Ambient music volume ratio during speech (default: `0.25`).
   - `music` or `music_track` (*Text, optional*): Music identifier (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
-- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `video_url`, `job_id`, `keyframes`, and `duration`.
+- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `prompt_id`, `visual_description`, `speech_description`, `video_url`, `job_id`, `keyframes`, and `duration`.
 - **Response (200 OK)**:
   ```json
   {
@@ -240,3 +297,29 @@ The static mobile studio in [`web/static/`](file:///home/pluto/projects/lok/web/
    - Dedicated **"🔄 معالجة فيديو جديد"** buttons clear storage and reset the workspace.
 3. **Emotional Tone & Vision Telemetry**:
    - Inferred emotional tones (e.g. *فاخر وهادئ*) are showcased via dedicated spotlight cards and telemetry badges.
+
+---
+
+## 9. SQLite Prompt History & Linguistic Description Agent
+
+### Storage Architecture (`outputs/prompts.db`)
+Prompt descriptions and generated scripts are automatically persisted in SQLite table `prompt_history`:
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
+- `created_at` (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+- `title` (TEXT)
+- `visual_description` (TEXT: وصف ما يظهر في الفيديو)
+- `speech_description` (TEXT: وصف ما سيقال في التعليق الصوتي)
+- `inferred_script` (TEXT)
+- `metadata` (TEXT: JSON string)
+
+### Pre-Seeded Realistic Algerian Real Estate Prompts
+When `outputs/prompts.db` is initialized, it automatically seeds 3 realistic Algerian market templates if empty:
+1. **Oran Luxury Seaview Villa**: Mediterranean sea view, infinity pool, luxury finishes, Algerian Darja walkthrough tone.
+2. **Sidi Yahia Downtown Penthouse (Algiers)**: Duplex terrace, marble salon, modern open kitchen, panoramic bay view.
+3. **Constantine Strategic Commercial Hub**: Double-story avenue storefront, security setup, high-footprint commercial pitch.
+
+### Linguistic Intent Guidance ("وصف لغوي لما تريده أن يقال وليس نصاً حرفياً")
+- When `speech_description` is provided, the multimodal vision agent treats it as **creative intent and semantic direction**, rather than reading it verbatim.
+- The agent expands this guidance into a natural, spoken marketing script matching the visual camera walkthrough and target duration (~2.2 words/sec) in authentic **Algerian Darja** (`الدارجة الجزائرية`).
+- When `visual_description` is provided, the agent uses it to guide architectural focus, visual scene interpretation, and dynamically generates on-screen lower-third subtitle badges for the highlighted areas.
+- **Graceful Fallback**: If Gemini Vision API is unreachable or offline, `_get_smart_fallback` synthesizes an Algerian Darja walkthrough script derived from `speech_description` and extracts lower-third badges directly from `visual_description`.
