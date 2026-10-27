@@ -111,6 +111,7 @@
 
     // Audio & Ducking
     voiceSelect: document.getElementById("voiceSelect"),
+    musicSelect: document.getElementById("musicSelect"),
     duckSlider: document.getElementById("duckSlider"),
     duckValBadge: document.getElementById("duckValBadge"),
 
@@ -120,6 +121,12 @@
     stepperTimer: document.getElementById("stepperTimer"),
     progressBarFill: document.getElementById("progressBarFill"),
     stepsList: document.getElementById("stepsList"),
+
+    // AI Agent Live Telemetry Elements
+    aiAgentLiveCard: document.getElementById("aiAgentLiveCard"),
+    aiStepBadge: document.getElementById("aiStepBadge"),
+    aiAgentMessage: document.getElementById("aiAgentMessage"),
+    aiAgentLogs: document.getElementById("aiAgentLogs"),
 
     // Result & Delivery
     resultSection: document.getElementById("resultSection"),
@@ -614,7 +621,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Animated Multi-Stage Processing Stepper
+  // Animated Multi-Stage Processing Stepper & Live AI Agent Telemetry
   // ---------------------------------------------------------------------------
   function setStepperState(activeStep, progressPercent) {
     if (dom.progressBarFill) {
@@ -635,6 +642,29 @@
     }
   }
 
+  function updateAIAgentStatus(step, percent, message, logs) {
+    setStepperState(step, percent);
+
+    if (dom.aiStepBadge) {
+      dom.aiStepBadge.textContent = `المرحلة ${Math.min(4, step)} من 4`;
+    }
+
+    if (dom.aiAgentMessage && message) {
+      dom.aiAgentMessage.textContent = message;
+    }
+
+    if (dom.aiAgentLogs && Array.isArray(logs) && logs.length > 0) {
+      dom.aiAgentLogs.innerHTML = "";
+      logs.forEach((logText, idx) => {
+        const div = document.createElement("div");
+        div.className = idx === logs.length - 1 ? "log-entry highlight" : "log-entry";
+        div.textContent = `● ${logText}`;
+        dom.aiAgentLogs.appendChild(div);
+      });
+      dom.aiAgentLogs.scrollTop = dom.aiAgentLogs.scrollHeight;
+    }
+  }
+
   function startProcessingStepper() {
     state.isProcessing = true;
     state.processingSecondsElapsed = 0;
@@ -643,39 +673,31 @@
     dom.resultSection.style.display = "none";
     dom.stepperTimer.textContent = "00:00";
 
-    setStepperState(1, 15);
+    updateAIAgentStatus(
+      1,
+      12,
+      "وكيل الذكاء الاصطناعي يقوم بفحص أبعاد الفيديو وتجهيز المسارات الصوتية...",
+      ["تم استلام ملف الفيديو من الهاتف وحفظه بنجاح على الخادم."]
+    );
 
     // Elapsed timer
+    if (state.processingTimerInterval) clearInterval(state.processingTimerInterval);
     state.processingTimerInterval = setInterval(() => {
       state.processingSecondsElapsed++;
       dom.stepperTimer.textContent = formatSeconds(state.processingSecondsElapsed);
     }, 1000);
-
-    // Smooth progressive stepper advancement during the processing request
-    // Step 2 at ~1.5s (Extracting keyframes)
-    state.stepAnimationTimeout = setTimeout(() => {
-      if (state.isProcessing) setStepperState(2, 38);
-
-      // Step 3 at ~3.5s (Neural Voiceover)
-      state.stepAnimationTimeout = setTimeout(() => {
-        if (state.isProcessing) setStepperState(3, 62);
-
-        // Step 4 at ~5.5s (Sidechain Ducking & Assembly)
-        state.stepAnimationTimeout = setTimeout(() => {
-          if (state.isProcessing) setStepperState(4, 85);
-        }, 2000);
-      }, 2000);
-    }, 1500);
   }
 
   function finishProcessingStepper(success = true) {
     state.isProcessing = false;
-    clearInterval(state.processingTimerInterval);
-    clearTimeout(state.stepAnimationTimeout);
+    if (state.processingTimerInterval) clearInterval(state.processingTimerInterval);
+    if (state.statusPollInterval) clearInterval(state.statusPollInterval);
     dom.btnProduce.disabled = false;
 
     if (success) {
       setStepperState(5, 100);
+      if (dom.aiStepBadge) dom.aiStepBadge.textContent = "المرحلة النهائية: مكتمل";
+      if (dom.aiAgentMessage) dom.aiAgentMessage.textContent = "اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والمشاركة.";
     } else {
       dom.stepperBox.style.display = "none";
     }
@@ -714,6 +736,10 @@
         formData.append("voice", dom.voiceSelect.value);
       }
 
+      if (dom.musicSelect?.value) {
+        formData.append("music", dom.musicSelect.value);
+      }
+
       if (dom.duckSlider?.value) {
         formData.append("duck_level", dom.duckSlider.value);
       }
@@ -723,23 +749,74 @@
       dom.stepperBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
       try {
-        const response = await fetch("/api/upload-and-process", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `خطأ في المعالجة (رمز الاستجابة: ${response.status})`);
+        // Try asynchronous job submission with live telemetry polling first
+        let jobId = null;
+        try {
+          const createResp = await fetch("/api/jobs/create", {
+            method: "POST",
+            body: formData,
+          });
+          if (createResp.ok || createResp.status === 202) {
+            const createData = await createResp.json();
+            jobId = createData.job_id;
+          }
+        } catch (e) {
+          console.warn("Async job creation not available, falling back to direct upload:", e);
         }
 
-        const data = await response.json();
-        finishProcessingStepper(true);
+        if (jobId) {
+          // Poll /api/status/{job_id} until completed
+          const pollPromise = new Promise((resolve, reject) => {
+            const pollTimer = setInterval(async () => {
+              try {
+                const sResp = await fetch(`/api/status/${jobId}`);
+                if (!sResp.ok) return;
+                const sData = await sResp.json();
 
-        // Allow user to see Step 5 "Complete" for 500ms before revealing output
-        setTimeout(() => {
-          displayFinalResult(data);
-        }, 500);
+                if (sData.status === "completed" || sData.video_url) {
+                  clearInterval(pollTimer);
+                  resolve(sData.result || sData);
+                } else if (sData.status === "failed") {
+                  clearInterval(pollTimer);
+                  reject(new Error(sData.error || sData.message || "فشلت معالجة الفيديو"));
+                } else if (sData.status === "processing") {
+                  updateAIAgentStatus(
+                    sData.step || 2,
+                    sData.progress_percent || 30,
+                    sData.message,
+                    sData.agent_logs
+                  );
+                }
+              } catch (pollErr) {
+                console.warn("Poll check error:", pollErr);
+              }
+            }, 600);
+          });
+
+          const finalData = await pollPromise;
+          finishProcessingStepper(true);
+          setTimeout(() => {
+            displayFinalResult(finalData);
+          }, 400);
+
+        } else {
+          // Fallback direct upload-and-process
+          const response = await fetch("/api/upload-and-process", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `خطأ في المعالجة (رمز الاستجابة: ${response.status})`);
+          }
+
+          const data = await response.json();
+          finishProcessingStepper(true);
+          setTimeout(() => {
+            displayFinalResult(data);
+          }, 500);
+        }
 
       } catch (err) {
         finishProcessingStepper(false);

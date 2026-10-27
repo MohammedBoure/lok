@@ -50,6 +50,12 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - DOM event listener references in `app.js`.
   - User Rule 5 character mapping compliance (no unmapped '٩').
   - Starlette static route file serving and content-type headers.
+- [`test_mobile_enhancements.py`](test_mobile_enhancements.py): Enhancement verification suite verifying:
+  - Open-source royalty-free background music library catalog, licenses, and file existence (`test_music_library_catalog`).
+  - Voice mapping from web client identifiers to official Google Gemini TTS voice personas (`test_voice_mapping_to_gemini`).
+  - REST endpoint `GET /api/music-tracks` serving open-source track catalog (`test_api_music_tracks_endpoint`).
+  - Asynchronous background job creation via `POST /api/jobs/create` and status telemetry polling (`test_api_async_job_creation_and_telemetry`).
+  - End-to-end video processing and dynamic ducking with real open-source acoustic piano music (`test_process_mobile_video_with_real_music`).
 - [`test_mobile_verification.py`](test_mobile_verification.py): Pragmatic mobile pipeline gatekeeper verification suite authored by Quality Gatekeeper `agy100` verifying:
   - Algerian real estate preset catalog integrity, bilingual metadata, and descriptions (`test_algerian_presets_metadata_completeness`, `test_algerian_presets_descriptions_arabic`).
   - Synthetic harmonic voiceover generation, WAV headers, 24kHz PCM, and duration boundaries (`test_synthetic_voice_wav_header_and_duration`, `test_synthetic_voice_empty_text_fallback`).

@@ -66,6 +66,22 @@ Health and telemetry check for load balancers and orchestrators.
 Returns all available Algerian real estate presets.
 - **Response**: JSON array of preset objects containing `id`, `title_ar`, `title_fr`, and `description`.
 
+### `GET /api/music-tracks`
+Returns all available open-source royalty-free background music tracks.
+- **Response**: JSON array of track objects containing `id`, `title`, `title_ar`, `style`, and `license`.
+
+### `POST /api/jobs/create`
+Asynchronous upload and processing endpoint. Accepts video and options, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.
+- **Response (202 Accepted)**:
+  ```json
+  {
+    "job_id": "20261027_085000_1a2b3c",
+    "status": "processing",
+    "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
+    "status_url": "/api/status/20261027_085000_1a2b3c"
+  }
+  ```
+
 ### `POST /api/upload-and-process`
 Multipart form upload endpoint for video processing.
 - **Content-Type**: `multipart/form-data`

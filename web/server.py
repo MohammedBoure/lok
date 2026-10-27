@@ -10,11 +10,13 @@ Branch: backend/agy11-mobile-api-server
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import shutil
 import sys
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +26,32 @@ from typing import Any, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+# Load environment configuration (.env)
+def _ensure_env_loaded():
+    """Load GEMINI_API_KEY from .env if not currently present in os.environ."""
+    if os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"):
+        return
+    candidates = [
+        REPO_ROOT / ".env",
+        REPO_ROOT / "tts" / ".env",
+        Path.cwd() / ".env",
+    ]
+    for env_path in candidates:
+        if env_path.is_file():
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k, v = k.strip(), v.strip().strip("\"'")
+                            if k not in os.environ:
+                                os.environ[k] = v
+            except OSError:
+                pass
+
+_ensure_env_loaded()
 
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
@@ -35,6 +63,8 @@ from starlette.staticfiles import StaticFiles
 
 from web.pipeline_bridge import (
     ALGERIAN_REAL_ESTATE_PRESETS,
+    MUSIC_LIBRARY,
+    get_music_tracks_list,
     get_presets_list,
     process_mobile_video,
 )
@@ -52,8 +82,9 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
-# In-memory registry for jobs
+# In-memory registry for jobs and real-time status telemetry
 JOBS_STORE: Dict[str, Dict[str, Any]] = {}
+PROGRESS_STORE: Dict[str, Dict[str, Any]] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +98,7 @@ async def health_check(request: Request) -> JSONResponse:
         "service": "mobile-video-processing-api",
         "agent": "agy11",
         "role": "Backend Architecture & Processing Bridge",
+        "has_gemini_api_key": bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
 
@@ -76,30 +108,86 @@ async def get_presets(request: Request) -> JSONResponse:
     return JSONResponse(get_presets_list())
 
 
-async def upload_and_process(request: Request) -> JSONResponse:
+async def get_music_tracks(request: Request) -> JSONResponse:
+    """GET /api/music-tracks - Returns catalog of available open-source background music."""
+    return JSONResponse(get_music_tracks_list())
+
+
+def _execute_processing_job(
+    job_id: str,
+    saved_video_path: Path,
+    script: Optional[str],
+    preset: Optional[str],
+    voice: str,
+    duck_level: float,
+    music_track: Optional[str],
+):
+    """Worker function executed synchronously or in a background thread."""
+    def _on_progress(event: Dict[str, Any]):
+        curr = PROGRESS_STORE.get(job_id, {})
+        agent_logs = curr.get("agent_logs", [])
+        if event.get("log") and event["log"] not in agent_logs:
+            agent_logs.append(event["log"])
+        PROGRESS_STORE[job_id] = {
+            "job_id": job_id,
+            "status": "processing",
+            "step": event.get("step", 1),
+            "progress_percent": event.get("progress_percent", 15),
+            "message": event.get("message", "جاري المعالجة..."),
+            "agent_logs": agent_logs,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    try:
+        summary = process_mobile_video(
+            video_path=saved_video_path,
+            script=script,
+            preset_id=preset,
+            voice=voice,
+            duck_level=duck_level,
+            music_track=music_track,
+            output_dir=OUTPUTS_DIR / "mobile_cuts",
+            progress_callback=_on_progress,
+        )
+        JOBS_STORE[job_id] = summary
+        PROGRESS_STORE[job_id] = {
+            "job_id": job_id,
+            "status": "completed",
+            "step": 5,
+            "progress_percent": 100,
+            "message": "اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
+            "agent_logs": PROGRESS_STORE.get(job_id, {}).get("agent_logs", []) + ["اكتملت جميع مراحل المعالجة بنجاح."],
+            "result": summary,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as exc:
+        logger.exception("Error processing job %s: %s", job_id, exc)
+        PROGRESS_STORE[job_id] = {
+            "job_id": job_id,
+            "status": "failed",
+            "step": 0,
+            "progress_percent": 0,
+            "message": f"حدث خطأ أثناء المعالجة: {exc}",
+            "error": str(exc),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+
+async def create_job_async(request: Request) -> JSONResponse:
     """
-    POST /api/upload-and-process
-    Receives multipart form data:
-      - 'video': Video file (required)
-      - 'script': Optional narration script
-      - 'preset' / 'preset_id': Optional preset identifier
-      - 'voice': Optional voice identifier (default 'ar-XA-Standard-A')
-      - 'duck_level': Optional ducking multiplier (default 0.25)
+    POST /api/jobs/create
+    Asynchronous ingestion endpoint: accepts multipart video upload,
+    returns job_id immediately with HTTP 202, and runs processing in background.
     """
     try:
         form = await request.form()
     except Exception as exc:
-        logger.error("Failed to parse multipart form data: %s", exc)
         return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
 
     video_field = form.get("video")
     if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
-        return JSONResponse(
-            {"error": "Missing required 'video' file field in multipart form."},
-            status_code=400,
-        )
+        return JSONResponse({"error": "Missing required 'video' file field."}, status_code=400)
 
-    # Extract optional fields
     script = form.get("script")
     if isinstance(script, str):
         script = script.strip() or None
@@ -116,28 +204,139 @@ async def upload_and_process(request: Request) -> JSONResponse:
     if isinstance(voice, str):
         voice = voice.strip()
 
+    music_track = form.get("music") or form.get("music_track")
+    if isinstance(music_track, str):
+        music_track = music_track.strip() or None
+    else:
+        music_track = None
+
     duck_level_raw = form.get("duck_level") or 0.25
     try:
         duck_level = float(duck_level_raw)
     except (ValueError, TypeError):
         duck_level = 0.25
 
-    # Save uploaded video stream to inputs/mobile_uploads
+    # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
-    unique_name = f"upload_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}{clean_suffix}"
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    unique_name = f"upload_{timestamp_str}_{uuid.uuid4().hex[:6]}{clean_suffix}"
     saved_video_path = UPLOADS_DIR / unique_name
 
-    logger.info("Saving incoming mobile upload to %s...", saved_video_path)
     try:
         with open(saved_video_path, "wb") as f_out:
             shutil.copyfileobj(video_field.file, f_out)
     except Exception as exc:
-        logger.error("Failed to save uploaded file: %s", exc)
+        return JSONResponse({"error": f"Failed to save file: {exc}"}, status_code=500)
+
+    job_id = f"{timestamp_str}_{uuid.uuid4().hex[:6]}"
+    PROGRESS_STORE[job_id] = {
+        "job_id": job_id,
+        "status": "processing",
+        "step": 1,
+        "progress_percent": 10,
+        "message": "تم استلام الفيديو من هاتفك بنجاح. جاري فحص وتحليل الملف...",
+        "agent_logs": [f"تم رفع الفيديو '{original_filename}' وحفظه على الخادم."],
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    # Launch background thread
+    t = threading.Thread(
+        target=_execute_processing_job,
+        args=(job_id, saved_video_path, script, preset, voice, duck_level, music_track),
+        daemon=True,
+    )
+    t.start()
+
+    return JSONResponse(
+        {
+            "job_id": job_id,
+            "status": "processing",
+            "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
+            "status_url": f"/api/status/{job_id}",
+        },
+        status_code=202,
+    )
+
+
+async def upload_and_process(request: Request) -> JSONResponse:
+    """
+    POST /api/upload-and-process
+    Synchronous processing endpoint for direct client calls and automated tests.
+    """
+    try:
+        form = await request.form()
+    except Exception as exc:
+        return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    video_field = form.get("video")
+    if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
+        return JSONResponse({"error": "Missing required 'video' file field in multipart form."}, status_code=400)
+
+    script = form.get("script")
+    if isinstance(script, str):
+        script = script.strip() or None
+    else:
+        script = None
+
+    preset = form.get("preset") or form.get("preset_id")
+    if isinstance(preset, str):
+        preset = preset.strip() or None
+    else:
+        preset = None
+
+    voice = form.get("voice") or "ar-XA-Standard-A"
+    if isinstance(voice, str):
+        voice = voice.strip()
+
+    music_track = form.get("music") or form.get("music_track")
+    if isinstance(music_track, str):
+        music_track = music_track.strip() or None
+    else:
+        music_track = None
+
+    duck_level_raw = form.get("duck_level") or 0.25
+    try:
+        duck_level = float(duck_level_raw)
+    except (ValueError, TypeError):
+        duck_level = 0.25
+
+    original_filename = Path(video_field.filename).name
+    clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    unique_name = f"upload_{timestamp_str}_{uuid.uuid4().hex[:6]}{clean_suffix}"
+    saved_video_path = UPLOADS_DIR / unique_name
+
+    try:
+        with open(saved_video_path, "wb") as f_out:
+            shutil.copyfileobj(video_field.file, f_out)
+    except Exception as exc:
         return JSONResponse({"error": f"Failed to save uploaded file: {exc}"}, status_code=500)
 
-    # Run processing pipeline
-    logger.info("Starting processing for uploaded video: %s (preset=%s, script=%s)", saved_video_path, preset, bool(script))
+    job_id = f"{timestamp_str}_{uuid.uuid4().hex[:6]}"
+    PROGRESS_STORE[job_id] = {
+        "job_id": job_id,
+        "status": "processing",
+        "step": 1,
+        "progress_percent": 15,
+        "message": "جاري بدء معالجة الفيديو...",
+        "agent_logs": [f"تم رفع الفيديو '{original_filename}'."],
+    }
+
+    def _on_progress(event: Dict[str, Any]):
+        curr = PROGRESS_STORE.get(job_id, {})
+        logs = curr.get("agent_logs", [])
+        if event.get("log") and event["log"] not in logs:
+            logs.append(event["log"])
+        PROGRESS_STORE[job_id] = {
+            "job_id": job_id,
+            "status": "processing",
+            "step": event.get("step", 1),
+            "progress_percent": event.get("progress_percent", 15),
+            "message": event.get("message", "جاري المعالجة..."),
+            "agent_logs": logs,
+        }
+
     try:
         summary = process_mobile_video(
             video_path=saved_video_path,
@@ -145,10 +344,19 @@ async def upload_and_process(request: Request) -> JSONResponse:
             preset_id=preset,
             voice=voice,
             duck_level=duck_level,
+            music_track=music_track,
             output_dir=OUTPUTS_DIR / "mobile_cuts",
+            progress_callback=_on_progress,
         )
-        job_id = summary["job_id"]
-        JOBS_STORE[job_id] = summary
+        JOBS_STORE[summary["job_id"]] = summary
+        PROGRESS_STORE[summary["job_id"]] = {
+            "job_id": summary["job_id"],
+            "status": "completed",
+            "step": 5,
+            "progress_percent": 100,
+            "message": "اكتمل الإنتاج بنجاح!",
+            "result": summary,
+        }
         return JSONResponse(summary, status_code=200)
 
     except Exception as exc:
@@ -164,16 +372,23 @@ async def upload_and_process(request: Request) -> JSONResponse:
 
 
 async def get_job_status(request: Request) -> JSONResponse:
-    """GET /api/status/{job_id} - Retrieve status and execution summary for a job."""
+    """GET /api/status/{job_id} - Retrieve live telemetry, status and execution summary for a job."""
     job_id = request.path_params.get("job_id", "")
     if not job_id:
         return JSONResponse({"error": "Missing job_id parameter."}, status_code=400)
 
-    # 1. Check in-memory store
+    # 1. Check in-flight progress telemetry
+    if job_id in PROGRESS_STORE:
+        p_data = PROGRESS_STORE[job_id]
+        if p_data.get("status") == "completed" and "result" in p_data:
+            return JSONResponse(p_data["result"])
+        return JSONResponse(p_data)
+
+    # 2. Check in-memory completed store
     if job_id in JOBS_STORE:
         return JSONResponse(JOBS_STORE[job_id])
 
-    # 2. Check disk for summary_<job_id>.json
+    # 3. Check disk for summary_<job_id>.json
     summary_file = OUTPUTS_DIR / "mobile_cuts" / f"summary_{job_id}.json"
     if summary_file.is_file():
         try:
@@ -198,47 +413,41 @@ async def index_page(request: Request) -> Response:
     return JSONResponse({
         "service": "Mobile Video API",
         "message": "Welcome. The static frontend will be served here.",
-        "api_endpoints": {
-            "health": "/api/health",
-            "presets": "/api/presets",
-            "upload_and_process": "/api/upload-and-process",
-            "job_status": "/api/status/{job_id}",
-        },
     })
 
 
 # ---------------------------------------------------------------------------
-# Application Factory
+# Application Initialization & Static Mounts
 # ---------------------------------------------------------------------------
 
-def create_app() -> Starlette:
-    """Construct Starlette application instance with routes and CORS middleware."""
-    routes = [
-        Route("/", endpoint=index_page, methods=["GET"]),
-        Route("/api/health", endpoint=health_check, methods=["GET"]),
-        Route("/api/presets", endpoint=get_presets, methods=["GET"]),
-        Route("/api/upload-and-process", endpoint=upload_and_process, methods=["POST"]),
-        Route("/api/status/{job_id}", endpoint=get_job_status, methods=["GET"]),
-        Mount("/outputs", app=StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs"),
-        Mount("/static", app=StaticFiles(directory=str(STATIC_DIR)), name="static"),
-    ]
+routes = [
+    Route("/api/health", health_check, methods=["GET"]),
+    Route("/api/presets", get_presets, methods=["GET"]),
+    Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
+    Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
+    Route("/api/jobs/create", create_job_async, methods=["POST"]),
+    Route("/api/status/{job_id}", get_job_status, methods=["GET"]),
+    Route("/", index_page, methods=["GET"]),
+    Mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs"),
+    Mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static"),
+]
 
-    middleware = [
-        Middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-            allow_credentials=True,
-        )
-    ]
+middleware = [
+    Middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+]
 
-    return Starlette(routes=routes, middleware=middleware)
-
-
-app = create_app()
+app = Starlette(
+    debug=True,
+    routes=routes,
+    middleware=middleware,
+)
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("web.server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

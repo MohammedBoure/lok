@@ -22,12 +22,38 @@ import uuid
 import wave
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # Ensure repository root is on sys.path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+# Load environment configuration (.env)
+def _ensure_env_loaded():
+    """Load GEMINI_API_KEY from .env if not currently present in os.environ."""
+    if os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"):
+        return
+    candidates = [
+        REPO_ROOT / ".env",
+        REPO_ROOT / "tts" / ".env",
+        Path.cwd() / ".env",
+    ]
+    for env_path in candidates:
+        if env_path.is_file():
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k, v = k.strip(), v.strip().strip("\"'")
+                            if k not in os.environ:
+                                os.environ[k] = v
+            except OSError:
+                pass
+
+_ensure_env_loaded()
 
 import frame_extractor
 
@@ -46,24 +72,28 @@ ALGERIAN_REAL_ESTATE_PRESETS: Dict[str, Dict[str, str]] = {
         "title_ar": "شقة فاخرة F4 - الجزائر العاصمة",
         "title_fr": "Appartement F4 Haut Standing - Alger",
         "description": "شقة فاخرة من أربع غرف بتشطيبات عالية الجودة في قلب العاصمة، إطلالة ساحرة وموقع هادئ قريب من كل المرافق الحيوية.",
+        "recommended_music": "luxury_piano",
     },
     "oran_seaview_villa": {
         "id": "oran_seaview_villa",
         "title_ar": "فيلا عصرية بواجهة بحرية - وهران",
         "title_fr": "Villa Moderne Vue sur Mer - Oran",
         "description": "فيلا عصرية بواجهة بحرية خلابة في وهران، حديقة خاصة ومسبح وتصميم معماري رفيع يلبي أعلى معايير الرفاهية.",
+        "recommended_music": "ambient_meditation",
     },
     "constantine_commercial": {
         "id": "constantine_commercial",
         "title_ar": "محل تجاري استراتيجي - قسنطينة",
         "title_fr": "Local Commercial Stratégique - Constantine",
         "description": "محل تجاري في موقع استراتيجي نشط بمدينة قسنطينة، واجهة واسعة وحركة تجارية ممتازة مناسب لكافة المشاريع.",
+        "recommended_music": "acoustic_guitar",
     },
     "rental_apartment": {
         "id": "rental_apartment",
         "title_ar": "شقة مجهزة ومؤثثة للكراء",
         "title_fr": "Appartement Équipé en Location",
         "description": "شقة مؤثثة بالكامل ومجهزة بأحدث التجهيزات للكراء في موقع متميز، راحة وأمان لعائلتك.",
+        "recommended_music": "acoustic_guitar",
     },
 }
 
@@ -75,6 +105,69 @@ DEFAULT_PROMO_SCRIPT = (
 def get_presets_list() -> List[Dict[str, str]]:
     """Return catalog of presets formatted for API responses."""
     return list(ALGERIAN_REAL_ESTATE_PRESETS.values())
+
+
+# ---------------------------------------------------------------------------
+# Open-Source Background Music Library
+# ---------------------------------------------------------------------------
+
+MUSIC_LIBRARY: Dict[str, Dict[str, Any]] = {
+    "luxury_piano": {
+        "id": "luxury_piano",
+        "title": "Gymnopédie No. 1 (Erik Satie)",
+        "title_ar": "بيانو كلاسيكي راقي (Gymnopédie) - للعقارات الفاخرة",
+        "style": "Classical warm acoustic piano",
+        "license": "Public Domain / CC0",
+        "file": REPO_ROOT / "assets" / "music" / "luxury_piano.mp3",
+    },
+    "acoustic_guitar": {
+        "id": "acoustic_guitar",
+        "title": "Solo Acoustic Guitar (Jason Shaw)",
+        "title_ar": "غيتار أكوستيك مشرق وهادئ - للمنازل والشقق العائلية",
+        "style": "Uplifting melodic acoustic guitar",
+        "license": "Creative Commons Attribution 3.0 (CC-BY 3.0)",
+        "file": REPO_ROOT / "assets" / "music" / "acoustic_guitar.mp3",
+    },
+    "ambient_meditation": {
+        "id": "ambient_meditation",
+        "title": "Acoustic Meditation (Jason Shaw)",
+        "title_ar": "موسيقى تأملية مهدئة بإطلالة بحرية - للفلل والشاليهات",
+        "style": "Relaxed Mediterranean ambient guitar",
+        "license": "Creative Commons Attribution 3.0 (CC-BY 3.0)",
+        "file": REPO_ROOT / "assets" / "music" / "ambient_meditation.mp3",
+    },
+}
+
+
+def get_music_tracks_list() -> List[Dict[str, str]]:
+    """Return catalog of available open-source background music tracks."""
+    tracks = []
+    for m in MUSIC_LIBRARY.values():
+        tracks.append({
+            "id": m["id"],
+            "title": m["title"],
+            "title_ar": m["title_ar"],
+            "style": m["style"],
+            "license": m["license"],
+        })
+    return tracks
+
+
+# Voice mapping from standard web identifiers to supported Gemini TTS voice personas
+VOICE_MAPPING: Dict[str, str] = {
+    "ar-xa-standard-a": "Aoede",
+    "ar-xa-standard-b": "Charon",
+    "aoede": "Aoede",
+    "charon": "Charon",
+    "kore": "Kore",
+    "fenrir": "Fenrir",
+    "puck": "Puck",
+    "leda": "Leda",
+    "orus": "Orus",
+    "zephyr": "Zephyr",
+    "female": "Aoede",
+    "male": "Charon",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -101,46 +194,46 @@ def generate_synthetic_voice(
     out_file = Path(output_path).resolve()
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    words = text.split()
-    # Compute spoken duration based on word count (~0.45s per word with lead/trail padding)
-    duration = max(5.0, min(60.0, len(words) * 0.45 + 1.2))
-    total_samples = int(duration * sample_rate)
+    words = [w for w in text.strip().split() if w]
+    word_count = max(1, len(words))
 
-    lead_in = 0.5
-    trail_out = 0.8
-    speaking_dur = duration - lead_in - trail_out
+    # Syllabic acoustic timing: ~2.4 Arabic words per second
+    duration = max(3.5, round(word_count / 2.3, 2))
+    num_samples = int(duration * sample_rate)
+
+    f0_base = 140.0
+    formants = [(650.0, 0.45), (1700.0, 0.35), (2600.0, 0.20)]
+
+    audio_samples = []
+    for i in range(num_samples):
+        t = i / sample_rate
+        syllable_env = 0.55 + 0.45 * math.sin(2.0 * math.pi * 3.8 * t)
+        breath_pause = 0.2 + 0.8 * abs(math.sin(2.0 * math.pi * 0.45 * t))
+        mod_env = syllable_env * breath_pause
+
+        sample_val = 0.0
+        pitch_drift = 1.0 + 0.04 * math.sin(2.0 * math.pi * 0.6 * t)
+        current_f0 = f0_base * pitch_drift
+
+        sample_val += 0.40 * math.sin(2.0 * math.pi * current_f0 * t)
+        for f_freq, f_amp in formants:
+            sample_val += f_amp * math.sin(2.0 * math.pi * (f_freq + current_f0 * 0.1) * t)
+
+        val = sample_val * mod_env * 0.38
+        if t < 0.1:
+            val *= (t / 0.1)
+        elif t > (duration - 0.2):
+            val *= ((duration - t) / 0.2)
+
+        val = max(-0.95, min(0.95, val))
+        audio_samples.append(int(val * 32767.0))
 
     with wave.open(str(out_file), "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(sample_rate)
-
-        frames = bytearray()
-        for i in range(total_samples):
-            t = i / sample_rate
-            if t < lead_in or t > (duration - trail_out):
-                env = 0.0
-            else:
-                rel_t = t - lead_in
-                # Syllabic pulse modulation at ~3.5 Hz and breath phrase pulse at 0.8 Hz
-                syllable = 0.5 + 0.5 * math.sin(2.0 * math.pi * 3.5 * rel_t)
-                phrase = 0.85 + 0.15 * math.sin(2.0 * math.pi * 0.8 * rel_t)
-                fade = min(1.0, rel_t / 0.3) * min(1.0, (speaking_dur - rel_t) / 0.4)
-                env = syllable * phrase * max(0.0, fade)
-
-            # Vocal formant synthesis (F0 pitch + vocal tract harmonics)
-            f0 = 145.0 + 10.0 * math.sin(2.0 * math.pi * 1.8 * t)
-            harmonics = (
-                0.40 * math.sin(2.0 * math.pi * f0 * t)
-                + 0.28 * math.sin(2.0 * math.pi * 2.0 * f0 * t)
-                + 0.18 * math.sin(2.0 * math.pi * 700.0 * t)   # F1 formant
-                + 0.10 * math.sin(2.0 * math.pi * 1220.0 * t)  # F2 formant
-                + 0.04 * math.sin(2.0 * math.pi * 2600.0 * t)  # F3 formant
-            )
-            sample_val = int(max(-1.0, min(1.0, harmonics * env * 0.65)) * 32767)
-            frames.extend(struct.pack("<h", sample_val))
-
-        wf.writeframes(frames)
+        packed_data = struct.pack(f"<{len(audio_samples)}h", *audio_samples)
+        wf.writeframes(packed_data)
 
     return duration
 
@@ -151,14 +244,19 @@ def synthesize_narration(
     voice: str = "ar-XA-Standard-A",
 ) -> Dict[str, Any]:
     """
-    Synthesize narration audio using GeminiSpeechClient if accessible,
-    or gracefully fall back to local synthetic audio engine.
+    Synthesize narration audio using GeminiSpeechClient via official Google Gemini API,
+    or gracefully fall back to local synthetic audio engine if API is unreachable.
     """
+    _ensure_env_loaded()
     out_file = Path(output_path).resolve()
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     synthesizer_engine = "synthetic_speech_engine"
     success = False
+
+    # Resolve voice name to supported Gemini persona
+    clean_voice_key = voice.strip().lower()
+    gemini_voice = VOICE_MAPPING.get(clean_voice_key, "Aoede")
 
     # Check for Gemini API key
     has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
@@ -166,23 +264,23 @@ def synthesize_narration(
     if has_api_key:
         try:
             from tts.gemini_speech.client import GeminiSpeechClient
-            logger.info("Synthesizing speech via GeminiSpeechClient (Voice: %s)...", voice)
+            logger.info("Synthesizing speech via GeminiSpeechClient (Voice persona: %s, request: %s)...", gemini_voice, voice)
             client = GeminiSpeechClient()
             client.generate_speech(
                 text=script_text,
-                voice_name=voice,
+                voice_name=gemini_voice,
                 output_path=str(out_file),
             )
             if out_file.is_file() and out_file.stat().st_size > 0:
                 synthesizer_engine = "gemini_tts"
                 success = True
-                logger.info("Gemini TTS synthesis completed: %s", out_file)
+                logger.info("Gemini TTS synthesis completed: %s (%d bytes)", out_file, out_file.stat().st_size)
         except Exception as exc:
             logger.warning("GeminiSpeechClient failed or unreachable (%s). Using synthetic fallback.", exc)
             success = False
 
     if not success:
-        logger.info("Generating synthetic voiceover narration at %s...", out_file)
+        logger.info("Generating synthetic voiceover narration fallback at %s...", out_file)
         generate_synthetic_voice(script_text, out_file)
         synthesizer_engine = "synthetic_speech_engine"
 
@@ -193,7 +291,8 @@ def synthesize_narration(
         "audio_path": str(out_file),
         "duration": audio_dur,
         "synthesizer": synthesizer_engine,
-        "voice": voice,
+        "voice": gemini_voice,
+        "requested_voice": voice,
         "script": script_text,
     }
 
@@ -226,28 +325,19 @@ def process_mobile_video(
     preset_id: Optional[str] = None,
     voice: str = "ar-XA-Standard-A",
     duck_level: float = 0.25,
+    music_track: Optional[str] = None,
     output_dir: Union[str, Path] = "outputs/mobile_cuts",
+    progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
 
     Workflow:
-      1. Extract visual keyframes using frame_extractor into outputs/keyframes/mobile_<job_id>/
-      2. Synthesize narration voiceover with preset/custom script (with graceful synthetic fallback)
-      3. Assemble final video in FFmpeg with warm D minor ambient synth pad and sidechain ducking
-      4. Support both portrait (9:16) and landscape (16:9) orientations smoothly
-      5. Return comprehensive execution summary dictionary
-
-    Args:
-        video_path: Path to the incoming mobile video file.
-        script: Optional custom narration script text.
-        preset_id: Optional preset ID ('algiers_f4_luxury', 'oran_seaview_villa', etc.).
-        voice: Voice name or identifier. Default 'ar-XA-Standard-A'.
-        duck_level: Ambient music level multiplier under speech (0.05 to 0.50). Default 0.25.
-        output_dir: Target output directory for rendered cut. Default 'outputs/mobile_cuts'.
-
-    Returns:
-        Execution summary dictionary with job_id, video_url, keyframes, duration, and script.
+      1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9).
+      2. Extract visual keyframes using frame_extractor into outputs/keyframes/mobile_<job_id>/
+      3. Synthesize neural narration voiceover with Gemini TTS API.
+      4. Assemble final video in FFmpeg with selected open-source royalty-free music and sidechain ducking.
+      5. Return comprehensive execution summary dictionary.
     """
     input_path = Path(video_path).resolve()
     if not input_path.is_file():
@@ -264,7 +354,29 @@ def process_mobile_video(
     keyframes_dest_dir = Path("outputs/keyframes").resolve() / f"mobile_{job_id}"
     keyframes_dest_dir.mkdir(parents=True, exist_ok=True)
 
+    # Telemetry helper
+    def _notify(step: int, percent: int, message: str, log: str):
+        if progress_callback:
+            try:
+                progress_callback({
+                    "job_id": job_id,
+                    "status": "processing",
+                    "step": step,
+                    "progress_percent": percent,
+                    "message": message,
+                    "log": log,
+                })
+            except Exception as e:
+                logger.warning("Progress callback error: %s", e)
+
     # 1. Probe input video properties
+    _notify(
+        step=1,
+        percent=15,
+        message="وكيل الذكاء الاصطناعي يقوم بفحص أبعاد الفيديو واتجاهه...",
+        log=f"تم استلام الفيديو '{input_path.name}'. جاري تحليل الأبعاد والمواصفات الفنية...",
+    )
+
     meta = frame_extractor.get_video_metadata(input_path)
     src_width = int(meta.get("width", 1280))
     src_height = int(meta.get("height", 720))
@@ -296,8 +408,14 @@ def process_mobile_video(
     )
 
     # 2. Extract visual keyframes
+    _notify(
+        step=2,
+        percent=35,
+        message="وكيل الذكاء الاصطناعي يستخرج اللقطات المفتاحية والمشاهد بدقة...",
+        log="استخراج اللقطات المفتاحية الذكية ومعاينة المشاهد عبر محرك FFmpeg...",
+    )
+
     logger.info("Job %s: Extracting keyframes to %s...", job_id, keyframes_dest_dir)
-    # Sample every 1.5s or keyframes
     fps_sample = 0.66 if src_duration > 4.0 else 1.0
     keyframe_extraction = frame_extractor.extract_keyframes(
         video_path=input_path,
@@ -307,7 +425,6 @@ def process_mobile_video(
     )
     raw_frames = keyframe_extraction.get("frames", [])
 
-    # Format keyframe list for web consumption
     formatted_keyframes: List[Dict[str, Any]] = []
     for f in raw_frames:
         file_path_obj = Path(f["file_path"])
@@ -321,7 +438,7 @@ def process_mobile_video(
             "is_scene_transition": f.get("is_scene_transition", False),
         })
 
-    # 3. Determine Narration Script
+    # 3. Determine Narration Script & Recommended Music
     if script and script.strip():
         selected_script = script.strip()
         selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
@@ -332,7 +449,25 @@ def process_mobile_video(
         selected_script = DEFAULT_PROMO_SCRIPT
         selected_preset = None
 
+    # Resolve background music track
+    resolved_music_key = "luxury_piano"
+    if music_track and music_track in MUSIC_LIBRARY:
+        resolved_music_key = music_track
+    elif selected_preset and "recommended_music" in ALGERIAN_REAL_ESTATE_PRESETS.get(selected_preset, {}):
+        resolved_music_key = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["recommended_music"]
+    music_meta = MUSIC_LIBRARY.get(resolved_music_key, MUSIC_LIBRARY["luxury_piano"])
+    music_audio_file = music_meta["file"]
+
     # 4. Synthesize Narration Audio
+    clean_voice_key = voice.strip().lower()
+    resolved_voice_name = VOICE_MAPPING.get(clean_voice_key, "Aoede")
+    _notify(
+        step=3,
+        percent=65,
+        message=f"وكيل الذكاء الاصطناعي يولد التعليق الصوتي العصبي عبر Gemini TTS ({resolved_voice_name})...",
+        log=f"تم استخراج {len(formatted_keyframes)} لقطة مفتاحية. جاري توليد التعليق الصوتي العصبي بالذكاء الاصطناعي...",
+    )
+
     narration_wav = out_cuts_dir / f"narration_{job_id}.wav"
     narration_info = synthesize_narration(
         script_text=selected_script,
@@ -342,7 +477,6 @@ def process_mobile_video(
     narration_duration = narration_info["duration"]
 
     # 5. Timeline & Outro Calculations
-    # Ensure total duration encompasses narration plus warm musical outro swell
     outro_swell = 2.0
     min_required_duration = round(narration_duration + outro_swell, 2)
     total_duration = max(round(src_duration, 2), min_required_duration)
@@ -361,19 +495,21 @@ def process_mobile_video(
     )
 
     # 6. Sidechain Compression & Dynamic Ducking Settings
-    # duck_level dictates ducked volume (default 0.25)
     effective_duck_level = max(0.05, min(0.60, float(duck_level)))
     duck_threshold = 0.030
     duck_ratio = max(4.0, min(24.0, round(1.0 / effective_duck_level, 1)))
     duck_attack = 80
     duck_release = 450
-    ambient_volume = 0.42
+    ambient_volume = 0.38
+
+    _notify(
+        step=4,
+        percent=85,
+        message=f"دمج الموسيقى التصويرية ({music_meta['title']}) وتطبيق خفض الصوت التلقائي (Sidechain Ducking)...",
+        log=f"تم توليد الصوت العصبي ({narration_duration:.1f}s - {narration_info['synthesizer']}). جاري قص ومونتاج الفيديو النهائي...",
+    )
 
     # 7. Construct FFmpeg Filter Graph
-    # Video pipeline:
-    # Scale & pad to standard portrait/landscape aspect ratio without distortion
-    # Freeze last frame if video is shorter than narration+outro
-    # Apply smooth visual fade-in and fade-out
     video_filters: List[str] = [
         f"scale={target_w}:{target_h}:force_original_aspect_ratio=decrease",
         f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2",
@@ -386,45 +522,72 @@ def process_mobile_video(
     video_filters.append("format=yuv420p")
     v_graph = ",".join(video_filters) + "[vout]"
 
-    # Audio pipeline:
-    # Ambient Synth Drone in D Minor (D3, F3, A3, C4, D4, F4 + pink noise shimmer)
-    # Sidechain compressor ducks ambient pad under narration voiceover
-    # Padded voiceover allows ambient music to swell during pauses and the final outro
-    filter_complex = f"""
-    [0:v]{v_graph};
-    sine=f=146.83:d={total_duration},volume=0.22[d3];
-    sine=f=174.61:d={total_duration},volume=0.18[f3];
-    sine=f=220.00:d={total_duration},volume=0.16[a3];
-    sine=f=261.63:d={total_duration},volume=0.12[c4];
-    sine=f=293.66:d={total_duration},volume=0.14[d4];
-    sine=f=349.23:d={total_duration},volume=0.10[f4];
-    anoisesrc=d={total_duration}:c=pink:r=48000:a=0.005,lowpass=f=900[warm_air];
-    [d3][f3][a3][c4][d4][f4][warm_air]amix=inputs=7:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
-    [1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
-    [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
-    [v_mix]volume=1.0[v_clean];
-    [ducked_music]volume={ambient_volume}[m_clean];
-    [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
-    """
-
-    final_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
+    # Audio pipeline: Use real open-source music file if available, with mathematical fallback
+    use_real_music = music_audio_file.is_file()
     ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
-    ffmpeg_cmd = [
-        ffmpeg_bin, "-y",
-        "-i", str(input_path),
-        "-i", str(narration_wav),
-        "-filter_complex", filter_complex,
-        "-map", "[vout]",
-        "-map", "[aout]",
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "20",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-t", str(total_duration),
-        str(final_cut_path),
-    ]
+    final_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
+
+    if use_real_music:
+        filter_complex = f"""
+        [0:v]{v_graph};
+        [2:a]aloop=loop=-1:size=2e+09,atrim=0:{total_duration},afade=t=in:ss=0:d=1.0,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
+        [v_mix]volume=1.0[v_clean];
+        [ducked_music]volume={ambient_volume}[m_clean];
+        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-i", str(music_audio_file),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "20",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(final_cut_path),
+        ]
+    else:
+        # Fallback harmonic synth pad
+        filter_complex = f"""
+        [0:v]{v_graph};
+        sine=f=146.83:d={total_duration},volume=0.22[d3];
+        sine=f=174.61:d={total_duration},volume=0.18[f3];
+        sine=f=220.00:d={total_duration},volume=0.16[a3];
+        sine=f=261.63:d={total_duration},volume=0.12[c4];
+        sine=f=293.66:d={total_duration},volume=0.14[d4];
+        sine=f=349.23:d={total_duration},volume=0.10[f4];
+        anoisesrc=d={total_duration}:c=pink:r=48000:a=0.005,lowpass=f=900[warm_air];
+        [d3][f3][a3][c4][d4][f4][warm_air]amix=inputs=7:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
+        [v_mix]volume=1.0[v_clean];
+        [ducked_music]volume={ambient_volume}[m_clean];
+        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "20",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(final_cut_path),
+        ]
 
     logger.info("Job %s: Rendering final cut with FFmpeg -> %s", job_id, final_cut_path)
     start_render = datetime.now(timezone.utc)
@@ -452,10 +615,15 @@ def process_mobile_video(
         "resolution": f"{target_w}x{target_h}",
         "script": selected_script,
         "preset_id": selected_preset,
-        "voice": voice,
+        "voice": narration_info["voice"],
         "duck_level": effective_duck_level,
         "synthesizer": narration_info["synthesizer"],
         "narration_audio_url": f"/outputs/mobile_cuts/narration_{job_id}.wav",
+        "music_track": {
+            "id": music_meta["id"],
+            "title": music_meta["title"],
+            "license": music_meta["license"],
+        },
         "keyframes": formatted_keyframes,
         "total_keyframes": len(formatted_keyframes),
         "metadata": {
@@ -465,7 +633,7 @@ def process_mobile_video(
             "narration_duration": narration_duration,
             "render_seconds": round(render_seconds, 2),
             "sidechain_compression": {
-                "pad_harmony": "D Minor Ambient Pad (D3, F3, A3, C4, D4, F4)",
+                "music_track": music_meta["title"],
                 "duck_threshold": duck_threshold,
                 "duck_ratio": duck_ratio,
                 "duck_attack_ms": duck_attack,
@@ -479,5 +647,12 @@ def process_mobile_video(
     summary_path = out_cuts_dir / f"summary_{job_id}.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
+
+    _notify(
+        step=5,
+        percent=100,
+        message="اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
+        log=f"تم تصدير الفيديو النهائي ({summary['resolution']}, {total_duration:.1f}s) بنجاح.",
+    )
 
     return summary

@@ -252,21 +252,36 @@
             <!-- Voice Selector -->
             <div class="form-group">
               <label for="voiceSelect" class="input-label">
-                <span>🗣️ الصوت العصبي المعتمد:</span>
+                <span>🗣️ الصوت العصبي المعتمد (Gemini Neural TTS):</span>
               </label>
               <div class="select-wrap">
                 <select id="voiceSelect" class="form-select">
-                  <optgroup label="أصوات الفصحى المعتمدة">
-                    <option value="ar-XA-Standard-A" selected>العربية الفصحى (أنثوي رصين ومحترف - Standard A)</option>
-                    <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق وواثق - Standard B)</option>
+                  <optgroup label="أصوات الفصحى المعتمدة (الرسمية)">
+                    <option value="Aoede" selected>عايدة (Aoede) - صوت أنثوي رخيم وواضح (مثالي للعقارات الفاخرة)</option>
+                    <option value="Charon">شارون (Charon) - صوت ذكوري عميق وواثق (مثالي للفلل والشركات)</option>
+                    <option value="Kore">كوري (Kore) - صوت أنثوي دافئ وهادئ (مثالي للمنازل العائلية)</option>
+                    <option value="Fenrir">فنرير (Fenrir) - صوت ذكوري حيوي وقوي (مثالي للمحلات والفرص التجارية)</option>
+                    <option value="Puck">باك (Puck) - صوت شبابي خفيف ومرح (للعروض السريعة والاستوديوهات)</option>
                   </optgroup>
-                  <optgroup label="محركات الذكاء الاصطناعي (Gemini Neural)">
-                    <option value="Aoede">Aoede (وثائقي عقاري فخم)</option>
-                    <option value="Puck">Puck (حيوي وتفاعلي للعروض السريعة)</option>
-                    <option value="Charon">Charon (هادئ ووقور للمشاريع الكبرى)</option>
-                    <option value="Kore">Kore (عصري وأنيق للوحدات السكنية)</option>
-                    <option value="Fenrir">Fenrir (رسمي وموثوق للمكاتب والمحلات)</option>
+                  <optgroup label="معايير الويب المتوافقة">
+                    <option value="ar-XA-Standard-A">العربية الفصحى (أنثوي رصين - Standard A)</option>
+                    <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق - Standard B)</option>
                   </optgroup>
+                </select>
+              </div>
+            </div>
+
+            <!-- Open Source Background Music Library -->
+            <div class="form-group">
+              <label for="musicSelect" class="input-label">
+                <span>🎼 الموسيقى التصويرية مفتوحة المصدر:</span>
+              </label>
+              <div class="select-wrap">
+                <select id="musicSelect" class="form-select">
+                  <option value="auto" selected>✨ تلقائي ذكي حسب نوع العقار (موصى به)</option>
+                  <option value="luxury_piano">🎹 بيانو كلاسيكي راقي (Gymnopédie No. 1) - للعقارات الفاخرة</option>
+                  <option value="acoustic_guitar">🎸 غيتار أكوستيك مشرق وهادئ (Jason Shaw) - للمنازل والشقق</option>
+                  <option value="ambient_meditation">🌊 موسيقى تأملية مهدئة بإطلالة بحرية (Jason Shaw) - للفلل والشاليهات</option>
                 </select>
               </div>
             </div>
@@ -293,7 +308,7 @@
           <div class="audio-info-tip">
             <span class="tip-icon">💡</span>
             <p class="tip-text">
-              تعتمد المعالجة نغمة سنث هوائية فاخرة بمقام <strong>D Minor</strong>. تقوم خوارزمية الـ <strong>Sidechain Compressor</strong> بخفض النغمة بسلاسة أثناء تحدث المعلق ورفعها تلقائياً عند فواصل الصمت والخاتمة لإنتاج إعلان سينمائي متكامل.
+              تستخدم المنظومة تعليقاً صوتياً عصبياً حقيقياً عبر <strong>Google Gemini TTS API</strong> مدمجاً مع مكتبة موسيقى حقيقية مفتوحة المصدر (بيانو وغيتار أكوستيك). تقوم خوارزمية <strong>Sidechain Ducking</strong> بخفض صوت الموسيقى بسلاسة أثناء الكلام ورفعها تلقائياً عند فواصل الصمت والخاتمة.
             </p>
           </div>
         </div>
@@ -393,6 +408,28 @@
               </div>
             </li>
           </ul>
+
+          <!-- AI Agent Live Status & Real-Time Telemetry Feed -->
+          <div class="ai-agent-live-card" id="aiAgentLiveCard">
+            <div class="ai-agent-header">
+              <div class="ai-agent-badge">
+                <span class="pulse-dot"></span>
+                <span>وكيل الذكاء الاصطناعي (AI Orchestrator)</span>
+              </div>
+              <span id="aiStepBadge" class="ai-step-badge">المرحلة 1 من 4</span>
+            </div>
+            <div id="aiAgentMessage" class="ai-agent-message">
+              جاري فحص مواصفات الفيديو والاتصال بوكيل الإنتاج...
+            </div>
+            <div class="ai-agent-terminal">
+              <div class="terminal-header">
+                <span>⚡ سجل الحالة اللحظي المباشر (Live Telemetry):</span>
+              </div>
+              <div id="aiAgentLogs" class="terminal-logs">
+                <div class="log-entry">● تم بدء جلسة المعالجة وإرسال الفيديو إلى الخادم...</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

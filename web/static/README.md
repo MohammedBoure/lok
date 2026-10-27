@@ -81,18 +81,24 @@ flowchart TD
 
 ### 3.3 Audio Synthesis & Dynamic Ducking Controls
 - **Voice Selection**: Dropdown configuring neural TTS engines:
-  - Standard Arabic female voice: `ar-XA-Standard-A`.
-  - Standard Arabic male voice: `ar-XA-Standard-B`.
-  - Gemini neural characters: `Aoede`, `Puck`, `Charon`, `Kore`, `Fenrir`.
-- **Sidechain Ducking Slider**: Range `0.05` to `0.50` (5% to 50%, default 25%). Controls the dynamic compression threshold that dips the D Minor ambient synth pad under spoken narration.
+  - Official Google Gemini neural personas with Arabic fluency: `Aoede` (luxury real estate feminine), `Charon` (deep authoritative masculine), `Kore` (warm residential feminine), `Fenrir` (energetic commercial masculine), and `Puck` (youthful upbeat).
+  - Standard Arabic mapping: `ar-XA-Standard-A` → `Aoede`, `ar-XA-Standard-B` → `Charon`.
+- **Open-Source Royalty-Free Music**:
+  - `luxury_piano`: Gymnopédie No. 1 (Erik Satie, Public Domain / CC0).
+  - `acoustic_guitar`: Solo Acoustic Guitar (Jason Shaw, CC-BY 3.0).
+  - `ambient_meditation`: Acoustic Meditation (Jason Shaw, CC-BY 3.0).
+- **Sidechain Ducking Slider**: Range `0.05` to `0.50` (5% to 50%, default 25%). Controls the dynamic compression threshold that dips the background music smoothly under spoken narration.
 
-### 3.4 Multi-Stage Animated Processing Stepper
-Visual 5-stage progress tracker activated when the user clicks **"إنتاج الفيديو التسويقي (Produce Marketing Video)"**:
-- **Step 1**: رفع الفيديو من الهاتف (Uploading video from phone...)
-- **Step 2**: تحليل واستخراج لقطات المعاينة (Analyzing & extracting keyframes...)
-- **Step 3**: توليد التعليق الصوتي العصبي (Synthesizing promotional voiceover...)
-- **Step 4**: دمج الموسيقى وخفض الصوت التلقائي (Ducking ambient music & assembling final cut...)
-- **Step 5**: اكتمل الإنتاج بنجاح! (Production Complete!)
+### 3.4 Multi-Stage Animated Processing Stepper & Live AI Agent Telemetry
+Visual progress tracker and live AI agent feed activated when the user clicks **"إنتاج الفيديو التسويقي (Produce Marketing Video)"**:
+- **Live AI Agent Status Banner**: Real-time state indicator reflecting the active processing milestone.
+- **Real-Time Telemetry Log**: Terminal-style stream updating live as the AI agent completes keyframe extraction, neural voiceover synthesis, and ducking assembly.
+- **Multi-Stage Stepper**:
+  - **Step 1**: رفع واستلام الفيديو من الهاتف (Uploading & probing video from phone...)
+  - **Step 2**: تحليل واستخراج لقطات المعاينة (Analyzing & extracting keyframes...)
+  - **Step 3**: توليد التعليق الصوتي العصبي عبر Gemini TTS (Synthesizing promotional voiceover...)
+  - **Step 4**: دمج الموسيقى مفتوحة المصدر وخفض الصوت التلقائي (Ducking ambient music & assembling final cut...)
+  - **Step 5**: اكتمل الإنتاج بنجاح! (Production Complete!)
 
 ### 3.5 Delivery, Playback & Social Sharing
 - **Final Cut Video Player**: HTML5 video playback with native controls, loop capability, and playsinline attributes.
