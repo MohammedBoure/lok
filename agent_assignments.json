@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Architecture & Video Audio Pipeline",
-      "branch": "backend/agy11-audio-sync-and-dense-vision-sampling",
-      "scope": "Add visual lead-in delay to narration audio so speech never precedes visuals; increase vision keyframe sampling to 8-16 dense frames across video duration; support and validate selectable voice profiles (ar-XA-Standard-A/B/C/D); pass voice to TTS; commit with author MohammedBoure; signal idle.",
+      "role": "Backend Architecture & SaaS Auth/Quotas",
+      "branch": "backend/agy11-saas-auth-quotas-and-dashboard",
+      "scope": "Implement multi-tenant SQLite auth and user database (web/auth_db.py) supporting admin user management, expiration dates, daily/weekly video quotas, and at least 10 pre-seeded diverse business merchant accounts; add admin REST endpoints (/api/admin/users, /api/admin/stats) and auth endpoints (/api/auth/login, /api/auth/me); integrate quota enforcement and voice preview sample endpoints into video pipeline; author tests; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend & UI/UX Streamlining",
-      "branch": "frontend/agy51-voice-selector-and-ui-declutter",
-      "scope": "Declutter and streamline mobile UI by removing unnecessary/redundant elements; add prominent voice selector (male/female Arabic profiles) with localStorage persistence; bind voice to FormData; commit with author MohammedBoure; signal idle.",
+      "role": "Frontend SaaS Dashboard & Merchant Studio",
+      "branch": "frontend/agy51-saas-dashboard-and-merchant-studio",
+      "scope": "Build ultra-simple, professional, lightweight mobile/desktop UI featuring: 1) Admin Dashboard for managing user accounts, quotas, and expiry; 2) Merchant Studio & Dashboard with quota counters and video history; 3) Quick Account Switcher with 10 pre-seeded merchant personas + Admin; 4) Voice audition audio player on persona cards; 5) Fixed text overlay and video shape styling controls; author tests; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Quality Gatekeeper & Pragmatic Testing",
-      "branch": "test/agy100-audio-sync-and-voice-gatekeeper",
-      "scope": "Verify audio lead-in delay, dense keyframe sampling (8-16 frames), voice profile selection and TTS forwarding, and streamlined mobile interface; merge backend and frontend branches into develop; commit with author MohammedBoure; signal idle.",
+      "role": "Quality Gatekeeper & Integration Testing",
+      "branch": "test/agy100-saas-platform-gatekeeper",
+      "scope": "Verify multi-tenant user authentication, quota enforcement, expiration rejection, voice sample previewing, fixed text overlay integration, and UI responsiveness across 10 diverse merchant accounts; merge feature branches into develop; commit with author MohammedBoure; signal idle.",
       "dependencies": [
-        "backend/agy11-audio-sync-and-dense-vision-sampling",
-        "frontend/agy51-voice-selector-and-ui-declutter"
+        "backend/agy11-saas-auth-quotas-and-dashboard",
+        "frontend/agy51-saas-dashboard-and-merchant-studio"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
