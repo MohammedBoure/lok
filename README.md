@@ -99,6 +99,41 @@ This automatically:
 - Generates an ASCII QR code in your terminal pointing to `http://<LAN_IP>:8000`.
 - Starts the production Uvicorn server on `0.0.0.0:8000` with graceful shutdown handling.
 
+## Multi-Tenant SaaS Platform & Merchant Studio
+
+The platform features a multi-tenant SaaS architecture supporting autonomous commercial video generation across diverse merchant sectors with enterprise administrative controls:
+
+### Key SaaS Capabilities
+1. **Admin Governance & Tenant Quotas**:
+   - Master Administrator account (`admin`, token `token_admin_master`) with full tenant management.
+   - Per-merchant quota ceilings: configurable daily video quota (`daily_quota`) and rolling 7-day weekly quota (`weekly_quota`).
+   - Subscription lifecycle control: custom expiration dates (`expires_at`), instant account activation/suspension (`is_active`).
+   - Real-time administrative metrics via `GET /api/admin/stats` and user usage audits via `GET /api/admin/users`.
+2. **Pre-Seeded Multi-Vertical Commercial Personas**:
+   - Out-of-the-box pre-configured accounts across 10 distinct commercial sectors with custom branding, quotas, and expiration:
+     1. *Real Estate (عقارات فاخرة)*: `merchant_realestate`
+     2. *Seafood Restaurant (مطعم وبسترو مأكولات بحرية)*: `merchant_restaurant`
+     3. *Luxury Fashion (أزياء وملابس راقية)*: `merchant_fashion`
+     4. *Smart Tech & Electronics (تقنية وإلكترونيات ذكية)*: `merchant_tech`
+     5. *Auto Showroom (معرض سيارات ومركبات)*: `merchant_auto`
+     6. *Traditional Handcrafts (صناعات تقليدية وزرابي)*: `merchant_crafts`
+     7. *Coastal Tourism & Travel (سياحة وأسفار ساحلية)*: `merchant_tourism`
+     8. *Modern Home Decor (أثاث وديكور منزلي عصري)*: `merchant_decor`
+     9. *Medical & Aesthetics Clinic (عيادة طبية وتجميلية)*: `merchant_clinic`
+     10. *Fitness & Sports Club (نادي رياضي ولياقة بدنية)*: `merchant_gym`
+3. **Live Voice Audition Preview Player**:
+   - Interactive audio auditioning on voice persona cards (`ar-XA-Standard-A/B/C/D`).
+   - Merchants can click "▶ استمع للصوت" to hear a tailored commercial voiceover monologue streamed directly via `GET /api/voices/{voice_id}/sample` before selecting their narrator.
+4. **Commercial Video Framing & Fixed Screen Overlays**:
+   - Aspect ratio formatting: Portrait (9:16 vertical for smartphones/Reels), Landscape (16:9 widescreen), and Square (1:1 feed).
+   - Fixed text overlay customization: Merchant slogan, contact phone, or call-to-action placed in lower-third banner, top banner, or floating badge.
+   - High-contrast visual themes: Modern White (أبيض عصري), Luxury Gold (ذهبي فاخر), and Commercial Red (تجاري بارز).
+5. **Ultra-Lightweight 3-Tab Interface**:
+   - *Tab 1: Production Studio (استوديو الإنتاج)*: Streamlined 1-click generation flow with live voice previews and style recommendations.
+   - *Tab 2: Merchant Dashboard (لوحة التاجر)*: Real-time quota progress meters (daily/weekly usage) and recent video archive.
+   - *Tab 3: Admin Dashboard (لوحة تحكم الأدمن)*: Tenant creation modal with custom quotas, expiration date picker, and platform-wide statistics.
+   - *1-Tap Quick Account Switcher*: Instant demo testing dropdown to switch between any merchant persona and admin in a single click.
+
 ## Autonomous Vision Script & Emotional Tone Inference
 - **Multimodal Video Analysis & Dense Vision Sampling**: Uses Gemini 2.5 Flash / Gemini Vision (`web/vision_analyzer.py`) to analyze extracted visual keyframes. Now extracts 8 to 16 keyframes uniformly distributed across the video timeline (5% to 95%), ensuring comprehensive visual comprehension across every room and architectural detail.
 - **Audio-Visual Lead-In Sync**: Automatically introduces a configurable audio lead-in delay (default 1.2s via FFmpeg `adelay=1200|1200`), ensuring visual footage and ambient music swell to establish the scene before voice narration begins.
@@ -138,6 +173,7 @@ python3 -m web.run_server
   - [`outputs/final_cut.mp4`](outputs/final_cut.mp4): Completed 17-second synchronized video with ducked audio.
   - [`outputs/execution_summary.json`](outputs/execution_summary.json): Complete editorial and audio mixing metadata.
 - [`web/`](web/): Mobile API server, post-production bridge, QR launcher, and mobile web studio.
+  - [`web/auth_db.py`](web/auth_db.py): Multi-tenant SQLite database manager for tenant authentication, quotas, and admin operations.
   - [`web/pipeline_bridge.py`](web/pipeline_bridge.py): Core mobile video processing and FFmpeg assembly engine.
   - [`web/prompt_db.py`](web/prompt_db.py): SQLite database manager for linguistic prompt descriptions and user history.
   - [`web/vision_analyzer.py`](web/vision_analyzer.py): Gemini Multimodal Vision analysis module for script & mood inference.
