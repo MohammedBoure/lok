@@ -9,10 +9,192 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Session Persistence Constants & Voice Preferences
+  // Session Persistence Constants, SaaS Personas & Voice Preferences
   // ---------------------------------------------------------------------------
   const ACTIVE_JOB_KEY = 'active_job_id';
   const PREF_VOICE_KEY = 'preferred_voice';
+  const CURRENT_USER_KEY = 'saas_current_user_id';
+  const USER_VIDEOS_KEY = 'saas_user_videos_map';
+
+  // 10 Diverse Pre-seeded Merchant Personas + 1 Master Admin
+  const PRESEEDED_ACCOUNTS = [
+    {
+      id: "usr_dar_al_nokhba",
+      username: "dar_al_nokhba",
+      business_name: "دار النخبة العقارية",
+      business_category: "عقارات فاخرة",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-12-31",
+      daily_quota: 5,
+      weekly_quota: 25,
+      videos_today: 1,
+      videos_this_week: 4,
+      token: "tok_dar_al_nokhba",
+      default_phone: "0550 11 22 33",
+      default_text: "📞 0550 11 22 33 | دار النخبة - عقارات راقية في قلب الجزائر"
+    },
+    {
+      id: "usr_auto_algerie",
+      username: "auto_algerie",
+      business_name: "أوتو الجزائر للسيارات",
+      business_category: "معرض سيارات",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-11-30",
+      daily_quota: 8,
+      weekly_quota: 40,
+      videos_today: 2,
+      videos_this_week: 9,
+      token: "tok_auto_algerie",
+      default_phone: "0661 44 55 66",
+      default_text: "🚗 أوتو الجزائر | سيارات مضمونة وبأفضل الأسعار - 0661 44 55 66"
+    },
+    {
+      id: "usr_anaqat_el_awras",
+      username: "anaqat_el_awras",
+      business_name: "أناقة الأوراس للأزياء",
+      business_category: "أزياء وقفطان راقي",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-12-15",
+      daily_quota: 6,
+      weekly_quota: 30,
+      videos_today: 0,
+      videos_this_week: 5,
+      token: "tok_anaqat_el_awras",
+      default_phone: "0770 99 88 77",
+      default_text: "👗 قفطان وملابس تقليدية راقية | توصيل مجاني لكافة الولايات"
+    },
+    {
+      id: "usr_techno_phone",
+      username: "techno_phone",
+      business_name: "تكنو فون ستور",
+      business_category: "إلكترونيات وهواتف",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-10-31",
+      daily_quota: 10,
+      weekly_quota: 50,
+      videos_today: 3,
+      videos_this_week: 14,
+      token: "tok_techno_phone",
+      default_phone: "0540 22 33 44",
+      default_text: "📱 تكنو فون | أحدث الهواتف الذكية مع الضمان - 0540 22 33 44"
+    },
+    {
+      id: "usr_el_kasbah_resto",
+      username: "el_kasbah_resto",
+      business_name: "مطعم القصبة العريق",
+      business_category: "مطعم ومأكولات أصيلة",
+      role: "merchant",
+      status: "active",
+      expires_at: "2027-01-15",
+      daily_quota: 5,
+      weekly_quota: 25,
+      videos_today: 1,
+      videos_this_week: 3,
+      token: "tok_el_kasbah_resto",
+      default_phone: "021 73 00 11",
+      default_text: "🍽️ مطعم القصبة | أطباق تقليدية جزائرية بنكهة الأصالة"
+    },
+    {
+      id: "usr_zumurrud_jewelry",
+      username: "zumurrud_jewelry",
+      business_name: "مجوهرات الزمرد",
+      business_category: "مجوهرات وذهب",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-12-31",
+      daily_quota: 4,
+      weekly_quota: 20,
+      videos_today: 0,
+      videos_this_week: 2,
+      token: "tok_zumurrud_jewelry",
+      default_phone: "0555 88 77 66",
+      default_text: "💎 مجوهرات الزمرد | تشكيلات ذهب وألماس فاخرة لعرائسنا"
+    },
+    {
+      id: "usr_abeer_parfums",
+      username: "abeer_parfums",
+      business_name: "عبير باريس للعطور",
+      business_category: "عطور وتجميل",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-11-20",
+      daily_quota: 5,
+      weekly_quota: 25,
+      videos_today: 1,
+      videos_this_week: 6,
+      token: "tok_abeer_parfums",
+      default_phone: "0662 33 22 11",
+      default_text: "✨ عطور فرنسية وشرقية أصلية | ثبات يدوم طويلاً"
+    },
+    {
+      id: "usr_golden_furniture",
+      username: "golden_furniture",
+      business_name: "الموبليا الذهبية",
+      business_category: "أثاث وديكور راقي",
+      role: "merchant",
+      status: "active",
+      expires_at: "2027-02-28",
+      daily_quota: 6,
+      weekly_quota: 30,
+      videos_today: 2,
+      videos_this_week: 8,
+      token: "tok_golden_furniture",
+      default_phone: "0560 44 33 22",
+      default_text: "🛋️ صالونات وغرف نوم عصرية بأجود أنواع الخشب التركي"
+    },
+    {
+      id: "usr_atlas_tours",
+      username: "atlas_tours",
+      business_name: "أطلس تورز للرحلات",
+      business_category: "سياحة وأسفار",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-12-25",
+      daily_quota: 5,
+      weekly_quota: 25,
+      videos_today: 0,
+      videos_this_week: 4,
+      token: "tok_atlas_tours",
+      default_phone: "0551 00 99 88",
+      default_text: "✈️ رحلات سياحية وعمرة بأفضل البرامج والأسعار الفندقية"
+    },
+    {
+      id: "usr_force_fitness",
+      username: "force_fitness",
+      business_name: "أكاديمية القوة فيتنس",
+      business_category: "نادي رياضي ورشاقة",
+      role: "merchant",
+      status: "active",
+      expires_at: "2026-11-15",
+      daily_quota: 5,
+      weekly_quota: 25,
+      videos_today: 1,
+      videos_this_week: 5,
+      token: "tok_force_fitness",
+      default_phone: "0771 22 11 00",
+      default_text: "💪 اشترك الآن في أكبر قاعة كمال أجسام ورشاقة مع كوتش متخصص"
+    },
+    {
+      id: "usr_admin",
+      username: "admin",
+      business_name: "مدير النظام العام",
+      business_category: "مسؤول المنصة",
+      role: "admin",
+      status: "active",
+      expires_at: "2030-12-31",
+      daily_quota: 999,
+      weekly_quota: 9999,
+      videos_today: 10,
+      videos_this_week: 56,
+      token: "tok_admin_master",
+      default_phone: "021 00 00 00",
+      default_text: "👑 نظام إدارة منصة إنتاج الفيديو الذكي"
+    }
+  ];
 
   // ---------------------------------------------------------------------------
   // Catalog of Algerian Real Estate Presets (Offline Defaults & Fallback)
@@ -52,6 +234,12 @@
     selectedSource: "",
     currentPresetId: "algiers_f4_luxury",
     presets: [...DEFAULT_ALGERIAN_PRESETS],
+
+    // SaaS Multi-Tenant & Personas State
+    currentUser: null,
+    accounts: [...PRESEEDED_ACCOUNTS],
+    activeTab: "studio",
+    userVideos: {},
 
     // In-Browser Live Viewfinder & MediaRecorder State
     activeStream: null,
@@ -216,6 +404,109 @@
     principleEnableAutoAnnotations: document.getElementById("principleEnableAutoAnnotations"),
     principleAnnotationStyle: document.getElementById("principleAnnotationStyle"),
     principleAnnotationPosition: document.getElementById("principleAnnotationPosition"),
+
+    // SaaS Header Controls & Tab Navigation
+    saasHeaderControls: document.getElementById("saasHeaderControls"),
+    activePersonaBadge: document.getElementById("activePersonaBadge"),
+    personaRoleIcon: document.getElementById("personaRoleIcon"),
+    personaBusinessName: document.getElementById("personaBusinessName"),
+    personaCategoryBadge: document.getElementById("personaCategoryBadge"),
+    accountSwitcherSelect: document.getElementById("accountSwitcherSelect"),
+    tabBtnStudio: document.getElementById("tabBtnStudio"),
+    tabBtnMerchant: document.getElementById("tabBtnMerchant"),
+    tabBtnAdmin: document.getElementById("tabBtnAdmin"),
+    tabContentStudio: document.getElementById("tabContentStudio"),
+    tabContentMerchant: document.getElementById("tabContentMerchant"),
+    tabContentAdmin: document.getElementById("tabContentAdmin"),
+
+    // Quota Warning & Badge (Studio)
+    quotaWarningBanner: document.getElementById("quotaWarningBanner"),
+    quotaStatusIcon: document.getElementById("quotaStatusIcon"),
+    quotaTitleText: document.getElementById("quotaTitleText"),
+    quotaDetailsLine: document.getElementById("quotaDetailsLine"),
+    quotaDailyRemaining: document.getElementById("quotaDailyRemaining"),
+    quotaDailyTotal: document.getElementById("quotaDailyTotal"),
+    quotaWeeklyRemaining: document.getElementById("quotaWeeklyRemaining"),
+    quotaWeeklyTotal: document.getElementById("quotaWeeklyTotal"),
+    quotaExpiryText: document.getElementById("quotaExpiryText"),
+    quotaMiniBarFill: document.getElementById("quotaMiniBarFill"),
+
+    // Visual Style & Fixed Text (Studio)
+    visualOrientationGroup: document.getElementById("visualOrientationGroup"),
+    orientationSelectorGrid: document.getElementById("orientationSelectorGrid"),
+    orientationCardPortrait: document.getElementById("orientationCardPortrait"),
+    orientationCardLandscape: document.getElementById("orientationCardLandscape"),
+    orientationCardSquare: document.getElementById("orientationCardSquare"),
+    fixedTextSettingsCard: document.getElementById("fixedTextSettingsCard"),
+    fixedTextInput: document.getElementById("fixedTextInput"),
+    textPositionSelect: document.getElementById("textPositionSelect"),
+    textStyleSelect: document.getElementById("textStyleSelect"),
+
+    // Voice Audition Live Buttons (Studio)
+    btnSampleStandardA: document.getElementById("btnSampleStandardA"),
+    btnSampleStandardB: document.getElementById("btnSampleStandardB"),
+    btnSampleStandardC: document.getElementById("btnSampleStandardC"),
+    btnSampleStandardD: document.getElementById("btnSampleStandardD"),
+
+    // Quick Merchant Category Template Chips (Studio)
+    merchantTemplateChipsWrap: document.getElementById("merchantTemplateChipsWrap"),
+    merchantTemplateChips: document.getElementById("merchantTemplateChips"),
+    chipRealEstate: document.getElementById("chipRealEstate"),
+    chipAuto: document.getElementById("chipAuto"),
+    chipFashion: document.getElementById("chipFashion"),
+    chipTech: document.getElementById("chipTech"),
+    chipRestaurant: document.getElementById("chipRestaurant"),
+
+    // Merchant Dashboard (Tab 2)
+    merchantProfileCard: document.getElementById("merchantProfileCard"),
+    merchantDashAvatarIcon: document.getElementById("merchantDashAvatarIcon"),
+    merchantDashBusinessName: document.getElementById("merchantDashBusinessName"),
+    merchantDashUsername: document.getElementById("merchantDashUsername"),
+    merchantDashCategory: document.getElementById("merchantDashCategory"),
+    merchantDashExpiry: document.getElementById("merchantDashExpiry"),
+    merchantDashStatus: document.getElementById("merchantDashStatus"),
+    merchantQuotaMetersGrid: document.getElementById("merchantQuotaMetersGrid"),
+    merchantDailyProgressFill: document.getElementById("merchantDailyProgressFill"),
+    merchantDailyProgressText: document.getElementById("merchantDailyProgressText"),
+    merchantWeeklyProgressFill: document.getElementById("merchantWeeklyProgressFill"),
+    merchantWeeklyProgressText: document.getElementById("merchantWeeklyProgressText"),
+    merchantLibraryCard: document.getElementById("merchantLibraryCard"),
+    merchantVideoGrid: document.getElementById("merchantVideoGrid"),
+    merchantVideoCountBadge: document.getElementById("merchantVideoCountBadge"),
+    btnGoToStudioFromDash: document.getElementById("btnGoToStudioFromDash"),
+
+    // Admin Dashboard (Tab 3)
+    adminStatsCard: document.getElementById("adminStatsCard"),
+    statTotalMerchants: document.getElementById("statTotalMerchants"),
+    statVideosToday: document.getElementById("statVideosToday"),
+    statActiveSubs: document.getElementById("statActiveSubs"),
+    statTotalVideos: document.getElementById("statTotalVideos"),
+    adminUsersCard: document.getElementById("adminUsersCard"),
+    btnOpenCreateMerchantModal: document.getElementById("btnOpenCreateMerchantModal"),
+    adminUsersTable: document.getElementById("adminUsersTable"),
+    adminUsersTableBody: document.getElementById("adminUsersTableBody"),
+
+    // Modals
+    createMerchantModal: document.getElementById("createMerchantModal"),
+    createMerchantTitle: document.getElementById("createMerchantTitle"),
+    createMerchantForm: document.getElementById("createMerchantForm"),
+    newMerchantUsername: document.getElementById("newMerchantUsername"),
+    newMerchantBusinessName: document.getElementById("newMerchantBusinessName"),
+    newMerchantCategory: document.getElementById("newMerchantCategory"),
+    newMerchantExpiry: document.getElementById("newMerchantExpiry"),
+    newMerchantDailyQuota: document.getElementById("newMerchantDailyQuota"),
+    newMerchantWeeklyQuota: document.getElementById("newMerchantWeeklyQuota"),
+    btnSaveNewMerchant: document.getElementById("btnSaveNewMerchant"),
+    btnCloseCreateMerchantModal: document.getElementById("btnCloseCreateMerchantModal"),
+    btnCancelCreateMerchant: document.getElementById("btnCancelCreateMerchant"),
+    editQuotaModal: document.getElementById("editQuotaModal"),
+    editQuotaTitle: document.getElementById("editQuotaTitle"),
+    editQuotaForm: document.getElementById("editQuotaForm"),
+    editQuotaUserId: document.getElementById("editQuotaUserId"),
+    editQuotaDaily: document.getElementById("editQuotaDaily"),
+    editQuotaWeekly: document.getElementById("editQuotaWeekly"),
+    btnSaveEditQuota: document.getElementById("btnSaveEditQuota"),
+    btnCloseEditQuotaModal: document.getElementById("btnCloseEditQuotaModal"),
   };
 
   // ---------------------------------------------------------------------------
@@ -976,9 +1267,53 @@
       return;
     }
 
+    // Verify user quota & account status
+    const currentUser = state.currentUser;
+    if (currentUser && currentUser.role === "merchant") {
+      const isSuspended = currentUser.status === "suspended";
+      const isExpired = new Date(currentUser.expires_at) < new Date();
+      const dailyRemaining = (currentUser.daily_quota || 5) - (currentUser.videos_today || 0);
+      const weeklyRemaining = (currentUser.weekly_quota || 25) - (currentUser.videos_this_week || 0);
+
+      if (isSuspended) {
+        showToast("حساب التاجر موقوف حالياً. يرجى مراجعة إدارة المنصة.");
+        return;
+      }
+      if (isExpired) {
+        showToast("انتهت صلاحية اشتراك هذا الحساب! يرجى تجديد الصلاحية.");
+        return;
+      }
+      if (dailyRemaining <= 0 || weeklyRemaining <= 0) {
+        showToast("لقد استنفذت الحصة المتاحة لإنتاج الفيديوهات (اليومية أو الأسبوعية)!");
+        return;
+      }
+    }
+
     // 2. Prepare FormData matching 1-Click zero-effort mode or advanced overrides
     const formData = new FormData();
     formData.append("video", state.selectedFile);
+
+    // Visual Orientation Selection
+    const orientationInput = document.querySelector('input[name="video_orientation"]:checked');
+    const orientationVal = orientationInput ? orientationInput.value : "portrait";
+    formData.append("video_orientation", orientationVal);
+
+    // Fixed Text Overlay Settings
+    const fixedTextVal = (dom.fixedTextInput?.value || "").trim();
+    if (fixedTextVal) {
+      formData.append("fixed_text", fixedTextVal);
+    }
+    const textPositionVal = dom.textPositionSelect?.value || "lower_third";
+    formData.append("text_position", textPositionVal);
+    const textStyleVal = dom.textStyleSelect?.value || "modern_white";
+    formData.append("text_style", textStyleVal);
+
+    // SaaS User Identity & Token
+    if (currentUser) {
+      if (currentUser.token) formData.append("token", currentUser.token);
+      if (currentUser.id) formData.append("user_id", currentUser.id);
+      if (currentUser.username) formData.append("username", currentUser.username);
+    }
 
     // Linguistic visual and speech intent prompt descriptions
     const visualDesc = (dom.visualDescription?.value || "").trim();
@@ -1031,6 +1366,7 @@
       try {
         const createResp = await fetch("/api/jobs/create", {
           method: "POST",
+          headers: currentUser && currentUser.token ? { "Authorization": `Bearer ${currentUser.token}` } : {},
           body: formData,
         });
         if (createResp.ok || createResp.status === 202) {
@@ -1048,6 +1384,10 @@
 
         const finalData = await pollJobStatus(jobId);
         finishProcessingStepper(true);
+
+        // Record generation in merchant quota and library
+        recordSuccessfulGeneration(currentUser, finalData, orientationVal, visualDesc || speechDesc);
+
         setTimeout(() => {
           displayFinalResult(finalData);
         }, 400);
@@ -1056,6 +1396,7 @@
         // Fallback direct upload-and-process
         const response = await fetch("/api/upload-and-process", {
           method: "POST",
+          headers: currentUser && currentUser.token ? { "Authorization": `Bearer ${currentUser.token}` } : {},
           body: formData,
         });
 
@@ -1069,6 +1410,10 @@
           localStorage.setItem(ACTIVE_JOB_KEY, data.job_id);
         }
         finishProcessingStepper(true);
+
+        // Record generation in merchant quota and library
+        recordSuccessfulGeneration(currentUser, data, orientationVal, visualDesc || speechDesc);
+
         setTimeout(() => {
           displayFinalResult(data);
         }, 500);
@@ -1079,6 +1424,34 @@
       localStorage.removeItem(ACTIVE_JOB_KEY);
       console.error("Video processing failed:", err);
       showToast(`فشل الإنتاج: ${err.message}`);
+    }
+  }
+
+  function recordSuccessfulGeneration(currentUser, jobResult, orientationVal, promptTitle) {
+    if (!currentUser) return;
+    currentUser.videos_today = (currentUser.videos_today || 0) + 1;
+    currentUser.videos_this_week = (currentUser.videos_this_week || 0) + 1;
+    updateQuotaBanner(currentUser);
+
+    const videoRecord = {
+      id: (jobResult && jobResult.job_id) || `vid_${Date.now()}`,
+      url: (jobResult && (jobResult.video_url || jobResult.final_video_url)) || "",
+      title: promptTitle || currentUser.business_name || "فيديو تسويقي ذكي",
+      duration: (jobResult && jobResult.duration_seconds) ? `${jobResult.duration_seconds}s` : "0:25s",
+      date: new Date().toISOString().split("T")[0],
+      orientation: orientationVal || "9:16"
+    };
+
+    if (!state.userVideos[currentUser.username]) {
+      state.userVideos[currentUser.username] = [];
+    }
+    state.userVideos[currentUser.username].unshift(videoRecord);
+    try {
+      localStorage.setItem(USER_VIDEOS_KEY, JSON.stringify(state.userVideos));
+    } catch (e) {}
+
+    if (state.activeTab === "merchant") {
+      renderMerchantDashboard();
     }
   }
 
@@ -1822,6 +2195,740 @@
   }
 
   // ---------------------------------------------------------------------------
+  // SaaS Multi-Tenant Personas & Audio Preview Engine
+  // ---------------------------------------------------------------------------
+  function escapeHtml(text) {
+    if (!text) return "";
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  let currentAuditionAudio = null;
+  let currentPlayingVoice = null;
+  let webAudioCtx = null;
+
+  function stopVoiceAudition() {
+    if (currentAuditionAudio) {
+      try {
+        currentAuditionAudio.pause();
+        currentAuditionAudio.currentTime = 0;
+      } catch (e) {}
+      currentAuditionAudio = null;
+    }
+    if (webAudioCtx) {
+      try {
+        webAudioCtx.close();
+      } catch (e) {}
+      webAudioCtx = null;
+    }
+    currentPlayingVoice = null;
+
+    // Reset button states
+    const previewBtns = document.querySelectorAll(".btn-voice-preview");
+    previewBtns.forEach((btn) => {
+      btn.classList.remove("playing");
+      const textSpan = btn.querySelector(".preview-text");
+      const iconSpan = btn.querySelector(".preview-icon");
+      if (textSpan) textSpan.textContent = "استمع للصوت";
+      if (iconSpan) iconSpan.textContent = "▶";
+    });
+  }
+
+  async function playVoiceAudition(voiceId, buttonEl) {
+    if (currentPlayingVoice === voiceId) {
+      stopVoiceAudition();
+      return;
+    }
+
+    stopVoiceAudition();
+    currentPlayingVoice = voiceId;
+
+    buttonEl.classList.add("playing");
+    const textSpan = buttonEl.querySelector(".preview-text");
+    const iconSpan = buttonEl.querySelector(".preview-icon");
+    if (textSpan) textSpan.textContent = "إيقاف الصوت";
+    if (iconSpan) iconSpan.textContent = "⏹️";
+
+    const sampleUrl = `/api/voices/${encodeURIComponent(voiceId)}/sample`;
+    const audio = new Audio(sampleUrl);
+    currentAuditionAudio = audio;
+
+    let fallbackTriggered = false;
+    const triggerWebAudioFallback = () => {
+      if (fallbackTriggered) return;
+      fallbackTriggered = true;
+      playWebAudioHarmonicPreview(voiceId);
+    };
+
+    audio.onended = () => {
+      stopVoiceAudition();
+    };
+
+    audio.onerror = () => {
+      triggerWebAudioFallback();
+    };
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        triggerWebAudioFallback();
+      });
+    }
+
+    setTimeout(() => {
+      if (currentPlayingVoice === voiceId && !fallbackTriggered && (!audio.currentTime || audio.paused)) {
+        triggerWebAudioFallback();
+      }
+    }, 1200);
+  }
+
+  function playWebAudioHarmonicPreview(voiceId) {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        setTimeout(stopVoiceAudition, 1500);
+        return;
+      }
+      webAudioCtx = new AudioContextClass();
+
+      let baseFreq = 260; // female default (Standard A)
+      if (voiceId.includes("Standard-B") || voiceId.toLowerCase().includes("charon")) {
+        baseFreq = 140; // deep male (Standard B)
+      } else if (voiceId.includes("Standard-C") || voiceId.toLowerCase().includes("fenrir")) {
+        baseFreq = 185; // energetic male (Standard C)
+      } else if (voiceId.includes("Standard-D") || voiceId.toLowerCase().includes("kore")) {
+        baseFreq = 290; // calm female (Standard D)
+      }
+
+      const osc = webAudioCtx.createOscillator();
+      const gain = webAudioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(baseFreq, webAudioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, webAudioCtx.currentTime + 0.4);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq, webAudioCtx.currentTime + 0.9);
+
+      gain.gain.setValueAtTime(0.08, webAudioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, webAudioCtx.currentTime + 1.8);
+
+      osc.connect(gain);
+      gain.connect(webAudioCtx.destination);
+      osc.start();
+      osc.stop(webAudioCtx.currentTime + 1.8);
+
+      setTimeout(() => {
+        stopVoiceAudition();
+      }, 1900);
+    } catch (e) {
+      setTimeout(stopVoiceAudition, 1500);
+    }
+  }
+
+  function setupVoiceAudition() {
+    const auditionButtons = [
+      { id: "btnSampleStandardA", voice: "ar-XA-Standard-A" },
+      { id: "btnSampleStandardB", voice: "ar-XA-Standard-B" },
+      { id: "btnSampleStandardC", voice: "ar-XA-Standard-C" },
+      { id: "btnSampleStandardD", voice: "ar-XA-Standard-D" }
+    ];
+
+    auditionButtons.forEach(({ id, voice }) => {
+      const btn = dom[id];
+      if (btn) {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          playVoiceAudition(voice, btn);
+        });
+      }
+    });
+  }
+
+  function setupSaaSTabs() {
+    const tabs = [
+      { btn: dom.tabBtnStudio, content: dom.tabContentStudio, name: "studio" },
+      { btn: dom.tabBtnMerchant, content: dom.tabContentMerchant, name: "merchant" },
+      { btn: dom.tabBtnAdmin, content: dom.tabContentAdmin, name: "admin" }
+    ];
+
+    tabs.forEach(({ btn, name }) => {
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        switchTab(name);
+      });
+    });
+
+    if (dom.btnGoToStudioFromDash) {
+      dom.btnGoToStudioFromDash.addEventListener("click", () => {
+        switchTab("studio");
+      });
+    }
+  }
+
+  function switchTab(tabName) {
+    state.activeTab = tabName;
+
+    const allBtns = [dom.tabBtnStudio, dom.tabBtnMerchant, dom.tabBtnAdmin];
+    const allContents = [dom.tabContentStudio, dom.tabContentMerchant, dom.tabContentAdmin];
+
+    allBtns.forEach((btn) => {
+      if (btn) btn.classList.remove("active");
+    });
+    allContents.forEach((content) => {
+      if (content) {
+        content.classList.remove("active");
+        content.style.display = "none";
+      }
+    });
+
+    if (tabName === "studio" && dom.tabBtnStudio && dom.tabContentStudio) {
+      dom.tabBtnStudio.classList.add("active");
+      dom.tabContentStudio.classList.add("active");
+      dom.tabContentStudio.style.display = "block";
+    } else if (tabName === "merchant" && dom.tabBtnMerchant && dom.tabContentMerchant) {
+      dom.tabBtnMerchant.classList.add("active");
+      dom.tabContentMerchant.classList.add("active");
+      dom.tabContentMerchant.style.display = "block";
+      renderMerchantDashboard();
+    } else if (tabName === "admin" && dom.tabBtnAdmin && dom.tabContentAdmin) {
+      dom.tabBtnAdmin.classList.add("active");
+      dom.tabContentAdmin.classList.add("active");
+      dom.tabContentAdmin.style.display = "block";
+      renderAdminDashboard();
+    }
+  }
+
+  async function loadAccounts() {
+    // 1. Try to fetch accounts from backend API
+    try {
+      const res = await fetch("/api/auth/demo-accounts");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          state.accounts = data;
+        } else {
+          state.accounts = [...PRESEEDED_ACCOUNTS];
+        }
+      } else {
+        state.accounts = [...PRESEEDED_ACCOUNTS];
+      }
+    } catch (e) {
+      state.accounts = [...PRESEEDED_ACCOUNTS];
+    }
+
+    // 2. Load cached videos or initialize
+    try {
+      const stored = localStorage.getItem(USER_VIDEOS_KEY);
+      if (stored) {
+        state.userVideos = JSON.parse(stored);
+      }
+    } catch (e) {
+      state.userVideos = {};
+    }
+
+    // 3. Populate Account Switcher Select
+    if (dom.accountSwitcherSelect) {
+      dom.accountSwitcherSelect.innerHTML = "";
+      state.accounts.forEach((acc) => {
+        const opt = document.createElement("option");
+        opt.value = acc.id || acc.username;
+        const roleIcon = acc.role === "admin" ? "👑" : "🏢";
+        opt.textContent = `${roleIcon} ${acc.business_name} (${acc.business_category})`;
+        dom.accountSwitcherSelect.appendChild(opt);
+      });
+
+      dom.accountSwitcherSelect.addEventListener("change", (e) => {
+        switchAccount(e.target.value);
+      });
+    }
+
+    // 4. Determine Active User
+    const savedUserId = localStorage.getItem(CURRENT_USER_KEY);
+    let activeUser = state.accounts.find(
+      (a) => a.id === savedUserId || a.username === savedUserId
+    );
+    if (!activeUser) {
+      activeUser = state.accounts[0];
+    }
+    state.currentUser = activeUser;
+
+    if (dom.accountSwitcherSelect) {
+      dom.accountSwitcherSelect.value = activeUser.id || activeUser.username;
+    }
+
+    applyActiveUserToUI(activeUser);
+  }
+
+  function switchAccount(userId) {
+    const user = state.accounts.find(
+      (a) => a.id === userId || a.username === userId
+    );
+    if (!user) return;
+
+    state.currentUser = user;
+    localStorage.setItem(CURRENT_USER_KEY, user.id || user.username);
+
+    if (dom.accountSwitcherSelect) {
+      dom.accountSwitcherSelect.value = user.id || user.username;
+    }
+
+    applyActiveUserToUI(user);
+    showToast(`تم التبديل إلى حساب: ${user.business_name}`);
+  }
+
+  function applyActiveUserToUI(user) {
+    if (!user) return;
+
+    // Header badge
+    if (dom.personaBusinessName) dom.personaBusinessName.textContent = user.business_name;
+    if (dom.personaCategoryBadge) dom.personaCategoryBadge.textContent = user.business_category;
+    if (dom.personaRoleIcon) {
+      dom.personaRoleIcon.textContent = user.role === "admin" ? "👑" : "🏢";
+    }
+    if (dom.activePersonaBadge) {
+      if (user.role === "admin") {
+        dom.activePersonaBadge.classList.add("admin");
+      } else {
+        dom.activePersonaBadge.classList.remove("admin");
+      }
+    }
+
+    // Admin Tab Visibility
+    if (dom.tabBtnAdmin) {
+      if (user.role === "admin") {
+        dom.tabBtnAdmin.style.display = "inline-flex";
+      } else {
+        dom.tabBtnAdmin.style.display = "none";
+        if (state.activeTab === "admin") {
+          switchTab("studio");
+        }
+      }
+    }
+
+    // Quota Banner in Studio
+    updateQuotaBanner(user);
+
+    // Default text in fixedTextInput if empty
+    if (dom.fixedTextInput && (!dom.fixedTextInput.value || dom.fixedTextInput.value.trim() === "")) {
+      if (user.default_text) {
+        dom.fixedTextInput.value = user.default_text;
+      }
+    }
+
+    // Update Merchant Dashboard if active
+    if (state.activeTab === "merchant") {
+      renderMerchantDashboard();
+    } else if (state.activeTab === "admin") {
+      renderAdminDashboard();
+    }
+  }
+
+  function updateQuotaBanner(user) {
+    if (!user) return;
+    const dailyTotal = user.daily_quota || 5;
+    const weeklyTotal = user.weekly_quota || 25;
+    const usedToday = user.videos_today || 0;
+    const usedWeek = user.videos_this_week || 0;
+
+    const dailyRemaining = Math.max(0, dailyTotal - usedToday);
+    const weeklyRemaining = Math.max(0, weeklyTotal - usedWeek);
+
+    if (dom.quotaDailyRemaining) dom.quotaDailyRemaining.textContent = String(dailyRemaining);
+    if (dom.quotaDailyTotal) dom.quotaDailyTotal.textContent = String(dailyTotal);
+    if (dom.quotaWeeklyRemaining) dom.quotaWeeklyRemaining.textContent = String(weeklyRemaining);
+    if (dom.quotaWeeklyTotal) dom.quotaWeeklyTotal.textContent = String(weeklyTotal);
+    if (dom.quotaExpiryText) {
+      const isExpired = new Date(user.expires_at) < new Date();
+      dom.quotaExpiryText.textContent = isExpired
+        ? `منتهي (${user.expires_at})`
+        : `نشط حتى ${user.expires_at}`;
+      if (isExpired) {
+        dom.quotaExpiryText.style.color = "#ef4444";
+      } else {
+        dom.quotaExpiryText.style.color = "";
+      }
+    }
+
+    const pct = Math.round((dailyRemaining / dailyTotal) * 100);
+    if (dom.quotaMiniBarFill) {
+      dom.quotaMiniBarFill.style.width = `${pct}%`;
+      if (pct <= 0) {
+        dom.quotaMiniBarFill.style.background = "#ef4444";
+      } else if (pct <= 30) {
+        dom.quotaMiniBarFill.style.background = "#f59e0b";
+      } else {
+        dom.quotaMiniBarFill.style.background = "#10b981";
+      }
+    }
+
+    if (dom.quotaWarningBanner) {
+      dom.quotaWarningBanner.classList.remove("warning", "exhausted");
+      if (dailyRemaining <= 0 || weeklyRemaining <= 0 || user.status === "suspended") {
+        dom.quotaWarningBanner.classList.add("exhausted");
+      } else if (dailyRemaining <= 1) {
+        dom.quotaWarningBanner.classList.add("warning");
+      }
+    }
+  }
+
+  function renderMerchantDashboard() {
+    const user = state.currentUser;
+    if (!user) return;
+
+    if (dom.merchantDashBusinessName) dom.merchantDashBusinessName.textContent = user.business_name;
+    if (dom.merchantDashUsername) dom.merchantDashUsername.textContent = user.username;
+    if (dom.merchantDashCategory) dom.merchantDashCategory.textContent = user.business_category;
+    if (dom.merchantDashExpiry) dom.merchantDashExpiry.textContent = user.expires_at;
+    if (dom.merchantDashStatus) {
+      const isSuspended = user.status === "suspended";
+      dom.merchantDashStatus.textContent = isSuspended ? "موقوف مؤقتاً" : "حساب نشط";
+      dom.merchantDashStatus.className = `badge-status-pill ${isSuspended ? "suspended" : "active"}`;
+    }
+
+    const dailyTotal = user.daily_quota || 5;
+    const weeklyTotal = user.weekly_quota || 25;
+    const usedToday = user.videos_today || 0;
+    const usedWeek = user.videos_this_week || 0;
+    const dailyRem = Math.max(0, dailyTotal - usedToday);
+    const weeklyRem = Math.max(0, weeklyTotal - usedWeek);
+
+    if (dom.merchantDailyProgressText) {
+      dom.merchantDailyProgressText.textContent = `${dailyRem} / ${dailyTotal} فيديوهات متبقية اليوم (${usedToday} تم إنتاجها)`;
+    }
+    if (dom.merchantDailyProgressFill) {
+      const dailyPct = Math.round((dailyRem / dailyTotal) * 100);
+      dom.merchantDailyProgressFill.style.width = `${dailyPct}%`;
+    }
+
+    if (dom.merchantWeeklyProgressText) {
+      dom.merchantWeeklyProgressText.textContent = `${weeklyRem} / ${weeklyTotal} فيديو متبقي هذا الأسبوع (${usedWeek} تم إنتاجها)`;
+    }
+    if (dom.merchantWeeklyProgressFill) {
+      const weeklyPct = Math.round((weeklyRem / weeklyTotal) * 100);
+      dom.merchantWeeklyProgressFill.style.width = `${weeklyPct}%`;
+    }
+
+    renderMerchantVideoLibrary(user.username);
+  }
+
+  function renderMerchantVideoLibrary(username) {
+    if (!dom.merchantVideoGrid) return;
+    const videos = state.userVideos[username] || [];
+
+    if (dom.merchantVideoCountBadge) {
+      dom.merchantVideoCountBadge.textContent = `${videos.length} فيديو`;
+    }
+
+    if (videos.length === 0) {
+      dom.merchantVideoGrid.innerHTML = `
+        <div class="library-empty-state">
+          <div class="empty-state-icon">🎬</div>
+          <div class="empty-state-title">لا توجد مقاطع فيديو مسجلة لهذا الحساب بعد</div>
+          <div class="empty-state-desc">ابدأ الآن بتسجيل أول فيديو لمتجرك وسيقوم الذكاء الاصطناعي بإخراجه تلقائياً!</div>
+        </div>
+      `;
+      return;
+    }
+
+    dom.merchantVideoGrid.innerHTML = "";
+    videos.forEach((v) => {
+      const card = document.createElement("div");
+      card.className = "merchant-video-card";
+      card.innerHTML = `
+        <video src="${v.url || ""}" controls preload="metadata" playsinline></video>
+        <div class="video-card-body">
+          <div class="video-card-title">${escapeHtml(v.title || "فيديو تسويقي")}</div>
+          <div class="video-card-meta">
+            <span>⏱️ ${v.duration || "0:25s"}</span>
+            <span>📅 ${v.date || "اليوم"}</span>
+            <span>📐 ${v.orientation || "9:16"}</span>
+          </div>
+          <a href="${v.url || "#"}" download class="btn-download-video-card" target="_blank">
+            <span>⬇️ تحميل الفيديو (MP4)</span>
+          </a>
+        </div>
+      `;
+      dom.merchantVideoGrid.appendChild(card);
+    });
+  }
+
+  function renderAdminDashboard() {
+    const totalMerchants = state.accounts.filter((a) => a.role === "merchant").length;
+    const activeSubs = state.accounts.filter((a) => a.role === "merchant" && a.status === "active").length;
+    let totalVideosToday = 0;
+    let totalVideosAll = 0;
+
+    state.accounts.forEach((a) => {
+      totalVideosToday += a.videos_today || 0;
+      const userVidCount = (state.userVideos[a.username] || []).length;
+      totalVideosAll += Math.max(userVidCount, a.videos_this_week || 0);
+    });
+
+    if (dom.statTotalMerchants) dom.statTotalMerchants.textContent = String(totalMerchants);
+    if (dom.statVideosToday) dom.statVideosToday.textContent = String(totalVideosToday);
+    if (dom.statActiveSubs) dom.statActiveSubs.textContent = String(activeSubs);
+    if (dom.statTotalVideos) dom.statTotalVideos.textContent = String(totalVideosAll);
+
+    if (dom.adminUsersTableBody) {
+      dom.adminUsersTableBody.innerHTML = "";
+      state.accounts.filter((a) => a.role === "merchant").forEach((acc) => {
+        const tr = document.createElement("tr");
+        const isSuspended = acc.status === "suspended";
+        tr.innerHTML = `
+          <td>
+            <strong>${escapeHtml(acc.business_name)}</strong>
+            <div style="font-size: 0.72rem; color: #94a3b8;">@${escapeHtml(acc.username)}</div>
+          </td>
+          <td>${escapeHtml(acc.business_category)}</td>
+          <td>${acc.daily_quota} / يوم</td>
+          <td>${acc.weekly_quota} / أسبوع</td>
+          <td>${acc.expires_at}</td>
+          <td>
+            <span class="table-badge ${isSuspended ? "suspended" : "active"}">
+              ${isSuspended ? "موقوف" : "نشط"}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions-cell">
+              <button type="button" class="table-action-btn toggle" data-user="${acc.id || acc.username}">
+                ${isSuspended ? "▶ تفعيل" : "⏸ إيقاف"}
+              </button>
+              <button type="button" class="table-action-btn renew" data-user="${acc.id || acc.username}">
+                +30 يوم
+              </button>
+              <button type="button" class="table-action-btn edit" data-user="${acc.id || acc.username}">
+                ✏️ الحصص
+              </button>
+            </div>
+          </td>
+        `;
+        dom.adminUsersTableBody.appendChild(tr);
+      });
+
+      dom.adminUsersTableBody.querySelectorAll(".table-action-btn.toggle").forEach((btn) => {
+        btn.addEventListener("click", () => toggleUserStatus(btn.dataset.user));
+      });
+      dom.adminUsersTableBody.querySelectorAll(".table-action-btn.renew").forEach((btn) => {
+        btn.addEventListener("click", () => renewUserSubscription(btn.dataset.user));
+      });
+      dom.adminUsersTableBody.querySelectorAll(".table-action-btn.edit").forEach((btn) => {
+        btn.addEventListener("click", () => openEditQuotaModal(btn.dataset.user));
+      });
+    }
+  }
+
+  function toggleUserStatus(userId) {
+    const user = state.accounts.find((a) => a.id === userId || a.username === userId);
+    if (!user) return;
+    user.status = user.status === "active" ? "suspended" : "active";
+    showToast(`تم تغيير حالة الحساب إلى: ${user.status === "active" ? "نشط" : "موقوف"}`);
+    renderAdminDashboard();
+    if (state.currentUser && (state.currentUser.id === userId || state.currentUser.username === userId)) {
+      applyActiveUserToUI(user);
+    }
+  }
+
+  function renewUserSubscription(userId) {
+    const user = state.accounts.find((a) => a.id === userId || a.username === userId);
+    if (!user) return;
+    const currentExp = new Date(user.expires_at || new Date());
+    currentExp.setDate(currentExp.getDate() + 30);
+    user.expires_at = currentExp.toISOString().split("T")[0];
+    showToast(`تم تجديد الاشتراك بنجاح حتى ${user.expires_at}`);
+    renderAdminDashboard();
+    if (state.currentUser && (state.currentUser.id === userId || state.currentUser.username === userId)) {
+      applyActiveUserToUI(user);
+    }
+  }
+
+  function openEditQuotaModal(userId) {
+    const user = state.accounts.find((a) => a.id === userId || a.username === userId);
+    if (!user) return;
+    if (dom.editQuotaUserId) dom.editQuotaUserId.value = user.id || user.username;
+    if (dom.editQuotaDaily) dom.editQuotaDaily.value = user.daily_quota;
+    if (dom.editQuotaWeekly) dom.editQuotaWeekly.value = user.weekly_quota;
+    if (dom.editQuotaModal) dom.editQuotaModal.style.display = "flex";
+  }
+
+  function setupMerchantTemplateChips() {
+    const templates = [
+      {
+        btn: dom.chipRealEstate,
+        visual: "جولة تبدأ من المدخل الرئيسي والصالون الملكي وتنتقل إلى الشرفة مع إبراز المطبخ العصري والتشطيبات الفاخرة.",
+        speech: "رحب بالمشاهدين واشرح مميزات الموقع الهادئ، الإطلالة البانورامية، التشطيبات الراقية وسعرها المغري."
+      },
+      {
+        btn: dom.chipAuto,
+        visual: "لقطات تفصيلية حول السيارة تبدأ من الواجهة الأمامية وشبك التهوية ثم إلى المقصورة الفاخرة ولوحة القيادة والجنوط الرياضية.",
+        speech: "استعرض مواصفات السيارة العصرية، وقوة المحرك واقتصاده في استهلاك الوقود، والضمان المتاح مع خطة الدفع الميسرة."
+      },
+      {
+        btn: dom.chipFashion,
+        visual: "استعراض انسيابي لتفاصيل القماش الفاخر، التطريز التقليدي المتقن، والألوان الجذابة مع إبراز الإكسسوارات المرافقة.",
+        speech: "أبرز أصالة التصميم الجزائري واللمسة العصرية، جودة الخياطة الرفيعة، وتوفر القياسات مع إمكانية التوصيل الفوري."
+      },
+      {
+        btn: dom.chipTech,
+        visual: "إظهار الهاتف أو الجهاز الذكي من كافة الزوايا، فحص نحافة الشاشة، الكاميرات الاحترافية وسرعة استجابة النظام.",
+        speech: "قدم أقوى عروض الإلكترونيات مع الضمان الرسمي لمدة عام كامل وهدايا مجانية قيمة مع كل طلب."
+      },
+      {
+        btn: dom.chipRestaurant,
+        visual: "مشاهد قريبة جذابة للأطباق الساخنة والتقديم الشهي وديكورات المطعم الدافئة والجلسات العائلية المريحة.",
+        speech: "ادعُ الزبائن لتذوق أشهى المأكولات المحضرة بأجود المكونات الطازجة وعش تجربة عائلية استثنائية."
+      }
+    ];
+
+    templates.forEach(({ btn, visual, speech }) => {
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".btn-merchant-chip").forEach((c) => c.classList.remove("active"));
+        btn.classList.add("active");
+
+        if (dom.visualDescription) dom.visualDescription.value = visual;
+        if (dom.speechDescription) dom.speechDescription.value = speech;
+        showToast("تم تطبيق قالب الوصف بنجاح!");
+      });
+    });
+  }
+
+  function setupOrientationSelector() {
+    const radios = document.querySelectorAll('input[name="video_orientation"]');
+    radios.forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        document.querySelectorAll(".orientation-card").forEach((c) => c.classList.remove("active"));
+        const parentCard = e.target.closest(".orientation-card");
+        if (parentCard) parentCard.classList.add("active");
+      });
+    });
+  }
+
+  function setupAdminModals() {
+    if (dom.btnOpenCreateMerchantModal) {
+      dom.btnOpenCreateMerchantModal.addEventListener("click", () => {
+        if (dom.createMerchantForm) dom.createMerchantForm.reset();
+        if (dom.newMerchantExpiry) {
+          const nextYear = new Date();
+          nextYear.setFullYear(nextYear.getFullYear() + 1);
+          dom.newMerchantExpiry.value = nextYear.toISOString().split("T")[0];
+        }
+        if (dom.createMerchantModal) dom.createMerchantModal.style.display = "flex";
+      });
+    }
+
+    if (dom.btnCloseCreateMerchantModal) {
+      dom.btnCloseCreateMerchantModal.addEventListener("click", () => {
+        if (dom.createMerchantModal) dom.createMerchantModal.style.display = "none";
+      });
+    }
+    if (dom.btnCancelCreateMerchant) {
+      dom.btnCancelCreateMerchant.addEventListener("click", () => {
+        if (dom.createMerchantModal) dom.createMerchantModal.style.display = "none";
+      });
+    }
+
+    if (dom.createMerchantForm) {
+      dom.createMerchantForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = (dom.newMerchantUsername?.value || "").trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
+        const businessName = (dom.newMerchantBusinessName?.value || "").trim();
+        const category = dom.newMerchantCategory?.value || "تجارة عامة";
+        const expiry = dom.newMerchantExpiry?.value || "2027-12-31";
+        const daily = parseInt(dom.newMerchantDailyQuota?.value || "5", 10);
+        const weekly = parseInt(dom.newMerchantWeeklyQuota?.value || "25", 10);
+
+        if (!username || !businessName) {
+          showToast("يرجى ملء جميع الحقول المطلوبة!");
+          return;
+        }
+
+        const newAccount = {
+          id: `usr_${username}`,
+          username: username,
+          business_name: businessName,
+          business_category: category,
+          role: "merchant",
+          status: "active",
+          expires_at: expiry,
+          daily_quota: daily,
+          weekly_quota: weekly,
+          videos_today: 0,
+          videos_this_week: 0,
+          token: `tok_${username}`,
+          default_phone: "0550 00 00 00",
+          default_text: `📞 0550 00 00 00 | ${businessName}`
+        };
+
+        try {
+          await fetch("/api/admin/users", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${state.currentUser?.token || ""}`
+            },
+            body: JSON.stringify(newAccount)
+          });
+        } catch (err) {}
+
+        state.accounts.push(newAccount);
+
+        if (dom.accountSwitcherSelect) {
+          const opt = document.createElement("option");
+          opt.value = newAccount.id;
+          opt.textContent = `🏢 ${newAccount.business_name} (${newAccount.business_category})`;
+          dom.accountSwitcherSelect.appendChild(opt);
+        }
+
+        if (dom.createMerchantModal) dom.createMerchantModal.style.display = "none";
+        renderAdminDashboard();
+        showToast(`تم إنشاء حساب التاجر (${businessName}) بنجاح!`);
+      });
+    }
+
+    if (dom.btnCloseEditQuotaModal) {
+      dom.btnCloseEditQuotaModal.addEventListener("click", () => {
+        if (dom.editQuotaModal) dom.editQuotaModal.style.display = "none";
+      });
+    }
+
+    if (dom.editQuotaForm) {
+      dom.editQuotaForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const userId = dom.editQuotaUserId?.value;
+        const daily = parseInt(dom.editQuotaDaily?.value || "5", 10);
+        const weekly = parseInt(dom.editQuotaWeekly?.value || "25", 10);
+
+        const user = state.accounts.find((a) => a.id === userId || a.username === userId);
+        if (user) {
+          user.daily_quota = daily;
+          user.weekly_quota = weekly;
+
+          try {
+            await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${state.currentUser?.token || ""}`
+              },
+              body: JSON.stringify({ daily_quota: daily, weekly_quota: weekly })
+            });
+          } catch (err) {}
+
+          if (dom.editQuotaModal) dom.editQuotaModal.style.display = "none";
+          renderAdminDashboard();
+          if (state.currentUser && (state.currentUser.id === userId || state.currentUser.username === userId)) {
+            applyActiveUserToUI(user);
+          }
+          showToast("تم تحديث الحصص بنجاح!");
+        }
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Reset & New Video Handlers
   // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
@@ -1840,6 +2947,12 @@
   async function init() {
     checkServerHealth();
     setupVoiceSelector();
+    setupVoiceAudition();
+    setupSaaSTabs();
+    setupOrientationSelector();
+    setupMerchantTemplateChips();
+    setupAdminModals();
+    await loadAccounts();
     await loadPresetsFromAPI();
     await loadPrinciplesFromAPI();
     await fetchPromptHistory();

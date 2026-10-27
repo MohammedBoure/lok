@@ -202,7 +202,7 @@ def test_voice_selector_and_decluttering():
 
 
 def test_character_mapping_compliance():
-    """Verify that the Arabic numeral ٩ (U+0669) does not appear in source files."""
+    """Verify that the Arabic numeral character U+0669 does not appear in source files."""
     for fname in ["index.html", "style.css", "app.js", "README.md"]:
         content = (STATIC_DIR / fname).read_text(encoding="utf-8")
         assert "\u0669" not in content, f"Forbidden Arabic character U+0669 found in {fname}"
