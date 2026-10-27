@@ -33,6 +33,7 @@ def ensure_default_principles_clean():
 def test_load_principles_defaults():
     """Test loading principles returns valid structure with expected top-level keys."""
     principles = load_principles()
+    assert "master_directive" in principles
     assert "voice_principles" in principles
     assert "narrative_principles" in principles
     assert "visual_principles" in principles
@@ -84,12 +85,32 @@ def test_build_tts_style_principles_output():
     assert "الإيقاع" in prompt
 
 
+def test_master_directive_custom_free_form_instructions():
+    """Test user's arbitrary free-form instructions are prioritized in Vision and TTS prompts."""
+    custom = load_principles()
+    user_instruction = "إستخدم اللهجة الجزائرية و الصوت يجب أن يكون وصفيا مع المشهد كأن الشخص الدي يصور هو من يتكلم"
+    custom["master_directive"]["custom_instructions"] = user_instruction
+    save_principles(custom)
+
+    vision_prompt = build_vision_prompt_principles()
+    assert user_instruction in vision_prompt
+    assert "توجيه المستخدم المخصص" in vision_prompt
+    assert "الشخص الذي يصور" in vision_prompt
+    assert "اللهجة الجزائرية" in vision_prompt
+
+    tts_prompt = build_tts_style_principles(emotional_tone="متحمس وحيوي")
+    assert user_instruction in tts_prompt
+    assert "جزائرية دارجة" in tts_prompt
+    assert "الشخص الذي يتجول ويصور" in tts_prompt
+
+
 def test_api_get_principles():
     """Test GET /api/principles endpoint returns 200 and valid JSON."""
     client = TestClient(app)
     response = client.get("/api/principles")
     assert response.status_code == 200
     data = response.json()
+    assert "master_directive" in data
     assert "voice_principles" in data
     assert "narrative_principles" in data
     assert "visual_principles" in data
@@ -101,12 +122,14 @@ def test_api_post_principles():
     client = TestClient(app)
     payload = load_principles()
     payload["voice_principles"]["active_tone_bias"] = "عصري وجريء"
+    payload["master_directive"]["custom_instructions"] = "دارجة جزائرية حية وعفوية"
 
     response = client.post("/api/principles", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
     assert data["principles"]["voice_principles"]["active_tone_bias"] == "عصري وجريء"
+    assert data["principles"]["master_directive"]["custom_instructions"] == "دارجة جزائرية حية وعفوية"
 
 
 def test_api_reset_principles():

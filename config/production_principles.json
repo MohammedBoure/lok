@@ -1,5 +1,15 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "master_directive": {
+    "title": "المبدأ العام والتوجيه المخصص للذكاء الاصطناعي (Master Custom Directive)",
+    "custom_instructions": "",
+    "dialect": "algerian_darja",
+    "dialect_label": "اللهجة الجزائرية (الدارجة الجزائرية العفوية الحية)",
+    "perspective": "videographer_walkthrough",
+    "perspective_label": "الشخص الذي يصور هو من يتكلم ويتجول في المكان (Live Walkthrough POV)",
+    "scene_connectivity": "connected_visual",
+    "scene_connectivity_label": "وصفي ومتصل تماماً مع ما يظهر في المشهد لحظة بلحظة"
+  },
   "voice_principles": {
     "title": "مبادئ ومعايير التعليق الصوتي العصبي",
     "guidelines": "تحدث بنبرة عربية فصيحة، مع إبراز الفخامة والأناقة في وصف العقارات الراقية، والحماس والحيوية في العروض الترويجية والأسعار التنافسية. اجعل مخارج الحروف واضحة ومريحة وموزونة مع المشاهد.",

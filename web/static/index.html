@@ -587,6 +587,61 @@
           </p>
 
           <form id="principlesForm">
+            <!-- Section 0: Master Custom Directive (First-Class Free-Form Principles) -->
+            <fieldset class="principles-fieldset principles-master-fieldset">
+              <legend>🌟 المبدأ العام والتوجيه المفتوح للذكاء الاصطناعي (Master Custom Directive)</legend>
+              <div class="form-group">
+                <label for="principleCustomInstructions" class="master-directive-label">
+                  اكتب أي مبادئ أو توجيهات مخصصة تريدها بكل حرية وسيلتزم بها الذكاء الاصطناعي تماماً:
+                </label>
+                <textarea id="principleCustomInstructions" rows="3" class="form-control master-textarea" placeholder="مثال: إستخدم اللهجة الجزائرية الدارجة، واجعل الصوت وصفياً متصلاً تماماً مع ما يظهر في المشهد كأن الشخص الذي يصور هو من يتكلم بنفسه أثناء تجوله في العقار..."></textarea>
+              </div>
+
+              <!-- Quick Instruction Presets -->
+              <div class="quick-principles-row">
+                <span class="quick-label">⚡ شارات وقوالب سريعة (انقر للتطبيق الفوري في التوجيه):</span>
+                <div class="quick-chips-wrap">
+                  <button type="button" class="btn-quick-chip" id="chipDarja">
+                    🇩🇿 لهجة جزائرية دارجة
+                  </button>
+                  <button type="button" class="btn-quick-chip" id="chipWalkthrough">
+                    📹 المصور هو من يتكلم (Live Walkthrough)
+                  </button>
+                  <button type="button" class="btn-quick-chip" id="chipConnected">
+                    👁️ صوت وصفي متصل بالمشهد
+                  </button>
+                  <button type="button" class="btn-quick-chip" id="chipFormal">
+                    ✨ فصحى راقية
+                  </button>
+                  <button type="button" class="btn-quick-chip chip-clear" id="chipClear">
+                    🧹 تفريغ التوجيه
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-row-grid" style="margin-top: 14px;">
+                <div class="form-group">
+                  <label for="principleDialect">الأسلوب اللغوي واللهجة المعتمدة:</label>
+                  <select id="principleDialect" class="form-control select-control">
+                    <option value="algerian_darja">اللهجة الجزائرية (الدارجة الجزائرية العفوية الحية)</option>
+                    <option value="standard_arabic">عربية فصيحة راقية (Modern Standard Arabic)</option>
+                    <option value="bilingual_mix">مزيج دارجة جزائرية ومصطلحات عقارية</option>
+                    <option value="french_algerian">فرنسية جزائرية (French Algerian)</option>
+                    <option value="custom">حسب التوجيه المكتوب في النص أعلاه</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="principlePerspective">منظور وزاوية السرد الصوتي:</label>
+                  <select id="principlePerspective" class="form-control select-control">
+                    <option value="videographer_walkthrough">الشخص الذي يصور هو من يتكلم (Live Walkthrough POV)</option>
+                    <option value="third_person_narrator">معلق إعلاني تسويقي خارجي (Third-Person Presenter)</option>
+                    <option value="agent_guide">مستشار عقاري ودود يرافق المشاهد (Friendly Agent)</option>
+                    <option value="custom">حسب التوجيه المكتوب في النص أعلاه</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+
             <!-- Section 1: Voice Principles -->
             <fieldset class="principles-fieldset">
               <legend>🎙️ مبادئ ومعايير التعليق الصوتي العصبي (Gemini TTS)</legend>

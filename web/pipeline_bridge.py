@@ -558,12 +558,16 @@ def process_mobile_video(
         extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
     )
 
+    from config.production_principles_manager import build_tts_style_principles
+    tts_principles_style = build_tts_style_principles(emotional_tone=resolved_tone)
+    final_style_prompt = f"{resolved_style_prompt}. {tts_principles_style}" if resolved_style_prompt else tts_principles_style
+
     narration_wav = out_cuts_dir / f"narration_{job_id}.wav"
     narration_info = synthesize_narration(
         script_text=selected_script,
         output_path=narration_wav,
         voice=voice,
-        style_prompt=resolved_style_prompt,
+        style_prompt=final_style_prompt,
         emotional_tone=resolved_tone,
     )
     narration_duration = narration_info["duration"]

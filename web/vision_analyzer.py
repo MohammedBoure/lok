@@ -98,17 +98,33 @@ def _get_smart_fallback(
     preset_hint: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Provide intelligent fallback when Gemini Vision API is offline or unreachable."""
+    principles = load_principles()
+    master = principles.get("master_directive", {})
+    custom_text = str(master.get("custom_instructions", ""))
+    dialect = str(master.get("dialect", "algerian_darja"))
+    perspective = str(master.get("perspective", "videographer_walkthrough"))
+
+    is_darja_or_walkthrough = (
+        dialect == "algerian_darja"
+        or perspective == "videographer_walkthrough"
+        or any(k in custom_text for k in ["جزائر", "دارجة", "يصور", "يتكلم", "جولة", "أنا"])
+    )
+
     if preset_hint == "oran_seaview_villa":
         profile = FALLBACK_PROFILES[1]
+        script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة." if is_darja_or_walkthrough else profile["script"]
     elif preset_hint == "constantine_commercial":
         profile = FALLBACK_PROFILES[2]
+        script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة." if is_darja_or_walkthrough else profile["script"]
     elif preset_hint == "rental_apartment":
         profile = FALLBACK_PROFILES[3]
+        script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك." if is_darja_or_walkthrough else profile["script"]
     else:
         profile = FALLBACK_PROFILES[0]
+        script = "شوفو معايا هاد الشقة الفاخرة F4 في قلب العاصمة، فينيسيون متقونة وإطلالة شابة بزاف، موقع هادئ وقريب من كل المرافق الحيوية." if is_darja_or_walkthrough else profile["script"]
 
     return {
-        "script": profile["script"],
+        "script": script,
         "emotional_tone": profile["emotional_tone"],
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
@@ -174,8 +190,11 @@ def infer_video_script_and_mood(
         f"Analyze these {len(selected_frames)} representative visual keyframes extracted from a real estate smartphone video recording (duration: {video_duration:.1f}s).\n\n"
         f"{principles_section}\n\n"
         f"Based on what you visually see in the architecture, interior, lighting, and finishes, return a JSON response with:\n"
-        f"1. 'script': An engaging, natural, professional Arabic marketing voiceover script describing this specific property. "
-        f"The script duration MUST match the video length: approximately {target_words} Arabic words (around {video_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
+        f"1. 'script': The marketing voiceover script describing this specific property in chronological visual order as the camera moves through the space.\n"
+        f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
+        f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
+        f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
+        f"The script duration MUST match the video length: approximately {target_words} words (around {video_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
         f"2. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
         f"3. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
         f"4. 'recommended_music': The single best matching music track ID from this exact list:\n"

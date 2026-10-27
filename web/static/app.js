@@ -174,7 +174,15 @@
     btnCopyLogs: document.getElementById("btnCopyLogs"),
     chkAutoScroll: document.getElementById("chkAutoScroll"),
 
-    // Principle Form Controls
+    // Principle Form Controls & Master Directives
+    principleCustomInstructions: document.getElementById("principleCustomInstructions"),
+    principleDialect: document.getElementById("principleDialect"),
+    principlePerspective: document.getElementById("principlePerspective"),
+    chipDarja: document.getElementById("chipDarja"),
+    chipWalkthrough: document.getElementById("chipWalkthrough"),
+    chipConnected: document.getElementById("chipConnected"),
+    chipFormal: document.getElementById("chipFormal"),
+    chipClear: document.getElementById("chipClear"),
     principleVoiceGuidelines: document.getElementById("principleVoiceGuidelines"),
     principleVoicePacing: document.getElementById("principleVoicePacing"),
     principleVoicePronunciation: document.getElementById("principleVoicePronunciation"),
@@ -1286,10 +1294,15 @@
 
   function populatePrinciplesForm(data) {
     if (!data) return;
+    const md = data.master_directive || {};
     const vp = data.voice_principles || {};
     const np = data.narrative_principles || {};
     const vis = data.visual_principles || {};
     const ap = data.annotation_principles || {};
+
+    if (dom.principleCustomInstructions) dom.principleCustomInstructions.value = md.custom_instructions || "";
+    if (dom.principleDialect) dom.principleDialect.value = md.dialect || "algerian_darja";
+    if (dom.principlePerspective) dom.principlePerspective.value = md.perspective || "videographer_walkthrough";
 
     if (dom.principleVoiceGuidelines) dom.principleVoiceGuidelines.value = vp.guidelines || "";
     if (dom.principleVoicePacing) dom.principleVoicePacing.value = vp.pacing || "";
@@ -1310,7 +1323,14 @@
 
   function getPrinciplesFromForm() {
     return {
-      version: "1.0.0",
+      version: "1.1.0",
+      master_directive: {
+        title: "المبدأ العام والتوجيه المخصص للذكاء الاصطناعي (Master Custom Directive)",
+        custom_instructions: dom.principleCustomInstructions?.value?.trim() || "",
+        dialect: dom.principleDialect?.value || "algerian_darja",
+        perspective: dom.principlePerspective?.value || "videographer_walkthrough",
+        scene_connectivity: "connected_visual"
+      },
       voice_principles: {
         title: "مبادئ ومعايير التعليق الصوتي العصبي",
         guidelines: dom.principleVoiceGuidelines?.value?.trim() || "",
@@ -1338,6 +1358,46 @@
         banner_opacity: 0.85
       }
     };
+  }
+
+  // Quick Preset Chips for Master Directive
+  function appendOrSetDirective(phrase, newDialect = null, newPerspective = null) {
+    if (!dom.principleCustomInstructions) return;
+    const current = dom.principleCustomInstructions.value.trim();
+    if (!current) {
+      dom.principleCustomInstructions.value = phrase;
+    } else if (!current.includes(phrase)) {
+      dom.principleCustomInstructions.value = `${current}، ${phrase}`;
+    }
+    if (newDialect && dom.principleDialect) dom.principleDialect.value = newDialect;
+    if (newPerspective && dom.principlePerspective) dom.principlePerspective.value = newPerspective;
+    dom.principleCustomInstructions.focus();
+  }
+
+  if (dom.chipDarja) {
+    dom.chipDarja.addEventListener("click", () => {
+      appendOrSetDirective("إستخدم اللهجة الجزائرية الدارجة العفوية في الوصف والتعليق", "algerian_darja");
+    });
+  }
+  if (dom.chipWalkthrough) {
+    dom.chipWalkthrough.addEventListener("click", () => {
+      appendOrSetDirective("الصوت يجب أن يكون وصفياً مع المشهد ومتصلاً تماماً كأن الشخص الذي يصور هو من يتكلم بنفسه أثناء الجولة", null, "videographer_walkthrough");
+    });
+  }
+  if (dom.chipConnected) {
+    dom.chipConnected.addEventListener("click", () => {
+      appendOrSetDirective("التعليق الصوتي وصفي ومتصل بكل مشهد يظهر في الفيديو لحظة بلحظة");
+    });
+  }
+  if (dom.chipFormal) {
+    dom.chipFormal.addEventListener("click", () => {
+      appendOrSetDirective("تحدث بنبرة عربية فصيحة راقية تبرز الفخامة والأناقة في وصف العقار", "standard_arabic", "third_person_narrator");
+    });
+  }
+  if (dom.chipClear) {
+    dom.chipClear.addEventListener("click", () => {
+      if (dom.principleCustomInstructions) dom.principleCustomInstructions.value = "";
+    });
   }
 
   function openPrinciplesModal() {
