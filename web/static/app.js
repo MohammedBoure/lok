@@ -9,9 +9,10 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Session Persistence Constants
+  // Session Persistence Constants & Voice Preferences
   // ---------------------------------------------------------------------------
   const ACTIVE_JOB_KEY = 'active_job_id';
+  const PREF_VOICE_KEY = 'preferred_voice';
 
   // ---------------------------------------------------------------------------
   // Catalog of Algerian Real Estate Presets (Offline Defaults & Fallback)
@@ -64,6 +65,7 @@
     // Production & Pipeline State
     isProcessing: false,
     activeJobId: null,
+    selectedVoice: "ar-XA-Standard-A",
     processingSecondsElapsed: 0,
     processingTimerInterval: null,
     statusPollInterval: null,
@@ -76,6 +78,14 @@
   // ---------------------------------------------------------------------------
   const dom = {
     systemStatusChip: document.getElementById("systemStatusChip"),
+
+    // Prominent Main Screen Voice Selector Cards
+    voiceSelectionCard: document.getElementById("voiceSelectionCard"),
+    mainVoiceCardsGrid: document.getElementById("mainVoiceCardsGrid"),
+    voiceCardStandardA: document.getElementById("voiceCardStandardA"),
+    voiceCardStandardB: document.getElementById("voiceCardStandardB"),
+    voiceCardStandardC: document.getElementById("voiceCardStandardC"),
+    voiceCardStandardD: document.getElementById("voiceCardStandardD"),
 
     // File Inputs & Capture Triggers
     cameraInput: document.getElementById("cameraInput"),
@@ -980,6 +990,10 @@
       formData.append("speech_description", speechDesc);
     }
 
+    // Prominent Voice selection binding (guaranteed for 1-Click & Advanced modes)
+    const voiceToUse = state.selectedVoice || localStorage.getItem(PREF_VOICE_KEY) || dom.voiceSelect?.value || "ar-XA-Standard-A";
+    formData.append("voice", voiceToUse);
+
     const isAccordionOpen = dom.advancedAccordion && dom.advancedAccordion.open;
     const scriptVal = (dom.scriptText?.value || "").trim();
 
@@ -998,7 +1012,7 @@
         formData.append("preset", state.currentPresetId);
       }
       if (dom.voiceSelect?.value && dom.voiceSelect.value !== "auto") {
-        formData.append("voice", dom.voiceSelect.value);
+        formData.set("voice", dom.voiceSelect.value);
       }
       if (dom.musicSelect?.value) {
         formData.append("music", dom.musicSelect.value);
@@ -1750,6 +1764,64 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Prominent Voice Selector Setup & LocalStorage Persistence
+  // ---------------------------------------------------------------------------
+  function setupVoiceSelector() {
+    const radios = document.querySelectorAll('input[name="prominentVoice"]');
+    const savedVoice = localStorage.getItem(PREF_VOICE_KEY) || "ar-XA-Standard-A";
+    state.selectedVoice = savedVoice;
+
+    // Apply saved voice to UI
+    applyVoiceSelectionToUI(savedVoice);
+
+    // Bind change event to each radio card
+    radios.forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          const val = e.target.value;
+          state.selectedVoice = val;
+          localStorage.setItem(PREF_VOICE_KEY, val);
+          applyVoiceSelectionToUI(val);
+        }
+      });
+    });
+
+    // Also sync if advanced voiceSelect changes
+    if (dom.voiceSelect) {
+      dom.voiceSelect.addEventListener("change", (e) => {
+        const val = e.target.value;
+        if (val && val !== "auto") {
+          state.selectedVoice = val;
+          localStorage.setItem(PREF_VOICE_KEY, val);
+          applyVoiceSelectionToUI(val);
+        }
+      });
+    }
+  }
+
+  function applyVoiceSelectionToUI(voiceValue) {
+    if (!voiceValue) return;
+
+    // 1. Sync Radio buttons and Card active states
+    const radios = document.querySelectorAll('input[name="prominentVoice"]');
+    radios.forEach((radio) => {
+      const card = radio.closest(".voice-card");
+      if (radio.value === voiceValue) {
+        radio.checked = true;
+        if (card) card.classList.add("active");
+      } else {
+        radio.checked = false;
+        if (card) card.classList.remove("active");
+      }
+    });
+
+    // 2. Sync Advanced Dropdown if present
+    if (dom.voiceSelect && dom.voiceSelect.value !== voiceValue) {
+      dom.voiceSelect.value = voiceValue;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Reset & New Video Handlers
   // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
@@ -1767,6 +1839,7 @@
   // ---------------------------------------------------------------------------
   async function init() {
     checkServerHealth();
+    setupVoiceSelector();
     await loadPresetsFromAPI();
     await loadPrinciplesFromAPI();
     await fetchPromptHistory();
