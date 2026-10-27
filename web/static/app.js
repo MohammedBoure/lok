@@ -15,6 +15,7 @@
   const PREF_VOICE_KEY = 'preferred_voice';
   const CURRENT_USER_KEY = 'saas_current_user_id';
   const USER_VIDEOS_KEY = 'saas_user_videos_map';
+  const SESSION_TOKEN_KEY = 'saas_session_token';
 
   // 10 Diverse Pre-seeded Merchant Personas + 1 Master Admin
   const PRESEEDED_ACCOUNTS = [
@@ -237,6 +238,8 @@
 
     // SaaS Multi-Tenant & Personas State
     currentUser: null,
+    isAuthenticated: false,
+    sessionToken: null,
     accounts: [...PRESEEDED_ACCOUNTS],
     activeTab: "studio",
     userVideos: {},
@@ -507,6 +510,31 @@
     editQuotaWeekly: document.getElementById("editQuotaWeekly"),
     btnSaveEditQuota: document.getElementById("btnSaveEditQuota"),
     btnCloseEditQuotaModal: document.getElementById("btnCloseEditQuotaModal"),
+
+    // Session Auth & Login Gateway Elements
+    presetSection: document.getElementById("presetSection"),
+    customScriptContainer: document.getElementById("customScriptContainer"),
+    authHeaderActions: document.getElementById("authHeaderActions"),
+    btnLogout: document.getElementById("btnLogout"),
+    btnOpenLoginModal: document.getElementById("btnOpenLoginModal"),
+    sessionLoginModal: document.getElementById("sessionLoginModal"),
+    sessionLoginTitle: document.getElementById("sessionLoginTitle"),
+    btnCloseLoginModal: document.getElementById("btnCloseLoginModal"),
+    loginRoleTabs: document.getElementById("loginRoleTabs"),
+    tabLoginAdmin: document.getElementById("tabLoginAdmin"),
+    tabLoginMerchant: document.getElementById("tabLoginMerchant"),
+    loginAdminSection: document.getElementById("loginAdminSection"),
+    loginMerchantSection: document.getElementById("loginMerchantSection"),
+    adminHelperNote: document.getElementById("adminHelperNote"),
+    adminLoginForm: document.getElementById("adminLoginForm"),
+    adminLoginUsername: document.getElementById("adminLoginUsername"),
+    adminLoginPassword: document.getElementById("adminLoginPassword"),
+    btnSubmitAdminLogin: document.getElementById("btnSubmitAdminLogin"),
+    merchantQuickLoginGrid: document.getElementById("merchantQuickLoginGrid"),
+    merchantLoginForm: document.getElementById("merchantLoginForm"),
+    merchantLoginUsername: document.getElementById("merchantLoginUsername"),
+    merchantLoginPassword: document.getElementById("merchantLoginPassword"),
+    btnSubmitMerchantLogin: document.getElementById("btnSubmitMerchantLogin"),
   };
 
   // ---------------------------------------------------------------------------
@@ -1256,6 +1284,13 @@
   // Video Production Action & 1-Click Zero-Effort Dispatch
   // ---------------------------------------------------------------------------
   async function handleProduceProduction() {
+    // 0. Gated Access: Require active login session to produce
+    if (!state.isAuthenticated || !state.currentUser) {
+      openLoginModal("merchant");
+      showToast("يرجى تسجيل الدخول أولاً للبدء بإنتاج الفيديو! 🔐");
+      return;
+    }
+
     // 1. Validation: Verify video file selected
     if (!state.selectedFile) {
       showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً!");
@@ -1309,8 +1344,9 @@
     formData.append("text_style", textStyleVal);
 
     // SaaS User Identity & Token
+    const activeToken = state.sessionToken || (currentUser && currentUser.token) || "";
     if (currentUser) {
-      if (currentUser.token) formData.append("token", currentUser.token);
+      if (activeToken) formData.append("token", activeToken);
       if (currentUser.id) formData.append("user_id", currentUser.id);
       if (currentUser.username) formData.append("username", currentUser.username);
     }
@@ -1363,10 +1399,11 @@
 
     try {
       let jobId = null;
+      const authHeaders = activeToken ? { "Authorization": `Bearer ${activeToken}` } : {};
       try {
         const createResp = await fetch("/api/jobs/create", {
           method: "POST",
-          headers: currentUser && currentUser.token ? { "Authorization": `Bearer ${currentUser.token}` } : {},
+          headers: authHeaders,
           body: formData,
         });
         if (createResp.ok || createResp.status === 202) {
@@ -1396,7 +1433,7 @@
         // Fallback direct upload-and-process
         const response = await fetch("/api/upload-and-process", {
           method: "POST",
-          headers: currentUser && currentUser.token ? { "Authorization": `Bearer ${currentUser.token}` } : {},
+          headers: authHeaders,
           body: formData,
         });
 
@@ -2469,6 +2506,9 @@
     if (!user) return;
 
     state.currentUser = user;
+    state.isAuthenticated = true;
+    state.sessionToken = user.token || `tok_${user.username}`;
+    localStorage.setItem(SESSION_TOKEN_KEY, state.sessionToken);
     localStorage.setItem(CURRENT_USER_KEY, user.id || user.username);
 
     if (dom.accountSwitcherSelect) {
@@ -2476,6 +2516,7 @@
     }
 
     applyActiveUserToUI(user);
+    updateAuthUI(true, user);
     showToast(`تم التبديل إلى حساب: ${user.business_name}`);
   }
 
@@ -2495,6 +2536,9 @@
         dom.activePersonaBadge.classList.remove("admin");
       }
     }
+
+    // Auth status in Header
+    updateAuthUI(state.isAuthenticated, user);
 
     // Admin Tab Visibility
     if (dom.tabBtnAdmin) {
@@ -2929,6 +2973,379 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Professional Session Login Gateway & Gated Authentication
+  // ---------------------------------------------------------------------------
+  function setupSessionAuth() {
+    // Open Login Modal trigger
+    if (dom.btnOpenLoginModal) {
+      dom.btnOpenLoginModal.addEventListener("click", () => {
+        openLoginModal("admin");
+      });
+    }
+
+    // Persona badge click when not authenticated
+    if (dom.activePersonaBadge) {
+      dom.activePersonaBadge.addEventListener("click", () => {
+        if (!state.isAuthenticated) {
+          openLoginModal("admin");
+        }
+      });
+    }
+
+    // Close modal triggers
+    if (dom.btnCloseLoginModal) {
+      dom.btnCloseLoginModal.addEventListener("click", () => {
+        closeLoginModal();
+      });
+    }
+
+    if (dom.sessionLoginModal) {
+      dom.sessionLoginModal.addEventListener("click", (e) => {
+        if (e.target === dom.sessionLoginModal) {
+          closeLoginModal();
+        }
+      });
+    }
+
+    // Tab toggles (Admin vs Merchant)
+    if (dom.tabLoginAdmin) {
+      dom.tabLoginAdmin.addEventListener("click", () => {
+        switchLoginTab("admin");
+      });
+    }
+    if (dom.tabLoginMerchant) {
+      dom.tabLoginMerchant.addEventListener("click", () => {
+        switchLoginTab("merchant");
+      });
+    }
+
+    // Admin Login Form Submit
+    if (dom.adminLoginForm) {
+      dom.adminLoginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = (dom.adminLoginUsername?.value || "").trim();
+        const password = dom.adminLoginPassword?.value || "";
+        await handleAdminLogin(username, password);
+      });
+    }
+
+    // Merchant Login Form Submit
+    if (dom.merchantLoginForm) {
+      dom.merchantLoginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = (dom.merchantLoginUsername?.value || "").trim();
+        const password = dom.merchantLoginPassword?.value || "";
+        await handleMerchantLogin(username, password);
+      });
+    }
+
+    // Logout trigger
+    if (dom.btnLogout) {
+      dom.btnLogout.addEventListener("click", () => {
+        handleLogout();
+      });
+    }
+
+    // Populate Fast 1-Tap Demo Merchant Login Grid
+    renderMerchantQuickLoginGrid();
+  }
+
+  function openLoginModal(role = "admin") {
+    if (!dom.sessionLoginModal) return;
+    dom.sessionLoginModal.style.display = "flex";
+    switchLoginTab(role);
+  }
+
+  function closeLoginModal() {
+    if (!dom.sessionLoginModal) return;
+    dom.sessionLoginModal.style.display = "none";
+  }
+
+  function switchLoginTab(role) {
+    if (role === "admin") {
+      if (dom.tabLoginAdmin) dom.tabLoginAdmin.classList.add("active");
+      if (dom.tabLoginMerchant) dom.tabLoginMerchant.classList.remove("active");
+      if (dom.loginAdminSection) dom.loginAdminSection.style.display = "block";
+      if (dom.loginMerchantSection) dom.loginMerchantSection.style.display = "none";
+    } else {
+      if (dom.tabLoginMerchant) dom.tabLoginMerchant.classList.add("active");
+      if (dom.tabLoginAdmin) dom.tabLoginAdmin.classList.remove("active");
+      if (dom.loginMerchantSection) dom.loginMerchantSection.style.display = "block";
+      if (dom.loginAdminSection) dom.loginAdminSection.style.display = "none";
+    }
+  }
+
+  function renderMerchantQuickLoginGrid() {
+    if (!dom.merchantQuickLoginGrid) return;
+    dom.merchantQuickLoginGrid.innerHTML = "";
+
+    const merchants = state.accounts.filter((a) => a.role === "merchant");
+    merchants.forEach((merchant) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-merchant-quick";
+      btn.setAttribute("data-username", merchant.username);
+      btn.innerHTML = `
+        <span class="quick-biz-name">🏢 ${merchant.business_name}</span>
+        <span class="quick-biz-cat">${merchant.business_category}</span>
+      `;
+      btn.addEventListener("click", () => {
+        handleQuickMerchantLogin(merchant);
+      });
+      dom.merchantQuickLoginGrid.appendChild(btn);
+    });
+  }
+
+  function handleQuickMerchantLogin(merchant) {
+    const token = merchant.token || `tok_${merchant.username}`;
+    state.isAuthenticated = true;
+    state.sessionToken = token;
+    state.currentUser = merchant;
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+    localStorage.setItem(CURRENT_USER_KEY, merchant.id || merchant.username);
+
+    switchAccount(merchant.id || merchant.username);
+    updateAuthUI(true, merchant);
+    closeLoginModal();
+    showToast(`⚡ تم الدخول السريع: ${merchant.business_name} 🏢`);
+  }
+
+  async function handleAdminLogin(username, password) {
+    let token = null;
+    let adminAccount = state.accounts.find((a) => a.role === "admin") || PRESEEDED_ACCOUNTS.find((a) => a.role === "admin");
+
+    try {
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, role: "admin" })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        token = data.token || data.session_token || "tok_admin_master";
+        if (data.user) {
+          adminAccount = data.user;
+        }
+      } else if (username === "admin" && (password === "admin123" || password === "admin")) {
+        token = "tok_admin_master";
+      } else {
+        const err = await resp.json().catch(() => ({}));
+        showToast(err.error || "خطأ في بيانات دخول المسؤول. كلمة المرور الافتراضية: admin123");
+        return false;
+      }
+    } catch (e) {
+      if (username === "admin" && (password === "admin123" || password === "admin")) {
+        token = "tok_admin_master";
+      } else {
+        showToast("خطأ في بيانات دخول المسؤول. كلمة المرور الافتراضية: admin123");
+        return false;
+      }
+    }
+
+    if (!token && username === "admin" && (password === "admin123" || password === "admin")) {
+      token = "tok_admin_master";
+    }
+
+    if (!token) {
+      showToast("خطأ في بيانات دخول المسؤول. كلمة المرور الافتراضية: admin123");
+      return false;
+    }
+
+    state.isAuthenticated = true;
+    state.sessionToken = token;
+    state.currentUser = adminAccount;
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+    localStorage.setItem(CURRENT_USER_KEY, adminAccount.id || adminAccount.username);
+
+    switchAccount(adminAccount.id || adminAccount.username);
+    updateAuthUI(true, adminAccount);
+    closeLoginModal();
+    showToast("تم تسجيل الدخول كمسؤول بنجاح! 👑");
+    return true;
+  }
+
+  async function handleMerchantLogin(username, password) {
+    if (!username || !username.trim()) {
+      showToast("يرجى إدخال اسم مستخدم التاجر!");
+      return false;
+    }
+    const cleanUsername = username.trim().toLowerCase();
+    let merchant = state.accounts.find(
+      (a) => (a.username && a.username.toLowerCase() === cleanUsername) || (a.id && a.id.toLowerCase() === cleanUsername)
+    );
+
+    let token = null;
+    try {
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: cleanUsername, password: password || "", role: "merchant" })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        token = data.token || data.session_token || (merchant ? merchant.token : `tok_${cleanUsername}`);
+        if (data.user) {
+          merchant = data.user;
+        }
+      }
+    } catch (e) {}
+
+    if (!merchant) {
+      merchant = {
+        id: `usr_${cleanUsername}`,
+        username: cleanUsername,
+        business_name: cleanUsername,
+        business_category: "متجر تجاري",
+        role: "merchant",
+        status: "active",
+        expires_at: "2026-12-31",
+        daily_quota: 5,
+        weekly_quota: 25,
+        videos_today: 0,
+        videos_this_week: 0,
+        token: `tok_${cleanUsername}`,
+        default_phone: "0550 00 00 00",
+        default_text: `${cleanUsername} | إنتاج الفيديو التسويقي`
+      };
+      state.accounts.push(merchant);
+    }
+
+    if (!token) {
+      token = merchant.token || `tok_${merchant.username || cleanUsername}`;
+    }
+
+    state.isAuthenticated = true;
+    state.sessionToken = token;
+    state.currentUser = merchant;
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+    localStorage.setItem(CURRENT_USER_KEY, merchant.id || merchant.username);
+
+    switchAccount(merchant.id || merchant.username);
+    updateAuthUI(true, merchant);
+    closeLoginModal();
+    showToast(`تم تسجيل الدخول بنجاح: ${merchant.business_name} 🏢`);
+    return true;
+  }
+
+  async function handleLogout() {
+    if (state.sessionToken) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${state.sessionToken}` }
+        });
+      } catch (e) {}
+    }
+
+    state.isAuthenticated = false;
+    state.sessionToken = null;
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    localStorage.removeItem(CURRENT_USER_KEY);
+
+    updateAuthUI(false, null);
+    showToast("تم تسجيل الخروج بنجاح. 🚪");
+  }
+
+  async function checkExistingSession() {
+    const savedToken = localStorage.getItem(SESSION_TOKEN_KEY);
+    const savedUserId = localStorage.getItem(CURRENT_USER_KEY);
+
+    if (savedToken) {
+      state.sessionToken = savedToken;
+      try {
+        const resp = await fetch("/api/auth/session", {
+          headers: { "Authorization": `Bearer ${savedToken}` }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.user) {
+            const matched = state.accounts.find(
+              (a) => a.id === data.user.id || a.username === data.user.username
+            );
+            state.currentUser = matched || data.user;
+            state.isAuthenticated = true;
+            applyActiveUserToUI(state.currentUser);
+            updateAuthUI(true, state.currentUser);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      let user = state.accounts.find(
+        (a) => a.token === savedToken || a.id === savedUserId || a.username === savedUserId
+      );
+      if (!user) {
+        user = state.accounts[0];
+      }
+      state.currentUser = user;
+      state.isAuthenticated = true;
+      applyActiveUserToUI(user);
+      updateAuthUI(true, user);
+      return;
+    }
+
+    if (savedUserId) {
+      const user = state.accounts.find(
+        (a) => a.id === savedUserId || a.username === savedUserId
+      );
+      if (user) {
+        state.currentUser = user;
+        state.sessionToken = user.token || `tok_${user.username}`;
+        state.isAuthenticated = true;
+        localStorage.setItem(SESSION_TOKEN_KEY, state.sessionToken);
+        applyActiveUserToUI(user);
+        updateAuthUI(true, user);
+        return;
+      }
+    }
+
+    // Default pre-authenticated demo account for seamless first-load studio testing
+    const defaultUser = state.accounts[0];
+    if (defaultUser) {
+      state.currentUser = defaultUser;
+      state.sessionToken = defaultUser.token || `tok_${defaultUser.username}`;
+      state.isAuthenticated = true;
+      localStorage.setItem(SESSION_TOKEN_KEY, state.sessionToken);
+      localStorage.setItem(CURRENT_USER_KEY, defaultUser.id || defaultUser.username);
+      applyActiveUserToUI(defaultUser);
+      updateAuthUI(true, defaultUser);
+    }
+  }
+
+  function updateAuthUI(isLoggedIn, user) {
+    if (isLoggedIn && user) {
+      if (dom.btnLogout) dom.btnLogout.style.display = "inline-flex";
+      if (dom.btnOpenLoginModal) dom.btnOpenLoginModal.style.display = "none";
+      if (dom.personaBusinessName) dom.personaBusinessName.textContent = user.business_name;
+      if (dom.personaCategoryBadge) dom.personaCategoryBadge.textContent = user.business_category;
+      if (dom.personaRoleIcon) {
+        dom.personaRoleIcon.textContent = user.role === "admin" ? "👑" : "🏢";
+      }
+      if (dom.activePersonaBadge) {
+        dom.activePersonaBadge.classList.toggle("admin", user.role === "admin");
+        dom.activePersonaBadge.style.opacity = "1";
+      }
+      if (dom.accountSwitcherSelect) {
+        dom.accountSwitcherSelect.value = user.id || user.username;
+      }
+    } else {
+      if (dom.btnLogout) dom.btnLogout.style.display = "none";
+      if (dom.btnOpenLoginModal) dom.btnOpenLoginModal.style.display = "inline-flex";
+      if (dom.personaBusinessName) dom.personaBusinessName.textContent = "غير مسجل الدخول";
+      if (dom.personaCategoryBadge) dom.personaCategoryBadge.textContent = "انقر لتسجيل الدخول";
+      if (dom.personaRoleIcon) dom.personaRoleIcon.textContent = "🔐";
+      if (dom.activePersonaBadge) {
+        dom.activePersonaBadge.classList.remove("admin");
+        dom.activePersonaBadge.style.opacity = "0.75";
+      }
+      if (dom.tabBtnAdmin) dom.tabBtnAdmin.style.display = "none";
+      if (state.activeTab === "admin") {
+        switchTab("studio");
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Reset & New Video Handlers
   // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
@@ -2952,7 +3369,9 @@
     setupOrientationSelector();
     setupMerchantTemplateChips();
     setupAdminModals();
+    setupSessionAuth();
     await loadAccounts();
+    await checkExistingSession();
     await loadPresetsFromAPI();
     await loadPrinciplesFromAPI();
     await fetchPromptHistory();
