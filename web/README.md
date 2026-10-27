@@ -17,6 +17,7 @@ The system combines:
 | File | Purpose |
 | :--- | :--- |
 | [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, and video assembly. |
+| [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, and recommended music. |
 | [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), and CORS middleware. |
 | [`run_server.py`](file:///home/pluto/projects/lok/web/run_server.py) | Production CLI launcher that detects host LAN IP (`192.168.1.7`), generates terminal ASCII QR code, and boots Uvicorn. |
 | [`static/index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Mobile-first responsive web studio supporting live camera capture, preset selection, custom script editing, and video preview. |
@@ -87,10 +88,14 @@ Multipart form upload endpoint for video processing.
 - **Content-Type**: `multipart/form-data`
 - **Fields**:
   - `video` (*File, required*): Smartphone video recording (MP4, MOV).
-  - `script` (*Text, optional*): Custom Arabic or French narration script.
+  - `auto_mode` (*Boolean/Text, optional*): When `true`, automatically triggers Gemini Multimodal Vision to infer script, emotional tone, and recommended music from keyframes.
+  - `script` (*Text, optional*): Custom Arabic or French narration script (overrides auto_mode).
   - `preset` or `preset_id` (*Text, optional*): Preset identifier (`algiers_f4_luxury`, etc.).
+  - `emotional_tone` (*Text, optional*): Explicit emotional tone steering (e.g. "فاخر وهادئ", "متحمس وحيوي", "دافئ وأنيق").
   - `voice` (*Text, optional*): Voice profile (default: `ar-XA-Standard-A`).
   - `duck_level` (*Float, optional*): Ambient music volume ratio during speech (default: `0.25`).
+  - `music` or `music_track` (*Text, optional*): Music identifier (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
+- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `video_url`, `job_id`, `keyframes`, and `duration`.
 - **Response (200 OK)**:
   ```json
   {
@@ -200,3 +205,18 @@ print("Rendered video at:", summary["video_url"])
 - **Python Packages**: `starlette`, `uvicorn`, `python-multipart`, `qrcode`
 - **Environment Variables**:
   - `GEMINI_API_KEY` or `GEMINI_API_KEYS`: Optional. Enables neural voiceover synthesis via `GeminiSpeechClient`. If absent, the engine gracefully falls back to synthetic formant speech audio.
+
+---
+
+## 8. Mobile Front-End, 1-Click UX & Session Persistence
+
+The static mobile studio in [`web/static/`](file:///home/pluto/projects/lok/web/static/) is engineered for maximum field efficiency:
+1. **1-Click AI Video Production**:
+   - Zero-effort default path: user records/selects footage and triggers full processing via a single prominent button (**"✨ إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة"**).
+   - Optional parameters (script, voice, presets, music) are housed inside a collapsible accordion (`#advancedAccordion`). When collapsed or empty, the frontend sends `auto_mode=true`, letting the backend AI vision agent infer script, mood, and music automatically.
+2. **Session Persistence & Reconnection**:
+   - Stores active job IDs in `localStorage['active_job_id']`.
+   - On page reload (`DOMContentLoaded`), `restoreSavedSession()` queries `/api/status/{job_id}`, resuming 600ms polling for in-flight tasks or displaying completed video cuts and keyframes immediately.
+   - Dedicated **"🔄 معالجة فيديو جديد"** buttons clear storage and reset the workspace.
+3. **Emotional Tone & Vision Telemetry**:
+   - Inferred emotional tones (e.g. *فاخر وهادئ*) are showcased via dedicated spotlight cards and telemetry badges.

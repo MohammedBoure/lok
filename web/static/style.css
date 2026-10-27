@@ -1016,6 +1016,208 @@ textarea#scriptText:focus {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* 1-Click Minimalist AI Button (Gold & Emerald Luxury Blend) */
+.btn-produce-1click {
+  background: linear-gradient(135deg, #047857 0%, #059669 30%, #b45309 70%, #d97706 100%);
+  border: 1.5px solid rgba(251, 191, 36, 0.65);
+  box-shadow: 0 10px 32px rgba(245, 158, 11, 0.35), 0 4px 18px rgba(16, 185, 129, 0.35);
+}
+
+.btn-produce-1click:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #10b981 35%, #d97706 70%, #f59e0b 100%);
+  box-shadow: 0 14px 42px rgba(245, 158, 11, 0.5), 0 6px 24px rgba(16, 185, 129, 0.5);
+  border-color: rgba(251, 191, 36, 0.95);
+  transform: translateY(-3px);
+}
+
+/* Collapsible Accordion: Advanced Customization */
+.advanced-accordion {
+  margin-top: 14px;
+  background: var(--card-bg-elevated);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.advanced-accordion[open] {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.accordion-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-summary:hover {
+  color: var(--text-primary);
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.summary-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-chevron {
+  font-size: 0.75rem;
+  color: var(--gold-400);
+  transition: transform var(--transition-normal);
+}
+
+.advanced-accordion[open] .summary-chevron {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--card-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn var(--transition-fast);
+}
+
+.accordion-sub-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accordion-sub-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.accordion-sub-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Prominent New Video Button */
+.btn-new-video-prominent {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15));
+  border: 1.5px solid var(--gold-500);
+  color: var(--gold-400);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.btn-new-video-prominent:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(16, 185, 129, 0.28));
+  border-color: var(--gold-400);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
+}
+
+.btn-new-video-prominent.wide {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1rem;
+}
+
+/* Emotional Tone Spotlight & Badges */
+.emotional-tone-spotlight {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(245, 158, 11, 0.12));
+  border: 1.5px solid rgba(168, 85, 247, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn var(--transition-normal);
+}
+
+.emotional-tone-spotlight .tone-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.emotional-tone-spotlight .tone-title {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.emotional-tone-spotlight .tone-badge-val {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #e9d5ff;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+.telemetry-chip.highlight-tone {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.45);
+  color: #e9d5ff;
+  font-weight: 700;
+}
+
+.telemetry-chip.highlight-tone .chip-val {
+  color: #f3e8ff;
+}
+
+.result-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.result-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-cancel-job {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  color: var(--rose-400);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.btn-cancel-job:hover {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fff;
+}
+
 .btn-produce:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: 0 14px 36px rgba(16, 185, 129, 0.6);
