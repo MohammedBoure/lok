@@ -2474,6 +2474,33 @@ textarea#scriptText:focus {
 }
 
 /* ==========================================================================
+   Tablet & Medium Mobile Screen Optimizations (max-width: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .modal-principles-card {
+    width: 96% !important;
+    max-width: 96% !important;
+    max-height: 89vh !important;
+    margin: 8px auto !important;
+  }
+
+  .principles-modal-body {
+    padding: 14px 16px !important;
+    gap: 14px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .form-row-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .quick-chips-wrap {
+    gap: 6px;
+  }
+}
+
+/* ==========================================================================
    Smartphone & Ultra-Compact Mobile Screen Optimizations (360px - 430px)
    ========================================================================== */
 @media (max-width: 480px) {

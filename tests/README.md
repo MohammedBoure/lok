@@ -97,12 +97,31 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - MCP tool schema definition for `annotate_video_cut` (`test_mcp_tool_definition`).
   - MCP JSON-RPC protocol support for `tools/list` and `tools/call` (`test_handle_mcp_call_tools_list`, `test_handle_mcp_call_missing_input_file`).
   - REST endpoint `POST /api/video/annotate` validation and file missing handling (`test_api_video_annotate_validation_error`).
+- [`test_prompt_descriptions_and_agent.py`](test_prompt_descriptions_and_agent.py): SQLite prompt persistence and linguistic description processing agent test suite authored by `agy11`:
+  - SQLite DB auto-seeding with realistic Algerian real estate prompts (`test_prompt_db_preseed`).
+  - Prompt persistence, retrieval by ID, and metadata verification (`test_save_and_fetch_prompt`).
+  - Record deletion and 404 validation (`test_delete_prompt`).
+  - Asynchronous script updates (`test_update_prompt_script`).
+  - REST endpoints `GET /api/prompts/history`, `POST /api/prompts`, and `DELETE /api/prompts/{id}` (`test_api_prompts_history`, `test_api_prompts_post_and_delete`).
+  - Automated prompt recording during asynchronous job processing (`test_api_jobs_create_with_descriptions`).
+  - Linguistic intent transformation and lower-third badge extraction (`test_smart_fallback_linguistic_speech_intent`, `test_smart_fallback_visual_intent_badges`).
+- [`test_gatekeeper_prompts_and_mobile_theme.py`](test_gatekeeper_prompts_and_mobile_theme.py): Comprehensive integration test suite authored by Quality Gatekeeper `agy100`:
+  - Pragmatic SQLite CRUD operations and auto-seeding (`test_sqlite_auto_seed`, `test_sqlite_save_and_get_prompt`, `test_sqlite_get_recent_prompts_ordering`, `test_sqlite_update_prompt_script`, `test_sqlite_delete_prompt`).
+  - REST API endpoint contracts and HTTP lifecycle (`test_api_prompts_history_endpoint`, `test_api_prompts_crud_lifecycle`).
+  - Linguistic speech and visual intent conversion to narrative scripts and dynamic badges (`test_linguistic_speech_intent_conversion_to_narrative`, `test_visual_intent_badges_extraction`).
+  - Automatic prompt persistence in SQLite upon video job creation (`test_automatic_prompt_recording_upon_video_job`).
+  - Front-end mobile modal DOM structure and restoration controls in `index.html` (`test_frontend_html_mobile_modal_and_prompt_elements`).
+  - Responsive CSS breakpoints (`max-width: 768px`, `max-width: 480px`), touch scrolling, and viewport sizing in `style.css` (`test_frontend_css_responsive_rules_and_modal_sizing`).
+  - Front-end logic, prompt caching, restoration, saving, and dual button event bindings in `app.js` (`test_frontend_app_js_prompts_history_and_formdata_bindings`).
+  - User Rule 5 Arabic typography compliance (`test_no_forbidden_arabic_character_compliance`).
 
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
-# or targeting specific test modules
+# Targeted Gatekeeper sprint verification suite:
+pytest tests/test_gatekeeper_prompts_and_mobile_theme.py tests/test_prompt_descriptions_and_agent.py tests/test_frontend_assets.py -v
+# Core pipeline integration:
 pytest tests/test_pipeline.py -v
 pytest tests/test_assemble_video.py -v
 pytest tests/test_frame_extractor.py -v
@@ -112,7 +131,10 @@ pytest tests/test_frame_extractor.py -v
 1. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
 2. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
 3. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
-4. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
+4. **SQLite Concurrency & Auto-Seeding:** Prompt database initializes table structure and populates initial Algerian real estate prompts with atomic transactions (`timeout=15.0`).
+5. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
+6. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
+7. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
 
 ## Dependencies & Environment
 - **Python:** 3.12+

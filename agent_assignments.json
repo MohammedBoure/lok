@@ -7,7 +7,7 @@
       "branch": "backend/agy11-sqlite-prompt-descriptions-and-agent",
       "scope": "Implement SQLite database for storing visual and speech description prompts; expose REST API endpoints (/api/prompts/history, /api/prompts); update vision_analyzer and pipeline_bridge to process linguistic visual descriptions and speech intent descriptions (generating full scripts from descriptions); auto-save to SQLite; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-mobile-principles-theme-and-prompts-ui",
       "scope": "Optimize the Principles modal theme for mobile screens (responsive, touch-friendly, scrollable, clear contrast); add Advanced Settings inputs for visual description and speech intent description; add SQLite prompt history retrieval and 1-tap restore UI; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
@@ -28,7 +28,7 @@
         "backend/agy11-sqlite-prompt-descriptions-and-agent",
         "frontend/agy51-mobile-principles-theme-and-prompts-ui"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }
