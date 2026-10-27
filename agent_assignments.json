@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-clean-studio-session-login-ui",
       "scope": "Refactor UI to remove/hide 'قوالب العقارات الجزائرية' (real estate presets) and 'نص التعليق الصوتي التسويقي (Script)' (raw script textarea); preserve only the high-value linguistic scene & speech intent description inputs with merchant suggestions; implement an elegant, professional Admin/Merchant Session Login Modal with default credentials helper ('admin / admin123' and merchant quick login); gate the studio by authenticated session; polish theme with responsive glassmorphism and real-time quota badge; ensure voice audition buttons trigger the tts-generated sample audio with waveform indicators; ensure zero occurrences of forbidden character U+0669; author tests in tests/test_clean_studio_and_session_ui.py; update web/static/README.md; commit with author MohammedBoure; signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
@@ -28,7 +28,7 @@
         "backend/agy11-session-auth-tts-voice-samples",
         "frontend/agy51-clean-studio-session-login-ui"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }
