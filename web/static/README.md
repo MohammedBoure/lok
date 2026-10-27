@@ -1,20 +1,36 @@
-# Mobile Web Front-End & Real Estate UI/UX Studio (`web/static/`)
+# SaaS Platform, Merchant Studio & Admin Dashboard (`web/static/`)
 
 ## 1. Overview & System Mission
-The `web/static/` directory houses the client-side architecture for the **Algerian Real Estate Mobile Studio** (`استوديو عقارات الجزائر`). Engineered specifically for mobile smartphone field workflows, this interface empowers Algerian real estate agents, videographers, and property promoters to:
-1. **Prominent Main-Screen Voice Selection**: Easily select from 4 specialized Arabic voice personas right on the main screen (Standard A: Female Warm, Standard B: Male Prestigious, Standard C: Male Dynamic, Standard D: Female Elegant), with automated `localStorage['preferred_voice']` persistence and direct `FormData` forwarding.
-2. **Streamlined & Decluttered Mobile Flow**: Clean 5-step progressive disclosure architecture eliminating raw debug dumps and redundant controls:
-   - Step 1: Video Input & Mobile Camera Recording (with clean instant preview)
-   - Step 2: Voice Persona Selector (Interactive male & female radio cards)
-   - Step 3: Collapsible Advanced Options (Linguistic visual & speech intent, SQLite history restoration, Production Principles)
-   - Step 4: Centered 1-Click AI Production Button (**"✨ إنتاج الفيديو بالذكاء الاصطناعي"** / `#btnProduce` / `#submitBtn`)
-   - Step 5: High-Definition Playback, Download, and Social Distribution
-3. **Linguistic Visual & Speech Intent Directives**: Express desired visual scenes and voiceover direction in natural Arabic descriptions (e.g., luxury salon tour, balcony sea view, friendly walkthrough tone), passed directly to backend AI agents.
-4. **Saved Prompts History & 1-Tap Restoration (SQLite / LocalStorage)**: View, restore, and save linguistic prompt presets with immediate 1-tap chip restoration or select dropdown bindings, backed by `GET /api/prompts/history` and `POST /api/prompts` with decoupled fallback fixtures.
-5. **Mobile-Optimized Production Principles Modal**: High-contrast dark theme glassmorphism modal (`#principlesModal`) engineered for smartphone viewports (360px - 430px wide), featuring smooth touch scrolling (`-webkit-overflow-scrolling: touch`), viewport capping (`88vh` / `90vh`), and responsive form controls.
-6. **Autonomous Vision & Audio Inference**: When advanced customization is left collapsed/empty, the client sends `auto_mode=true`, letting the backend AI vision agent infer property features, promotional Arabic narration, emotional tone/mood, and matching background music automatically while respecting the chosen voice persona.
-7. **Session Persistence & Seamless Reconnection**: Persists in-flight processing jobs across page refreshes, browser reloads, and mobile network disconnects via `localStorage['active_job_id']`. Reconnecting sessions seamlessly resume live 600ms telemetry polling or immediately display the completed marketing cut.
-8. **Emotional Tone & Vision Telemetry**: Highlights the AI-inferred emotional atmosphere (e.g. *الحالة الشعورية: فاخر وهادئ*) through dedicated spotlight cards and telemetry badges.
+The `web/static/` directory houses the client-side architecture for the **Smart Video Production Platform for Merchants & Enterprises** (`منصة إنتاج الفيديو الذكي للتجار والشركات`), incorporating the **Algerian Real Estate Mobile Studio** (`استوديو عقارات الجزائر`). Engineered specifically for mobile smartphone and desktop workflows, this interface empowers merchants across multiple business categories (real estate, automotive, fashion, electronics, gastronomy, jewelry, beauty, furniture, tourism, and fitness) and platform administrators to:
+
+1. **Top SaaS Navigation & Active Persona Header**:
+   - **Platform Branding**: Centered around high-converting promotional video creation for Algerian businesses.
+   - **Active Merchant / Admin Badge**: Displays the current business name, sector category badge, and active status.
+   - **1-Tap Quick Account Switcher**: Instant switching between 10 pre-seeded merchant personas and the Master Admin account for seamless testing and demonstration.
+   - **Clean 3-Tab Architecture**:
+     - `[📹 استوديو الإنتاج (Merchant Studio)]`: Streamlined production suite.
+     - `[📊 لوحة التاجر (Merchant Dashboard)]`: Account quotas, business details, and video library.
+     - `[👑 لوحة الأدمن (Admin Dashboard)]`: System overview, user management, and quota administration (visible when admin is active).
+
+2. **Tab 1: Merchant Studio (استوديو الإنتاج)**:
+   - **Quota Warning / Status Banner**: Displays remaining daily and weekly video production allowances, subscription expiration date, and visual progress meters.
+   - **Video Ingestion**: Native smartphone camera capture (`capture="environment"`), browser live viewfinder, file picker, and drag-and-drop.
+   - **Visual Style & Orientation Recommendations**: Radio cards selecting video aspect ratio: `9:16 portrait` (Reels, TikTok, Shorts), `16:9 landscape` (YouTube, TV, web), and `1:1 square` (Feed posts).
+   - **Fixed Text & Screen Appearance (Overlay)**: Input for business phone/slogan/promo, position picker (`lower_third`, `top_banner`, `badge`), and style picker (`modern_white`, `luxury_gold`, `commercial_red`).
+   - **Live Voice Persona Audition**: 4 Arabic voice persona cards (`ar-XA-Standard-A/B/C/D`) each equipped with an interactive `"▶ استمع للصوت"` button that auditions the voice via HTML5 Audio and Web Audio API synthesis.
+   - **Quick Merchant Category Template Chips**: Instant 1-tap fill for Real Estate, Auto, Fashion, Tech, and Restaurant visual & speech intent.
+   - **Prominent 1-Click Production Action**: Single high-converting CTA (**"✨ إنشاء الفيديو التسويقي بنقرة واحدة"** / `#btnProduce` / `#submitBtn`).
+
+3. **Tab 2: Merchant Dashboard (لوحة التاجر)**:
+   - Displays merchant business profile, sector category, account status (Active / Suspended), and active expiration date.
+   - Interactive daily quota and weekly quota progress meters.
+   - **Video Library**: Responsive gallery of previously generated videos with embedded HTML5 video playback, duration, timestamp, format metadata, and direct MP4 download links.
+
+4. **Tab 3: Admin Dashboard (لوحة تحكم الأدمن)**:
+   - **Platform Stats Overview**: Total Merchants, Videos Produced Today, Active Subscriptions, and Total Platform Generations.
+   - **Merchant Users Management Table**: Tabular view of all registered merchants with username, business name, category, daily quota, weekly quota, expiration date, and status.
+   - **Action Controls**: Instant Toggle Active/Suspended, Renew Expiration (+30 days), and Edit Quotas.
+   - **Create Merchant Modal**: Rapid onboarding modal to register new merchant accounts with custom quotas and validity periods.
 
 ---
 
@@ -22,137 +38,103 @@ The `web/static/` directory houses the client-side architecture for the **Algeri
 
 | File | Language / Format | Primary Responsibility |
 | :--- | :--- | :--- |
-| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | Streamlined 5-step mobile interface, prominent voice persona radio cards, collapsible advanced accordion with linguistic prompts & SQLite history restoration, mobile principles modal, native camera inputs, live viewfinder, telemetry stepper, and result playback player. |
-| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | Emerald & gold luxury dark UI theme, voice selector interactive radio cards, collapsible telemetry logs, high-contrast dark glassmorphism for principles modal, mobile viewport media queries (360px - 430px), prompt history chips, and responsive touch ergonomics. |
-| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | State engine, voice persona selection & persistence (`preferred_voice`), prompt history fetching & restoration (`/api/prompts/history`), prompt saving (`/api/prompts`), FormData serialization (`voice`, `visual_description`, `speech_description`), `localStorage` session persistence, automated reconnection lifecycle, and live telemetry polling. |
-| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete architectural documentation, session lifecycle specification, component contract guide, and UI component reference. |
+| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | 3-tab SaaS platform layout, merchant persona badge, 1-tap account switcher, quota status banner, orientation selector, fixed text settings, live voice audition buttons, merchant video library, admin stats, user management table, and admin modals. |
+| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | SaaS header controls, tab pills, quota banners, orientation radio cards, pulsing audio audition preview buttons, merchant profile cards, video library cards, admin metrics cards, and responsive data tables. |
+| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | SaaS state engine, 10 pre-seeded merchant personas + Admin, account switching, tab routing, Web Audio voice audition engine, quota validation, video library persistence, admin CRUD actions, and 1-click production dispatch. |
+| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete documentation of SaaS features, multi-tenant personas, component architecture, and API integration matrix. |
 
 ---
 
-## 3. UI Architecture & Streamlined 5-Step Workflow
+## 3. SaaS UI Architecture & Tab Routing
 
 ```mermaid
 flowchart TD
-    subgraph Streamlined_Mobile_Flow["Streamlined 5-Step Mobile Production Flow"]
-        S1["Step 1: Ingest Video (Camera Capture / Gallery Upload)"]
-        S2["Step 2: Voice Persona Selector (Standard A, B, C, D)"]
-        S3["Step 3: Advanced Options Accordion (Optional Prompts & Principles)"]
-        S4["Step 4: Tap Prominent 1-Click Button (✨ إنتاج الفيديو بالذكاء الاصطناعي)"]
-        S5["Step 5: Review Final Player, Download & Share"]
+    subgraph Navigation["Top Navigation & SaaS Identity"]
+        Header["SaaS App Header: Platform Branding"]
+        Badge["Active Persona Badge (Business Name + Category)"]
+        Switcher["1-Tap Account Switcher (10 Merchants + 1 Admin)"]
+        Tabs["SaaS Tabs: Studio | Merchant Dashboard | Admin Dashboard"]
     end
 
-    subgraph Voice_Engine["Voice Preference State & Persistence"]
-        V1["Select Voice Card"]
-        V2["Persist in localStorage['preferred_voice']"]
-        V3["Append 'voice' to FormData (1-Click & Advanced)"]
+    subgraph Tab1["Tab 1: Merchant Studio"]
+        Q["Quota Status Banner (Daily / Weekly Remaining + Expiry)"]
+        Cam["Video Capture / File Ingestion"]
+        Orient["Orientation Selector (9:16 Portrait | 16:9 Landscape | 1:1 Square)"]
+        Overlay["Fixed Text Overlay (Text + Position + Style)"]
+        Voice["Voice Cards with Live Audio Audition (▶ Play Sample)"]
+        Chips["Merchant Category Intent Chips (Real Estate, Auto, Fashion, Tech, Resto)"]
+        CTA["Prominent 1-Click Production Action Button"]
     end
 
-    subgraph Prompt_Storage["SQLite & LocalStorage Prompt History"]
-        P1["Fetch /api/prompts/history on Load & Accordion Toggle"]
-        P2["Render Select Dropdown & 1-Tap Quick Chips"]
-        P3["1-Tap Restore: Fills #visualDescription & #speechDescription"]
-        P4["Save Current Prompt: POST /api/prompts (with Decoupled Fallback)"]
+    subgraph Tab2["Tab 2: Merchant Dashboard"]
+        Profile["Merchant Business Details & Expiration Status"]
+        Meters["Daily & Weekly Quota Progress Meters"]
+        Library["Merchant Video Library Grid (Previews + Direct Download)"]
     end
 
-    subgraph Session_Persistence["Session Persistence & Reconnection"]
-        F["Store active_job_id in localStorage"]
-        G["DOMContentLoaded Check: localStorage.getItem('active_job_id')"]
-        H{"Status at /api/status/{job_id}"}
-        I["Resume 600ms Polling Loop"]
-        J["Direct Switch to Final Results View"]
-        K["Clear localStorage & Reset UI"]
+    subgraph Tab3["Tab 3: Admin Dashboard (Visible to Admin)"]
+        Stats["Platform Overview Stats (Merchants, Today's Videos, Subs)"]
+        Table["Users Management Table (Active/Suspended, Quotas, Expiry)"]
+        CreateUser["➕ Create Merchant Account Modal"]
+        EditQuota["✏️ Edit Quotas Modal"]
     end
 
-    S1 --> S2
-    S2 --> V1 --> V2 --> V3
-    S2 --> S3
-    S3 --> P1 --> P2 --> P3
-    P4 --> P1
-    S3 --> S4
-    V3 --> S4
-    S4 --> F
-    F --> G
-    G --> H
-    H -- processing / queued --> I
-    H -- completed --> J --> S5
-    H -- failed / 404 --> K
-```
-
-### 3.1 Prominent Voice Selector & Persona Persistence
-- **Main-Screen Accessibility**: Located prominently right after the video capture section (`#voiceSelectionCard`).
-- **Standardized Arabic Profiles (Google Neural TTS / Gemini)**:
-  - 🎙️ **Standard A** (`ar-XA-Standard-A`): صوت أنثوي دافئ وطبيعي (Female Warm & Natural)
-  - 🎙️ **Standard B** (`ar-XA-Standard-B`): صوت رجالي فخم وواثق (Male Prestigious & Confident)
-  - 🎙️ **Standard C** (`ar-XA-Standard-C`): صوت رجالي حيوي وعصري (Male Dynamic & Modern)
-  - 🎙️ **Standard D** (`ar-XA-Standard-D`): صوت أنثوي أنيق وهادئ (Female Elegant & Calm)
-- **Local Persistence & Syncing**:
-  - Saved to `localStorage['preferred_voice']`.
-  - Automatically restored on application reload.
-  - Two-way synced with the `#voiceSelect` control inside the advanced accordion.
-  - Guaranteed inclusion: Always sent as `FormData.append('voice', selectedVoice)` for both 1-Click zero-effort dispatch and manual custom jobs.
-
-### 3.2 UI Decluttering & Progressive Disclosure
-- **Technical Log Concealment**: Replaced the bulky, continuous raw terminal dump with a sleek collapsible disclosure (`<details class="terminal-collapsible" id="terminalWrapper">`). The user receives human-readable status feedback in `#aiAgentMessage` without screen overload.
-- **Header Simplification**: Stripped internal agent badges and secondary action clutter from the header to keep the mobile viewport focused on video capture.
-- **De-Duplication of Actions**: Removed redundant and conflicting call-to-action buttons across the interface.
-- **Single Focal Production Button**: Center-aligned, luminous luxury CTA (`#btnProduce` / `#submitBtn`):
-  **"✨ إنتاج الفيديو بالذكاء الاصطناعي"** (Subtitle: *إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة*).
-
-### 3.3 Linguistic Prompts & SQLite Saved History
-- **Visual Description Control (`#visualDescription`)**:
-  - Arabic Label: "وصف ما تريده أن يظهر في الفيديو"
-  - Purpose: Linguistic scene description steered by background vision agents.
-- **Speech Intent Control (`#speechDescription`)**:
-  - Arabic Label: "وصف ما تريده أن يُقال في التعليق الصوتي"
-  - Purpose: Linguistic speech intent guiding neural narration.
-- **History Restoration (`#promptHistorySelect` & `#promptHistoryChips`)**:
-  - `GET /api/prompts/history` with 1-tap chip restoration and animated highlight feedback.
-- **Save Current Prompt (`#btnSavePrompt`)**:
-  - `POST /api/prompts` with decoupled local cache fallback.
-
-### 3.4 Mobile-Optimized Production Principles Modal (`#principlesModal`)
-- **Smartphone Ergonomics (360px - 430px)**:
-  - **Glassmorphism Theme**: High-contrast dark theme with translucent slate card (`rgba(15, 23, 42, 0.96)`), `backdrop-filter: blur(20px)`, and emerald border accents (`rgba(16, 185, 129, 0.4)`).
-  - **Touch Scrolling**: Bound with `-webkit-overflow-scrolling: touch` and `overscroll-behavior: contain`.
-  - **Height Capping**: Constrained to `88vh` / `90vh`.
-  - **Single-Column Mobile Responsiveness**: Zero horizontal overflow on mobile viewports.
-
----
-
-## 4. Design Tokens & Visual Hierarchy (`style.css`)
-
-```css
-/* Voice Persona Radio Card Tokens */
---voice-card-bg: rgba(15, 23, 42, 0.6);
---voice-card-border: rgba(255, 255, 255, 0.12);
---voice-card-active-bg: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(15, 23, 42, 0.85) 100%);
---voice-card-active-border: #10b981;
-
-/* 1-Click Luxury AI Production Gradient */
---btn-1click-bg: linear-gradient(135deg, #047857 0%, #059669 30%, #b45309 70%, #d97706 100%);
---btn-1click-glow: rgba(245, 158, 11, 0.35);
-
-/* High-Contrast Modal Glassmorphism */
---modal-card-bg: rgba(15, 23, 42, 0.96);
---modal-card-border: rgba(16, 185, 129, 0.4);
---modal-backdrop-bg: rgba(3, 7, 18, 0.88);
+    Header --> Badge
+    Header --> Switcher
+    Header --> Tabs
+    Tabs --> Tab1
+    Tabs --> Tab2
+    Tabs --> Tab3
+    Switcher -->|Switch User| Badge
+    Switcher -->|Update Quota & History| Tab1
+    Switcher -->|Update Profile| Tab2
+    Switcher -->|Toggle Admin Tab| Tab3
 ```
 
 ---
 
-## 5. REST API Integration Matrix
+## 4. Pre-Seeded Merchant Personas Catalog
 
-| Endpoint | Method | Sent from Frontend | Client Handling |
+| User ID | Username | Business Name (Arabic) | Category | Role | Daily Quota | Weekly Quota | Sample Contact Text |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `usr_dar_al_nokhba` | `dar_al_nokhba` | دار النخبة العقارية | عقارات فاخرة | `merchant` | 5 | 25 | 📞 0550 11 22 33 \| دار النخبة - عقارات راقية في قلب الجزائر |
+| `usr_auto_algerie` | `auto_algerie` | أوتو الجزائر للسيارات | معرض سيارات | `merchant` | 8 | 40 | 🚗 أوتو الجزائر \| سيارات مضمونة وبأفضل الأسعار - 0661 44 55 66 |
+| `usr_anaqat_el_awras` | `anaqat_el_awras` | أناقة الأوراس للأزياء | أزياء وقفطان راقي | `merchant` | 6 | 30 | 👗 قفطان وملابس تقليدية راقية \| توصيل مجاني لكافة الولايات |
+| `usr_techno_phone` | `techno_phone` | تكنو فون ستور | إلكترونيات وهواتف | `merchant` | 10 | 50 | 📱 تكنو فون \| أحدث الهواتف الذكية مع الضمان - 0540 22 33 44 |
+| `usr_el_kasbah_resto` | `el_kasbah_resto` | مطعم القصبة العريق | مطعم ومأكولات أصيلة | `merchant` | 5 | 25 | 🍽️ مطعم القصبة \| أطباق تقليدية جزائرية بنكهة الأصالة |
+| `usr_zumurrud_jewelry` | `zumurrud_jewelry` | مجوهرات الزمرد | مجوهرات وذهب | `merchant` | 4 | 20 | 💎 مجوهرات الزمرد \| تشكيلات ذهب وألماس فاخرة لعرائسنا |
+| `usr_abeer_parfums` | `abeer_parfums` | عبير باريس للعطور | عطور وتجميل | `merchant` | 5 | 25 | ✨ عطور فرنسية وشرقية أصلية \| ثبات يدوم طويلاً |
+| `usr_golden_furniture` | `golden_furniture` | الموبليا الذهبية | أثاث وديكور راقي | `merchant` | 6 | 30 | 🛋️ صالونات وغرف نوم عصرية بأجود أنواع الخشب التركي |
+| `usr_atlas_tours` | `atlas_tours` | أطلس تورز للرحلات | سياحة وأسفار | `merchant` | 5 | 25 | ✈️ رحلات سياحية وعمرة بأفضل البرامج والأسعار الفندقية |
+| `usr_force_fitness` | `force_fitness` | أكاديمية القوة فيتنس | نادي رياضي ورشاقة | `merchant` | 5 | 25 | 💪 اشترك الآن في أكبر قاعة كمال أجسام ورشاقة مع كوتش متخصص |
+| `usr_admin` | `admin` | مدير النظام العام | مسؤول المنصة | `admin` | 999 | 9999 | 👑 نظام إدارة منصة إنتاج الفيديو الذكي |
+
+---
+
+## 5. Live Voice Audition Engine
+
+Each voice persona card includes an interactive audition trigger:
+- **Audio Stream Binding**: Fetches sample audio from `/api/voices/{voice_id}/sample`.
+- **Harmonic Web Audio Fallback**: If backend is in development, offline, or returns 404, the client smoothly generates a multi-frequency synthesized harmonic preview via `AudioContext` matching the persona's acoustic register:
+  - Female Warm (Standard A): ~260Hz root with gentle ascending pitch ramp.
+  - Male Prestigious (Standard B): ~140Hz deep resonance.
+  - Male Dynamic (Standard C): ~185Hz energetic frequency sweep.
+  - Female Calm (Standard D): ~290Hz delicate crystal resonance.
+- **State Feedback**: Button transitions to `"⏹️ إيقاف الصوت"` with a glowing golden pulse indicator while playing, automatically reverting on completion.
+
+---
+
+## 6. REST API Integration Matrix
+
+| Endpoint | Method | Client Headers / Payload | Client Handling |
 | :--- | :--- | :--- | :--- |
-| `/api/health` | `GET` | None | Updates `#systemStatusChip` indicator. |
-| `/api/presets` | `GET` | None | Injects cards into `#presetsSelectorGrid` inside accordion. |
-| `/api/music-tracks` | `GET` | None | Injects music options into `#musicSelect`. |
-| `/api/principles` | `GET` | None | Loads active production principles into `#principlesModal`. |
-| `/api/principles` | `POST` | JSON payload of principles | Saves user principles in backend memory and file storage. |
-| `/api/principles/reset` | `POST` | None | Restores factory default production principles. |
-| `/api/prompts/history` | `GET` | None | Retrieves saved visual and speech prompt history for 1-tap restore. |
-| `/api/prompts` | `POST` | JSON: `visual_description`, `speech_description`, `title` | Persists current prompt to SQLite database / local fallback. |
-| `/api/jobs/create` | `POST` | `multipart/form-data`: `video`, `voice` (prominent selection), `visual_description`, `speech_description`, `auto_mode=true` (if collapsed), optional `script`, `preset`, `music` | Stores `job_id` in `localStorage`, initiates 600ms polling. |
-| `/api/upload-and-process` | `POST` | `multipart/form-data`: `video`, `voice`, `visual_description`, `speech_description` | Direct synchronous fallback processing endpoint. |
-| `/api/status/{job_id}` | `GET` | `job_id` in URL path | Returns live step, progress percent, logs, and final cut URL + `emotional_tone`. |
-| `/outputs/mobile_cuts/*` | `GET` | None | Direct HTML5 video and keyframe image streaming. |
+| `/api/auth/demo-accounts` | `GET` | None | Loads pre-seeded accounts into `#accountSwitcherSelect`. |
+| `/api/auth/me` | `GET` | `Authorization: Bearer <token>` | Syncs current active user quotas and validity. |
+| `/api/admin/stats` | `GET` | `Authorization: Bearer <token>` | Populates Admin Dashboard platform metric cards. |
+| `/api/admin/users` | `GET` | `Authorization: Bearer <token>` | Populates Admin Users Management table. |
+| `/api/admin/users` | `POST` | JSON: `username`, `business_name`, `business_category`, `expires_at`, quotas | Creates new merchant account with immediate UI refresh. |
+| `/api/admin/users/{id}` | `PATCH` | JSON: `status`, `daily_quota`, `weekly_quota`, `expires_at` | Modifies user quota or toggles active/suspended status. |
+| `/api/voices/{id}/sample` | `GET` | Voice ID in URL | Streams audio sample preview for live audition. |
+| `/api/jobs/create` | `POST` | `multipart/form-data`: `video`, `video_orientation`, `fixed_text`, `text_position`, `text_style`, `voice`, `token` | Dispatches production job with quota verification. |
+| `/api/upload-and-process` | `POST` | `multipart/form-data`: `video`, `fixed_text`, `voice`, etc. | Direct synchronous generation fallback. |
+| `/api/status/{job_id}` | `GET` | `job_id` in URL | Polling live telemetry feed until video completion. |

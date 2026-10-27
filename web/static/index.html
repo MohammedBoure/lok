@@ -28,12 +28,54 @@
             <span>🏢</span>
           </div>
           <div class="brand-text">
-            <h1 class="brand-title">استوديو عقارات الجزائر</h1>
+            <h1 class="brand-title">منصة إنتاج الفيديو الذكي للتجار والشركات</h1>
+            <p class="brand-subtitle">
+              استوديو عقارات الجزائر ومتاجر الأعمال • إنتاج فوري بالذكاء الاصطناعي بنقرة واحدة
+            </p>
           </div>
         </div>
-        <p class="brand-subtitle">
-          إنتاج تسويقي فوري بالذكاء الاصطناعي • تعليق صوتي وموسيقى تفاعلية (Sidechain)
-        </p>
+
+        <!-- Active Merchant / Admin Badge & 1-Tap Account Switcher -->
+        <div class="saas-header-controls" id="saasHeaderControls">
+          <!-- Active Persona Badge -->
+          <div class="active-persona-badge" id="activePersonaBadge">
+            <span class="persona-role-icon" id="personaRoleIcon">🏢</span>
+            <div class="persona-info-wrap">
+              <span class="persona-business-name" id="personaBusinessName">دار النخبة العقارية</span>
+              <span class="persona-category-badge" id="personaCategoryBadge">عقارات فاخرة</span>
+            </div>
+          </div>
+
+          <!-- Quick 1-Tap Account Switcher Dropdown -->
+          <div class="account-switcher-wrap" id="accountSwitcherWrap">
+            <label for="accountSwitcherSelect" class="switcher-label">
+              <span>👤 تبديل الحساب:</span>
+            </label>
+            <select id="accountSwitcherSelect" class="form-select account-switcher-select" aria-label="تبديل حساب التاجر أو الأدمن">
+              <!-- Dynamically populated with 10 pre-seeded merchant personas + Admin -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Clean Tab Navigation -->
+        <nav class="saas-tabs-nav" id="saasTabsNav" aria-label="أقسام المنصة">
+          <button type="button" class="saas-tab-btn active" id="tabBtnStudio" data-tab="studio">
+            <span class="tab-icon">📹</span>
+            <span class="tab-title">استوديو الإنتاج</span>
+            <span class="tab-subtitle">Merchant Studio</span>
+          </button>
+          <button type="button" class="saas-tab-btn" id="tabBtnMerchant" data-tab="merchant">
+            <span class="tab-icon">📊</span>
+            <span class="tab-title">لوحة التاجر</span>
+            <span class="tab-subtitle">Merchant Dashboard</span>
+          </button>
+          <button type="button" class="saas-tab-btn admin-only" id="tabBtnAdmin" data-tab="admin" style="display: none;">
+            <span class="tab-icon">👑</span>
+            <span class="tab-title">لوحة الأدمن</span>
+            <span class="tab-subtitle">Admin Dashboard</span>
+          </button>
+        </nav>
+
         <div class="system-status-chip" id="systemStatusChip">
           <span class="status-indicator online"></span>
           <span class="status-label">نظام المعالجة متصل وجاهز</span>
@@ -42,8 +84,30 @@
     </header>
 
     <main class="main-content">
-      <!-- SECTION 1: VIDEO INGESTION & CAMERA RECORDING -->
-      <section class="card capture-card" id="captureSection" aria-labelledby="sectionCaptureTitle">
+      <!-- TAB 1: MERCHANT STUDIO -->
+      <div class="saas-tab-content active" id="tabContentStudio">
+        <!-- Quota Warning / Badge Banner -->
+        <div class="quota-warning-banner" id="quotaWarningBanner">
+          <div class="quota-banner-inner">
+            <div class="quota-status-icon" id="quotaStatusIcon">⚡</div>
+            <div class="quota-info-text">
+              <span class="quota-highlight-title" id="quotaTitleText">الحصة المتاحة للحساب التجاري:</span>
+              <span class="quota-details-line" id="quotaDetailsLine">
+                الفيديوهات المتبقية اليوم: <strong id="quotaDailyRemaining">5</strong>/<span id="quotaDailyTotal">5</span> | 
+                الأسبوع: <strong id="quotaWeeklyRemaining">25</strong>/<span id="quotaWeeklyTotal">25</span> | 
+                الصلاحية: <span class="badge-expiry" id="quotaExpiryText">نشط حتى 2026-12-31</span>
+              </span>
+            </div>
+            <div class="quota-mini-progress">
+              <div class="mini-bar-track">
+                <div class="mini-bar-fill" id="quotaMiniBarFill" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 1: VIDEO INGESTION & CAMERA RECORDING -->
+        <section class="card capture-card" id="captureSection" aria-labelledby="sectionCaptureTitle">
         <div class="card-header">
           <div class="card-icon-wrap emerald">
             <span>📹</span>
@@ -177,6 +241,93 @@
         </div>
       </section>
 
+      <!-- SECTION: VISUAL STYLE & RECOMMENDATIONS -->
+      <section class="card visual-style-card" id="visualOrientationGroup">
+        <div class="card-header">
+          <div class="card-icon-wrap emerald">
+            <span>📐</span>
+          </div>
+          <div class="card-title-group">
+            <h2 class="card-title">توصيات شكل واتجاه الفيديو</h2>
+            <p class="card-subtitle">اختر أبعاد الفيديو المناسبة لمنصة النشر (تيك توك، إنستغرام، يوتيوب)</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="orientation-selector-grid" id="orientationSelectorGrid" role="radiogroup" aria-label="اتجاه وأبعاد الفيديو">
+            <label class="orientation-card active" id="orientationCardPortrait">
+              <input type="radio" name="video_orientation" value="portrait" checked class="orientation-radio">
+              <div class="orientation-card-inner">
+                <span class="orientation-icon">📱</span>
+                <span class="orientation-title">9:16 عمودي للهاتف</span>
+                <span class="orientation-sub">ريلز، تيك توك، شورتس</span>
+                <span class="orientation-badge">موصى به</span>
+              </div>
+            </label>
+            <label class="orientation-card" id="orientationCardLandscape">
+              <input type="radio" name="video_orientation" value="landscape" class="orientation-radio">
+              <div class="orientation-card-inner">
+                <span class="orientation-icon">🖥️</span>
+                <span class="orientation-title">16:9 شاشة عريضة</span>
+                <span class="orientation-sub">يوتيوب، مواقع وتلفاز</span>
+              </div>
+            </label>
+            <label class="orientation-card" id="orientationCardSquare">
+              <input type="radio" name="video_orientation" value="square" class="orientation-radio">
+              <div class="orientation-card-inner">
+                <span class="orientation-icon">⏹️</span>
+                <span class="orientation-title">1:1 مربع</span>
+                <span class="orientation-sub">منشورات فيسبوك وإنستغرام</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: FIXED TEXT & SCREEN APPEARANCE -->
+      <section class="card fixed-text-card" id="fixedTextSettingsCard">
+        <div class="card-header">
+          <div class="card-icon-wrap emerald">
+            <span>🏷️</span>
+          </div>
+          <div class="card-title-group">
+            <h2 class="card-title">نص ثابت وهوية على الشاشة (Fixed Text Overlay)</h2>
+            <p class="card-subtitle">أضف رقم هاتف محلك، شعارك التجاري، أو عنوان العرض ليظهر بثبات طوال الفيديو</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-group text-input-group">
+            <label for="fixedTextInput" class="input-label">
+              <span>✍️ نص الشعار أو رقم التواصل أو العرض:</span>
+            </label>
+            <input type="text" id="fixedTextInput" name="fixed_text" class="form-control fixed-text-input" placeholder="مثال: 📞 0550 12 34 56 | توصيل متوفر لكافة الولايات" dir="rtl">
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="textPositionSelect" class="input-label">
+                <span>📍 موضع ظهور النص:</span>
+              </label>
+              <select id="textPositionSelect" name="text_position" class="form-select">
+                <option value="lower_third" selected>أسفل الشاشة (Lower Third - موصى به)</option>
+                <option value="top_banner">شارة علوية (Top Banner)</option>
+                <option value="badge">شريط مدمج (Integrated Badge)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="textStyleSelect" class="input-label">
+                <span>🎨 نمط وتصميم الشارة:</span>
+              </label>
+              <select id="textStyleSelect" name="text_style" class="form-select">
+                <option value="modern_white" selected>أبيض عصري (Modern White)</option>
+                <option value="luxury_gold">ذهبي فاخر (Luxury Gold)</option>
+                <option value="commercial_red">تجاري بارز (Commercial Red / Accent)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- SECTION 2: PROMINENT VOICE SELECTOR (MAIN SCREEN) -->
       <section class="card voice-selector-card" id="voiceSelectionCard" aria-labelledby="voiceSectionTitle">
         <div class="card-header">
@@ -185,7 +336,7 @@
           </div>
           <div class="card-title-group">
             <h2 id="voiceSectionTitle" class="card-title">الخطوة 2: اختيار المعلق الصوتي</h2>
-            <p class="card-subtitle">اختر نبرة الصوت العربي المفضل لتقديم الإعلان العقاري</p>
+            <p class="card-subtitle">اختر نبرة الصوت العربي المفضل لتقديم الإعلان العقاري والتجاري مع إمكانية الاستماع المسبق</p>
           </div>
         </div>
 
@@ -200,6 +351,10 @@
                   <span class="voice-name">صوت أنثوي دافئ وطبيعي</span>
                   <span class="voice-desc">Standard A • نبرة طبيعية دافئة ومريحة</span>
                 </div>
+                <button type="button" class="btn-voice-preview" id="btnSampleStandardA" data-voice="ar-XA-Standard-A" title="استمع لنموذج الصوت">
+                  <span class="preview-icon">▶</span>
+                  <span class="preview-text">استمع للصوت</span>
+                </button>
                 <span class="voice-radio-marker"></span>
               </div>
             </label>
@@ -211,8 +366,12 @@
                 <div class="voice-icon-pill">🎙️</div>
                 <div class="voice-text-wrap">
                   <span class="voice-name">صوت رجالي فخم وواثق</span>
-                  <span class="voice-desc">Standard B • نبرة وقورة وعميقة للعقارات الراقية</span>
+                  <span class="voice-desc">Standard B • نبرة وقورة وعميقة للعقارات والشركات</span>
                 </div>
+                <button type="button" class="btn-voice-preview" id="btnSampleStandardB" data-voice="ar-XA-Standard-B" title="استمع لنموذج الصوت">
+                  <span class="preview-icon">▶</span>
+                  <span class="preview-text">استمع للصوت</span>
+                </button>
                 <span class="voice-radio-marker"></span>
               </div>
             </label>
@@ -224,8 +383,12 @@
                 <div class="voice-icon-pill">🎙️</div>
                 <div class="voice-text-wrap">
                   <span class="voice-name">صوت رجالي حيوي وعصري</span>
-                  <span class="voice-desc">Standard C • نبرة شابة سريعة وحيوية</span>
+                  <span class="voice-desc">Standard C • نبرة شابة سريعة وحيوية للمتاجر</span>
                 </div>
+                <button type="button" class="btn-voice-preview" id="btnSampleStandardC" data-voice="ar-XA-Standard-C" title="استمع لنموذج الصوت">
+                  <span class="preview-icon">▶</span>
+                  <span class="preview-text">استمع للصوت</span>
+                </button>
                 <span class="voice-radio-marker"></span>
               </div>
             </label>
@@ -237,8 +400,12 @@
                 <div class="voice-icon-pill">🎙️</div>
                 <div class="voice-text-wrap">
                   <span class="voice-name">صوت أنثوي أنيق وهادئ</span>
-                  <span class="voice-desc">Standard D • نبرة هادئة ورصينة متزنة</span>
+                  <span class="voice-desc">Standard D • نبرة هادئة ورصينة للمنتجات الراقية</span>
                 </div>
+                <button type="button" class="btn-voice-preview" id="btnSampleStandardD" data-voice="ar-XA-Standard-D" title="استمع لنموذج الصوت">
+                  <span class="preview-icon">▶</span>
+                  <span class="preview-text">استمع للصوت</span>
+                </button>
                 <span class="voice-radio-marker"></span>
               </div>
             </label>
@@ -296,6 +463,28 @@
                 <!-- Quick Restoration Chips -->
                 <div class="prompt-history-chips-wrap" id="promptHistoryChips" aria-label="شارات الأوصاف السريعة">
                   <!-- Dynamically populated via app.js -->
+                </div>
+              </div>
+
+              <!-- Quick Merchant Category Intent Template Chips -->
+              <div class="merchant-templates-card" id="merchantTemplateChipsWrap">
+                <span class="templates-label">⚡ قوالب جاهزة حسب نشاطك التجاري (انقر للتعبئة الفورية):</span>
+                <div class="merchant-templates-grid" id="merchantTemplateChips">
+                  <button type="button" class="btn-merchant-chip" id="chipRealEstate">
+                    <span>🏢 عقار فاخر</span>
+                  </button>
+                  <button type="button" class="btn-merchant-chip" id="chipAuto">
+                    <span>🚗 معرض سيارات</span>
+                  </button>
+                  <button type="button" class="btn-merchant-chip" id="chipFashion">
+                    <span>👗 أزياء وقفطان</span>
+                  </button>
+                  <button type="button" class="btn-merchant-chip" id="chipTech">
+                    <span>📱 هواتف وإلكترونيات</span>
+                  </button>
+                  <button type="button" class="btn-merchant-chip" id="chipRestaurant">
+                    <span>🍽️ مطعم وأكلات</span>
+                  </button>
                 </div>
               </div>
 
@@ -477,7 +666,7 @@
             <span class="btn-glow"></span>
             <span class="btn-produce-icon">✨</span>
             <div class="btn-produce-text">
-              <span class="btn-produce-title">✨ إنتاج الفيديو بالذكاء الاصطناعي</span>
+              <span class="btn-produce-title">✨ إنشاء الفيديو التسويقي بنقرة واحدة</span>
               <span class="btn-produce-sub">إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة • تعليق صوتي عصبي • موسيقى ديناميكية</span>
             </div>
           </button>
@@ -723,6 +912,180 @@
           </div>
         </div>
       </section>
+      </div> <!-- /#tabContentStudio -->
+
+      <!-- TAB 2: MERCHANT DASHBOARD -->
+      <div class="saas-tab-content" id="tabContentMerchant" style="display: none;">
+        <!-- Merchant Profile Header Card -->
+        <section class="card merchant-profile-card" id="merchantProfileCard">
+          <div class="profile-header-top">
+            <div class="profile-avatar-wrap">
+              <span class="avatar-icon" id="merchantDashAvatarIcon">🏢</span>
+            </div>
+            <div class="profile-titles">
+              <div class="profile-name-row">
+                <h2 class="merchant-business-heading" id="merchantDashBusinessName">دار النخبة العقارية</h2>
+                <span class="badge-status-pill active" id="merchantDashStatus">حساب نشط</span>
+              </div>
+              <div class="profile-sub-row">
+                <span class="profile-meta-chip">
+                  <span>اسم المستخدم:</span>
+                  <strong id="merchantDashUsername">dar_al_nokhba</strong>
+                </span>
+                <span class="profile-meta-chip">
+                  <span>النشاط التجاري:</span>
+                  <strong id="merchantDashCategory">عقارات فاخرة</strong>
+                </span>
+                <span class="profile-meta-chip expiry">
+                  <span>تاريخ الصلاحية:</span>
+                  <strong id="merchantDashExpiry">2026-12-31</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quota Meters Grid -->
+          <div class="quota-meters-grid" id="merchantQuotaMetersGrid">
+            <!-- Daily Meter -->
+            <div class="meter-card">
+              <div class="meter-card-header">
+                <span class="meter-icon">📅</span>
+                <span class="meter-label">الحصة اليومية (Daily Quota)</span>
+              </div>
+              <div class="meter-values">
+                <span class="meter-remaining" id="merchantDailyProgressText">5 / 5 فيديوهات متبقية اليوم</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill emerald" id="merchantDailyProgressFill" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <!-- Weekly Meter -->
+            <div class="meter-card">
+              <div class="meter-card-header">
+                <span class="meter-icon">📆</span>
+                <span class="meter-label">الحصة الأسبوعية (Weekly Quota)</span>
+              </div>
+              <div class="meter-values">
+                <span class="meter-remaining" id="merchantWeeklyProgressText">25 / 25 فيديو متبقي هذا الأسبوع</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill gold" id="merchantWeeklyProgressFill" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Merchant Video Library Section -->
+        <section class="card merchant-library-card" id="merchantLibraryCard">
+          <div class="card-header library-header-flex">
+            <div class="card-title-group">
+              <div class="title-with-badge">
+                <span class="card-icon-wrap emerald">🎬</span>
+                <h2 class="card-title">مكتبة الفيديوهات المنتجة (Video Library)</h2>
+                <span class="library-count-badge" id="merchantVideoCountBadge">0 فيديو</span>
+              </div>
+              <p class="card-subtitle">جميع مقاطع الفيديو التي تم إنتاجها لهذا الحساب مع روابط المشاهدة والتحميل المباشر</p>
+            </div>
+            <button type="button" class="btn-create-shortcut" id="btnGoToStudioFromDash">
+              <span>➕ إنشاء فيديو جديد</span>
+            </button>
+          </div>
+
+          <div class="card-body">
+            <!-- Dynamic Video Grid or Empty State -->
+            <div class="merchant-video-grid" id="merchantVideoGrid">
+              <!-- Dynamically populated via app.js -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB 3: ADMIN DASHBOARD -->
+      <div class="saas-tab-content" id="tabContentAdmin" style="display: none;">
+        <!-- Platform Stats Overview -->
+        <section class="card admin-stats-card" id="adminStatsCard">
+          <div class="card-header">
+            <div class="card-icon-wrap gold">
+              <span>👑</span>
+            </div>
+            <div class="card-title-group">
+              <h2 class="card-title">لوحة تحكم إدارة المنصة (Admin Overview)</h2>
+              <p class="card-subtitle">متابعة حسابات التجار، الحصص اليومية والأسبوعية، وتجديد الاشتراكات</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="admin-stats-grid">
+              <div class="stat-metric-card">
+                <div class="stat-icon-wrap">🏢</div>
+                <div class="stat-info">
+                  <span class="stat-label">إجمالي حسابات التجار</span>
+                  <span class="stat-number" id="statTotalMerchants">10</span>
+                </div>
+              </div>
+
+              <div class="stat-metric-card">
+                <div class="stat-icon-wrap">⚡</div>
+                <div class="stat-info">
+                  <span class="stat-label">فيديوهات منتجة اليوم</span>
+                  <span class="stat-number" id="statVideosToday">0</span>
+                </div>
+              </div>
+
+              <div class="stat-metric-card">
+                <div class="stat-icon-wrap">✅</div>
+                <div class="stat-info">
+                  <span class="stat-label">الاشتراكات النشطة</span>
+                  <span class="stat-number" id="statActiveSubs">10</span>
+                </div>
+              </div>
+
+              <div class="stat-metric-card">
+                <div class="stat-icon-wrap">🎬</div>
+                <div class="stat-info">
+                  <span class="stat-label">إجمالي إنتاج المنصة</span>
+                  <span class="stat-number" id="statTotalVideos">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Merchant Users Management Table Card -->
+        <section class="card admin-users-card" id="adminUsersCard">
+          <div class="card-header table-header-flex">
+            <div class="card-title-group">
+              <h2 class="card-title">إدارة حسابات التجار والحصص</h2>
+              <p class="card-subtitle">تعديل الحصص، إيقاف أو تنشيط الحسابات، وتجديد فترات الصلاحية</p>
+            </div>
+            <button type="button" class="btn-primary-action" id="btnOpenCreateMerchantModal">
+              <span>➕ إضافة حساب تاجر جديد</span>
+            </button>
+          </div>
+
+          <div class="card-body">
+            <div class="table-responsive-wrapper">
+              <table class="saas-data-table" id="adminUsersTable">
+                <thead>
+                  <tr>
+                    <th>التاجر والنشاط</th>
+                    <th>الفئة</th>
+                    <th>الحصة اليومية</th>
+                    <th>الحصة الأسبوعية</th>
+                    <th>تاريخ الانتهاء</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                  <!-- Dynamically populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- Production Principles Modal -->
@@ -926,6 +1289,111 @@
         <div class="modal-footer">
           <span class="modal-timestamp" id="modalFrameTimestamp">0.0s</span>
           <a id="btnModalDownload" class="btn-subtle" download target="_blank">⬇️ حفظ اللقطة</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Merchant Modal -->
+    <div class="modal-backdrop" id="createMerchantModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="createMerchantTitle">
+      <div class="modal-card modal-admin-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge">🏢 إضافة تاجر</span>
+            <h2 class="modal-title" id="createMerchantTitle">تسجيل حساب تاجر جديد في المنصة</h2>
+          </div>
+          <button type="button" class="icon-btn modal-close" id="btnCloseCreateMerchantModal" aria-label="إغلاق">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <form id="createMerchantForm">
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="newMerchantUsername" class="input-label">اسم المستخدم (Username):</label>
+                <input type="text" id="newMerchantUsername" required class="form-control" placeholder="مثال: royal_boutique" dir="ltr">
+              </div>
+              <div class="form-group">
+                <label for="newMerchantBusinessName" class="input-label">اسم المتجر / الشركة:</label>
+                <input type="text" id="newMerchantBusinessName" required class="form-control" placeholder="مثال: رويال بوتيك للأزياء" dir="rtl">
+              </div>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="newMerchantCategory" class="input-label">النشاط التجاري (الفئة):</label>
+                <select id="newMerchantCategory" class="form-select">
+                  <option value="عقارات فاخرة">عقارات فاخرة</option>
+                  <option value="معرض سيارات">معرض سيارات</option>
+                  <option value="أزياء وقفطان راقي">أزياء وموضة</option>
+                  <option value="إلكترونيات وهواتف">إلكترونيات وهواتف</option>
+                  <option value="مطعم ومأكولات أصيلة">مطعم ومأكولات</option>
+                  <option value="مجوهرات وذهب">مجوهرات وذهب</option>
+                  <option value="عطور وتجميل">عطور وتجميل</option>
+                  <option value="أثاث وديكور راقي">أثاث وديكور</option>
+                  <option value="سياحة وأسفار">سياحة وأسفار</option>
+                  <option value="نادي رياضي ورشاقة">نادي رياضي ورشاقة</option>
+                  <option value="خدمات وأعمال عامة">خدمات وأعمال عامة</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newMerchantExpiry" class="input-label">تاريخ انتهاء الصلاحية:</label>
+                <input type="date" id="newMerchantExpiry" required class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="newMerchantDailyQuota" class="input-label">الحصة اليومية (فيديو/يوم):</label>
+                <input type="number" id="newMerchantDailyQuota" min="1" max="100" value="5" required class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="newMerchantWeeklyQuota" class="input-label">الحصة الأسبوعية (فيديو/أسبوع):</label>
+                <input type="number" id="newMerchantWeeklyQuota" min="1" max="500" value="25" required class="form-control">
+              </div>
+            </div>
+
+            <div class="modal-actions-row">
+              <button type="submit" class="btn-primary-action" id="btnSaveNewMerchant">
+                <span>💾 حفظ وإنشاء الحساب</span>
+              </button>
+              <button type="button" class="btn-subtle" id="btnCancelCreateMerchant">
+                <span>إلغاء</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Merchant Quotas Modal -->
+    <div class="modal-backdrop" id="editQuotaModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="editQuotaTitle">
+      <div class="modal-card modal-admin-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge">⚙️ تعديل الحصص</span>
+            <h2 class="modal-title" id="editQuotaTitle">تعديل حصص التاجر</h2>
+          </div>
+          <button type="button" class="icon-btn modal-close" id="btnCloseEditQuotaModal" aria-label="إغلاق">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <form id="editQuotaForm">
+            <input type="hidden" id="editQuotaUserId">
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="editQuotaDaily" class="input-label">الحصة اليومية الجديدة:</label>
+                <input type="number" id="editQuotaDaily" min="1" max="100" required class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="editQuotaWeekly" class="input-label">الحصة الأسبوعية الجديدة:</label>
+                <input type="number" id="editQuotaWeekly" min="1" max="500" required class="form-control">
+              </div>
+            </div>
+            <div class="modal-actions-row">
+              <button type="submit" class="btn-primary-action" id="btnSaveEditQuota">
+                <span>💾 حفظ التعديلات</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
