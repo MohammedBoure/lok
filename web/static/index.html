@@ -28,23 +28,15 @@
             <span>🏢</span>
           </div>
           <div class="brand-text">
-            <div class="brand-badge">⚡ استوديو الإنتاج الذكي | agy51</div>
             <h1 class="brand-title">استوديو عقارات الجزائر</h1>
           </div>
         </div>
         <p class="brand-subtitle">
-          إنتاج تسويقي فوري بنقرة واحدة ⟵ تحليل بصري ذكي ⟵ تعليق صوتي وموسيقى تفاعلية (Sidechain)
+          إنتاج تسويقي فوري بالذكاء الاصطناعي • تعليق صوتي وموسيقى تفاعلية (Sidechain)
         </p>
         <div class="system-status-chip" id="systemStatusChip">
           <span class="status-indicator online"></span>
           <span class="status-label">نظام المعالجة متصل وجاهز</span>
-        </div>
-        <div class="header-actions-row">
-          <button type="button" class="btn-principles-trigger" id="btnOpenPrinciples" aria-label="مبادئ ومعايير الإنتاج">
-            <span class="icon">📜</span>
-            <span class="label">معايير ومبادئ الإنتاج والتعليق الصوتي</span>
-            <span class="badge-status">نشطة</span>
-          </button>
         </div>
       </div>
     </header>
@@ -185,20 +177,77 @@
         </div>
       </section>
 
-      <!-- SECTION 2: 1-CLICK PRODUCTION HUB & OPTIONAL ADVANCED ACCORDION -->
-      <section class="card action-card" id="actionSection">
-        <!-- Prominent 1-Click Gold & Emerald AI Production Button -->
-        <button type="button" class="btn-produce btn-produce-1click" id="btnProduce">
-          <span class="btn-glow"></span>
-          <span class="btn-produce-icon">✨</span>
-          <div class="btn-produce-text">
-            <span class="btn-produce-title">✨ إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة</span>
-            <span class="btn-produce-sub">تحليل بصري فوري • تعليق صوتي عصبي • موسيقى ديناميكية</span>
+      <!-- SECTION 2: PROMINENT VOICE SELECTOR (MAIN SCREEN) -->
+      <section class="card voice-selector-card" id="voiceSelectionCard" aria-labelledby="voiceSectionTitle">
+        <div class="card-header">
+          <div class="card-icon-wrap emerald">
+            <span>🎙️</span>
           </div>
-        </button>
-        <!-- Accessible submission alias matching #submitBtn -->
-        <button type="button" id="submitBtn" class="sr-only" aria-hidden="true" tabindex="-1" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;"></button>
+          <div class="card-title-group">
+            <h2 id="voiceSectionTitle" class="card-title">الخطوة 2: اختيار المعلق الصوتي</h2>
+            <p class="card-subtitle">اختر نبرة الصوت العربي المفضل لتقديم الإعلان العقاري</p>
+          </div>
+        </div>
 
+        <div class="card-body">
+          <div class="voice-cards-grid" id="mainVoiceCardsGrid" role="radiogroup" aria-label="اختيار صوت المعلق">
+            <!-- Voice 1: Female Warm & Natural (Standard A) -->
+            <label class="voice-card active" id="voiceCardStandardA">
+              <input type="radio" name="prominentVoice" value="ar-XA-Standard-A" class="voice-radio" checked>
+              <div class="voice-card-content">
+                <div class="voice-icon-pill">🎙️</div>
+                <div class="voice-text-wrap">
+                  <span class="voice-name">صوت أنثوي دافئ وطبيعي</span>
+                  <span class="voice-desc">Standard A • نبرة طبيعية دافئة ومريحة</span>
+                </div>
+                <span class="voice-radio-marker"></span>
+              </div>
+            </label>
+
+            <!-- Voice 2: Male Prestigious & Confident (Standard B) -->
+            <label class="voice-card" id="voiceCardStandardB">
+              <input type="radio" name="prominentVoice" value="ar-XA-Standard-B" class="voice-radio">
+              <div class="voice-card-content">
+                <div class="voice-icon-pill">🎙️</div>
+                <div class="voice-text-wrap">
+                  <span class="voice-name">صوت رجالي فخم وواثق</span>
+                  <span class="voice-desc">Standard B • نبرة وقورة وعميقة للعقارات الراقية</span>
+                </div>
+                <span class="voice-radio-marker"></span>
+              </div>
+            </label>
+
+            <!-- Voice 3: Male Dynamic & Modern (Standard C) -->
+            <label class="voice-card" id="voiceCardStandardC">
+              <input type="radio" name="prominentVoice" value="ar-XA-Standard-C" class="voice-radio">
+              <div class="voice-card-content">
+                <div class="voice-icon-pill">🎙️</div>
+                <div class="voice-text-wrap">
+                  <span class="voice-name">صوت رجالي حيوي وعصري</span>
+                  <span class="voice-desc">Standard C • نبرة شابة سريعة وحيوية</span>
+                </div>
+                <span class="voice-radio-marker"></span>
+              </div>
+            </label>
+
+            <!-- Voice 4: Female Elegant & Calm (Standard D) -->
+            <label class="voice-card" id="voiceCardStandardD">
+              <input type="radio" name="prominentVoice" value="ar-XA-Standard-D" class="voice-radio">
+              <div class="voice-card-content">
+                <div class="voice-icon-pill">🎙️</div>
+                <div class="voice-text-wrap">
+                  <span class="voice-name">صوت أنثوي أنيق وهادئ</span>
+                  <span class="voice-desc">Standard D • نبرة هادئة ورصينة متزنة</span>
+                </div>
+                <span class="voice-radio-marker"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: ADVANCED OPTIONS & 1-CLICK PRODUCTION ACTION -->
+      <section class="card action-card" id="actionSection">
         <!-- Optional Collapsible Accordion: Advanced Customization -->
         <details class="advanced-accordion" id="advancedAccordion">
           <summary class="accordion-summary" id="accordionSummary">
@@ -210,6 +259,14 @@
           </summary>
 
           <div class="accordion-body">
+            <!-- Production Principles Trigger Button inside Advanced Options -->
+            <div class="accordion-principles-box">
+              <button type="button" class="btn-principles-trigger" id="btnOpenPrinciples" aria-label="مبادئ ومعايير الإنتاج">
+                <span class="icon">⚙️</span>
+                <span class="label">معايير ومبادئ الإنتاج والتعليق الصوتي (Production Principles)</span>
+                <span class="badge-status">نشطة</span>
+              </button>
+            </div>
             <!-- Sub-Section: Linguistic Video & Speech Intent Prompts -->
             <div class="accordion-sub-section linguistic-prompts-sub-section">
               <div class="accordion-sub-header">
@@ -360,9 +417,11 @@
                         <option value="Fenrir">فنرير (Fenrir) - صوت ذكوري حيوي وقوي (مثالي للمحلات والفرص التجارية)</option>
                         <option value="Puck">باك (Puck) - صوت شبابي خفيف ومرح (للعروض السريعة)</option>
                       </optgroup>
-                      <optgroup label="معايير الويب المتوافقة">
-                        <option value="ar-XA-Standard-A">العربية الفصحى (أنثوي رصين - Standard A)</option>
-                        <option value="ar-XA-Standard-B">العربية الفصحى (ذكوري عميق - Standard B)</option>
+                      <optgroup label="معايير الويب المتوافقة (Google Neural TTS)">
+                        <option value="ar-XA-Standard-A" selected>صوت أنثوي دافئ وطبيعي (Standard A)</option>
+                        <option value="ar-XA-Standard-B">صوت رجالي فخم وواثق (Standard B)</option>
+                        <option value="ar-XA-Standard-C">صوت رجالي حيوي وعصري (Standard C)</option>
+                        <option value="ar-XA-Standard-D">صوت أنثوي أنيق وهادئ (Standard D)</option>
                       </optgroup>
                     </select>
                   </div>
@@ -411,6 +470,20 @@
             </div>
           </div>
         </details>
+
+        <!-- Prominent 1-Click Gold & Emerald AI Production Button -->
+        <div class="production-cta-container">
+          <button type="button" class="btn-produce btn-produce-1click" id="btnProduce">
+            <span class="btn-glow"></span>
+            <span class="btn-produce-icon">✨</span>
+            <div class="btn-produce-text">
+              <span class="btn-produce-title">✨ إنتاج الفيديو بالذكاء الاصطناعي</span>
+              <span class="btn-produce-sub">إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة • تعليق صوتي عصبي • موسيقى ديناميكية</span>
+            </div>
+          </button>
+          <!-- Accessible submission alias matching #submitBtn -->
+          <button type="button" id="submitBtn" class="sr-only" aria-hidden="true" tabindex="-1" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;"></button>
+        </div>
 
         <!-- Animated Multi-Stage Processing Stepper & Live Telemetry -->
         <div class="stepper-box" id="stepperBox" style="display: none;">
@@ -512,12 +585,15 @@
             <div id="aiAgentMessage" class="ai-agent-message">
               جاري فحص مواصفات الفيديو والاتصال بوكيل الإنتاج...
             </div>
-            <div class="ai-agent-terminal" id="terminalWrapper">
-              <div class="terminal-header">
+            <details class="terminal-collapsible" id="terminalWrapper">
+              <summary class="terminal-summary">
                 <div class="terminal-title">
                   <span class="terminal-pulse-dot"></span>
-                  <span>⚡ سجل أحداث الإنتاج اللحظي (Live Production Telemetry):</span>
+                  <span>سجل أحداث الإنتاج الفني (Live Telemetry)</span>
                 </div>
+                <span class="terminal-summary-chevron">▼</span>
+              </summary>
+              <div class="terminal-header">
                 <div class="terminal-controls">
                   <button type="button" class="btn-terminal-action" id="btnCopyLogs" title="نسخ السجل كاملاً">
                     📋 نسخ السجل
@@ -535,7 +611,7 @@
                   <span class="log-text">تم بدء جلسة المعالجة وإرسال الفيديو إلى الخادم...</span>
                 </div>
               </div>
-            </div>
+            </details>
           </div>
         </div>
       </section>
@@ -552,9 +628,9 @@
               <p class="card-subtitle">تم إنجاز المونتاج والميكساج الصوتي بأعلى معايير الجودة</p>
             </div>
           </div>
-          <!-- Prominent New Video Button in Header -->
-          <button type="button" class="btn-new-video-prominent" id="btnResetNewVideo">
-            <span>🔄 معالجة فيديو جديد</span>
+          <!-- Subtle New Video Button in Header -->
+          <button type="button" class="btn-subtle btn-new-video-top" id="btnResetNewVideo" title="بدء جلسة جديدة">
+            <span>🔄 فيديو جديد</span>
           </button>
         </div>
 

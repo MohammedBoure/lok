@@ -58,6 +58,23 @@ def test_index_html_dom_elements():
     assert 'id="musicSelect"' in html_content
     assert 'id="duckSlider"' in html_content
 
+    # Prominent Voice Selection (Main Screen)
+    assert 'id="voiceSelectionCard"' in html_content
+    assert 'id="mainVoiceCardsGrid"' in html_content
+    assert 'name="prominentVoice"' in html_content
+    assert 'id="voiceCardStandardA"' in html_content
+    assert 'id="voiceCardStandardB"' in html_content
+    assert 'id="voiceCardStandardC"' in html_content
+    assert 'id="voiceCardStandardD"' in html_content
+    assert 'value="ar-XA-Standard-A"' in html_content
+    assert 'value="ar-XA-Standard-B"' in html_content
+    assert 'value="ar-XA-Standard-C"' in html_content
+    assert 'value="ar-XA-Standard-D"' in html_content
+    assert "صوت أنثوي دافئ وطبيعي" in html_content
+    assert "صوت رجالي فخم وواثق" in html_content
+    assert "صوت رجالي حيوي وعصري" in html_content
+    assert "صوت أنثوي أنيق وهادئ" in html_content
+
     # 1-Click Production CTA & Stepper
     assert 'id="btnProduce"' in html_content
     assert "إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة" in html_content
@@ -161,6 +178,27 @@ def test_principles_modal_mobile_responsive_css():
     assert "@media (max-width: 480px)" in css_content
     assert ".linguistic-prompts-sub-section" in css_content
     assert ".prompt-history-card" in css_content
+
+
+def test_voice_selector_and_decluttering():
+    """Verify prominent voice selection and localStorage persistence in app.js and CSS."""
+    js_content = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+    css_content = (STATIC_DIR / "style.css").read_text(encoding="utf-8")
+
+    # LocalStorage persistence & voice setup
+    assert "preferred_voice" in js_content
+    assert "PREF_VOICE_KEY" in js_content
+    assert "setupVoiceSelector" in js_content
+    assert "applyVoiceSelectionToUI" in js_content
+    assert 'formData.append("voice"' in js_content
+
+    # CSS styles for voice selection & decluttered containers
+    assert ".voice-selector-card" in css_content
+    assert ".voice-cards-grid" in css_content
+    assert ".voice-card" in css_content
+    assert ".voice-card.active" in css_content
+    assert ".production-cta-container" in css_content
+    assert ".terminal-collapsible" in css_content
 
 
 def test_character_mapping_compliance():
