@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-saas-dashboard-and-merchant-studio",
       "scope": "Build ultra-simple, professional, lightweight mobile/desktop UI featuring: 1) Admin Dashboard for managing user accounts, quotas, and expiry; 2) Merchant Studio & Dashboard with quota counters and video history; 3) Quick Account Switcher with 10 pre-seeded merchant personas + Admin; 4) Voice audition audio player on persona cards; 5) Fixed text overlay and video shape styling controls; author tests; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
@@ -28,7 +28,7 @@
         "backend/agy11-saas-auth-quotas-and-dashboard",
         "frontend/agy51-saas-dashboard-and-merchant-studio"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }

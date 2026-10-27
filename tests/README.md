@@ -57,7 +57,7 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Static asset files existence (`index.html`, `app.js`, `style.css`).
   - Required DOM elements for recording, presets, and studio controls.
   - DOM event listener references in `app.js`.
-  - User Rule 5 character mapping compliance (no unmapped '٩').
+  - User Rule 5 character mapping compliance (strictly mapping U+0669 to Arabic 'ج').
   - Starlette static route file serving and content-type headers.
 - [`test_mobile_enhancements.py`](test_mobile_enhancements.py): Enhancement verification suite verifying:
   - Open-source royalty-free background music library catalog, licenses, and file existence (`test_music_library_catalog`).
@@ -105,6 +105,26 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - REST endpoints `GET /api/prompts/history`, `POST /api/prompts`, and `DELETE /api/prompts/{id}` (`test_api_prompts_history`, `test_api_prompts_post_and_delete`).
   - Automated prompt recording during asynchronous job processing (`test_api_jobs_create_with_descriptions`).
   - Linguistic intent transformation and lower-third badge extraction (`test_smart_fallback_linguistic_speech_intent`, `test_smart_fallback_visual_intent_badges`).
+- [`test_saas_dashboard_ui.py`](test_saas_dashboard_ui.py): Multi-tenant merchant studio, SaaS dashboard, voice preview player, and account switcher UI test suite authored by `agy51`:
+  - Platform branding, active persona badge, and 3-tab navigation (`test_saas_branding_and_navigation`).
+  - Pre-seeded merchant personas definitions and sector categorization in `app.js` (`test_saas_preseeded_merchant_personas`).
+  - Merchant studio quota warning banners, aspect ratio selectors (9:16, 16:9, 1:1), and fixed text inputs in `index.html` (`test_merchant_studio_quota_and_appearance_controls`).
+  - Merchant dashboard profile card, quota progress meters, and video library grid (`test_merchant_dashboard_elements`).
+  - Admin dashboard platform metrics, users data table, and user creation modal forms (`test_admin_dashboard_and_user_management`).
+  - Voice audition HTML5 audio streaming and Web Audio synthesizer fallback logic (`test_audio_audition_player_logic`).
+  - Production quota enforcement and FormData binding for commercial text and orientation (`test_app_js_quota_enforcement_and_formdata_bindings`).
+  - Responsive CSS rules for SaaS navigation tabs, cards, tables, and audition buttons (`test_css_saas_rules_and_responsiveness`).
+  - Typography compliance ensuring no forbidden Arabic numeral U+0669 (`test_saas_character_mapping_compliance`).
+  - HTTP index route delivery containing all SaaS front-end components (`test_saas_dashboard_http_serving`).
+- [`test_gatekeeper_saas_platform.py`](test_gatekeeper_saas_platform.py): Comprehensive gatekeeper integration test suite for multi-tenant SaaS platform authored by Quality Gatekeeper `agy100`:
+  - Multi-tenant admin user creation with custom expiration (`expires_at`), daily/weekly quotas (`daily_quota`, `weekly_quota`), and user patching (`TestAdminUserCreationAndQuotas`).
+  - Quota exhaustion enforcement returning HTTP 403 Forbidden for daily and weekly limits (`TestQuotaEnforcement`).
+  - Subscription expiration and deactivated account access denial returning HTTP 403 (`TestAccountExpirationAndDeactivation`).
+  - Full catalog verification of 10 commercial merchant personas covering 10 business sectors plus 1 Master Admin (`TestPreseededMerchantPersonas`).
+  - Live voice audition preview audio streaming (`GET /api/voices/{voice_id}/sample`) and cache validation (`TestLiveVoiceAuditionPreview`).
+  - Commercial video options including fixed text, badge/banner positions, color styling, and video orientation (`TestCommercialVideoOptions`).
+  - Front-end SaaS UI DOM elements, state transitions, tab switching, and quota meters (`TestFrontendSaasUiContracts`).
+  - Strict character mapping compliance prohibiting Arabic numeral U+0669 across all project files (`TestStrictCharacterMapping`).
 - [`test_saas_auth_and_quotas.py`](test_saas_auth_and_quotas.py): Multi-tenant SaaS authentication, quota enforcement, admin governance, and voice audition preview test suite authored by `agy11`:
   - Pre-seeding master admin and 10 commercial merchants across distinct industries (`test_auth_db_initial_preseed`).
   - Token and credential authentication resolution (`test_auth_db_authenticate_token_and_credentials`).
@@ -154,9 +174,10 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
-# Targeted Gatekeeper sprint verification suite:
-pytest tests/test_gatekeeper_audio_sync_and_voice.py tests/test_audio_sync_and_dense_vision.py tests/test_frontend_assets.py -v
-# Prior sprint verification:
+# Targeted SaaS Platform Gatekeeper sprint verification suite:
+pytest tests/test_gatekeeper_saas_platform.py tests/test_saas_auth_and_quotas.py tests/test_saas_dashboard_ui.py tests/test_frontend_assets.py -v
+# Prior sprint verifications:
+pytest tests/test_gatekeeper_audio_sync_and_voice.py tests/test_audio_sync_and_dense_vision.py -v
 pytest tests/test_gatekeeper_prompts_and_mobile_theme.py tests/test_prompt_descriptions_and_agent.py -v
 # Core pipeline integration:
 pytest tests/test_pipeline.py -v
@@ -165,15 +186,18 @@ pytest tests/test_frame_extractor.py -v
 ```
 
 ## Critical Boundaries & Edge Cases
-1. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
-2. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
-3. **Audio-Visual Lead-In Timing:** Video and background music establish for a configurable lead-in duration (default 1.2s - 1.5s) using FFmpeg `adelay` on narration audio before speech begins, preventing speech from preceding visual cues.
-4. **Dense Multimodal Vision Bounds:** Keyframe extraction dynamically samples 8 to 16 frames uniformly across the video timeline, guaranteeing comprehensive architectural context without exceeding vision API token limits.
-5. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
-6. **SQLite Concurrency & Auto-Seeding:** Prompt database initializes table structure and populates initial Algerian real estate prompts with atomic transactions (`timeout=15.0`).
-7. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
-8. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
-9. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
+1. **Multi-Tenant Quota Ceilings:** Merchant accounts are bounded by daily and rolling weekly quota ceilings; any generation exceeding these ceilings returns HTTP 403 Forbidden with actionable Arabic error telemetry.
+2. **Subscription Expiration Enforcement:** Accounts whose `expires_at` timestamp is in the past or whose `is_active` flag is 0 are immediately barred from generation operations.
+3. **Multi-Aspect Ratio Framing:** Commercial video framing supports portrait (9:16), landscape (16:9), and square (1:1) video orientations without distorting source footage.
+4. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
+5. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
+6. **Audio-Visual Lead-In Timing:** Video and background music establish for a configurable lead-in duration (default 1.2s - 1.5s) using FFmpeg `adelay` on narration audio before speech begins, preventing speech from preceding visual cues.
+7. **Dense Multimodal Vision Bounds:** Keyframe extraction dynamically samples 8 to 16 frames uniformly across the video timeline, guaranteeing comprehensive architectural context without exceeding vision API token limits.
+8. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
+9. **SQLite Concurrency & Auto-Seeding:** Prompt and auth databases initialize table structures and populate initial personas with atomic transactions (`timeout=15.0`).
+10. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
+11. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
+12. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
 
 ## Dependencies & Environment
 - **Python:** 3.12+
