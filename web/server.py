@@ -87,15 +87,20 @@ from web.auth_db import (
     authenticate_credentials,
     authenticate_token,
     check_quota,
+    create_session,
     create_user,
+    delete_session,
     get_demo_accounts,
     get_platform_stats,
+    get_session,
     get_user_by_id,
     get_user_by_username,
     get_user_history,
+    hash_password,
     list_users,
     record_generation,
     update_user,
+    verify_password,
 )
 from web.video_annotator import annotate_video
 
@@ -143,14 +148,20 @@ async def get_music_tracks(request: Request) -> JSONResponse:
     return JSONResponse(get_music_tracks_list())
 
 
-def _get_authenticated_user_from_form_or_header(request: Request, form: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+def _get_authenticated_user_and_session(
+    request: Request,
+    form: Optional[Any] = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """
-    Authenticate user from Form data (token / auth_token), Authorization header,
-    query parameters (?token=...), or fallback to the default commercial merchant.
+    Authenticate user and session from Form data (session_token / auth_token / token),
+    Authorization header (Bearer <token_or_session>), custom headers (X-Session-Token, X-Auth-Token),
+    cookies (session_token), or query parameters.
+    Returns:
+        (user_dict, session_dict) if authenticated, else (None, None).
     """
     token = None
     if form:
-        token = form.get("auth_token") or form.get("token")
+        token = form.get("session_token") or form.get("auth_token") or form.get("token")
 
     if not token:
         auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
@@ -160,14 +171,47 @@ def _get_authenticated_user_from_form_or_header(request: Request, form: Optional
             token = auth_header.strip()
 
     if not token:
-        token = request.query_params.get("token") or request.query_params.get("auth_token")
+        token = (
+            request.headers.get("X-Session-Token")
+            or request.headers.get("x-session-token")
+            or request.headers.get("X-Auth-Token")
+            or request.headers.get("x-auth-token")
+        )
 
-    user = authenticate_token(token) if token else None
+    if not token:
+        token = request.cookies.get("session_token")
 
-    # Fallback to default active merchant (algiers_luxury_re) for backward compatibility
-    if not user:
-        user = get_user_by_username("algiers_luxury_re") or authenticate_credentials("algiers_luxury_re")
+    if not token:
+        token = (
+            request.query_params.get("session_token")
+            or request.query_params.get("token")
+            or request.query_params.get("auth_token")
+        )
 
+    if not token or not str(token).strip():
+        return (None, None)
+
+    clean_token = str(token).strip()
+
+    # 1. Check if token is an active session
+    sess = get_session(clean_token)
+    if sess and sess.get("user"):
+        return (sess["user"], sess)
+
+    # 2. Check if token is a permanent merchant/admin auth token
+    user = authenticate_token(clean_token)
+    if user:
+        return (user, None)
+
+    return (None, None)
+
+
+def _get_authenticated_user_from_form_or_header(
+    request: Request,
+    form: Optional[Any] = None,
+) -> Optional[Dict[str, Any]]:
+    """Convenience alias returning only the authenticated user dictionary (or None)."""
+    user, _ = _get_authenticated_user_and_session(request, form)
     return user
 
 
@@ -314,7 +358,14 @@ async def create_job_async(request: Request) -> JSONResponse:
     # SaaS Multi-tenant Authentication & Quota Enforcement
     user = _get_authenticated_user_from_form_or_header(request, form)
     if not user:
-        return JSONResponse({"status": "error", "message": "المستخدم غير مصرح له أو غير مسجل."}, status_code=401)
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب إنتاج الفيديو تسجيل دخول نشط أو رمز مصادقة صالح.",
+            },
+            status_code=401,
+        )
 
     allowed, reason, quota_details = check_quota(user["id"])
     if not allowed:
@@ -529,7 +580,14 @@ async def upload_and_process(request: Request) -> JSONResponse:
     # SaaS Multi-tenant Authentication & Quota Enforcement
     user = _get_authenticated_user_from_form_or_header(request, form)
     if not user:
-        return JSONResponse({"status": "error", "message": "المستخدم غير مصرح له أو غير مسجل."}, status_code=401)
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب إنتاج الفيديو تسجيل دخول نشط أو رمز مصادقة صالح.",
+            },
+            status_code=401,
+        )
 
     allowed, reason, quota_details = check_quota(user["id"])
     if not allowed:
@@ -949,68 +1007,176 @@ async def voice_sample_endpoint(request: Request) -> Response:
 
 
 async def login_endpoint(request: Request) -> JSONResponse:
-    """POST /api/auth/login - Authenticate merchant or admin by username or token."""
+    """
+    POST /api/auth/login
+    Accepts JSON or form data: {"username": "...", "password": "..."} or {"token": "..."}.
+    Validates credentials, creates authenticated session, sets cookie, and returns token + quotas.
+    """
     username = None
+    password = None
     token = None
     try:
         body = await request.json()
         username = body.get("username")
-        token = body.get("token") or body.get("auth_token")
+        password = body.get("password")
+        token = body.get("token") or body.get("auth_token") or body.get("session_token")
     except Exception:
         try:
             form = await request.form()
             username = form.get("username")
-            token = form.get("token") or form.get("auth_token")
+            password = form.get("password")
+            token = form.get("token") or form.get("auth_token") or form.get("session_token")
         except Exception:
             pass
 
     user = None
-    if token:
+    if token and not username and not password:
         user = authenticate_token(token)
     elif username:
-        user = authenticate_credentials(username)
+        user = authenticate_credentials(username, password)
+    elif password and not username:
+        user = authenticate_token(password)
 
     if not user:
-        return JSONResponse({
-            "status": "error",
-            "message": "اسم المستخدم أو رمز الدخول غير صحيح",
-        }, status_code=401)
+        return JSONResponse(
+            {
+                "status": "error",
+                "message": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+            },
+            status_code=401,
+        )
+
+    if not user.get("is_active", True):
+        return JSONResponse(
+            {
+                "status": "error",
+                "message": "الحساب معطل حالياً من قِبل إدارة المنصة.",
+            },
+            status_code=403,
+        )
+
+    # Create authenticated session
+    session = create_session(user["id"])
+    allowed, reason, quota_details = check_quota(user["id"])
+
+    response = JSONResponse(
+        {
+            "status": "ok",
+            "message": "تم تسجيل الدخول بنجاح.",
+            "session_token": session["session_token"],
+            "token": session["session_token"],
+            "auth_token": user["auth_token"],
+            "expires_at": session["expires_at"],
+            "user": user,
+            "session": session,
+            "quota": quota_details,
+            "quotas": quota_details,
+        }
+    )
+    response.set_cookie(
+        key="session_token",
+        value=session["session_token"],
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 86400,
+        path="/",
+    )
+    return response
+
+
+async def logout_endpoint(request: Request) -> JSONResponse:
+    """POST /api/auth/logout - Invalidate active session and clear session cookie."""
+    token = None
+    try:
+        body = await request.json()
+        token = body.get("session_token") or body.get("token") or body.get("auth_token")
+    except Exception:
+        try:
+            form = await request.form()
+            token = form.get("session_token") or form.get("token") or form.get("auth_token")
+        except Exception:
+            pass
+
+    if not token:
+        user, session = _get_authenticated_user_and_session(request)
+        if session:
+            token = session["session_token"]
+        elif user:
+            token = user.get("auth_token")
+
+    if token:
+        delete_session(token)
+
+    response = JSONResponse({"status": "ok", "message": "تم تسجيل الخروج بنجاح."})
+    response.delete_cookie("session_token", path="/")
+    return response
+
+
+async def auth_session_endpoint(request: Request) -> JSONResponse:
+    """GET /api/auth/session - Verify active session and return user profile + quotas."""
+    user, session = _get_authenticated_user_and_session(request)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "authenticated": False,
+                "message": "غير مصرح به. يرجى تسجيل الدخول أولاً.",
+            },
+            status_code=401,
+        )
 
     allowed, reason, quota_details = check_quota(user["id"])
-    return JSONResponse({
-        "status": "ok",
-        "user": user,
-        "token": user["auth_token"],
-        "quotas": quota_details,
-    })
+    return JSONResponse(
+        {
+            "status": "ok",
+            "authenticated": True,
+            "user": user,
+            "session": session,
+            "quota": quota_details,
+            "quotas": quota_details,
+        }
+    )
 
 
 async def auth_me_endpoint(request: Request) -> JSONResponse:
-    """GET /api/auth/me - Retrieve current merchant profile and quota details."""
-    user = _get_authenticated_user_from_form_or_header(request, form=None)
+    """GET /api/auth/me - Retrieve current merchant profile, session, and quota details."""
     auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
     token = request.query_params.get("token") or request.query_params.get("auth_token")
 
     if not auth_header and not token:
-        return JSONResponse({
-            "status": "error",
-            "message": "غير مصرح، يرجى تقديم رمز المصادقة (Bearer token)",
-        }, status_code=401)
+        return JSONResponse(
+            {
+                "status": "error",
+                "authenticated": False,
+                "message": "غير مصرح، يرجى تقديم رمز المصادقة (Bearer token)",
+            },
+            status_code=401,
+        )
 
+    user, session = _get_authenticated_user_and_session(request)
     if not user:
-        return JSONResponse({
-            "status": "error",
-            "message": "رمز المصادقة غير صالح أو منتهي",
-        }, status_code=401)
+        return JSONResponse(
+            {
+                "status": "error",
+                "authenticated": False,
+                "message": "رمز المصادقة غير صالح أو منتهي",
+            },
+            status_code=401,
+        )
 
     allowed, reason, quota_details = check_quota(user["id"])
     history = get_user_history(user["id"], limit=20)
-    return JSONResponse({
-        "status": "ok",
-        "user": user,
-        "quotas": quota_details,
-        "history": history,
-    })
+    return JSONResponse(
+        {
+            "status": "ok",
+            "authenticated": True,
+            "user": user,
+            "session": session,
+            "quota": quota_details,
+            "quotas": quota_details,
+            "history": history,
+        }
+    )
 
 
 async def demo_accounts_endpoint(request: Request) -> JSONResponse:
@@ -1114,6 +1280,8 @@ routes = [
     Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),
     Route("/api/prompts/{prompt_id}", delete_prompt_endpoint, methods=["DELETE"]),
     Route("/api/auth/login", login_endpoint, methods=["POST"]),
+    Route("/api/auth/logout", logout_endpoint, methods=["POST"]),
+    Route("/api/auth/session", auth_session_endpoint, methods=["GET"]),
     Route("/api/auth/me", auth_me_endpoint, methods=["GET"]),
     Route("/api/auth/demo-accounts", demo_accounts_endpoint, methods=["GET"]),
     Route("/api/admin/users", admin_list_users_endpoint, methods=["GET"]),

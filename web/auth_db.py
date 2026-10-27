@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """
-SaaS Multi-Tenant Authentication & Quotas Database Module (web/auth_db.py).
-Manages commercial merchant accounts, roles, expiration, daily/weekly quotas,
-and video generation audit history in SQLite (outputs/saas_platform.db).
+SaaS Multi-Tenant Authentication, Sessions & Quotas Database Module (web/auth_db.py).
+Manages commercial merchant accounts, password hashing, session tokens, expiration,
+daily/weekly quotas, and video generation audit history in SQLite (outputs/saas_platform.db).
 
-Author: MohammedBoure
-Role: Backend Architecture & SaaS Systems Engineer (agy11)
-Branch: backend/agy11-saas-auth-quotas-and-dashboard
+Author: MohammedBoure <datasupabase@gmail.com>
+Role: Backend Architecture & Systems Specialist (agy11)
+Branch: backend/agy11-session-auth-tts-voice-samples
 """
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
+import secrets
 import sqlite3
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -27,8 +30,62 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = REPO_ROOT / "outputs" / "saas_platform.db"
 
 # ---------------------------------------------------------------------------
+# Password Hashing & Verification (PBKDF2-HMAC-SHA256)
+# ---------------------------------------------------------------------------
+
+DEFAULT_PBKDF2_ITERATIONS = 100_000
+
+
+def hash_password(password: str, iterations: int = DEFAULT_PBKDF2_ITERATIONS) -> str:
+    """
+    Hash a plaintext password using PBKDF2-HMAC-SHA256 with a cryptographically secure salt.
+    Format: pbkdf2_sha256$<iterations>$<salt_hex>$<hash_hex>
+    """
+    if not password:
+        raise ValueError("Password cannot be empty")
+    salt = secrets.token_hex(16)
+    derived = hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode("utf-8"),
+        salt.encode("utf-8"),
+        iterations,
+    )
+    return f"pbkdf2_sha256${iterations}${salt}${derived.hex()}"
+
+
+def verify_password(password: str, hashed_password: Optional[str]) -> bool:
+    """
+    Verify plaintext password against a stored PBKDF2-HMAC-SHA256 hash or plaintext fallback.
+    Uses constant-time comparison to prevent timing attacks.
+    """
+    if not password or not hashed_password:
+        return False
+    try:
+        parts = hashed_password.split("$")
+        if len(parts) == 4 and parts[0] == "pbkdf2_sha256":
+            iterations = int(parts[1])
+            salt = parts[2]
+            expected_hash = parts[3]
+            derived = hashlib.pbkdf2_hmac(
+                "sha256",
+                password.encode("utf-8"),
+                salt.encode("utf-8"),
+                iterations,
+            )
+            return hmac.compare_digest(derived.hex(), expected_hash)
+        # Fallback for plain tokens or direct matching in test/dev
+        return hmac.compare_digest(password.strip(), hashed_password.strip())
+    except Exception as exc:
+        logger.debug("verify_password encountered exception: %s", exc)
+        return False
+
+
+# ---------------------------------------------------------------------------
 # Pre-seeded Accounts (1 Master Admin + 10 Commercial Merchants)
 # ---------------------------------------------------------------------------
+
+DEFAULT_ADMIN_PASSWORD = "admin123"
+DEFAULT_MERCHANT_PASSWORD = "merchant123"
 
 PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
     {
@@ -41,6 +98,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 9999,
         "weekly_quota": 99999,
         "auth_token": "token_admin_master",
+        "default_password": DEFAULT_ADMIN_PASSWORD,
     },
     {
         "username": "algiers_luxury_re",
@@ -52,6 +110,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 10,
         "weekly_quota": 50,
         "auth_token": "token_algiers_luxury_re",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "oran_seafood_bistro",
@@ -63,6 +122,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 8,
         "weekly_quota": 40,
         "auth_token": "token_oran_seafood_bistro",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "annaba_elegance_couture",
@@ -74,6 +134,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 6,
         "weekly_quota": 30,
         "auth_token": "token_annaba_elegance_couture",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "constantine_smart_tech",
@@ -85,6 +146,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 8,
         "weekly_quota": 40,
         "auth_token": "token_constantine_smart_tech",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "batna_auto_showroom",
@@ -96,6 +158,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 5,
         "weekly_quota": 25,
         "auth_token": "token_batna_auto_showroom",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "ghardaia_oasis_carpets",
@@ -107,6 +170,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 5,
         "weekly_quota": 25,
         "auth_token": "token_ghardaia_oasis_carpets",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "bejaia_coast_tours",
@@ -118,6 +182,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 7,
         "weekly_quota": 35,
         "auth_token": "token_bejaia_coast_tours",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "setif_home_decor",
@@ -129,6 +194,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 6,
         "weekly_quota": 30,
         "auth_token": "token_setif_home_decor",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "blida_wellness_clinic",
@@ -140,6 +206,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 5,
         "weekly_quota": 25,
         "auth_token": "token_blida_wellness_clinic",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
     {
         "username": "algiers_pro_fitness",
@@ -151,6 +218,7 @@ PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
         "daily_quota": 8,
         "weekly_quota": 40,
         "auth_token": "token_algiers_pro_fitness",
+        "default_password": DEFAULT_MERCHANT_PASSWORD,
     },
 ]
 
@@ -177,18 +245,21 @@ def get_connection(db_path: Optional[Union[str, Path]] = None) -> sqlite3.Connec
 def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
     """
     Initialize SQLite database schema and pre-seed admin and 10 diverse commercial
-    merchant accounts if the users table is currently empty.
+    merchant accounts with hashed passwords if the users table is currently empty.
+    Applies non-destructive schema migrations (e.g. password_hash, sessions table).
     """
     resolved_path = _resolve_db_path(db_path)
     conn = sqlite3.connect(str(resolved_path), timeout=15.0)
     conn.row_factory = sqlite3.Row
     try:
         with conn:
+            # 1. Users table
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT,
                     business_name TEXT NOT NULL,
                     business_category TEXT NOT NULL,
                     role TEXT NOT NULL DEFAULT 'merchant',
@@ -201,6 +272,29 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                 );
                 """
             )
+
+            # Ensure password_hash column exists if table was created earlier without it
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(users);")
+            columns = [row["name"] for row in cursor.fetchall()]
+            if "password_hash" not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN password_hash TEXT;")
+
+            # 2. Sessions table
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_token TEXT UNIQUE NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP NOT NULL,
+                    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                """
+            )
+
+            # 3. Video generations table
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS video_generations (
@@ -214,29 +308,33 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                 );
                 """
             )
-            # Create indexes for fast quota and token lookups
+
+            # Create indexes for fast quota, session, and token lookups
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_token ON users(auth_token);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_generations_user_date ON video_generations(user_id, created_at);")
 
-            # Check if seeding is required
-            cursor = conn.cursor()
+            # Check if seeding or password upgrade is required
             cursor.execute("SELECT COUNT(*) AS cnt FROM users;")
-            row = cursor.fetchone()
-            user_count = row["cnt"] if row else 0
+            user_count = cursor.fetchone()["cnt"]
 
             if user_count == 0:
                 logger.info("Pre-seeding SaaS database with 1 admin and 10 diverse merchant accounts...")
                 for acc in PRESEEDED_ACCOUNTS:
+                    pwd_hash = hash_password(acc.get("default_password", DEFAULT_MERCHANT_PASSWORD))
                     cursor.execute(
                         """
                         INSERT INTO users (
-                            username, business_name, business_category, role,
+                            username, password_hash, business_name, business_category, role,
                             is_active, expires_at, daily_quota, weekly_quota, auth_token
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                         """,
                         (
                             acc["username"],
+                            pwd_hash,
                             acc["business_name"],
                             acc["business_category"],
                             acc.get("role", "merchant"),
@@ -248,6 +346,18 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                         ),
                     )
                 logger.info("Successfully seeded %d commercial accounts into %s", len(PRESEEDED_ACCOUNTS), resolved_path)
+            else:
+                # Update existing preseeded users whose password_hash is empty or NULL
+                for acc in PRESEEDED_ACCOUNTS:
+                    pwd_hash = hash_password(acc.get("default_password", DEFAULT_MERCHANT_PASSWORD))
+                    cursor.execute(
+                        """
+                        UPDATE users
+                        SET password_hash = ?
+                        WHERE username = ? AND (password_hash IS NULL OR password_hash = '');
+                        """,
+                        (pwd_hash, acc["username"]),
+                    )
     finally:
         conn.close()
 
@@ -257,11 +367,14 @@ init_db()
 
 
 # ---------------------------------------------------------------------------
-# Authentication & User Management Methods
+# Serialization & User Mapping Helpers
 # ---------------------------------------------------------------------------
 
 def _row_to_user_dict(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
-    """Convert SQLite Row to structured user dictionary."""
+    """
+    Convert SQLite Row to structured user dictionary.
+    Excludes sensitive password_hash from general public dictionaries.
+    """
     if not row:
         return None
     return {
@@ -279,9 +392,176 @@ def _row_to_user_dict(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
     }
 
 
+# ---------------------------------------------------------------------------
+# Session Management Methods
+# ---------------------------------------------------------------------------
+
+DEFAULT_SESSION_DURATION_SECONDS = 7 * 86400  # 7 days
+
+
+def create_session(
+    user_id: int,
+    duration_seconds: int = DEFAULT_SESSION_DURATION_SECONDS,
+    db_path: Optional[Union[str, Path]] = None,
+) -> Dict[str, Any]:
+    """
+    Create a new authenticated session token for a user.
+    Returns session details dictionary including session_token and expires_at.
+    """
+    session_token = f"sess_{uuid.uuid4().hex}_{secrets.token_hex(8)}"
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(seconds=duration_seconds)
+    expires_at_str = expires_at.strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO sessions (session_token, user_id, expires_at)
+                VALUES (?, ?, ?);
+                """,
+                (session_token, user_id, expires_at_str),
+            )
+            session_id = cursor.lastrowid
+            return {
+                "id": session_id,
+                "session_token": session_token,
+                "user_id": user_id,
+                "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "expires_at": expires_at_str,
+                "duration_seconds": duration_seconds,
+            }
+    finally:
+        conn.close()
+
+
+def get_session(
+    session_token: Optional[str],
+    db_path: Optional[Union[str, Path]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve session record and attached user profile by session token.
+    Validates expiration and user active state; if expired, deletes the session and returns None.
+    """
+    if not session_token or not str(session_token).strip():
+        return None
+
+    clean_token = str(session_token).strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
+    conn = get_connection(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                s.id AS session_id,
+                s.session_token,
+                s.user_id,
+                s.created_at AS session_created_at,
+                s.expires_at AS session_expires_at,
+                u.*
+            FROM sessions s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.session_token = ?
+            LIMIT 1;
+            """,
+            (clean_token,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        # Check session expiration against UTC
+        exp_str = str(row["session_expires_at"]).strip()
+        try:
+            exp_dt = datetime.fromisoformat(exp_str)
+            if exp_dt.tzinfo is None:
+                exp_dt = exp_dt.replace(tzinfo=timezone.utc)
+        except Exception:
+            exp_dt = datetime.strptime(exp_str[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+
+        now_utc = datetime.now(timezone.utc)
+        if exp_dt < now_utc:
+            # Session expired; cleanup asynchronously
+            with conn:
+                conn.execute("DELETE FROM sessions WHERE id = ?;", (row["session_id"],))
+            return None
+
+        # Check if user is active
+        if not bool(row["is_active"]):
+            return None
+
+        user_dict = {
+            "id": row["id"],
+            "username": row["username"],
+            "business_name": row["business_name"],
+            "business_category": row["business_category"],
+            "role": row["role"],
+            "is_active": bool(row["is_active"]),
+            "expires_at": row["expires_at"],
+            "daily_quota": row["daily_quota"],
+            "weekly_quota": row["weekly_quota"],
+            "auth_token": row["auth_token"],
+            "created_at": str(row["created_at"]),
+        }
+
+        return {
+            "session_id": row["session_id"],
+            "session_token": row["session_token"],
+            "user_id": row["user_id"],
+            "created_at": str(row["session_created_at"]),
+            "expires_at": exp_str,
+            "user": user_dict,
+        }
+    finally:
+        conn.close()
+
+
+def delete_session(
+    session_token: Optional[str],
+    db_path: Optional[Union[str, Path]] = None,
+) -> bool:
+    """Delete / invalidate a session token."""
+    if not session_token or not str(session_token).strip():
+        return False
+
+    clean_token = str(session_token).strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM sessions WHERE session_token = ?;", (clean_token,))
+            return cursor.rowcount > 0
+    finally:
+        conn.close()
+
+
+def cleanup_expired_sessions(db_path: Optional[Union[str, Path]] = None) -> int:
+    """Purge all expired session records from the database."""
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM sessions WHERE datetime(expires_at) < datetime('now');")
+            return cursor.rowcount
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Authentication & User Management Methods
+# ---------------------------------------------------------------------------
+
 def authenticate_token(token: Optional[str], db_path: Optional[Union[str, Path]] = None) -> Optional[Dict[str, Any]]:
     """
-    Authenticate user via auth token.
+    Authenticate user via permanent auth token or active session token.
     Strips 'Bearer ' prefix if present.
     """
     if not token or not str(token).strip():
@@ -291,6 +571,12 @@ def authenticate_token(token: Optional[str], db_path: Optional[Union[str, Path]]
     if clean_token.lower().startswith("bearer "):
         clean_token = clean_token[7:].strip()
 
+    # 1. Check if token is an active session token
+    sess = get_session(clean_token, db_path)
+    if sess and sess.get("user"):
+        return sess["user"]
+
+    # 2. Check if token is a permanent merchant auth_token
     conn = get_connection(db_path)
     try:
         cursor = conn.cursor()
@@ -307,8 +593,9 @@ def authenticate_credentials(
     db_path: Optional[Union[str, Path]] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Authenticate user via username alone, or username + token / password.
-    For lightweight commercial merchant flow, username matching succeeds directly.
+    Authenticate user via username and password/token, or by username alone
+    for 1-tap demo/merchant selection.
+    When password_or_token is provided, verifies password hash or permanent auth token.
     """
     if not username or not str(username).strip():
         return None
@@ -317,17 +604,30 @@ def authenticate_credentials(
     conn = get_connection(db_path)
     try:
         cursor = conn.cursor()
-        if password_or_token and str(password_or_token).strip():
-            clean_token = str(password_or_token).strip()
-            if clean_token.lower().startswith("bearer "):
-                clean_token = clean_token[7:].strip()
-            cursor.execute(
-                "SELECT * FROM users WHERE username = ? AND auth_token = ? LIMIT 1;",
-                (clean_username, clean_token),
-            )
-        else:
-            cursor.execute("SELECT * FROM users WHERE username = ? LIMIT 1;", (clean_username,))
+        cursor.execute("SELECT * FROM users WHERE username = ? LIMIT 1;", (clean_username,))
         row = cursor.fetchone()
+        if not row:
+            return None
+
+        # If credentials provided, verify against password_hash or auth_token
+        if password_or_token is not None and str(password_or_token).strip() != "":
+            candidate = str(password_or_token).strip()
+            if candidate.lower().startswith("bearer "):
+                candidate = candidate[7:].strip()
+
+            # 1. Verify against password hash
+            pwd_hash = row["password_hash"]
+            if pwd_hash and verify_password(candidate, pwd_hash):
+                return _row_to_user_dict(row)
+
+            # 2. Verify against permanent auth token
+            if row["auth_token"] and hmac.compare_digest(candidate, str(row["auth_token"])):
+                return _row_to_user_dict(row)
+
+            # Credentials failed verification
+            return None
+
+        # If no password/token provided (1-tap merchant selection)
         return _row_to_user_dict(row)
     finally:
         conn.close()
@@ -346,6 +646,8 @@ def get_user_by_id(user_id: int, db_path: Optional[Union[str, Path]] = None) -> 
 
 def get_user_by_username(username: str, db_path: Optional[Union[str, Path]] = None) -> Optional[Dict[str, Any]]:
     """Retrieve user record by username."""
+    if not username or not str(username).strip():
+        return None
     conn = get_connection(db_path)
     try:
         cursor = conn.cursor()
@@ -377,7 +679,6 @@ def check_quota(user_id: int, db_path: Optional[Union[str, Path]] = None) -> Tup
 
     is_expired = False
     if expires_at and str(expires_at).strip():
-        # Compare ISO date strings YYYY-MM-DD
         clean_exp = str(expires_at).strip()[:10]
         if clean_exp < today_str:
             is_expired = True
@@ -524,6 +825,7 @@ def create_user(
     business_name: str,
     business_category: str = "ecommerce",
     role: str = "merchant",
+    password: Optional[str] = None,
     expires_at: Optional[str] = None,
     daily_quota: int = 5,
     weekly_quota: int = 25,
@@ -531,9 +833,11 @@ def create_user(
     is_active: int = 1,
     db_path: Optional[Union[str, Path]] = None,
 ) -> Dict[str, Any]:
-    """Create a new merchant or admin user account."""
+    """Create a new merchant or admin user account with hashed password."""
     clean_username = username.strip()
     clean_token = auth_token.strip() if auth_token else f"token_{clean_username}_{uuid.uuid4().hex[:8]}"
+    pwd_to_hash = password if password else (DEFAULT_ADMIN_PASSWORD if role == "admin" else DEFAULT_MERCHANT_PASSWORD)
+    pwd_hash = hash_password(pwd_to_hash)
 
     conn = get_connection(db_path)
     try:
@@ -542,12 +846,13 @@ def create_user(
             cursor.execute(
                 """
                 INSERT INTO users (
-                    username, business_name, business_category, role,
+                    username, password_hash, business_name, business_category, role,
                     is_active, expires_at, daily_quota, weekly_quota, auth_token
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     clean_username,
+                    pwd_hash,
                     business_name.strip(),
                     business_category.strip(),
                     role.strip(),
@@ -576,7 +881,7 @@ def update_user(
     """
     Update fields of an existing user account.
     Accepted fields: business_name, business_category, role, is_active,
-    expires_at, daily_quota, weekly_quota, auth_token.
+    expires_at, daily_quota, weekly_quota, auth_token, password, password_hash.
     """
     allowed_fields = {
         "business_name",
@@ -587,11 +892,15 @@ def update_user(
         "daily_quota",
         "weekly_quota",
         "auth_token",
+        "password",
+        "password_hash",
     }
     updates = {}
     for k, v in kwargs.items():
         if k in allowed_fields:
-            if k == "is_active":
+            if k == "password":
+                updates["password_hash"] = hash_password(str(v))
+            elif k == "is_active":
                 updates[k] = 1 if v else 0
             elif k in ("daily_quota", "weekly_quota"):
                 updates[k] = int(v)

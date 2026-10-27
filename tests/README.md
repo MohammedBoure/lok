@@ -116,6 +116,15 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Responsive CSS rules for SaaS navigation tabs, cards, tables, and audition buttons (`test_css_saas_rules_and_responsiveness`).
   - Typography compliance ensuring no forbidden Arabic numeral U+0669 (`test_saas_character_mapping_compliance`).
   - HTTP index route delivery containing all SaaS front-end components (`test_saas_dashboard_http_serving`).
+- [`test_session_auth_and_tts_samples.py`](test_session_auth_and_tts_samples.py): Comprehensive test suite for session-based authentication, default admin credentials, strictly gated video production, and real Google Gemini TTS voice reference samples authored by `agy11`:
+  - Password hashing via PBKDF2-HMAC-SHA256 with cryptographically random salts and constant-time verification (`TestPasswordHashingAndVerification`).
+  - Pre-seeded default Admin credentials (`admin` / `admin123`) and default merchant credentials (`merchant123`) verification (`TestPreseededCredentials`).
+  - Session lifecycle management in SQLite `sessions` table (creation, retrieval, expiration, and deletion) (`TestSessionLifecycleDB`).
+  - Session REST endpoints (`POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`, `GET /api/auth/me`) validating session cookies and Bearer tokens (`TestRestApiAuthEndpoints`).
+  - Strictly gated service execution rejecting unauthenticated video generation calls with HTTP 401 Unauthorized, and accepting valid session and permanent tokens (`TestGatedServiceExecution`).
+  - Real TTS voice reference samples validation on disk for all 4 personas with valid WAV headers and duration > 2.0s (`TestTtsVoiceReferenceSamples`).
+  - Voice preview audio streaming endpoint verification (`GET /api/voices/{voice_id}/sample`) (`TestTtsVoiceReferenceSamples`).
+  - Absence of forbidden character U+0669 in all voice sample scripts and responses (`TestCharacterMappingCompliance`).
 - [`test_gatekeeper_saas_platform.py`](test_gatekeeper_saas_platform.py): Comprehensive gatekeeper integration test suite for multi-tenant SaaS platform authored by Quality Gatekeeper `agy100`:
   - Multi-tenant admin user creation with custom expiration (`expires_at`), daily/weekly quotas (`daily_quota`, `weekly_quota`), and user patching (`TestAdminUserCreationAndQuotas`).
   - Quota exhaustion enforcement returning HTTP 403 Forbidden for daily and weekly limits (`TestQuotaEnforcement`).

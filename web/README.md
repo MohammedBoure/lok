@@ -122,51 +122,73 @@ Returns catalog of supported Algerian real estate voice profiles.
 Streams real-time or cached WAV audio audition sample for the requested voice persona (`outputs/voice_samples/{voice_id}.wav`).
 - **Path Parameters**:
   - `voice_id` (*Text*): Supported voice identifier (`ar-XA-Standard-A`, `ar-XA-Standard-B`, `ar-XA-Standard-C`, `ar-XA-Standard-D`, or custom voice name).
-- **Response (200 OK)**: Binary audio stream (`audio/wav`) containing a professional 3-4 second audition monologue tailored to that voice persona.
+- **Response (200 OK)**: High-fidelity binary audio stream (`audio/wav`) generated via the Google Gemini TTS library (`tts/gemini_speech`), providing a definitive 10-15 second promotional monologue reference clip for that persona.
 
 ### `POST /api/auth/login`
-Authenticates a user via username or auth token string.
+Authenticates a user via username and password (or permanent auth token), provisions a secure session token (`sess_*`), and sets an HTTP-only session cookie.
 - **Payload**:
   ```json
   {
-    "username": "algiers_luxury_re"
+    "username": "admin",
+    "password": "admin123"
   }
   ```
-  *(Or `{"auth_token": "token_algiers_re"}`)*
+  *(Or `{"username": "algiers_luxury_re", "password": "merchant123"}` or `{"auth_token": "token_admin_master"}`)*
 - **Response (200 OK)**:
   ```json
   {
     "status": "ok",
-    "token": "token_algiers_re",
+    "message": "تم تسجيل الدخول بنجاح.",
+    "session_token": "sess_7b9d62d0438a4d4ea0ba3701243171aa_a1b2c3d4e5f67890",
+    "token": "sess_7b9d62d0438a4d4ea0ba3701243171aa_a1b2c3d4e5f67890",
+    "auth_token": "token_admin_master",
+    "expires_at": "2026-11-03 21:30:00",
     "user": {
-      "id": 2,
-      "username": "algiers_luxury_re",
-      "business_name": "عقارات الجزائر الفاخرة",
-      "business_category": "real_estate",
-      "role": "merchant",
+      "id": 1,
+      "username": "admin",
+      "business_name": "منصة إدارة النظام (SaaS Master Admin)",
+      "business_category": "tech",
+      "role": "admin",
       "is_active": true,
-      "expires_at": "2027-12-31",
-      "daily_quota": 8,
-      "weekly_quota": 40
+      "expires_at": "2099-12-31",
+      "daily_quota": 9999,
+      "weekly_quota": 99999
     },
     "quota": {
       "allowed": true,
-      "reason": "",
+      "reason": "حساب مسؤول النظام - استخدام غير محدود",
       "daily_used": 0,
-      "daily_quota": 8,
-      "daily_remaining": 8,
+      "daily_quota": 9999,
+      "daily_remaining": 9999,
       "weekly_used": 0,
-      "weekly_quota": 40,
-      "weekly_remaining": 40,
-      "expires_at": "2027-12-31"
+      "weekly_quota": 99999,
+      "weekly_remaining": 99999
     }
   }
   ```
+- **Set-Cookie**: `session_token=sess_*; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`
+
+### `POST /api/auth/logout`
+Terminates the active session in SQLite and clears the `session_token` cookie.
+- **Authentication**: Bearer session token, cookie, or payload `{"session_token": "..."}`.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "message": "تم تسجيل الخروج بنجاح."
+  }
+  ```
+
+### `GET /api/auth/session`
+Validates the current authenticated session from session cookie or `Authorization: Bearer <session_token>`.
+- **Response (200 OK)**: Returns authenticated user profile, session details, and quota stats.
+- **Response (401 Unauthorized)**: `{"status": "error", "authenticated": false, "message": "غير مصرح به. يرجى تسجيل الدخول أولاً."}`
 
 ### `GET /api/auth/me`
 Fetches authenticated user profile, active status, expiration date, and real-time daily/weekly quota allowance.
-- **Authentication**: `Authorization: Bearer <token>`, form field `auth_token`, query param `?token=...`, or header `x-auth-token`.
-- **Response (200 OK)**: JSON object with `status: "ok"`, `user`, and `quota` details.
+- **Authentication**: `Authorization: Bearer <token_or_session>`, form field `auth_token`, query param `?token=...`, or header `X-Auth-Token`.
+- **Response (200 OK)**: JSON object with `status: "ok"`, `user`, `session`, `quota`, and recent generation `history`.
+- **Response (401 Unauthorized)**: Returned if no valid authentication credentials are provided.
 
 ### `GET /api/auth/demo-accounts`
 Returns the public list of pre-seeded demo accounts (1 admin and 10 commercial merchants across distinct industries) for instant 1-click studio switching.
@@ -329,6 +351,14 @@ Asynchronous upload and processing endpoint. Accepts video and options, authenti
       "visual_lead_in_seconds": 1.2,
       "merchant": { "id": 2, "business_name": "عقارات الجزائر الفاخرة" },
       "quota": { "allowed": true, "daily_remaining": 7, "weekly_remaining": 39 }
+    }
+    ```
+  - **401 Unauthorized**: Missing or invalid session/auth token (strictly gated).
+    ```json
+    {
+      "status": "error",
+      "error": "unauthorized",
+      "message": "غير مصرح به. يتطلب إنتاج الفيديو تسجيل دخول نشط أو رمز مصادقة صالح."
     }
     ```
   - **403 Forbidden**: Quota exceeded or account expired.
@@ -558,13 +588,14 @@ Custom voice strings (e.g., `Puck`, `Zephyr`, `ar-XA-Wavenet-A`) are automatical
 ## 11. Multi-Tenant SaaS Architecture, Quotas, Admin Governance & Voice Preview
 
 ### Multi-Tenant Database Schema (`outputs/saas_platform.db`)
-Multi-tenant identity, subscription status, and usage telemetry are persisted in SQLite at `outputs/saas_platform.db`:
+Multi-tenant identity, session state, subscription status, and usage telemetry are persisted in SQLite at `outputs/saas_platform.db`:
 
 #### `users` Table
 ```sql
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
     business_name TEXT NOT NULL,
     business_category TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'merchant',
@@ -577,6 +608,21 @@ CREATE TABLE users (
 );
 CREATE INDEX idx_users_token ON users(auth_token);
 CREATE INDEX idx_users_username ON users(username);
+```
+
+#### `sessions` Table
+```sql
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_token TEXT UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_sessions_token ON sessions(session_token);
+CREATE INDEX idx_sessions_user ON sessions(user_id);
+CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 ```
 
 #### `video_generations` Table
@@ -593,22 +639,22 @@ CREATE TABLE video_generations (
 CREATE INDEX idx_generations_user_created ON video_generations(user_id, created_at);
 ```
 
-### Pre-Seeded Catalog of Commercial Merchants
-The database automatically seeds 1 Master Administrator and 10 Commercial Merchants across diverse economic sectors upon initialization:
+### Pre-Seeded Catalog of Commercial Merchants & Default Credentials
+The database automatically seeds 1 Master Administrator and 10 Commercial Merchants across diverse economic sectors upon initialization. Passwords are securely hashed with PBKDF2-HMAC-SHA256 (100,000 iterations):
 
-| Username | Business Name | Category | Role | Daily Quota | Weekly Quota | Auth Token |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `admin` | إدارة منصة الفيديو الذكية | `platform_admin` | `admin` | 999 | 9999 | `token_admin_master` |
-| `algiers_luxury_re` | عقارات الجزائر الفاخرة | `real_estate` | `merchant` | 8 | 40 | `token_algiers_re` |
-| `oran_seafood_bistro` | مطعم وهران للمأكولات البحرية | `restaurant` | `merchant` | 6 | 30 | `token_oran_bistro` |
-| `annaba_elegance_couture` | أزياء عنابة الراقية | `fashion` | `merchant` | 5 | 25 | `token_annaba_fashion` |
-| `constantine_smart_tech` | قسنطينة للأجهزة الذكية | `tech` | `merchant` | 5 | 25 | `token_constantine_tech` |
-| `batna_auto_showroom` | معرض باتنة للسيارات | `automotive` | `merchant` | 4 | 20 | `token_batna_auto` |
-| `ghardaia_oasis_carpets` | زرابي وواحات غرداية التقليدية | `handcrafts` | `merchant` | 3 | 15 | `token_ghardaia_crafts` |
-| `bejaia_coast_tours` | وكالة بجاية للسياحة البحرية | `tourism` | `merchant` | 5 | 25 | `token_bejaia_tours` |
-| `setif_home_decor` | سطيف للمفروشات والديكور المنزلي | `ecommerce` | `merchant` | 6 | 30 | `token_setif_decor` |
-| `blida_wellness_clinic` | عيادة البليدة الطبية والصحية | `clinic` | `merchant` | 4 | 20 | `token_blida_clinic` |
-| `algiers_pro_fitness` | نادي العاصمة للرشاقة واللياقة | `fitness` | `merchant` | 5 | 25 | `token_algiers_fitness` |
+| Username | Default Password | Business Name | Category | Role | Daily Quota | Weekly Quota | Auth Token |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `admin` | `admin123` | إدارة منصة الفيديو الذكية | `platform_admin` | `admin` | 999 | 9999 | `token_admin_master` |
+| `algiers_luxury_re` | `merchant123` | عقارات الجزائر الفاخرة | `real_estate` | `merchant` | 8 | 40 | `token_algiers_re` |
+| `oran_seafood_bistro` | `merchant123` | مطعم وهران للمأكولات البحرية | `restaurant` | `merchant` | 6 | 30 | `token_oran_bistro` |
+| `annaba_elegance_couture` | `merchant123` | أزياء عنابة الراقية | `fashion` | `merchant` | 5 | 25 | `token_annaba_fashion` |
+| `constantine_smart_tech` | `merchant123` | قسنطينة للأجهزة الذكية | `tech` | `merchant` | 5 | 25 | `token_constantine_tech` |
+| `batna_auto_showroom` | `merchant123` | معرض باتنة للسيارات | `automotive` | `merchant` | 4 | 20 | `token_batna_auto` |
+| `ghardaia_oasis_carpets` | `merchant123` | زرابي وواحات غرداية التقليدية | `handcrafts` | `merchant` | 3 | 15 | `token_ghardaia_crafts` |
+| `bejaia_coast_tours` | `merchant123` | وكالة بجاية للسياحة البحرية | `tourism` | `merchant` | 5 | 25 | `token_bejaia_tours` |
+| `setif_home_decor` | `merchant123` | سطيف للمفروشات والديكور المنزلي | `ecommerce` | `merchant` | 6 | 30 | `token_setif_decor` |
+| `blida_wellness_clinic` | `merchant123` | عيادة البليدة الطبية والصحية | `clinic` | `merchant` | 4 | 20 | `token_blida_clinic` |
+| `algiers_pro_fitness` | `merchant123` | نادي العاصمة للرشاقة واللياقة | `fitness` | `merchant` | 5 | 25 | `token_algiers_fitness` |
 
 ### Quota Enforcement & Subscription Lifecycle Governance
 The `check_quota(user_id)` function enforces four cascading layers of validation before any video post-production job is accepted:
@@ -617,13 +663,19 @@ The `check_quota(user_id)` function enforces four cascading layers of validation
 3. **Daily Quota Ceiling**: Queries `video_generations` where `date(created_at) = date('now')`. If count reaches or exceeds `daily_quota`, request is rejected with `عذراً، لقد استهلكت كامل حصتك اليومية المحددة بـ N فيديوهات اليوم`.
 4. **Rolling Weekly Quota Ceiling**: Queries `video_generations` where `created_at >= datetime('now', '-7 days')`. If count reaches or exceeds `weekly_quota`, request is rejected with `عذراً، لقد استهلكت كامل حصتك الأسبوعية المحددة بـ N فيديوهات للأيام السبعة الماضية`.
 
-### Voice Audition Sample Preview System
-To allow merchants to audition voices before committing a video render, `GET /api/voices/{voice_id}/sample` serves cached high-fidelity WAV samples (`outputs/voice_samples/{voice_id}.wav`):
-- **Aoede (`ar-XA-Standard-A`)**: Warm luxury interior design pitch.
-- **Charon (`ar-XA-Standard-B`)**: Authoritative commercial investment pitch.
-- **Fenrir (`ar-XA-Standard-C`)**: Modern fast-paced dynamic offer pitch.
-- **Kore (`ar-XA-Standard-D`)**: Elegant tranquil sea-view panoramic pitch.
-- Synthesized on-demand via `GeminiSpeechClient` or mathematical harmonic formant engine, then cached permanently to avoid redundant API or CPU cycles.
+### Voice Audition Reference Monologue Preview System
+To allow merchants to audition voices before committing a video render, `GET /api/voices/{voice_id}/sample` serves high-fidelity reference WAV samples (`outputs/voice_samples/{voice_id}.wav`) generated via the Google Gemini TTS library (`tts/gemini_speech`):
+- **Aoede (`ar-XA-Standard-A`)**: Warm luxury interior design and family apartment walkthrough pitch (769KB, 24kHz PCM).
+- **Charon (`ar-XA-Standard-B`)**: Authoritative commercial investment, penthouse, and corporate pitch (700KB, 24kHz PCM).
+- **Fenrir (`ar-XA-Standard-C`)**: Dynamic modern fast-paced flash offer and high-energy pitch (534KB, 24kHz PCM).
+- **Kore (`ar-XA-Standard-D`)**: Elegant tranquil sea-view panoramic and luxury resort pitch (724KB, 24kHz PCM).
+- Pre-generated via `web.pipeline_bridge.generate_all_voice_reference_samples()` and cached persistently on disk, serving immediate previews to frontend audition audio players.
+
+### Gated Service Execution
+Video production endpoints (`POST /api/upload-and-process`, `POST /api/jobs/create`) are strictly gated by active authentication:
+- Require a valid active session token (`sess_*`) via `session_token` cookie, `Authorization: Bearer <token>`, or `X-Session-Token` header, or a permanent merchant bearer token.
+- Requests without valid authentication immediately return HTTP 401 Unauthorized with Arabic error notification:
+  `{"status": "error", "error": "unauthorized", "message": "غير مصرح به. يتطلب إنتاج الفيديو تسجيل دخول نشط أو رمز مصادقة صالح."}`.
 
 ### Fixed Commercial Overlays & Video Formatting
 The pipeline supports persistent branding overlays and versatile aspect ratio reframing:

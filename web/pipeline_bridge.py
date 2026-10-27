@@ -255,43 +255,64 @@ def resolve_voice_profile(voice_input: Optional[str]) -> Tuple[str, str]:
 
 VOICE_SAMPLE_SCRIPTS: Dict[str, Dict[str, str]] = {
     "ar-XA-Standard-A": {
-        "text": "مرحباً بكم، هذا نموذج تجريبي للصوت الأنثوي الدافئ والطبيعي لإنتاج فيديوهاتكم التسويقية.",
+        "text": "مرحباً بكم، هذا نموذج صوتي أنثوي دافئ وطبيعي مصمم لجولات الاستكشاف والشقق العائلية والديكورات الهادئة، ليمنح إعلاناتكم لمسة راقية وجذابة.",
         "tone": "دافئ وأنيق",
+        "style_prompt": "صوت أنثوي دافئ وطبيعي وواضح، نبرة تسويقية راقية ومريحة",
     },
     "ar-XA-Standard-B": {
-        "text": "أهلاً وسهلاً، هذا استعراض للصوت الذكوري الوقور والرسمي المناسب للعروض التجارية والفخمة.",
+        "text": "أهلاً وسهلاً، استمعوا إلى الصوت الذكوري الوقور والموثوق، الأنسب للفيلات الفخمة والمشاريع التجارية والاستثمارية الكبرى التي تتطلب هيبة وثقة.",
         "tone": "فاخر وهادئ",
+        "style_prompt": "صوت ذكوري وقور ورسمي وقوي، نبرة رجال أعمال واستثمار فخم",
     },
     "ar-XA-Standard-C": {
-        "text": "مرحباً، استمع إلى الصوت الذكوري الحيوي والعصري المصمم للترويج السريع والنشط.",
+        "text": "مرحباً بالجميع! إليكم الصوت الذكوري الحيوي والعصري، الأمثل للعروض الترويجية السريعة والتخفيضات الاستثنائية التي تلفت الانتباه وتصنع التفاعل.",
         "tone": "متحمس وحيوي",
+        "style_prompt": "صوت ذكوري شاب وحيوي وعصري، نبرة إعلانية سريعة ومحفزة",
     },
     "ar-XA-Standard-D": {
-        "text": "أهلاً بكم، تجربة للصوت الأنثوي الراقي والهادئ لإبراز الفخامة والأناقة في إعلاناتكم.",
+        "text": "أهلاً بكم في عالم الفخامة والسكينة، صوت أنثوي راقٍ وهادئ يبرز أرقى الإقامات الشاطئية والمنتجعات الفاخرة بأعلى معايير الأناقة والجمال.",
         "tone": "فاخر وهادئ",
+        "style_prompt": "صوت أنثوي راقٍ وهادئ ومليء بالأناقة، نبرة استرخاء ورفاهية",
     },
 }
 
 
-def get_or_create_voice_sample(voice_id: str) -> Path:
+def get_or_create_voice_sample(voice_id: str, force_regenerate: bool = False) -> Path:
     """
-    Return path to an audio sample file for voice audition preview,
-    generating it via speech synthesizer if not yet cached.
+    Return path to an audio reference sample file for voice audition preview,
+    generating it via TTS speech synthesizer if not yet cached or if force_regenerate is True.
     """
     resolved_id, _ = resolve_voice_profile(voice_id)
-    samples_dir = Path("outputs/voice_samples").resolve()
+    samples_dir = (REPO_ROOT / "outputs" / "voice_samples").resolve()
     samples_dir.mkdir(parents=True, exist_ok=True)
     sample_file = samples_dir / f"{resolved_id}.wav"
 
-    if not sample_file.is_file() or sample_file.stat().st_size == 0:
+    if force_regenerate or not sample_file.is_file() or sample_file.stat().st_size == 0:
         meta = VOICE_SAMPLE_SCRIPTS.get(resolved_id, VOICE_SAMPLE_SCRIPTS["ar-XA-Standard-A"])
         synthesize_narration(
             script_text=meta["text"],
             output_path=sample_file,
             voice=resolved_id,
-            emotional_tone=meta["tone"],
+            style_prompt=meta.get("style_prompt"),
+            emotional_tone=meta.get("tone"),
         )
     return sample_file
+
+
+def generate_all_voice_reference_samples(force: bool = False) -> Dict[str, Path]:
+    """
+    Pre-generate realistic, high-fidelity promotional reference monologue audio clips
+    for all 4 supported standard personas (ar-XA-Standard-A/B/C/D) via the TTS library.
+    """
+    generated: Dict[str, Path] = {}
+    for voice_id in SUPPORTED_VOICE_PROFILES.keys():
+        try:
+            path = get_or_create_voice_sample(voice_id, force_regenerate=force)
+            generated[voice_id] = path
+            logger.info("Voice sample ready for %s: %s (%d bytes)", voice_id, path, path.stat().st_size)
+        except Exception as exc:
+            logger.warning("Failed to generate voice sample for %s: %s", voice_id, exc)
+    return generated
 
 
 def compute_dense_keyframe_timestamps(
