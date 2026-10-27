@@ -84,6 +84,28 @@ def test_index_html_dom_elements():
     assert 'id="keyframesCarousel"' in html_content
     assert 'id="keyframeModal"' in html_content
 
+    # Linguistic Video & Speech Description Prompts
+    assert 'id="visualDescription"' in html_content
+    assert 'name="visual_description"' in html_content
+    assert "وصف ما تريده أن يظهر في الفيديو" in html_content
+    assert 'id="speechDescription"' in html_content
+    assert 'name="speech_description"' in html_content
+    assert "وصف ما تريده أن يُقال في التعليق الصوتي" in html_content
+
+    # Prompt History & Restoration UI
+    assert 'id="promptHistorySelect"' in html_content
+    assert 'id="promptHistoryChips"' in html_content
+    assert 'id="btnSavePrompt"' in html_content
+    assert 'id="btnRefreshPromptHistory"' in html_content
+    assert 'id="btnClearPrompts"' in html_content
+    assert 'id="submitBtn"' in html_content
+
+    # Production Principles Modal
+    assert 'id="principlesModal"' in html_content
+    assert 'id="btnClosePrinciples"' in html_content
+    assert 'id="btnSavePrinciples"' in html_content
+    assert 'id="btnResetPrinciples"' in html_content
+
 
 def test_app_js_dom_references():
     """Verify all document.getElementById calls in app.js match actual IDs in index.html."""
@@ -110,6 +132,35 @@ def test_session_persistence_and_one_click_logic():
     assert "resetSessionAndNewVideo" in js_content
     assert "auto_mode" in js_content
     assert "emotionalTone" in js_content
+
+
+def test_linguistic_prompts_and_sqlite_history_logic():
+    """Verify app.js includes linguistic prompts, SQLite history fetch/restore, and FormData serialization."""
+    js_content = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+    assert "visual_description" in js_content
+    assert "speech_description" in js_content
+    assert "/api/prompts/history" in js_content
+    assert "/api/prompts" in js_content
+    assert "fetchPromptHistory" in js_content
+    assert "renderPromptHistory" in js_content
+    assert "restorePrompt" in js_content
+    assert "saveCurrentPrompt" in js_content
+    assert "formData.append(\"visual_description\"" in js_content
+    assert "formData.append(\"speech_description\"" in js_content
+
+
+def test_principles_modal_mobile_responsive_css():
+    """Verify style.css implements mobile responsive touch scrolling & high-contrast glassmorphism."""
+    css_content = (STATIC_DIR / "style.css").read_text(encoding="utf-8")
+
+    assert "-webkit-overflow-scrolling: touch" in css_content
+    assert "max-height: 88vh" in css_content or "max-height: 90vh" in css_content
+    assert ".modal-principles-card" in css_content
+    assert ".principles-modal-body" in css_content
+    assert "@media (max-width: 480px)" in css_content
+    assert ".linguistic-prompts-sub-section" in css_content
+    assert ".prompt-history-card" in css_content
 
 
 def test_character_mapping_compliance():
