@@ -97,6 +97,31 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - MCP tool schema definition for `annotate_video_cut` (`test_mcp_tool_definition`).
   - MCP JSON-RPC protocol support for `tools/list` and `tools/call` (`test_handle_mcp_call_tools_list`, `test_handle_mcp_call_missing_input_file`).
   - REST endpoint `POST /api/video/annotate` validation and file missing handling (`test_api_video_annotate_validation_error`).
+- [`test_clean_studio_and_session_ui.py`](test_clean_studio_and_session_ui.py): Decluttered studio interface, multi-sector linguistic guidance chips, and session login modal test suite authored by `agy51`:
+  - UI decluttering verifying legacy `#presetSection` and `#customScriptContainer` are hidden from visible DOM (`test_studio_decluttering_legacy_controls_hidden`).
+  - Linguistic guidance inputs (`#visualDescription`, `#speechDescription`) and commercial sector chips (real estate, restaurants, fashion, tech, auto) (`test_linguistic_guidance_inputs_and_merchant_chips_highlighted`).
+  - Session login gateway modal, role toggle tabs, admin default credentials hint (`admin` / `admin123`), and merchant quick login buttons (`test_session_login_gateway_modal_and_default_credentials`).
+  - Frontend auth lifecycle, session token persistence, and gated production check in `app.js` (`test_app_js_session_auth_and_gated_production_logic`).
+  - Voice audition player controls and Web Audio fallback triggers (`test_voice_audition_player_elements_and_logic`).
+  - CSS styling for login modals, soundwave animations, and guidance highlights (`test_css_login_and_soundwave_styles`).
+  - Typography compliance ensuring no forbidden character U+0669 (`test_character_mapping_strict_compliance`).
+  - HTTP index route delivery containing decluttered studio and auth components (`test_http_serving_of_clean_studio_and_login_modal`).
+- [`test_gatekeeper_session_auth_and_tts.py`](test_gatekeeper_session_auth_and_tts.py): Comprehensive gatekeeper integration test suite for session authentication, service gating, clean studio, and TTS voice samples authored by Quality Gatekeeper `agy100`:
+  - UI decluttering verifying `#presetSection` and `#customScriptContainer` are hidden with `display: none !important` (`TestUiDeclutteringAndLinguisticGuidance::test_legacy_controls_hidden_or_removed`).
+  - Presence of multi-sector linguistic guidance inputs and recommendation chips (`TestUiDeclutteringAndLinguisticGuidance::test_multisector_linguistic_guidance_inputs_and_chips`).
+  - Session login modal structure and admin credentials note (`TestUiDeclutteringAndLinguisticGuidance::test_session_login_modal_structure_and_admin_helper`).
+  - CSS decluttering and modal styling rules (`TestUiDeclutteringAndLinguisticGuidance::test_css_decluttering_and_modal_styling`).
+  - Session authentication verifying default admin credentials (`admin` / `admin123`) return session token and `admin` role (`TestSessionAuthenticationAndCredentials::test_admin_default_credentials_login_success`).
+  - Merchant credentials login returning merchant session token (`TestSessionAuthenticationAndCredentials::test_merchant_default_credentials_login_success`).
+  - Rejection of invalid credentials with HTTP 401 (`TestSessionAuthenticationAndCredentials::test_invalid_credentials_rejected`).
+  - Session cookie and Bearer token retrieval via `/api/auth/session` (`TestSessionAuthenticationAndCredentials::test_session_cookie_and_bearer_token_retrieval`).
+  - Session logout endpoint invalidating active sessions (`TestSessionAuthenticationAndCredentials::test_session_logout`).
+  - Gated video production security: strictly rejecting unauthenticated requests to `/api/upload-and-process` and `/api/jobs/create` with HTTP 401 Unauthorized (`TestGatedServiceExecution::test_upload_and_process_unauthenticated_rejected_401`, `test_jobs_create_unauthenticated_rejected_401`).
+  - Successful authorized video production with valid session cookie or Bearer token (`TestGatedServiceExecution::test_upload_and_process_authenticated_session_cookie_accepted`, `test_jobs_create_authenticated_bearer_token_accepted`).
+  - TTS voice catalog integrity verifying all 4 personas (`ar-XA-Standard-A/B/C/D`) with custom scripts (`TestTtsVoiceReferenceSamples::test_voices_catalog_has_all_personas`, `test_voice_sample_scripts_and_no_character_u0669`).
+  - Real TTS reference WAV audio generation (>2.0s duration, 24kHz PCM header) via internal TTS engine (`TestTtsVoiceReferenceSamples::test_get_or_create_voice_sample_generates_valid_wav`).
+  - Audio streaming endpoint `GET /api/voices/{voice_id}/sample` and file caching (`TestTtsVoiceReferenceSamples::test_voice_sample_rest_api_endpoint`, `test_voice_sample_caching`).
+  - Repository-wide typography compliance ensuring zero occurrences of forbidden character U+0669 (`TestCharacterMappingStrictCompliance::test_zero_forbidden_arabic_character_across_repo`).
 - [`test_prompt_descriptions_and_agent.py`](test_prompt_descriptions_and_agent.py): SQLite prompt persistence and linguistic description processing agent test suite authored by `agy11`:
   - SQLite DB auto-seeding with realistic Algerian real estate prompts (`test_prompt_db_preseed`).
   - Prompt persistence, retrieval by ID, and metadata verification (`test_save_and_fetch_prompt`).
@@ -183,6 +208,8 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Session Auth, Gated Services, and Clean Studio sprint verification suite:
+pytest tests/test_gatekeeper_session_auth_and_tts.py tests/test_session_auth_and_tts_samples.py tests/test_clean_studio_and_session_ui.py -v
 # Targeted SaaS Platform Gatekeeper sprint verification suite:
 pytest tests/test_gatekeeper_saas_platform.py tests/test_saas_auth_and_quotas.py tests/test_saas_dashboard_ui.py tests/test_frontend_assets.py -v
 # Prior sprint verifications:
@@ -195,18 +222,22 @@ pytest tests/test_frame_extractor.py -v
 ```
 
 ## Critical Boundaries & Edge Cases
-1. **Multi-Tenant Quota Ceilings:** Merchant accounts are bounded by daily and rolling weekly quota ceilings; any generation exceeding these ceilings returns HTTP 403 Forbidden with actionable Arabic error telemetry.
-2. **Subscription Expiration Enforcement:** Accounts whose `expires_at` timestamp is in the past or whose `is_active` flag is 0 are immediately barred from generation operations.
-3. **Multi-Aspect Ratio Framing:** Commercial video framing supports portrait (9:16), landscape (16:9), and square (1:1) video orientations without distorting source footage.
-4. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
-5. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
-6. **Audio-Visual Lead-In Timing:** Video and background music establish for a configurable lead-in duration (default 1.2s - 1.5s) using FFmpeg `adelay` on narration audio before speech begins, preventing speech from preceding visual cues.
-7. **Dense Multimodal Vision Bounds:** Keyframe extraction dynamically samples 8 to 16 frames uniformly across the video timeline, guaranteeing comprehensive architectural context without exceeding vision API token limits.
-8. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
-9. **SQLite Concurrency & Auto-Seeding:** Prompt and auth databases initialize table structures and populate initial personas with atomic transactions (`timeout=15.0`).
-10. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
-11. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
-12. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
+1. **Service Gating & Session Authentication:** Video production endpoints (`/api/upload-and-process`, `/api/jobs/create`) strictly enforce authentication; requests missing a valid session cookie or Bearer token are rejected immediately with HTTP 401 Unauthorized.
+2. **Default Admin & Merchant Credential Boundaries:** The system auto-provisions master admin (`admin` / `admin123`) and merchant accounts (`merchant123`) using PBKDF2-HMAC-SHA256 password hashing.
+3. **TTS Voice Reference Audio Generation:** Reference audio samples for all 4 supported voices (`ar-XA-Standard-A/B/C/D`) are synthesized with real acoustic formants (>2.0s duration, 24000Hz mono PCM WAV header) and served via `/api/voices/{voice_id}/sample`.
+4. **Studio UI Decluttering & Guidance:** Real estate presets and verbatim script inputs are hidden (`display: none !important; aria-hidden="true"`), prioritizing visual scene intent and spoken tone direction with commercial recommendation chips.
+5. **Multi-Tenant Quota Ceilings:** Merchant accounts are bounded by daily and rolling weekly quota ceilings; any generation exceeding these ceilings returns HTTP 403 Forbidden with actionable Arabic error telemetry.
+6. **Subscription Expiration Enforcement:** Accounts whose `expires_at` timestamp is in the past or whose `is_active` flag is 0 are immediately barred from generation operations.
+7. **Multi-Aspect Ratio Framing:** Commercial video framing supports portrait (9:16), landscape (16:9), and square (1:1) video orientations without distorting source footage.
+8. **Audio Sampling Alignment:** TTS narration is generated at 24000Hz mono PCM, which must be resampled and aligned to 48000Hz stereo AAC during final cut assembly.
+9. **Music Ducking Verification:** Audio track utilizes FFmpeg sidechain compression (`sidechaincompress`) ducking the background music under voiceover bursts, ensuring voiceover clarity while allowing ambient swelling during pauses.
+10. **Audio-Visual Lead-In Timing:** Video and background music establish for a configurable lead-in duration (default 1.2s - 1.5s) using FFmpeg `adelay` on narration audio before speech begins, preventing speech from preceding visual cues.
+11. **Dense Multimodal Vision Bounds:** Keyframe extraction dynamically samples 8 to 16 frames uniformly across the video timeline, guaranteeing comprehensive architectural context without exceeding vision API token limits.
+12. **Keyframe Resolution & Aspect Ratio:** Extracted keyframes maintain original 1280x720 16:9 aspect ratio and are formatted with proper timestamp indices.
+13. **SQLite Concurrency & Auto-Seeding:** Prompt and auth databases initialize table structures and populate initial personas with atomic transactions (`timeout=15.0`).
+14. **Linguistic Intent vs. Verbatim Text:** User prompt descriptions provide thematic guidance and intent; the vision agent weaves them into spoken Darja narrative scripts rather than reciting them literally.
+15. **Mobile Touch & Viewport Boundaries:** The principles modal is bounded to `88vh`-`90vh` viewport heights with `-webkit-overflow-scrolling: touch` ensuring seamless scrolling on small mobile screens (360px-480px) and tablets (768px).
+16. **Clean Merge Integrity:** Incoming feature branches must pass all unit and integration tests prior to gatekeeper clearance.
 
 ## Dependencies & Environment
 - **Python:** 3.12+
