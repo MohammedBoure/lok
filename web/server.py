@@ -121,6 +121,8 @@ def _execute_processing_job(
     voice: str,
     duck_level: float,
     music_track: Optional[str],
+    auto_mode: bool = False,
+    emotional_tone: Optional[str] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -135,6 +137,9 @@ def _execute_processing_job(
             "progress_percent": event.get("progress_percent", 15),
             "message": event.get("message", "جاري المعالجة..."),
             "agent_logs": agent_logs,
+            "auto_mode": auto_mode,
+            "emotional_tone": event.get("emotional_tone") or curr.get("emotional_tone") or emotional_tone,
+            "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -148,6 +153,8 @@ def _execute_processing_job(
             music_track=music_track,
             output_dir=OUTPUTS_DIR / "mobile_cuts",
             progress_callback=_on_progress,
+            auto_mode=auto_mode,
+            emotional_tone=emotional_tone,
         )
         JOBS_STORE[job_id] = summary
         PROGRESS_STORE[job_id] = {
@@ -157,6 +164,9 @@ def _execute_processing_job(
             "progress_percent": 100,
             "message": "اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
             "agent_logs": PROGRESS_STORE.get(job_id, {}).get("agent_logs", []) + ["اكتملت جميع مراحل المعالجة بنجاح."],
+            "auto_mode": summary.get("auto_mode", auto_mode),
+            "emotional_tone": summary.get("emotional_tone"),
+            "inferred_script": summary.get("inferred_script"),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -178,6 +188,7 @@ async def create_job_async(request: Request) -> JSONResponse:
     POST /api/jobs/create
     Asynchronous ingestion endpoint: accepts multipart video upload,
     returns job_id immediately with HTTP 202, and runs processing in background.
+    Supports auto_mode (Gemini Multimodal Vision script & mood inference).
     """
     try:
         form = await request.form()
@@ -216,6 +227,15 @@ async def create_job_async(request: Request) -> JSONResponse:
     except (ValueError, TypeError):
         duck_level = 0.25
 
+    auto_mode_raw = form.get("auto_mode")
+    auto_mode = str(auto_mode_raw).lower() in ("true", "1", "yes", "on") if auto_mode_raw is not None else False
+
+    emotional_tone = form.get("emotional_tone") or form.get("mood")
+    if isinstance(emotional_tone, str):
+        emotional_tone = emotional_tone.strip() or None
+    else:
+        emotional_tone = None
+
     # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
@@ -237,13 +257,16 @@ async def create_job_async(request: Request) -> JSONResponse:
         "progress_percent": 10,
         "message": "تم استلام الفيديو من هاتفك بنجاح. جاري فحص وتحليل الملف...",
         "agent_logs": [f"تم رفع الفيديو '{original_filename}' وحفظه على الخادم."],
+        "auto_mode": auto_mode,
+        "emotional_tone": emotional_tone,
+        "inferred_script": None,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
 
     # Launch background thread
     t = threading.Thread(
         target=_execute_processing_job,
-        args=(job_id, saved_video_path, script, preset, voice, duck_level, music_track),
+        args=(job_id, saved_video_path, script, preset, voice, duck_level, music_track, auto_mode, emotional_tone),
         daemon=True,
     )
     t.start()
@@ -254,6 +277,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             "status": "processing",
             "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
             "status_url": f"/api/status/{job_id}",
+            "auto_mode": auto_mode,
+            "emotional_tone": emotional_tone,
         },
         status_code=202,
     )
@@ -263,6 +288,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
     """
     POST /api/upload-and-process
     Synchronous processing endpoint for direct client calls and automated tests.
+    Supports auto_mode (Gemini Multimodal Vision script & mood inference).
     """
     try:
         form = await request.form()
@@ -301,6 +327,15 @@ async def upload_and_process(request: Request) -> JSONResponse:
     except (ValueError, TypeError):
         duck_level = 0.25
 
+    auto_mode_raw = form.get("auto_mode")
+    auto_mode = str(auto_mode_raw).lower() in ("true", "1", "yes", "on") if auto_mode_raw is not None else False
+
+    emotional_tone = form.get("emotional_tone") or form.get("mood")
+    if isinstance(emotional_tone, str):
+        emotional_tone = emotional_tone.strip() or None
+    else:
+        emotional_tone = None
+
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -321,6 +356,9 @@ async def upload_and_process(request: Request) -> JSONResponse:
         "progress_percent": 15,
         "message": "جاري بدء معالجة الفيديو...",
         "agent_logs": [f"تم رفع الفيديو '{original_filename}'."],
+        "auto_mode": auto_mode,
+        "emotional_tone": emotional_tone,
+        "inferred_script": None,
     }
 
     def _on_progress(event: Dict[str, Any]):
@@ -335,6 +373,9 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "progress_percent": event.get("progress_percent", 15),
             "message": event.get("message", "جاري المعالجة..."),
             "agent_logs": logs,
+            "auto_mode": auto_mode,
+            "emotional_tone": event.get("emotional_tone") or curr.get("emotional_tone") or emotional_tone,
+            "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
         }
 
     try:
@@ -347,6 +388,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             music_track=music_track,
             output_dir=OUTPUTS_DIR / "mobile_cuts",
             progress_callback=_on_progress,
+            auto_mode=auto_mode,
+            emotional_tone=emotional_tone,
         )
         JOBS_STORE[summary["job_id"]] = summary
         PROGRESS_STORE[summary["job_id"]] = {
@@ -355,6 +398,9 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "step": 5,
             "progress_percent": 100,
             "message": "اكتمل الإنتاج بنجاح!",
+            "auto_mode": summary.get("auto_mode", auto_mode),
+            "emotional_tone": summary.get("emotional_tone"),
+            "inferred_script": summary.get("inferred_script"),
             "result": summary,
         }
         return JSONResponse(summary, status_code=200)
@@ -381,7 +427,11 @@ async def get_job_status(request: Request) -> JSONResponse:
     if job_id in PROGRESS_STORE:
         p_data = PROGRESS_STORE[job_id]
         if p_data.get("status") == "completed" and "result" in p_data:
-            return JSONResponse(p_data["result"])
+            res_dict = dict(p_data["result"])
+            res_dict.setdefault("emotional_tone", p_data.get("emotional_tone"))
+            res_dict.setdefault("inferred_script", p_data.get("inferred_script"))
+            res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
+            return JSONResponse(res_dict)
         return JSONResponse(p_data)
 
     # 2. Check in-memory completed store
