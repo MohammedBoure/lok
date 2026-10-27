@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Architecture & SQLite Prompt Storage",
-      "branch": "backend/agy11-sqlite-prompt-descriptions-and-agent",
-      "scope": "Implement SQLite database for storing visual and speech description prompts; expose REST API endpoints (/api/prompts/history, /api/prompts); update vision_analyzer and pipeline_bridge to process linguistic visual descriptions and speech intent descriptions (generating full scripts from descriptions); auto-save to SQLite; commit with author MohammedBoure; signal idle.",
+      "role": "Backend Architecture & Video Audio Pipeline",
+      "branch": "backend/agy11-audio-sync-and-dense-vision-sampling",
+      "scope": "Add visual lead-in delay to narration audio so speech never precedes visuals; increase vision keyframe sampling to 8-16 dense frames across video duration; support and validate selectable voice profiles (ar-XA-Standard-A/B/C/D); pass voice to TTS; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Mobile Front-End & UI/UX Engineering",
-      "branch": "frontend/agy51-mobile-principles-theme-and-prompts-ui",
-      "scope": "Optimize the Principles modal theme for mobile screens (responsive, touch-friendly, scrollable, clear contrast); add Advanced Settings inputs for visual description and speech intent description; add SQLite prompt history retrieval and 1-tap restore UI; commit with author MohammedBoure; signal idle.",
+      "role": "Frontend & UI/UX Streamlining",
+      "branch": "frontend/agy51-voice-selector-and-ui-declutter",
+      "scope": "Declutter and streamline mobile UI by removing unnecessary/redundant elements; add prominent voice selector (male/female Arabic profiles) with localStorage persistence; bind voice to FormData; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
       "role": "Quality Gatekeeper & Pragmatic Testing",
-      "branch": "test/agy100-prompts-sqlite-and-mobile-theme-gatekeeper",
-      "scope": "Write pragmatic automated test suite for SQLite prompt persistence and API endpoints; verify mobile principles styling; evaluate and merge backend and frontend branches into develop; commit with author MohammedBoure; signal idle.",
+      "branch": "test/agy100-audio-sync-and-voice-gatekeeper",
+      "scope": "Verify audio lead-in delay, dense keyframe sampling (8-16 frames), voice profile selection and TTS forwarding, and streamlined mobile interface; merge backend and frontend branches into develop; commit with author MohammedBoure; signal idle.",
       "dependencies": [
-        "backend/agy11-sqlite-prompt-descriptions-and-agent",
-        "frontend/agy51-mobile-principles-theme-and-prompts-ui"
+        "backend/agy11-audio-sync-and-dense-vision-sampling",
+        "frontend/agy51-voice-selector-and-ui-declutter"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
