@@ -3,29 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Architecture & Processing Bridge",
-      "branch": "backend/agy11-auto-vision-script-and-app-runner",
-      "scope": "Implement automated video vision analysis using Gemini Flash to infer Arabic script & emotional tone/mood, pass emotional prompt/tone to Gemini TTS, add auto-generation mode in pipeline_bridge and server API, and create root app.py for 1-command startup",
+      "role": "Backend Architecture & SQLite Prompt Storage",
+      "branch": "backend/agy11-sqlite-prompt-descriptions-and-agent",
+      "scope": "Implement SQLite database for storing visual and speech description prompts; expose REST API endpoints (/api/prompts/history, /api/prompts); update vision_analyzer and pipeline_bridge to process linguistic visual descriptions and speech intent descriptions (generating full scripts from descriptions); auto-save to SQLite; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Mobile Front-End & Real Estate UI/UX",
-      "branch": "frontend/agy51-one-click-ux-and-session-persistence",
-      "scope": "Streamline mobile UI to extreme 1-click simplicity, add session persistence via localStorage so user can leave/return without losing state, restore active job telemetry on reload, and add Reset/New Video control",
+      "role": "Mobile Front-End & UI/UX Engineering",
+      "branch": "frontend/agy51-mobile-principles-theme-and-prompts-ui",
+      "scope": "Optimize the Principles modal theme for mobile screens (responsive, touch-friendly, scrollable, clear contrast); add Advanced Settings inputs for visual description and speech intent description; add SQLite prompt history retrieval and 1-tap restore UI; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Quality Gatekeeper & Integration Testing",
-      "branch": "test/agy100-auto-vision-and-persistence-gatekeeper",
-      "scope": "Write integration tests for auto-vision inference, emotional TTS parameter pass-through, root app.py execution, and session reconnection endpoints, then gatekeeper merge into develop",
-      "dependencies": ["backend/agy11-auto-vision-script-and-app-runner", "frontend/agy51-one-click-ux-and-session-persistence"],
-      "state": "COMPLETED"
+      "role": "Quality Gatekeeper & Pragmatic Testing",
+      "branch": "test/agy100-prompts-sqlite-and-mobile-theme-gatekeeper",
+      "scope": "Write pragmatic automated test suite for SQLite prompt persistence and API endpoints; verify mobile principles styling; evaluate and merge backend and frontend branches into develop; commit with author MohammedBoure; signal idle.",
+      "dependencies": [
+        "backend/agy11-sqlite-prompt-descriptions-and-agent",
+        "frontend/agy51-mobile-principles-theme-and-prompts-ui"
+      ],
+      "state": "PENDING"
     }
   ]
 }
