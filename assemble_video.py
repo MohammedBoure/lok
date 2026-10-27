@@ -184,6 +184,7 @@ def assemble_video(
     duck_release: int = 450,
     ambient_volume: float = 0.45,
     voice_volume: float = 1.0,
+    visual_lead_in: float = 1.2,
 ) -> Dict[str, Any]:
     """
     Assemble the complete synchronized video with ducked ambient synth music.
@@ -238,6 +239,8 @@ def assemble_video(
     # [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
 
     fade_out_start = max(0.0, total_duration - 1.5)
+    lead_in_ms = int(round(visual_lead_in * 1000)) if visual_lead_in > 0 else 0
+    narration_delay = f"adelay={lead_in_ms}|{lead_in_ms}," if lead_in_ms > 0 else ""
 
     filter_complex = f"""
     [0:v]trim=start={fox_start}:end={fox_end},setpts=PTS-STARTPTS,scale=1280:720,format=yuv420p[v0];
@@ -250,7 +253,7 @@ def assemble_video(
     sine=f=440:d={total_duration},volume=0.08[h];
     anoisesrc=d={total_duration}:c=pink:r=48000:a=0.006,lowpass=f=1000[wind];
     [b][m1][m2][m3][h][wind]amix=inputs=6:normalize=0,lowpass=f=2400,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.5,aformat=sample_rates=48000:channel_layouts=stereo[music];
-    [2:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+    [2:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
     [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
     [v_mix]volume={voice_volume}[v_clean];
     [ducked_music]volume={ambient_volume}[m_clean];
@@ -319,10 +322,11 @@ def assemble_video(
         "narration": {
             "audio_path": narration_info["audio_path"],
             "duration_seconds": narration_info["duration_seconds"],
-            "script_text": narration_info["script"],
-            "voice": narration_info["voice"],
-            "model": narration_info["model"],
-            "format": f"{narration_info['codec']} @ {narration_info['sample_rate']}Hz, {narration_info['channels']}ch",
+            "visual_lead_in_seconds": visual_lead_in,
+            "script_text": narration_info.get("script", ""),
+            "voice": narration_info.get("voice", "Aoede"),
+            "model": narration_info.get("model", "Gemini 2.5 Flash TTS"),
+            "format": f"{narration_info.get('codec', 'pcm_s16le')} @ {narration_info.get('sample_rate', 24000)}Hz, {narration_info.get('channels', 1)}ch",
             "pacing_analysis": {
                 "phrase_1": {
                     "text": "Deep in the heart of the golden autumn forest, a young fox cub takes his first adventurous steps into the quiet wild.",

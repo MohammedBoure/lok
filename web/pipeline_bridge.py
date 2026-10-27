@@ -153,14 +153,59 @@ def get_music_tracks_list() -> List[Dict[str, str]]:
     return tracks
 
 
+# ---------------------------------------------------------------------------
+# Supported Real Estate Voice Profiles & Personas
+# ---------------------------------------------------------------------------
+
+SUPPORTED_VOICE_PROFILES: Dict[str, Dict[str, Any]] = {
+    "ar-XA-Standard-A": {
+        "id": "ar-XA-Standard-A",
+        "gender": "female",
+        "label": "أنثى - دافئ وطبيعي (Aoede)",
+        "label_en": "Female, warm & natural (Aoede)",
+        "gemini_voice": "Aoede",
+        "description": "نبرة أنثوية دافئة وعفوية، مثالية لجولات الاستكشاف والشقق العائلية",
+    },
+    "ar-XA-Standard-B": {
+        "id": "ar-XA-Standard-B",
+        "gender": "male",
+        "label": "ذكر - موثوق ورسمي (Charon)",
+        "label_en": "Male, authoritative & confident (Charon)",
+        "gemini_voice": "Charon",
+        "description": "نبرة ذكورية فخمة ورزينة، ممتازة للعقارات التجارية والفلل الراقية",
+    },
+    "ar-XA-Standard-C": {
+        "id": "ar-XA-Standard-C",
+        "gender": "male",
+        "label": "ذكر - حيوي وعصري (Fenrir)",
+        "label_en": "Male, energetic & modern (Fenrir)",
+        "gemini_voice": "Fenrir",
+        "description": "نبرة ذكورية شابة وحيوية، رائعة للعروض الاستثمارية والمحلات النشطة",
+    },
+    "ar-XA-Standard-D": {
+        "id": "ar-XA-Standard-D",
+        "gender": "female",
+        "label": "أنثى - أنيق وهادئ (Kore)",
+        "label_en": "Female, elegant & calm (Kore)",
+        "gemini_voice": "Kore",
+        "description": "نبرة أنثوية هادئة وأنيقة، تناسب الإطلالات البحرية والمنتجعات",
+    },
+}
+
 # Voice mapping from standard web identifiers to supported Gemini TTS voice personas
 VOICE_MAPPING: Dict[str, str] = {
     "ar-xa-standard-a": "Aoede",
     "ar-xa-standard-b": "Charon",
+    "ar-xa-standard-c": "Fenrir",
+    "ar-xa-standard-d": "Kore",
+    "ar-XA-Standard-A": "Aoede",
+    "ar-XA-Standard-B": "Charon",
+    "ar-XA-Standard-C": "Fenrir",
+    "ar-XA-Standard-D": "Kore",
     "aoede": "Aoede",
     "charon": "Charon",
-    "kore": "Kore",
     "fenrir": "Fenrir",
+    "kore": "Kore",
     "puck": "Puck",
     "leda": "Leda",
     "orus": "Orus",
@@ -168,6 +213,63 @@ VOICE_MAPPING: Dict[str, str] = {
     "female": "Aoede",
     "male": "Charon",
 }
+
+
+def get_voice_profiles_list() -> List[Dict[str, Any]]:
+    """Return catalog of supported real estate voice profiles."""
+    return list(SUPPORTED_VOICE_PROFILES.values())
+
+
+def resolve_voice_profile(voice_input: Optional[str]) -> Tuple[str, str]:
+    """
+    Resolve user voice input to a tuple of (standard_voice_id, gemini_persona).
+    Supports standard ar-XA-Standard-A/B/C/D identifiers, Gemini personas, or custom strings.
+    """
+    if not voice_input or not str(voice_input).strip():
+        return ("ar-XA-Standard-A", "Aoede")
+
+    clean = str(voice_input).strip()
+    clean_lower = clean.lower()
+
+    # 1. Match standard profile id
+    for vid, meta in SUPPORTED_VOICE_PROFILES.items():
+        if vid.lower() == clean_lower:
+            return (vid, meta["gemini_voice"])
+
+    # 2. Match alias in VOICE_MAPPING
+    if clean_lower in VOICE_MAPPING:
+        persona = VOICE_MAPPING[clean_lower]
+        for vid, meta in SUPPORTED_VOICE_PROFILES.items():
+            if meta["gemini_voice"].lower() == persona.lower():
+                return (vid, persona)
+        return (clean, persona)
+
+    # 3. Known Gemini persona
+    for persona in ["Aoede", "Charon", "Fenrir", "Kore", "Puck", "Leda", "Orus", "Zephyr"]:
+        if persona.lower() == clean_lower:
+            return (persona, persona)
+
+    # 4. Custom voice string
+    return (clean, clean)
+
+
+def compute_dense_keyframe_timestamps(
+    duration: float,
+    min_count: int = 8,
+    max_count: int = 16,
+) -> List[float]:
+    """
+    Compute 8 to 16 uniformly distributed keyframe sampling timestamps across duration.
+    Samples at representative percentages (e.g., 5%, 15%, 25%, ..., 95%) across video walkthrough.
+    """
+    if duration <= 0.5:
+        return [0.0]
+    target_count = min(max_count, max(min_count, int(round(duration))))
+    if target_count <= 1:
+        return [round(duration * 0.5, 3)]
+    step = 0.90 / (target_count - 1)
+    timestamps = [round(duration * (0.05 + i * step), 3) for i in range(target_count)]
+    return sorted(list(set(timestamps)))
 
 
 # ---------------------------------------------------------------------------
@@ -258,8 +360,7 @@ def synthesize_narration(
     success = False
 
     # Resolve voice name to supported Gemini persona
-    clean_voice_key = voice.strip().lower()
-    gemini_voice = VOICE_MAPPING.get(clean_voice_key, "Aoede")
+    resolved_voice_id, gemini_voice = resolve_voice_profile(voice)
 
     # Check for Gemini API key
     has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
@@ -268,7 +369,8 @@ def synthesize_narration(
         try:
             from tts.gemini_speech.client import GeminiSpeechClient
             logger.info(
-                "Synthesizing speech via GeminiSpeechClient (Voice: %s, tone: %s, style: %s)...",
+                "Synthesizing speech via GeminiSpeechClient (Profile: %s -> Persona: %s, tone: %s, style: %s)...",
+                resolved_voice_id,
                 gemini_voice,
                 emotional_tone,
                 style_prompt,
@@ -301,7 +403,8 @@ def synthesize_narration(
         "audio_path": str(out_file),
         "duration": audio_dur,
         "synthesizer": synthesizer_engine,
-        "voice": gemini_voice,
+        "voice": resolved_voice_id,
+        "gemini_voice": gemini_voice,
         "requested_voice": voice,
         "script": script_text,
         "emotional_tone": emotional_tone,
@@ -345,6 +448,8 @@ def process_mobile_video(
     style_prompt: Optional[str] = None,
     speech_description: Optional[str] = None,
     visual_description: Optional[str] = None,
+    visual_lead_in: float = 1.2,
+    outro_buffer: float = 1.2,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -446,11 +551,11 @@ def process_mobile_video(
         log="[رؤية حاسوبية] 🖼️ استخراج لقطات المعاينة البصرية من الفيديو...",
     )
 
-    logger.info("Job %s: Extracting keyframes to %s...", job_id, keyframes_dest_dir)
-    fps_sample = 0.66 if src_duration > 4.0 else 1.0
+    logger.info("Job %s: Extracting dense keyframes to %s...", job_id, keyframes_dest_dir)
+    dense_timestamps = compute_dense_keyframe_timestamps(src_duration, min_count=8, max_count=16)
     keyframe_extraction = frame_extractor.extract_keyframes(
         video_path=input_path,
-        fps_sample=fps_sample,
+        timestamps=dense_timestamps,
         output_dir=keyframes_dest_dir,
         image_format="jpg",
     )
@@ -461,8 +566,7 @@ def process_mobile_video(
     for f in raw_frames:
         file_path_obj = Path(f["file_path"])
         abs_path = Path(f.get("absolute_file_path", file_path_obj)).resolve()
-        if abs_path.is_file():
-            keyframe_files.append(abs_path)
+        keyframe_files.append(abs_path)
         web_url = f"/outputs/keyframes/mobile_{job_id}/{file_path_obj.name}"
         formatted_keyframes.append({
             "frame_index": f.get("frame_index"),
@@ -496,6 +600,8 @@ def process_mobile_video(
                 preset_hint=preset_id,
                 speech_description=speech_description,
                 visual_description=visual_description,
+                visual_lead_in=visual_lead_in,
+                outro_buffer=outro_buffer,
             )
             inferred_script = vision_result.get("script")
             selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
@@ -511,6 +617,9 @@ def process_mobile_video(
                 preset_hint=preset_id,
                 speech_description=speech_description,
                 visual_description=visual_description,
+                visual_lead_in=visual_lead_in,
+                outro_buffer=outro_buffer,
+                keyframe_count=len(keyframe_files),
             )
             selected_script = fb_res.get("script") or DEFAULT_PROMO_SCRIPT
             inferred_script = selected_script
@@ -523,8 +632,13 @@ def process_mobile_video(
             step=3,
             percent=60,
             message=f"تم استنتاج الوصف التسويقي بنجاح. الحالة الشعورية: {resolved_tone}",
-            log=f"[تحليل شعوري] ✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}]",
-            extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
+            log=f"[تحليل شعوري] ✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}] (تم تحليل {len(keyframe_files)} إطار بدقة)",
+            extra={
+                "emotional_tone": resolved_tone,
+                "inferred_script": inferred_script,
+                "analyzed_frames_count": len(keyframe_files),
+                "visual_lead_in_seconds": visual_lead_in,
+            },
         )
         selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
     else:
@@ -561,14 +675,13 @@ def process_mobile_video(
     music_audio_file = music_meta["file"]
 
     # 4. Synthesize Narration Audio with Emotional Tone Steering
-    clean_voice_key = voice.strip().lower()
-    resolved_voice_name = VOICE_MAPPING.get(clean_voice_key, "Aoede")
+    resolved_voice_id, resolved_voice_name = resolve_voice_profile(voice)
     _notify(
         step=3,
         percent=70,
         message=f"توليد التعليق الصوتي العصبي عبر Gemini TTS ({resolved_voice_name}) بالحالة الشعورية ({resolved_tone})...",
         log="[توليد صوت] 🎙️ توليد التعليق الصوتي العصبي بالحالة الشعورية المحددة...",
-        extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
+        extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script, "voice": resolved_voice_id},
     )
 
     from config.production_principles_manager import build_tts_style_principles
@@ -585,9 +698,13 @@ def process_mobile_video(
     )
     narration_duration = narration_info["duration"]
 
-    # 5. Timeline & Outro Calculations
-    outro_swell = 2.0
-    min_required_duration = round(narration_duration + outro_swell, 2)
+    # 5. Timeline & Outro Calculations (Lead-In Delay & Outro Music Swell)
+    visual_lead_in = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
+    outro_buffer = max(0.5, float(outro_buffer if outro_buffer is not None else 1.2))
+    visual_lead_in_ms = int(round(visual_lead_in * 1000))
+    narration_delay = f"adelay={visual_lead_in_ms}|{visual_lead_in_ms}," if visual_lead_in_ms > 0 else ""
+
+    min_required_duration = round(visual_lead_in + narration_duration + outro_buffer, 2)
     total_duration = max(round(src_duration, 2), min_required_duration)
     total_duration = max(5.0, total_duration)
 
@@ -595,10 +712,12 @@ def process_mobile_video(
     fade_out_start = max(0.5, round(total_duration - 1.8, 2))
 
     logger.info(
-        "Job %s: Timeline - Video: %.2fs, Narration: %.2fs, Total: %.2fs (Pad: %.2fs)",
+        "Job %s: Timeline - Video: %.2fs, Lead-In: %.2fs, Narration: %.2fs, Outro: %.2fs, Total: %.2fs (Pad: %.2fs)",
         job_id,
         src_duration,
+        visual_lead_in,
         narration_duration,
+        outro_buffer,
         total_duration,
         pad_needed,
     )
@@ -641,7 +760,7 @@ def process_mobile_video(
         filter_complex = f"""
         [0:v]{v_graph};
         [2:a]aloop=loop=-1:size=2e+09,atrim=0:{total_duration},afade=t=in:ss=0:d=1.0,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
-        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
         [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
         [v_mix]volume=1.0[v_clean];
         [ducked_music]volume={ambient_volume}[m_clean];
@@ -676,7 +795,7 @@ def process_mobile_video(
         sine=f=349.23:d={total_duration},volume=0.10[f4];
         anoisesrc=d={total_duration}:c=pink:r=48000:a=0.005,lowpass=f=900[warm_air];
         [d3][f3][a3][c4][d4][f4][warm_air]amix=inputs=7:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
-        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
         [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
         [v_mix]volume=1.0[v_clean];
         [ducked_music]volume={ambient_volume}[m_clean];
@@ -788,7 +907,11 @@ def process_mobile_video(
         "style_prompt": resolved_style_prompt,
         "script": selected_script,
         "preset_id": selected_preset,
-        "voice": narration_info["voice"],
+        "voice": resolved_voice_id,
+        "gemini_voice": resolved_voice_name,
+        "visual_lead_in_seconds": visual_lead_in,
+        "outro_buffer_seconds": outro_buffer,
+        "analyzed_frames_count": len(keyframe_files),
         "duck_level": effective_duck_level,
         "synthesizer": narration_info["synthesizer"],
         "narration_audio_url": f"/outputs/mobile_cuts/narration_{job_id}.wav",
@@ -804,6 +927,11 @@ def process_mobile_video(
             "source_video": str(input_path),
             "source_duration": src_duration,
             "source_resolution": f"{src_width}x{src_height}",
+            "visual_lead_in_seconds": visual_lead_in,
+            "outro_buffer_seconds": outro_buffer,
+            "analyzed_frames_count": len(keyframe_files),
+            "voice_profile": resolved_voice_id,
+            "gemini_voice": resolved_voice_name,
             "narration_duration": narration_duration,
             "render_seconds": round(render_seconds, 2),
             "annotations_count": applied_annotations_count,

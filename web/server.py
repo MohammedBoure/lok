@@ -71,7 +71,9 @@ from web.pipeline_bridge import (
     MUSIC_LIBRARY,
     get_music_tracks_list,
     get_presets_list,
+    get_voice_profiles_list,
     process_mobile_video,
+    resolve_voice_profile,
 )
 from web.prompt_db import (
     delete_prompt,
@@ -139,6 +141,7 @@ def _execute_processing_job(
     visual_description: Optional[str] = None,
     speech_description: Optional[str] = None,
     prompt_id: Optional[int] = None,
+    visual_lead_in: float = 1.2,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -156,6 +159,8 @@ def _execute_processing_job(
             "auto_mode": auto_mode,
             "emotional_tone": event.get("emotional_tone") or curr.get("emotional_tone") or emotional_tone,
             "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
+            "voice": voice,
+            "visual_lead_in": visual_lead_in,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -173,6 +178,7 @@ def _execute_processing_job(
             emotional_tone=emotional_tone,
             visual_description=visual_description,
             speech_description=speech_description,
+            visual_lead_in=visual_lead_in,
         )
 
         # Auto-update or save prompt descriptions in SQLite prompt_db
@@ -189,7 +195,7 @@ def _execute_processing_job(
                     speech_description=speech_description or "",
                     inferred_script=summary.get("inferred_script") or summary.get("script"),
                     title=preset or saved_video_path.stem,
-                    metadata={"job_id": job_id, "video": saved_video_path.name},
+                    metadata={"job_id": job_id, "video": saved_video_path.name, "voice": voice, "visual_lead_in": visual_lead_in},
                 )
                 summary["prompt_id"] = new_pid
             except Exception as pe:
@@ -206,6 +212,9 @@ def _execute_processing_job(
             "auto_mode": summary.get("auto_mode", auto_mode),
             "emotional_tone": summary.get("emotional_tone"),
             "inferred_script": summary.get("inferred_script"),
+            "voice": voice,
+            "visual_lead_in": visual_lead_in,
+            "analyzed_frames_count": summary.get("analyzed_frames_count"),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -252,7 +261,14 @@ async def create_job_async(request: Request) -> JSONResponse:
 
     voice = form.get("voice") or "ar-XA-Standard-A"
     if isinstance(voice, str):
-        voice = voice.strip()
+        voice = resolve_voice_profile(voice.strip())[0]
+
+    visual_lead_in_raw = form.get("visual_lead_in") or 1.2
+    try:
+        visual_lead_in = float(visual_lead_in_raw)
+        visual_lead_in = max(0.0, min(5.0, visual_lead_in))
+    except (ValueError, TypeError):
+        visual_lead_in = 1.2
 
     music_track = form.get("music") or form.get("music_track")
     if isinstance(music_track, str):
@@ -311,7 +327,7 @@ async def create_job_async(request: Request) -> JSONResponse:
                 speech_description=speech_description or "",
                 inferred_script=None,
                 title=preset or Path(original_filename).stem,
-                metadata={"job_id": job_id, "video": original_filename},
+                metadata={"job_id": job_id, "video": original_filename, "voice": voice, "visual_lead_in": visual_lead_in},
             )
         except Exception as pe:
             logger.warning("Failed to auto-save prompt in create_job_async: %s", pe)
@@ -328,6 +344,8 @@ async def create_job_async(request: Request) -> JSONResponse:
         "visual_description": visual_description,
         "speech_description": speech_description,
         "prompt_id": prompt_id,
+        "voice": voice,
+        "visual_lead_in": visual_lead_in,
         "inferred_script": None,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -348,6 +366,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             visual_description,
             speech_description,
             prompt_id,
+            visual_lead_in,
         ),
         daemon=True,
     )
@@ -362,6 +381,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             "auto_mode": auto_mode,
             "emotional_tone": emotional_tone,
             "prompt_id": prompt_id,
+            "voice": voice,
+            "visual_lead_in_seconds": visual_lead_in,
         },
         status_code=202,
     )
@@ -396,7 +417,14 @@ async def upload_and_process(request: Request) -> JSONResponse:
 
     voice = form.get("voice") or "ar-XA-Standard-A"
     if isinstance(voice, str):
-        voice = voice.strip()
+        voice = resolve_voice_profile(voice.strip())[0]
+
+    visual_lead_in_raw = form.get("visual_lead_in") or 1.2
+    try:
+        visual_lead_in = float(visual_lead_in_raw)
+        visual_lead_in = max(0.0, min(5.0, visual_lead_in))
+    except (ValueError, TypeError):
+        visual_lead_in = 1.2
 
     music_track = form.get("music") or form.get("music_track")
     if isinstance(music_track, str):
@@ -487,6 +515,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             emotional_tone=emotional_tone,
             visual_description=visual_description,
             speech_description=speech_description,
+            visual_lead_in=visual_lead_in,
         )
 
         # Auto-save prompt descriptions in SQLite prompt_db
@@ -497,7 +526,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
                     speech_description=speech_description or "",
                     inferred_script=summary.get("inferred_script") or summary.get("script"),
                     title=preset or Path(original_filename).stem,
-                    metadata={"job_id": summary.get("job_id"), "video": original_filename},
+                    metadata={"job_id": summary.get("job_id"), "video": original_filename, "voice": voice, "visual_lead_in": visual_lead_in},
                 )
                 summary["prompt_id"] = prompt_id
             except Exception as pe:
@@ -695,6 +724,14 @@ async def delete_prompt_endpoint(request: Request) -> JSONResponse:
     })
 
 
+async def get_voices_endpoint(request: Request) -> JSONResponse:
+    """GET /api/voices - Returns catalog of supported real estate voice profiles."""
+    return JSONResponse({
+        "status": "ok",
+        "voices": get_voice_profiles_list(),
+    })
+
+
 # ---------------------------------------------------------------------------
 # Application Initialization & Static Mounts
 # ---------------------------------------------------------------------------
@@ -702,6 +739,7 @@ async def delete_prompt_endpoint(request: Request) -> JSONResponse:
 routes = [
     Route("/api/health", health_check, methods=["GET"]),
     Route("/api/presets", get_presets, methods=["GET"]),
+    Route("/api/voices", get_voices_endpoint, methods=["GET"]),
     Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
     Route("/api/principles", get_principles_endpoint, methods=["GET"]),
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),

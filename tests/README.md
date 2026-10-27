@@ -105,6 +105,17 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - REST endpoints `GET /api/prompts/history`, `POST /api/prompts`, and `DELETE /api/prompts/{id}` (`test_api_prompts_history`, `test_api_prompts_post_and_delete`).
   - Automated prompt recording during asynchronous job processing (`test_api_jobs_create_with_descriptions`).
   - Linguistic intent transformation and lower-third badge extraction (`test_smart_fallback_linguistic_speech_intent`, `test_smart_fallback_visual_intent_badges`).
+- [`test_audio_sync_and_dense_vision.py`](test_audio_sync_and_dense_vision.py): Audio-visual lead-in synchronization, dense keyframe sampling, and Algerian voice profiles catalog test suite authored by `agy11`:
+  - Real estate voice profiles catalog and Gemini persona mapping (`test_supported_voice_profiles_catalog`).
+  - Voice profile resolution across standard aliases and custom personas (`test_resolve_voice_profile`).
+  - REST API endpoint `GET /api/voices` returning structured voice profiles (`test_get_voices_rest_endpoint`).
+  - Voice persona routing in `synthesize_narration` to GeminiSpeechClient (`test_synthesize_narration_voice_routing`).
+  - Dense keyframe extraction timestamp distribution (8-16 frames uniformly sampled) across video durations (`test_compute_dense_keyframe_timestamps_distribution`).
+  - Speaking window calculation with visual lead-in and outro swell buffer in vision analyzer (`test_vision_dense_sampling_and_speaking_window`).
+  - Dense multimodal keyframe subsampling capped at 16 frames (`test_infer_video_script_dense_subsampling`).
+  - FFmpeg `adelay` filter verification in `assemble_video.py` ensuring voiceover starts after visual establishing (`test_assemble_video_adelay_filter`).
+  - Full pipeline bridge lead-in audio delay, outro music swell, and dense frame telemetry (`test_pipeline_bridge_adelay_audio_sync`).
+  - Asynchronous video ingestion with custom voice and lead-in duration via `POST /api/jobs/create` (`test_api_jobs_create_with_voice_and_lead_in`).
 - [`test_gatekeeper_prompts_and_mobile_theme.py`](test_gatekeeper_prompts_and_mobile_theme.py): Comprehensive integration test suite authored by Quality Gatekeeper `agy100`:
   - Pragmatic SQLite CRUD operations and auto-seeding (`test_sqlite_auto_seed`, `test_sqlite_save_and_get_prompt`, `test_sqlite_get_recent_prompts_ordering`, `test_sqlite_update_prompt_script`, `test_sqlite_delete_prompt`).
   - REST API endpoint contracts and HTTP lifecycle (`test_api_prompts_history_endpoint`, `test_api_prompts_crud_lifecycle`).

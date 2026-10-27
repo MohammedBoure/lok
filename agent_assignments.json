@@ -7,7 +7,7 @@
       "branch": "backend/agy11-audio-sync-and-dense-vision-sampling",
       "scope": "Add visual lead-in delay to narration audio so speech never precedes visuals; increase vision keyframe sampling to 8-16 dense frames across video duration; support and validate selectable voice profiles (ar-XA-Standard-A/B/C/D); pass voice to TTS; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-voice-selector-and-ui-declutter",
       "scope": "Declutter and streamline mobile UI by removing unnecessary/redundant elements; add prominent voice selector (male/female Arabic profiles) with localStorage persistence; bind voice to FormData; commit with author MohammedBoure; signal idle.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",

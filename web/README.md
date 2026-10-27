@@ -74,6 +74,49 @@ Returns all available Algerian real estate presets.
 Returns all available open-source royalty-free background music tracks.
 - **Response**: JSON array of track objects containing `id`, `title`, `title_ar`, `style`, and `license`.
 
+### `GET /api/voices`
+Returns catalog of supported Algerian real estate voice profiles.
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "voices": [
+      {
+        "id": "ar-XA-Standard-A",
+        "name_ar": "صوت أنثوي دافئ وطبيعي (Aoede)",
+        "name_fr": "Voix féminine chaleureuse et naturelle",
+        "gender": "female",
+        "persona": "Aoede",
+        "recommended_for": "شقق فاخرة وديكورات هادئة"
+      },
+      {
+        "id": "ar-XA-Standard-B",
+        "name_ar": "صوت رجالي وقور وواثق (Charon)",
+        "name_fr": "Voix masculine posée et confiante",
+        "gender": "male",
+        "persona": "Charon",
+        "recommended_for": "فيلات فخمة وعقارات تجارية واستثمارية"
+      },
+      {
+        "id": "ar-XA-Standard-C",
+        "name_ar": "صوت رجالي حيوي وعصري (Fenrir)",
+        "name_fr": "Voix masculine dynamique et moderne",
+        "gender": "male",
+        "persona": "Fenrir",
+        "recommended_for": "عروض ترويجية سريعة وشقق شبابية"
+      },
+      {
+        "id": "ar-XA-Standard-D",
+        "name_ar": "صوت أنثوي راقٍ وهادئ (Kore)",
+        "name_fr": "Voix féminine élégante et calme",
+        "gender": "female",
+        "persona": "Kore",
+        "recommended_for": "إقامات شاطئية وبنتهاوس فخم"
+      }
+    ]
+  }
+  ```
+
 ### `GET /api/principles`
 Returns currently active production principles (voice, narrative, visual/music, and video annotations).
 - **Response (200 OK)**: JSON object containing active principles schema.
@@ -147,6 +190,8 @@ Asynchronous upload and processing endpoint. Accepts video and options, auto-sav
   - `visual_description` (*Text, optional*): Visual intent guidance of what appears in footage (auto-saved to SQLite).
   - `speech_description` (*Text, optional*): Linguistic speech guidance for voiceover intent (auto-saved to SQLite).
   - `auto_mode` (*Boolean/Text, optional*): Enable AI Multimodal Vision inference.
+  - `voice` (*Text, optional*): Voice profile (`ar-XA-Standard-A`, `ar-XA-Standard-B`, `ar-XA-Standard-C`, `ar-XA-Standard-D`, or custom string; default: `ar-XA-Standard-A`).
+  - `visual_lead_in` (*Float, optional*): Establishing visual lead-in delay in seconds (default: `1.2`, range: `0.0` - `5.0`).
 - **Response (202 Accepted)**:
   ```json
   {
@@ -154,7 +199,9 @@ Asynchronous upload and processing endpoint. Accepts video and options, auto-sav
     "status": "processing",
     "message": "بدأ وكيل الذكاء الاصطناعي معالجة الفيديو بنجاح.",
     "status_url": "/api/status/20261027_085000_1a2b3c",
-    "prompt_id": 5
+    "prompt_id": 5,
+    "voice": "ar-XA-Standard-A",
+    "visual_lead_in_seconds": 1.2
   }
   ```
 
@@ -169,10 +216,11 @@ Multipart form upload endpoint for synchronous video processing.
   - `script` (*Text, optional*): Custom Arabic or French narration script (literal text).
   - `preset` or `preset_id` (*Text, optional*): Preset identifier (`algiers_f4_luxury`, etc.).
   - `emotional_tone` (*Text, optional*): Explicit emotional tone steering (e.g. "فاخر وهادئ", "متحمس وحيوي", "دافئ وأنيق").
-  - `voice` (*Text, optional*): Voice profile (default: `ar-XA-Standard-A`).
+  - `voice` (*Text, optional*): Voice profile (`ar-XA-Standard-A`, `ar-XA-Standard-B`, `ar-XA-Standard-C`, `ar-XA-Standard-D`, or custom; default: `ar-XA-Standard-A`).
+  - `visual_lead_in` (*Float, optional*): Visual establishing lead-in delay in seconds before speech starts (default: `1.2`).
   - `duck_level` (*Float, optional*): Ambient music volume ratio during speech (default: `0.25`).
   - `music` or `music_track` (*Text, optional*): Music identifier (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
-- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `prompt_id`, `visual_description`, `speech_description`, `video_url`, `job_id`, `keyframes`, and `duration`.
+- **Response (200 OK)**: Includes `auto_mode`, `emotional_tone`, `inferred_script`, `prompt_id`, `visual_description`, `speech_description`, `video_url`, `job_id`, `keyframes`, `analyzed_frames_count`, `visual_lead_in_seconds`, `voice`, and `duration`.
 - **Response (200 OK)**:
   ```json
   {
@@ -323,3 +371,43 @@ When `outputs/prompts.db` is initialized, it automatically seeds 3 realistic Alg
 - The agent expands this guidance into a natural, spoken marketing script matching the visual camera walkthrough and target duration (~2.2 words/sec) in authentic **Algerian Darja** (`الدارجة الجزائرية`).
 - When `visual_description` is provided, the agent uses it to guide architectural focus, visual scene interpretation, and dynamically generates on-screen lower-third subtitle badges for the highlighted areas.
 - **Graceful Fallback**: If Gemini Vision API is unreachable or offline, `_get_smart_fallback` synthesizes an Algerian Darja walkthrough script derived from `speech_description` and extracts lower-third badges directly from `visual_description`.
+
+---
+
+## 10. Audio-Visual Synchronization, Dense Vision Sampling & Voice Profiles
+
+### Audio-Visual Synchronization (Audio Must Not Precede Visuals)
+In traditional video production, audio starting at `0.0s` rushes ahead of video establishing shots. To ensure professional broadcast pacing:
+1. **Establishing Visual Lead-In Delay (`visual_lead_in = 1.2s`)**:
+   - Default: `1.2` seconds (configurable between `0.0s` and `5.0s`, recommended `1.0s` to `1.5s`).
+   - Mixed into final video via FFmpeg audio filter `adelay={lead_in_ms}|{lead_in_ms}` applied to the narration stream (`[2:a]` or `[1:a]`).
+   - Ambient background music begins immediately at `0.0s`, establishing the luxury atmosphere before the narrator begins speaking at `1.2s`.
+   - Sidechain ducking is delayed synchronously with the voiceover, ensuring background music remains at full volume during the establishing shot.
+2. **Outro Swell Buffer (`outro_buffer = 1.2s`)**:
+   - Leaves an intentional buffer after speech finishes so background music swells back to full volume before the video fades out.
+3. **Net Speaking Duration & Word Pacing**:
+   - The multimodal script generation engine calculates net available speaking time:
+     $$\text{speech\_duration} = \max(2.0, \text{total\_duration} - \text{visual\_lead\_in} - \text{outro\_buffer})$$
+   - Target script word count is calculated strictly from this window at ~2.2 words/sec:
+     $$\text{target\_words} = \max(6, \min(65, \text{int}(\text{speech\_duration} \times 2.2)))$$
+   - This mathematical guarantee prevents voiceover from ever rushing ahead of scenes or exceeding video length.
+
+### Dense Multimodal Keyframe Extraction (8-16 Keyframes)
+To ensure the AI vision agent thoroughly inspects every room and transition in the property:
+- **Uniform Distribution Sampling**: `compute_dense_keyframe_timestamps` calculates 8 to 16 uniformly distributed timestamps across the full video duration (e.g., at 5%, 15%, 25%, ..., 95% of duration).
+- **Scene Cut Merging**: Uniform samples are merged with detected scene transitions from `frame_extractor.py`.
+- **Multimodal Delivery**: All extracted keyframes (up to 16 images) are passed directly to Gemini Multimodal Vision (`vision_analyzer.py`), enabling granular scene-by-scene property analysis.
+- **Telemetry Reporting**: The exact number of analyzed frames is tracked in `analyzed_frames_count` and reported in job status, execution summary, and API telemetry.
+
+### Algerian Real Estate Voice Profiles Catalog
+Four dedicated voices optimized for Algerian real estate marketing are exposed via `GET /api/voices`:
+
+| Voice ID | Gender | Persona | Recommended Use Case |
+| :--- | :--- | :--- | :--- |
+| **`ar-XA-Standard-A`** | Female | Aoede | Warm, natural, and inviting for luxury apartments and interior design walkthroughs. |
+| **`ar-XA-Standard-B`** | Male | Charon | Deep, authoritative, and confident for luxury villas, commercial developments, and investments. |
+| **`ar-XA-Standard-C`** | Male | Fenrir | Energetic, modern, and engaging for quick promotional reels, student housing, and vibrant neighborhoods. |
+| **`ar-XA-Standard-D`** | Female | Kore | Elegant, tranquil, and prestigious for high-end beachfront residences and penthouses. |
+
+Custom voice strings (e.g., `Puck`, `Zephyr`, `ar-XA-Wavenet-A`) are automatically supported and routed to `GeminiSpeechClient` or the local synthesizer.
+

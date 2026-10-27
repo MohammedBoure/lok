@@ -98,6 +98,9 @@ def _get_smart_fallback(
     preset_hint: Optional[str] = None,
     speech_description: Optional[str] = None,
     visual_description: Optional[str] = None,
+    visual_lead_in: float = 1.2,
+    outro_buffer: float = 1.2,
+    keyframe_count: int = 0,
 ) -> Dict[str, Any]:
     """Provide intelligent fallback when Gemini Vision API is offline or unreachable."""
     principles = load_principles()
@@ -111,6 +114,9 @@ def _get_smart_fallback(
         or perspective == "videographer_walkthrough"
         or any(k in custom_text for k in ["جزائر", "دارجة", "يصور", "يتكلم", "جولة", "أنا"])
     )
+
+    # Net speaking duration accounting for visual establishing and outro swell
+    speech_duration = max(2.0, round(duration - visual_lead_in - outro_buffer, 2))
 
     # Base profile selection from hint or visual/speech description keywords
     desc_for_mood = f"{visual_description or ''} {speech_description or ''}".lower()
@@ -159,6 +165,9 @@ def _get_smart_fallback(
         "recommended_music": profile["recommended_music"],
         "highlights": highlights,
         "engine": "smart_vision_fallback",
+        "analyzed_frames_count": keyframe_count,
+        "visual_lead_in_seconds": visual_lead_in,
+        "speech_duration": speech_duration,
     }
 
 
@@ -172,6 +181,8 @@ def infer_video_script_and_mood(
     preset_hint: Optional[str] = None,
     speech_description: Optional[str] = None,
     visual_description: Optional[str] = None,
+    visual_lead_in: float = 1.2,
+    outro_buffer: float = 1.2,
 ) -> Dict[str, Any]:
     """
     Analyze extracted video keyframes via Gemini Multimodal Vision API to infer:
@@ -185,9 +196,12 @@ def infer_video_script_and_mood(
         preset_hint: Optional preset ID hint to guide architectural context if available.
         speech_description: Optional linguistic speech intent guidance ("وصف لغوي لما تريده أن يقال وليس نصاً حرفياً").
         visual_description: Optional linguistic visual intent description ("وصف ما يظهر في الفيديو وتوجيه التركيز البصري").
+        visual_lead_in: Visual establishing lead-in delay in seconds (default 1.2s).
+        outro_buffer: Outro ambient swell buffer in seconds (default 1.2s).
 
     Returns:
-        Dict with keys 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'engine'.
+        Dict with keys 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'engine',
+        'analyzed_frames_count', 'visual_lead_in_seconds', 'speech_duration'.
     """
     _ensure_env_loaded()
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
@@ -205,18 +219,23 @@ def infer_video_script_and_mood(
             preset_hint=preset_hint,
             speech_description=speech_description,
             visual_description=visual_description,
+            visual_lead_in=visual_lead_in,
+            outro_buffer=outro_buffer,
+            keyframe_count=min(16, len(valid_keyframe_files)),
         )
 
-    # Subsample up to 4 representative keyframes evenly
+    # Dense keyframe sampling: pass up to 16 representative frames evenly
     selected_frames: List[Path] = []
-    if len(valid_keyframe_files) <= 4:
+    if len(valid_keyframe_files) <= 16:
         selected_frames = valid_keyframe_files
     else:
-        step = max(1, len(valid_keyframe_files) // 4)
-        selected_frames = [valid_keyframe_files[i] for i in range(0, len(valid_keyframe_files), step)][:4]
+        step = len(valid_keyframe_files) / 16.0
+        selected_frames = [valid_keyframe_files[int(i * step)] for i in range(16)]
 
-    # Target words count (~2.2 words per second in Arabic)
-    target_words = max(10, min(65, int(video_duration * 2.2)))
+    # Compute target word count strictly from net speaking window (speech_duration)
+    # allowing visual_lead_in for establishing visuals and outro_buffer for music swell
+    speech_duration = max(2.0, round(video_duration - visual_lead_in - outro_buffer, 2))
+    target_words = max(6, min(65, int(speech_duration * 2.2)))
 
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
@@ -230,7 +249,7 @@ def infer_video_script_and_mood(
             f"User Linguistic Speech Guidance: \"{speech_description.strip()}\"\n"
             f"CRITICAL INSTRUCTION: Treat this description strictly as linguistic intent and thematic guidance, NOT literal text. "
             f"Orchestrate and expand this intent into a complete, natural spoken marketing script that coordinates with the visual "
-            f"camera movement across the {video_duration:.1f}s timeline, strictly conforming to the Algerian Darja dialect and "
+            f"camera movement across the net speaking duration ({speech_duration:.1f}s net speaking window out of {video_duration:.1f}s total video), strictly conforming to the Algerian Darja dialect and "
             f"walkthrough perspective rules set in the Production Principles below.\n"
         )
 
@@ -244,16 +263,17 @@ def infer_video_script_and_mood(
 
     prompt = (
         f"You are an expert Algerian real estate marketing director and creative videographer.\n"
-        f"Analyze these {len(selected_frames)} representative visual keyframes extracted from a real estate smartphone video recording (duration: {video_duration:.1f}s).\n\n"
+        f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the entire walkthrough from a real estate smartphone video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
         f"{intent_guidance}\n"
         f"{principles_section}\n\n"
-        f"Based on what you visually see in the architecture, interior, lighting, finishes, and the user's linguistic guidance above, return a JSON response with:\n"
+        f"Based on what you visually see across all rooms, architecture, interior, lighting, finishes, and the user's linguistic guidance above, return a JSON response with:\n"
         f"1. 'script': The marketing voiceover script describing this specific property in chronological visual order as the camera moves through the space.\n"
         f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
         f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
         f"If linguistic speech intent guidance is provided above, organically transform its intent into the spoken script. "
-        f"The script duration MUST match the video length: approximately {target_words} words (around {video_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
+        f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
+        f"The script duration MUST strictly match the net speaking window: approximately {target_words} words (around {speech_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
         f"2. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
         f"3. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
         f"4. 'recommended_music': The single best matching music track ID from this exact list:\n"
@@ -337,6 +357,9 @@ def infer_video_script_and_mood(
                             "highlights": parsed.get("highlights", []),
                             "engine": "gemini_multimodal_vision",
                             "model_used": model_name,
+                            "analyzed_frames_count": len(selected_frames),
+                            "visual_lead_in_seconds": visual_lead_in,
+                            "speech_duration": speech_duration,
                         }
 
             else:
@@ -352,4 +375,7 @@ def infer_video_script_and_mood(
         preset_hint=preset_hint,
         speech_description=speech_description,
         visual_description=visual_description,
+        visual_lead_in=visual_lead_in,
+        outro_buffer=outro_buffer,
+        keyframe_count=len(selected_frames),
     )
