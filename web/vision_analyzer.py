@@ -19,6 +19,11 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from config.production_principles_manager import (
+    build_vision_prompt_principles,
+    load_principles,
+)
+
 logger = logging.getLogger("vision_analyzer")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s")
@@ -62,24 +67,28 @@ FALLBACK_PROFILES = [
         "emotional_tone": "فاخر وهادئ",
         "emotional_prompt": "Warm, luxurious, prestigious, and calm real estate narration",
         "recommended_music": "luxury_piano",
+        "highlights": ["شقة فاخرة عالية التشطيب", "موقع استراتيجي هادئ"],
     },
     {
         "script": "فيلا عصرية بواجهة خلابة وتصميم معماري رفيع يلبي أعلى معايير الرفاهية والراحة لجميع أفراد عائلتك.",
         "emotional_tone": "دافئ وأنيق",
         "emotional_prompt": "Warm, elegant, inviting and serene acoustic cadence",
         "recommended_music": "ambient_meditation",
+        "highlights": ["فيلا عصرية راقية", "تصميم معماري فاخر"],
     },
     {
         "script": "فرصة استثمارية واعدة في موقع تجاري حيوي واستراتيجي، واجهة ممتازة تضمن لعملك النجاح والازدهار.",
         "emotional_tone": "متحمس وحيوي",
         "emotional_prompt": "Energetic, bright, confident and dynamic commercial presentation",
         "recommended_music": "acoustic_guitar",
+        "highlights": ["فرصة استثمارية واعدة", "موقع تجاري حيوي"],
     },
     {
         "script": "عقار متميز ومجهز بالكامل بأحدث التجهيزات العصرية، يجمع بين الأمان والراحة العائلية الفائقة.",
         "emotional_tone": "هادئ ومطمئن",
         "emotional_prompt": "Gentle, reassuring, cozy and friendly familial tone",
         "recommended_music": "acoustic_guitar",
+        "highlights": ["تجهيزات عصرية متكاملة", "أمان وراحة عائلية"],
     },
 ]
 
@@ -103,6 +112,7 @@ def _get_smart_fallback(
         "emotional_tone": profile["emotional_tone"],
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
+        "highlights": profile.get("highlights", []),
         "engine": "smart_vision_fallback",
     }
 
@@ -157,9 +167,12 @@ def infer_video_script_and_mood(
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
 
+    principles_section = build_vision_prompt_principles()
+
     prompt = (
         f"You are an expert Algerian real estate marketing director and creative videographer.\n"
         f"Analyze these {len(selected_frames)} representative visual keyframes extracted from a real estate smartphone video recording (duration: {video_duration:.1f}s).\n\n"
+        f"{principles_section}\n\n"
         f"Based on what you visually see in the architecture, interior, lighting, and finishes, return a JSON response with:\n"
         f"1. 'script': An engaging, natural, professional Arabic marketing voiceover script describing this specific property. "
         f"The script duration MUST match the video length: approximately {target_words} Arabic words (around {video_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
@@ -168,8 +181,9 @@ def infer_video_script_and_mood(
         f"4. 'recommended_music': The single best matching music track ID from this exact list:\n"
         f"   - 'luxury_piano' (best for luxury apartments, penthouses, high-end architecture, elegant finishes)\n"
         f"   - 'acoustic_guitar' (best for cozy family homes, bright apartments, cheerful or modern spaces)\n"
-        f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n\n"
-        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music'."
+        f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
+        f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']).\n\n"
+        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights'."
     )
     parts.append({"text": prompt})
 
@@ -241,6 +255,7 @@ def infer_video_script_and_mood(
                             "emotional_tone": emotional_tone,
                             "emotional_prompt": emotional_prompt,
                             "recommended_music": recommended_music,
+                            "highlights": parsed.get("highlights", []),
                             "engine": "gemini_multimodal_vision",
                             "model_used": model_name,
                         }

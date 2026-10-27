@@ -162,6 +162,31 @@
     btnModalDownload: document.getElementById("btnModalDownload"),
     btnModalClose: document.getElementById("btnModalClose"),
     appToast: document.getElementById("appToast"),
+
+    // Production Principles Elements & Logs Telemetry
+    btnOpenPrinciples: document.getElementById("btnOpenPrinciples"),
+    btnClosePrinciples: document.getElementById("btnClosePrinciples"),
+    principlesModal: document.getElementById("principlesModal"),
+    principlesForm: document.getElementById("principlesForm"),
+    btnSavePrinciples: document.getElementById("btnSavePrinciples"),
+    btnResetPrinciples: document.getElementById("btnResetPrinciples"),
+    principlesSaveStatus: document.getElementById("principlesSaveStatus"),
+    btnCopyLogs: document.getElementById("btnCopyLogs"),
+    chkAutoScroll: document.getElementById("chkAutoScroll"),
+
+    // Principle Form Controls
+    principleVoiceGuidelines: document.getElementById("principleVoiceGuidelines"),
+    principleVoicePacing: document.getElementById("principleVoicePacing"),
+    principleVoicePronunciation: document.getElementById("principleVoicePronunciation"),
+    principleVoiceToneBias: document.getElementById("principleVoiceToneBias"),
+    principleNarrativeGuidelines: document.getElementById("principleNarrativeGuidelines"),
+    principleNarrativeAlignment: document.getElementById("principleNarrativeAlignment"),
+    principleNarrativeAudience: document.getElementById("principleNarrativeAudience"),
+    principleVisualDucking: document.getElementById("principleVisualDucking"),
+    principleVisualTheme: document.getElementById("principleVisualTheme"),
+    principleEnableAutoAnnotations: document.getElementById("principleEnableAutoAnnotations"),
+    principleAnnotationStyle: document.getElementById("principleAnnotationStyle"),
+    principleAnnotationPosition: document.getElementById("principleAnnotationPosition"),
   };
 
   // ---------------------------------------------------------------------------
@@ -645,11 +670,41 @@
     }
   }
 
+  function formatLogTimestamp() {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+  }
+
+  function parseLogEntry(rawText) {
+    const timeStr = formatLogTimestamp();
+    let tagStr = "[وكيل]";
+    let tagClass = "tag-init";
+    let body = rawText;
+
+    // Detect bracketed category tag e.g. [فحص الوسائط]
+    const bracketMatch = rawText.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (bracketMatch) {
+      tagStr = `[${bracketMatch[1]}]`;
+      body = bracketMatch[2];
+      const t = bracketMatch[1];
+      if (t.includes("فحص") || t.includes("وسائط")) tagClass = "tag-media";
+      else if (t.includes("رؤية") || t.includes("معمار")) tagClass = "tag-vision";
+      else if (t.includes("شعور") || t.includes("تحليل")) tagClass = "tag-mood";
+      else if (t.includes("صوت") || t.includes("tts")) tagClass = "tag-tts";
+      else if (t.includes("مكساج") || t.includes("موسيقى")) tagClass = "tag-mix";
+      else if (t.includes("ملصق") || t.includes("كتاب")) tagClass = "tag-overlay";
+      else if (t.includes("إخراج") || t.includes("نهائي")) tagClass = "tag-render";
+    } else if (rawText.includes("●")) {
+      body = rawText.replace(/^●\s*/, "");
+    }
+    return { timeStr, tagStr, tagClass, body };
+  }
+
   function updateAIAgentStatus(step, percent, message, logs) {
     setStepperState(step, percent);
 
     if (dom.aiStepBadge) {
-      dom.aiStepBadge.textContent = `المرحلة ${Math.min(4, step)} من 4`;
+      dom.aiStepBadge.textContent = `المرحلة ${Math.min(5, step)} من 5`;
     }
 
     if (dom.aiAgentMessage && message) {
@@ -659,12 +714,31 @@
     if (dom.aiAgentLogs && Array.isArray(logs) && logs.length > 0) {
       dom.aiAgentLogs.innerHTML = "";
       logs.forEach((logText, idx) => {
-        const div = document.createElement("div");
-        div.className = idx === logs.length - 1 ? "log-entry highlight" : "log-entry";
-        div.textContent = `● ${logText}`;
-        dom.aiAgentLogs.appendChild(div);
+        const parsed = parseLogEntry(logText);
+        const entryDiv = document.createElement("div");
+        entryDiv.className = idx === logs.length - 1 ? "log-entry highlight" : "log-entry";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "log-time";
+        timeSpan.textContent = parsed.timeStr;
+
+        const tagSpan = document.createElement("span");
+        tagSpan.className = `log-tag ${parsed.tagClass}`;
+        tagSpan.textContent = parsed.tagStr;
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "log-text";
+        textSpan.textContent = parsed.body;
+
+        entryDiv.appendChild(timeSpan);
+        entryDiv.appendChild(tagSpan);
+        entryDiv.appendChild(textSpan);
+        dom.aiAgentLogs.appendChild(entryDiv);
       });
-      dom.aiAgentLogs.scrollTop = dom.aiAgentLogs.scrollHeight;
+
+      if (!dom.chkAutoScroll || dom.chkAutoScroll.checked) {
+        dom.aiAgentLogs.scrollTop = dom.aiAgentLogs.scrollHeight;
+      }
     }
   }
 
@@ -1197,6 +1271,167 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Production Principles Manager & Live Logs Telemetry
+  // ---------------------------------------------------------------------------
+  async function loadPrinciplesFromAPI() {
+    try {
+      const resp = await fetch("/api/principles");
+      if (!resp.ok) return;
+      const data = await resp.json();
+      populatePrinciplesForm(data);
+    } catch (e) {
+      console.warn("Could not load production principles:", e);
+    }
+  }
+
+  function populatePrinciplesForm(data) {
+    if (!data) return;
+    const vp = data.voice_principles || {};
+    const np = data.narrative_principles || {};
+    const vis = data.visual_principles || {};
+    const ap = data.annotation_principles || {};
+
+    if (dom.principleVoiceGuidelines) dom.principleVoiceGuidelines.value = vp.guidelines || "";
+    if (dom.principleVoicePacing) dom.principleVoicePacing.value = vp.pacing || "";
+    if (dom.principleVoicePronunciation) dom.principleVoicePronunciation.value = vp.pronunciation || "";
+    if (dom.principleVoiceToneBias) dom.principleVoiceToneBias.value = vp.active_tone_bias || "فاخر وهادئ";
+
+    if (dom.principleNarrativeGuidelines) dom.principleNarrativeGuidelines.value = np.guidelines || "";
+    if (dom.principleNarrativeAlignment) dom.principleNarrativeAlignment.value = np.length_alignment || "";
+    if (dom.principleNarrativeAudience) dom.principleNarrativeAudience.value = np.target_audience || "";
+
+    if (dom.principleVisualDucking) dom.principleVisualDucking.value = String(vis.smart_ducking_volume || "0.15");
+    if (dom.principleVisualTheme) dom.principleVisualTheme.value = vis.selected_music_theme || "luxury_piano";
+
+    if (dom.principleEnableAutoAnnotations) dom.principleEnableAutoAnnotations.checked = ap.enable_auto_annotations !== false;
+    if (dom.principleAnnotationStyle) dom.principleAnnotationStyle.value = ap.font_style || "luxury_gold";
+    if (dom.principleAnnotationPosition) dom.principleAnnotationPosition.value = ap.position || "lower_third";
+  }
+
+  function getPrinciplesFromForm() {
+    return {
+      version: "1.0.0",
+      voice_principles: {
+        title: "مبادئ ومعايير التعليق الصوتي العصبي",
+        guidelines: dom.principleVoiceGuidelines?.value?.trim() || "",
+        pacing: dom.principleVoicePacing?.value?.trim() || "",
+        pronunciation: dom.principleVoicePronunciation?.value?.trim() || "",
+        active_tone_bias: dom.principleVoiceToneBias?.value || "فاخر وهادئ"
+      },
+      narrative_principles: {
+        title: "مبادئ الوصف المعماري والترويج العقاري",
+        guidelines: dom.principleNarrativeGuidelines?.value?.trim() || "",
+        length_alignment: dom.principleNarrativeAlignment?.value?.trim() || "",
+        target_audience: dom.principleNarrativeAudience?.value?.trim() || ""
+      },
+      visual_principles: {
+        title: "مبادئ الإخراج الصوتي والموسيقي",
+        smart_ducking_volume: parseFloat(dom.principleVisualDucking?.value || "0.15"),
+        selected_music_theme: dom.principleVisualTheme?.value || "luxury_piano",
+        auto_music_matching: true
+      },
+      annotation_principles: {
+        title: "مبادئ الكتابات والملصقات التوضيحية على الفيديو",
+        enable_auto_annotations: Boolean(dom.principleEnableAutoAnnotations?.checked),
+        font_style: dom.principleAnnotationStyle?.value || "luxury_gold",
+        position: dom.principleAnnotationPosition?.value || "lower_third",
+        banner_opacity: 0.85
+      }
+    };
+  }
+
+  function openPrinciplesModal() {
+    if (!dom.principlesModal) return;
+    loadPrinciplesFromAPI();
+    dom.principlesModal.style.display = "flex";
+    if (dom.principlesSaveStatus) dom.principlesSaveStatus.style.display = "none";
+  }
+
+  function closePrinciplesModal() {
+    if (!dom.principlesModal) return;
+    dom.principlesModal.style.display = "none";
+  }
+
+  if (dom.btnOpenPrinciples) {
+    dom.btnOpenPrinciples.addEventListener("click", openPrinciplesModal);
+  }
+  if (dom.btnClosePrinciples) {
+    dom.btnClosePrinciples.addEventListener("click", closePrinciplesModal);
+  }
+  if (dom.principlesModal) {
+    dom.principlesModal.addEventListener("click", (e) => {
+      if (e.target === dom.principlesModal) closePrinciplesModal();
+    });
+  }
+
+  if (dom.principlesForm) {
+    dom.principlesForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = getPrinciplesFromForm();
+      try {
+        if (dom.btnSavePrinciples) dom.btnSavePrinciples.disabled = true;
+        const res = await fetch("/api/principles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          if (dom.principlesSaveStatus) {
+            dom.principlesSaveStatus.className = "principles-status-feedback success";
+            dom.principlesSaveStatus.textContent = "✓ تم حفظ وتطبيق المبادئ بنجاح في الواجهة الخلفية! ستعتمد في جميع عمليات الإنتاج القادمة.";
+            dom.principlesSaveStatus.style.display = "block";
+          }
+          showToast("تم تطبيق مبادئ الإنتاج بنجاح في الخادم!");
+        } else {
+          throw new Error(`Server returned ${res.status}`);
+        }
+      } catch (err) {
+        if (dom.principlesSaveStatus) {
+          dom.principlesSaveStatus.className = "principles-status-feedback error";
+          dom.principlesSaveStatus.textContent = `تعذر حفظ المبادئ: ${err.message}`;
+          dom.principlesSaveStatus.style.display = "block";
+        }
+      } finally {
+        if (dom.btnSavePrinciples) dom.btnSavePrinciples.disabled = false;
+      }
+    });
+  }
+
+  if (dom.btnResetPrinciples) {
+    dom.btnResetPrinciples.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/principles/reset", { method: "POST" });
+        if (res.ok) {
+          const resetData = await res.json();
+          populatePrinciplesForm(resetData);
+          if (dom.principlesSaveStatus) {
+            dom.principlesSaveStatus.className = "principles-status-feedback success";
+            dom.principlesSaveStatus.textContent = "✓ تم استعادة المبادئ الافتراضية بنجاح.";
+            dom.principlesSaveStatus.style.display = "block";
+          }
+          showToast("تمت استعادة المبادئ الافتراضية بنجاح!");
+        }
+      } catch (err) {
+        showToast("فشل استعادة المبادئ الافتراضية");
+      }
+    });
+  }
+
+  if (dom.btnCopyLogs) {
+    dom.btnCopyLogs.addEventListener("click", () => {
+      if (!dom.aiAgentLogs) return;
+      const entries = dom.aiAgentLogs.querySelectorAll(".log-entry");
+      if (entries.length === 0) {
+        showToast("سجل الأحداث فارغ حالياً");
+        return;
+      }
+      const lines = [];
+      entries.forEach((el) => lines.push(el.innerText.replace(/\s+/g, " ").trim()));
+      copyToClipboard(lines.join("\n"), "تم نسخ سجل أحداث الإنتاج كاملاً!");
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Reset & New Video Handlers
   // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
@@ -1215,6 +1450,7 @@
   async function init() {
     checkServerHealth();
     await loadPresetsFromAPI();
+    await loadPrinciplesFromAPI();
     updateScriptAnalytics();
     await restoreSavedSession();
   }

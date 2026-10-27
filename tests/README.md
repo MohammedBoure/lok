@@ -85,6 +85,18 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Keyframe matching against `outputs/keyframes/frame_index.json` (`test_find_matching_keyframes`).
   - Video assembly execution, stream rendering, and summary output (`test_assemble_video_execution`).
   - Primary production deliverables verification (`test_production_final_cut_deliverables`).
+- [`test_production_principles.py`](test_production_principles.py): Production principles and dynamic AI governance test suite verifying:
+  - Loading principles with default schema integrity and deep copy isolation (`test_load_principles_defaults`).
+  - Saving customized voice, narrative, visual, and annotation principles (`test_save_principles_updates_memory_and_file`).
+  - Factory reset of principles back to default rules (`test_reset_principles_restores_defaults`).
+  - Gemini Vision prompt construction containing active production principles (`test_build_vision_prompt_principles_output`).
+  - Gemini TTS voice directive prompt generation with emotional tone biasing (`test_build_tts_style_principles_output`).
+  - REST endpoints `GET /api/principles`, `POST /api/principles`, and `POST /api/principles/reset` (`test_api_get_principles`, `test_api_post_principles`, `test_api_reset_principles`).
+- [`test_video_annotation_mcp.py`](test_video_annotation_mcp.py): Video annotations and fast MCP tool test suite verifying:
+  - FFmpeg `drawtext` filter text escaping (`test_escape_ffmpeg_drawtext`).
+  - MCP tool schema definition for `annotate_video_cut` (`test_mcp_tool_definition`).
+  - MCP JSON-RPC protocol support for `tools/list` and `tools/call` (`test_handle_mcp_call_tools_list`, `test_handle_mcp_call_missing_input_file`).
+  - REST endpoint `POST /api/video/annotate` validation and file missing handling (`test_api_video_annotate_validation_error`).
 
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:

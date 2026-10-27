@@ -61,6 +61,11 @@ from starlette.responses import FileResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
+from config.production_principles_manager import (
+    load_principles,
+    reset_principles,
+    save_principles,
+)
 from web.pipeline_bridge import (
     ALGERIAN_REAL_ESTATE_PRESETS,
     MUSIC_LIBRARY,
@@ -68,6 +73,7 @@ from web.pipeline_bridge import (
     get_presets_list,
     process_mobile_video,
 )
+from web.video_annotator import annotate_video
 
 logger = logging.getLogger("mobile_api_server")
 if not logger.handlers:
@@ -466,6 +472,55 @@ async def index_page(request: Request) -> Response:
     })
 
 
+async def get_principles_endpoint(request: Request) -> JSONResponse:
+    """GET /api/principles - Retrieve currently active production & voice principles."""
+    return JSONResponse(load_principles())
+
+
+async def save_principles_endpoint(request: Request) -> JSONResponse:
+    """POST /api/principles - Save updated user/AI production principles."""
+    try:
+        body = await request.json()
+        saved = save_principles(body)
+        return JSONResponse({
+            "status": "ok",
+            "message": "تم حفظ معايير الإنتاج وتحديثها بنجاح",
+            "principles": saved
+        })
+    except Exception as exc:
+        logger.warning("Failed to save principles: %s", exc)
+        return JSONResponse({"status": "error", "error": str(exc)}, status_code=400)
+
+
+async def reset_principles_endpoint(request: Request) -> JSONResponse:
+    """POST /api/principles/reset - Reset principles to factory defaults."""
+    res = reset_principles()
+    return JSONResponse({
+        "status": "ok",
+        "message": "تمت استعادة معايير الإنتاج الافتراضية بنجاح",
+        "principles": res
+    })
+
+
+async def annotate_video_endpoint(request: Request) -> JSONResponse:
+    """POST /api/video/annotate - Apply visual annotations and badges onto a video cut."""
+    try:
+        body = await request.json()
+        input_video = body.get("input_video")
+        output_video = body.get("output_video")
+        annotations = body.get("annotations", [])
+        if not input_video or not output_video:
+            return JSONResponse({"error": "Missing input_video or output_video parameter."}, status_code=400)
+        res = annotate_video(input_video, output_video, annotations)
+        return JSONResponse(res)
+    except FileNotFoundError as fnf:
+        logger.warning("Annotate video target not found: %s", fnf)
+        return JSONResponse({"status": "error", "error": str(fnf)}, status_code=404)
+    except Exception as exc:
+        logger.exception("Failed to annotate video: %s", exc)
+        return JSONResponse({"status": "error", "error": str(exc)}, status_code=500)
+
+
 # ---------------------------------------------------------------------------
 # Application Initialization & Static Mounts
 # ---------------------------------------------------------------------------
@@ -474,6 +529,10 @@ routes = [
     Route("/api/health", health_check, methods=["GET"]),
     Route("/api/presets", get_presets, methods=["GET"]),
     Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
+    Route("/api/principles", get_principles_endpoint, methods=["GET"]),
+    Route("/api/principles", save_principles_endpoint, methods=["POST"]),
+    Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),
+    Route("/api/video/annotate", annotate_video_endpoint, methods=["POST"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),

@@ -39,6 +39,13 @@
           <span class="status-indicator online"></span>
           <span class="status-label">نظام المعالجة متصل وجاهز</span>
         </div>
+        <div class="header-actions-row">
+          <button type="button" class="btn-principles-trigger" id="btnOpenPrinciples" aria-label="مبادئ ومعايير الإنتاج">
+            <span class="icon">📜</span>
+            <span class="label">معايير ومبادئ الإنتاج والتعليق الصوتي</span>
+            <span class="badge-status">نشطة</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -426,12 +433,28 @@
             <div id="aiAgentMessage" class="ai-agent-message">
               جاري فحص مواصفات الفيديو والاتصال بوكيل الإنتاج...
             </div>
-            <div class="ai-agent-terminal">
+            <div class="ai-agent-terminal" id="terminalWrapper">
               <div class="terminal-header">
-                <span>⚡ سجل الحالة اللحظي المباشر (Live Telemetry):</span>
+                <div class="terminal-title">
+                  <span class="terminal-pulse-dot"></span>
+                  <span>⚡ سجل أحداث الإنتاج اللحظي (Live Production Telemetry):</span>
+                </div>
+                <div class="terminal-controls">
+                  <button type="button" class="btn-terminal-action" id="btnCopyLogs" title="نسخ السجل كاملاً">
+                    📋 نسخ السجل
+                  </button>
+                  <label class="terminal-autoscroll-label" title="التمرير التلقائي نحو آخر حدث">
+                    <input type="checkbox" id="chkAutoScroll" checked>
+                    <span>تثبيت التمرير</span>
+                  </label>
+                </div>
               </div>
-              <div id="aiAgentLogs" class="terminal-logs">
-                <div class="log-entry">● تم بدء جلسة المعالجة وإرسال الفيديو إلى الخادم...</div>
+              <div id="aiAgentLogs" class="terminal-logs" role="log" aria-live="polite">
+                <div class="log-entry">
+                  <span class="log-time">--:--:--</span>
+                  <span class="log-tag tag-init">[تهيئة]</span>
+                  <span class="log-text">تم بدء جلسة المعالجة وإرسال الفيديو إلى الخادم...</span>
+                </div>
               </div>
             </div>
           </div>
@@ -546,6 +569,139 @@
         </div>
       </section>
     </main>
+
+    <!-- Production Principles Modal -->
+    <div class="modal-backdrop" id="principlesModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="principlesModalTitle">
+      <div class="modal-card modal-principles-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-badge">⚙️ معايير الذكاء الاصطناعي</span>
+            <h2 class="modal-title" id="principlesModalTitle">مبادئ ومعايير توليد الصوت والإنتاج</h2>
+          </div>
+          <button type="button" class="icon-btn modal-close" id="btnClosePrinciples" aria-label="إغلاق">✕</button>
+        </div>
+
+        <div class="modal-body principles-modal-body">
+          <p class="principles-intro">
+            تحكم مباشرة في المبادئ التوجيهية المكتوبة التي يعتمد عليها وكيل الذكاء الاصطناعي في تحليل المشاهد، توليد التعليق الصوتي العصبي، ضبط الحالة الشعورية، وإضافة ملصقات الفيديو. التعديلات تحفظ وتطبق فورياً في الواجهة الخلفية.
+          </p>
+
+          <form id="principlesForm">
+            <!-- Section 1: Voice Principles -->
+            <fieldset class="principles-fieldset">
+              <legend>🎙️ مبادئ ومعايير التعليق الصوتي العصبي (Gemini TTS)</legend>
+              <div class="form-group">
+                <label for="principleVoiceGuidelines">النص التوجيهي للأسلوب والنبرة:</label>
+                <textarea id="principleVoiceGuidelines" rows="3" class="form-control" placeholder="تحدث بنبرة عربية فصيحة..."></textarea>
+              </div>
+              <div class="form-row-grid">
+                <div class="form-group">
+                  <label for="principleVoicePacing">وتيرة الإلقاء (Pacing):</label>
+                  <input type="text" id="principleVoicePacing" class="form-control" placeholder="معتدل (حوالي 120 إلى 140 كلمة في الدقيقة)...">
+                </div>
+                <div class="form-group">
+                  <label for="principleVoicePronunciation">توجيه النطق والمصطلحات العقارية:</label>
+                  <input type="text" id="principleVoicePronunciation" class="form-control" placeholder="نطق أسماء المدن والمصطلحات بدقة...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="principleVoiceToneBias">النبرة والحالة الشعورية المفضلة:</label>
+                <select id="principleVoiceToneBias" class="form-control select-control">
+                  <option value="فاخر وهادئ">فاخر وهادئ (Prestigious & Luxurious)</option>
+                  <option value="دافئ وأنيق">دافئ وأنيق (Warm & Elegant)</option>
+                  <option value="متحمس وحيوي">متحمس وحيوي (Enthusiastic & Dynamic)</option>
+                  <option value="عصري وجريء">عصري وجريء (Modern & Bold)</option>
+                </select>
+              </div>
+            </fieldset>
+
+            <!-- Section 2: Narrative Principles -->
+            <fieldset class="principles-fieldset">
+              <legend>🏛️ مبادئ الوصف المعماري والترويج العقاري</legend>
+              <div class="form-group">
+                <label for="principleNarrativeGuidelines">معايير استنباط النص ووصف المزايا:</label>
+                <textarea id="principleNarrativeGuidelines" rows="3" class="form-control" placeholder="التركيز على نقاط القوة الحقيقية: المساحة الواسعة..."></textarea>
+              </div>
+              <div class="form-row-grid">
+                <div class="form-group">
+                  <label for="principleNarrativeAlignment">مواءمة مدة النص مع المشهد:</label>
+                  <input type="text" id="principleNarrativeAlignment" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="principleNarrativeAudience">الجمهور المستهدف:</label>
+                  <input type="text" id="principleNarrativeAudience" class="form-control">
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Section 3: Visual & Music Principles -->
+            <fieldset class="principles-fieldset">
+              <legend>🎵 مبادئ الإخراج الصوتي والموسيقي</legend>
+              <div class="form-row-grid">
+                <div class="form-group">
+                  <label for="principleVisualDucking">مستوى خفض الموسيقى التلقائي (Ducking):</label>
+                  <select id="principleVisualDucking" class="form-control select-control">
+                    <option value="0.10">خفيف جداً (10% - موسيقى خافتة جداً تحت الصوت)</option>
+                    <option value="0.15">متوازن وراقي (15% - موصى به للعقارات الفاخرة)</option>
+                    <option value="0.25">واضح (25% - مستوى قياسي)</option>
+                    <option value="0.35">حماسي (35% - حضور موسيقي بارز)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="principleVisualTheme">النمط الموسيقي الافتراضي:</label>
+                  <select id="principleVisualTheme" class="form-control select-control">
+                    <option value="luxury_piano">بيانو كلاسيكي راقي (Luxury Grand Piano)</option>
+                    <option value="acoustic_guitar">جيتار دافئ وطبيعي (Acoustic Warmth)</option>
+                    <option value="ambient_meditation">أنوار تأملية هادئة (Ambient Pad Harmony)</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Section 4: Video Annotation Principles -->
+            <fieldset class="principles-fieldset">
+              <legend>✨ مبادئ الكتابات والملصقات التوضيحية (Video Overlay)</legend>
+              <div class="form-row-grid">
+                <div class="form-group checkbox-group-wrap">
+                  <label class="custom-toggle-label">
+                    <input type="checkbox" id="principleEnableAutoAnnotations" checked>
+                    <span class="toggle-text">تفعيل إضافة العناوين والشارات التوضيحية التلقائية</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="principleAnnotationStyle">نمط الشارة والتصميم:</label>
+                  <select id="principleAnnotationStyle" class="form-control select-control">
+                    <option value="luxury_gold">شارة ذهبية ملكية (Luxury Gold)</option>
+                    <option value="emerald_badge">شارة زمردية جزائرية (Emerald Green)</option>
+                    <option value="modern_white">أبيض عصري ناصع (Modern White)</option>
+                    <option value="price_tag">بطاقة أسعار مميزة (Price Tag Amber)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="principleAnnotationPosition">موضع ظهور النص:</label>
+                <select id="principleAnnotationPosition" class="form-control select-control">
+                  <option value="lower_third">الثلث السفلي (Lower Third - موصى به احترافياً)</option>
+                  <option value="top_banner">شريط علوي (Top Banner)</option>
+                  <option value="bottom_banner">شريط سفلي ملاصق (Bottom Banner)</option>
+                  <option value="center">منتصف الشاشة (Center)</option>
+                </select>
+              </div>
+            </fieldset>
+
+            <div class="principles-actions-row">
+              <button type="submit" class="btn-save-principles" id="btnSavePrinciples">
+                💾 حفظ وتطبيق المبادئ فوراً
+              </button>
+              <button type="button" class="btn-reset-principles" id="btnResetPrinciples">
+                🔄 استعادة المبادئ الافتراضية
+              </button>
+            </div>
+            <div id="principlesSaveStatus" class="principles-status-feedback"></div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <!-- Global Keyframe Modal Viewer -->
     <div class="modal-backdrop" id="keyframeModal" style="display: none;" role="dialog" aria-modal="true" aria-label="معاينة اللقطة المفتاحية">

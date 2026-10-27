@@ -16,11 +16,13 @@ The system combines:
 
 | File | Purpose |
 | :--- | :--- |
-| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, and video assembly. |
-| [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, and recommended music. |
-| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), and CORS middleware. |
+| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, and video assembly. |
+| [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music. |
+| [`video_annotator.py`](file:///home/pluto/projects/lok/web/video_annotator.py) | Fast hardware-accelerated video annotation engine using FFmpeg drawtext filters for luxury badges, price tags, and lower-third captions. |
+| [`video_annotator_mcp.py`](file:///home/pluto/projects/lok/web/video_annotator_mcp.py) | MCP (Model Context Protocol) tool bridge and CLI interface exposing `annotate_video_cut` via stdio JSON-RPC. |
+| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), principles endpoints, and CORS middleware. |
 | [`run_server.py`](file:///home/pluto/projects/lok/web/run_server.py) | Production CLI launcher that detects host LAN IP (`192.168.1.7`), generates terminal ASCII QR code, and boots Uvicorn. |
-| [`static/index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Mobile-first responsive web studio supporting live camera capture, preset selection, custom script editing, and video preview. |
+| [`static/index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Mobile-first responsive web studio supporting live camera capture, preset selection, custom script editing, principles modal, live telemetry logs, and video preview. |
 | [`static/README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Documentation for static frontend assets and mobile camera interface. |
 | [`README.md`](file:///home/pluto/projects/lok/web/README.md) | This master documentation document. |
 
@@ -70,6 +72,24 @@ Returns all available Algerian real estate presets.
 ### `GET /api/music-tracks`
 Returns all available open-source royalty-free background music tracks.
 - **Response**: JSON array of track objects containing `id`, `title`, `title_ar`, `style`, and `license`.
+
+### `GET /api/principles`
+Returns currently active production principles (voice, narrative, visual/music, and video annotations).
+- **Response (200 OK)**: JSON object containing active principles schema.
+
+### `POST /api/principles`
+Updates and persists production principles configured by the user from the frontend modal.
+- **Payload**: JSON dictionary with updated principle sections.
+- **Response (200 OK)**: `{"status": "ok", "message": "تم تحديث معايير الإنتاج بنجاح", "principles": {...}}`
+
+### `POST /api/principles/reset`
+Restores factory default production principles.
+- **Response (200 OK)**: `{"status": "ok", "message": "تمت استعادة معايير الإنتاج الافتراضية بنجاح", "principles": {...}}`
+
+### `POST /api/video/annotate`
+Direct fast video annotation endpoint to overlay text banners and badges.
+- **Payload**: JSON object `{"input_video": "...", "output_video": "...", "annotations": [...]}`
+- **Response (200 OK)**: `{"status": "ok", "annotations_applied": N, "output_video": "..."}`
 
 ### `POST /api/jobs/create`
 Asynchronous upload and processing endpoint. Accepts video and options, returns `202 Accepted` with `job_id`, and begins processing with live progress updates.

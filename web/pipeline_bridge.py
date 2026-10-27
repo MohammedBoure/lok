@@ -371,6 +371,15 @@ def process_mobile_video(
     keyframes_dest_dir = Path("outputs/keyframes").resolve() / f"mobile_{job_id}"
     keyframes_dest_dir.mkdir(parents=True, exist_ok=True)
 
+    # Load customizable production principles
+    from config.production_principles_manager import load_principles
+    from web.video_annotator import annotate_video
+
+    active_principles = load_principles()
+    principles_voice = active_principles.get("voice_principles", {})
+    principles_visual = active_principles.get("visual_principles", {})
+    principles_annotation = active_principles.get("annotation_principles", {})
+
     # Telemetry helper
     def _notify(step: int, percent: int, message: str, log: str, extra: Optional[Dict[str, Any]] = None):
         if progress_callback:
@@ -394,7 +403,7 @@ def process_mobile_video(
         step=1,
         percent=15,
         message="وكيل الذكاء الاصطناعي يقوم بفحص أبعاد الفيديو واتجاهه...",
-        log=f"تم استلام الفيديو '{input_path.name}'. جاري تحليل الأبعاد والمواصفات الفنية...",
+        log=f"[فحص الوسائط] تم استلام الفيديو '{input_path.name}'. جاري تحليل الأبعاد والمواصفات الفنية...",
     )
 
     meta = frame_extractor.get_video_metadata(input_path)
@@ -432,7 +441,7 @@ def process_mobile_video(
         step=2,
         percent=30,
         message="وكيل الذكاء الاصطناعي يستخرج اللقطات المفتاحية والمشاهد بدقة...",
-        log="🖼️ استخراج لقطات المعاينة البصرية من الفيديو...",
+        log="[رؤية حاسوبية] 🖼️ استخراج لقطات المعاينة البصرية من الفيديو...",
     )
 
     logger.info("Job %s: Extracting keyframes to %s...", job_id, keyframes_dest_dir)
@@ -473,7 +482,7 @@ def process_mobile_video(
             step=2,
             percent=45,
             message="تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
-            log="🧠 تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
+            log="[رؤية حاسوبية] 🧠 تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
         )
         try:
             from web.vision_analyzer import infer_video_script_and_mood
@@ -484,7 +493,7 @@ def process_mobile_video(
             )
             inferred_script = vision_result.get("script")
             selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
-            resolved_tone = emotional_tone or vision_result.get("emotional_tone", "فاخر وهادئ")
+            resolved_tone = emotional_tone or vision_result.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
             resolved_style_prompt = style_prompt or vision_result.get("emotional_prompt")
             inferred_music = vision_result.get("recommended_music")
             vision_engine = vision_result.get("engine")
@@ -492,7 +501,7 @@ def process_mobile_video(
             logger.warning("Vision analysis error: %s. Using fallback.", exc)
             selected_script = DEFAULT_PROMO_SCRIPT
             inferred_script = selected_script
-            resolved_tone = emotional_tone or "فاخر وهادئ"
+            resolved_tone = emotional_tone or principles_voice.get("active_tone_bias", "فاخر وهادئ")
             resolved_style_prompt = style_prompt or "Warm, luxurious and prestigious real estate tone"
             inferred_music = "luxury_piano"
             vision_engine = "fallback_on_error"
@@ -501,7 +510,7 @@ def process_mobile_video(
             step=3,
             percent=60,
             message=f"تم استنتاج الوصف التسويقي بنجاح. الحالة الشعورية: {resolved_tone}",
-            log=f"✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}]",
+            log=f"[تحليل شعوري] ✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}]",
             extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
         )
         selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
@@ -524,11 +533,11 @@ def process_mobile_video(
             "constantine_commercial": "متحمس وحيوي",
             "rental_apartment": "دافئ ومريح للعائلات",
         }
-        resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", "فاخر وهادئ")
+        resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", principles_voice.get("active_tone_bias", "فاخر وهادئ"))
         resolved_style_prompt = style_prompt or f"Warm and prestigious real estate presentation in {resolved_tone}"
 
     # Resolve background music track
-    resolved_music_key = "luxury_piano"
+    resolved_music_key = principles_visual.get("selected_music_theme", "luxury_piano")
     if music_track and music_track in MUSIC_LIBRARY:
         resolved_music_key = music_track
     elif is_auto_mode and inferred_music and inferred_music in MUSIC_LIBRARY:
@@ -545,7 +554,7 @@ def process_mobile_video(
         step=3,
         percent=70,
         message=f"توليد التعليق الصوتي العصبي عبر Gemini TTS ({resolved_voice_name}) بالحالة الشعورية ({resolved_tone})...",
-        log="🎙️ توليد التعليق الصوتي العصبي بالحالة الشعورية المحددة...",
+        log="[توليد صوت] 🎙️ توليد التعليق الصوتي العصبي بالحالة الشعورية المحددة...",
         extra={"emotional_tone": resolved_tone, "inferred_script": inferred_script},
     )
 
@@ -578,7 +587,8 @@ def process_mobile_video(
     )
 
     # 6. Sidechain Compression & Dynamic Ducking Settings
-    effective_duck_level = max(0.05, min(0.60, float(duck_level)))
+    target_duck = principles_visual.get("smart_ducking_volume", duck_level) if duck_level == 0.25 else duck_level
+    effective_duck_level = max(0.05, min(0.60, float(target_duck)))
     duck_threshold = 0.030
     duck_ratio = max(4.0, min(24.0, round(1.0 / effective_duck_level, 1)))
     duck_attack = 80
@@ -589,7 +599,7 @@ def process_mobile_video(
         step=4,
         percent=85,
         message=f"دمج الموسيقى التصويرية ({music_meta['title']}) وتطبيق خفض الصوت التلقائي (Sidechain Ducking)...",
-        log=f"تم توليد الصوت العصبي ({narration_duration:.1f}s - {narration_info['synthesizer']}). جاري قص ومونتاج الفيديو النهائي...",
+        log=f"[مكساج صوتي] تم إنتاج الصوت ({narration_duration:.1f}s - {narration_info['synthesizer']}). دمج الموسيقى وتطبيق الخفض الذكي ({effective_duck_level:.2f}).",
     )
 
     # 7. Construct FFmpeg Filter Graph
@@ -683,7 +693,63 @@ def process_mobile_video(
     render_seconds = (datetime.now(timezone.utc) - start_render).total_seconds()
     logger.info("Job %s: Final cut rendered in %.2fs (%d bytes)", job_id, render_seconds, final_cut_path.stat().st_size)
 
-    # 8. Compile Complete Execution Summary
+    # 8. Apply Smart Video Annotations & Lower-Third Banners if enabled
+    applied_annotations_count = 0
+    if principles_annotation.get("enable_auto_annotations", True):
+        annotations_list: List[Dict[str, Any]] = []
+        banner_title = ""
+        if selected_preset and selected_preset in ALGERIAN_REAL_ESTATE_PRESETS:
+            banner_title = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["title_ar"]
+        elif is_auto_mode and inferred_script:
+            banner_title = f"عقار استثنائي • {resolved_tone}"
+        else:
+            banner_title = "فرصة عقارية راقية"
+
+        annotations_list.append({
+            "text": banner_title,
+            "start_sec": 0.5,
+            "end_sec": min(4.5, total_duration),
+            "position": principles_annotation.get("position", "lower_third"),
+            "style": principles_annotation.get("font_style", "luxury_gold"),
+        })
+
+        if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict):
+            hl_items = vision_result.get("highlights", [])
+            for idx, hl in enumerate(hl_items[:3]):
+                hl_text = hl if isinstance(hl, str) else hl.get("title", str(hl))
+                start_t = 4.5 + (idx * 3.0)
+                if start_t < total_duration - 1.0:
+                    annotations_list.append({
+                        "text": hl_text,
+                        "start_sec": round(start_t, 1),
+                        "end_sec": round(min(start_t + 2.5, total_duration - 0.5), 1),
+                        "position": "lower_third",
+                        "style": "emerald_badge",
+                    })
+
+        if annotations_list:
+            annotated_tmp = out_cuts_dir / f"annotated_{job_id}.mp4"
+            try:
+                annot_res = annotate_video(
+                    input_video_path=final_cut_path,
+                    output_video_path=annotated_tmp,
+                    annotations=annotations_list,
+                )
+                ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
+                if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
+                    annotated_tmp.replace(final_cut_path)
+                    applied_annotations_count = len(annotations_list)
+                    logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
+                    _notify(
+                        step=5,
+                        percent=95,
+                        message="تمت إضافة الملصقات والنصوص التوضيحية على الفيديو بنجاح.",
+                        log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات توضيحية ذكية على المشاهد.",
+                    )
+            except Exception as annot_err:
+                logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
+
+    # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
     summary: Dict[str, Any] = {
         "job_id": job_id,
@@ -707,6 +773,7 @@ def process_mobile_video(
         "duck_level": effective_duck_level,
         "synthesizer": narration_info["synthesizer"],
         "narration_audio_url": f"/outputs/mobile_cuts/narration_{job_id}.wav",
+        "annotations_applied": applied_annotations_count,
         "music_track": {
             "id": music_meta["id"],
             "title": music_meta["title"],
@@ -720,6 +787,7 @@ def process_mobile_video(
             "source_resolution": f"{src_width}x{src_height}",
             "narration_duration": narration_duration,
             "render_seconds": round(render_seconds, 2),
+            "annotations_count": applied_annotations_count,
             "sidechain_compression": {
                 "music_track": music_meta["title"],
                 "duck_threshold": duck_threshold,
@@ -740,7 +808,7 @@ def process_mobile_video(
         step=5,
         percent=100,
         message="اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
-        log=f"تم تصدير الفيديو النهائي ({summary['resolution']}, {total_duration:.1f}s) بنجاح.",
+        log=f"[إخراج نهائي] تم تصدير الفيديو النهائي ({summary['resolution']}, {total_duration:.1f}s) بنجاح. جاهز للمعاينة والتحميل.",
     )
 
     return summary
