@@ -100,7 +100,9 @@ This automatically:
 - Starts the production Uvicorn server on `0.0.0.0:8000` with graceful shutdown handling.
 
 ## Autonomous Vision Script & Emotional Tone Inference
-- **Multimodal Video Analysis**: Uses Gemini 2.5 Flash / Gemini Vision (`web/vision_analyzer.py`) to analyze extracted visual keyframes and autonomously infer engaging Arabic real estate voiceover text matched to duration.
+- **Multimodal Video Analysis & Linguistic Guidance**: Uses Gemini 2.5 Flash / Gemini Vision (`web/vision_analyzer.py`) to analyze extracted visual keyframes and autonomously infer engaging Arabic real estate voiceover text matched to duration. Now accepts natural language visual descriptions (`visual_description`) and speech intent guidance (`speech_description` - linguistic intent rather than verbatim text).
+- **SQLite Prompt History & Recovery**: Dedicated SQLite database (`web/prompt_db.py` at `outputs/prompts.db`) storing linguistic visual prompts, speech descriptions, generated narration scripts, and metadata for instant 1-tap user retrieval via `GET /api/prompts/history`.
+- **Mobile-Optimized Principles UI Theme**: Sleek, fully responsive production principles modal styled with high-contrast glassmorphism, responsive viewports (`@media (max-width: 640px)` / `480px`), and smooth touch scrolling.
 - **Emotional Tone Modulation**: Extracts the architectural atmosphere / mood (الحالة الشعورية - e.g. "فاخر وهادئ", "متحمس وحيوي", "دافئ وأنيق") and steers Gemini 3.8 Flash TTS via acoustic style prompts.
 - **Curated Music Matching**: Auto-selects the optimal soundtrack from the open-source library (`luxury_piano`, `acoustic_guitar`, `ambient_meditation`).
 - **Smart Fallback Safety**: If offline or API unavailable, automatically activates intelligent heuristic fallback so video processing never halts.
@@ -133,6 +135,7 @@ python3 -m web.run_server
   - [`outputs/execution_summary.json`](outputs/execution_summary.json): Complete editorial and audio mixing metadata.
 - [`web/`](web/): Mobile API server, post-production bridge, QR launcher, and mobile web studio.
   - [`web/pipeline_bridge.py`](web/pipeline_bridge.py): Core mobile video processing and FFmpeg assembly engine.
+  - [`web/prompt_db.py`](web/prompt_db.py): SQLite database manager for linguistic prompt descriptions and user history.
   - [`web/vision_analyzer.py`](web/vision_analyzer.py): Gemini Multimodal Vision analysis module for script & mood inference.
   - [`web/server.py`](web/server.py): Starlette REST API server with CORS and static file mounting.
   - [`web/run_server.py`](web/run_server.py): LAN IP detector and ASCII QR code launcher.
