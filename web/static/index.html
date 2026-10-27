@@ -196,6 +196,8 @@
             <span class="btn-produce-sub">تحليل بصري فوري • تعليق صوتي عصبي • موسيقى ديناميكية</span>
           </div>
         </button>
+        <!-- Accessible submission alias matching #submitBtn -->
+        <button type="button" id="submitBtn" class="sr-only" aria-hidden="true" tabindex="-1" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;"></button>
 
         <!-- Optional Collapsible Accordion: Advanced Customization -->
         <details class="advanced-accordion" id="advancedAccordion">
@@ -208,6 +210,83 @@
           </summary>
 
           <div class="accordion-body">
+            <!-- Sub-Section: Linguistic Video & Speech Intent Prompts -->
+            <div class="accordion-sub-section linguistic-prompts-sub-section">
+              <div class="accordion-sub-header">
+                <span class="sub-icon">🧠</span>
+                <div class="sub-header-text">
+                  <h3 class="accordion-sub-title">توجيهات الذكاء الاصطناعي اللغوية (Visual & Speech Prompts)</h3>
+                  <span class="sub-subtitle">حدد رغبتك باللغة الطبيعية وسيتكفل وكيل الذكاء الاصطناعي بضبط المشاهد والصوت</span>
+                </div>
+              </div>
+
+              <!-- Saved Prompts History Restoration -->
+              <div class="prompt-history-card" id="promptHistoryCard">
+                <div class="history-card-header">
+                  <div class="history-card-title-wrap">
+                    <span class="history-card-icon">📜</span>
+                    <label for="promptHistorySelect" class="history-card-title">سجل الأوصاف المحفوظة (Prompt History)</label>
+                  </div>
+                  <button type="button" class="btn-history-refresh" id="btnRefreshPromptHistory" title="تحديث السجل من الخادم">
+                    <span>🔄 تحديث</span>
+                  </button>
+                </div>
+                <div class="prompt-history-controls">
+                  <select id="promptHistorySelect" class="form-select prompt-history-select" aria-label="سجل الأوصاف المحفوظة">
+                    <option value="">-- اختر وصفاً محفوظاً للاستعادة الفورية --</option>
+                  </select>
+                </div>
+                <!-- Quick Restoration Chips -->
+                <div class="prompt-history-chips-wrap" id="promptHistoryChips" aria-label="شارات الأوصاف السريعة">
+                  <!-- Dynamically populated via app.js -->
+                </div>
+              </div>
+
+              <!-- Control 1: Visual Description -->
+              <div class="form-group linguistic-group">
+                <div class="label-with-hint">
+                  <label for="visualDescription" class="input-label">
+                    <span>👁️ وصف ما تريده أن يظهر في الفيديو</span>
+                  </label>
+                  <span class="hint-badge">يتكفل بضبطه agent في الخلفية</span>
+                </div>
+                <p class="field-help-text">
+                  وصف لغوي للمشاهد المرئية يتكفل بضبطه agent في الخلفية - مثال: جولة تبدأ من الصالون الملكي وتنتقل إلى الشرفة المطلة على البحر مع إبراز المطبخ العصري.
+                </p>
+                <div class="textarea-wrap">
+                  <textarea id="visualDescription" name="visual_description" rows="3" class="form-control linguistic-textarea" placeholder="مثال: جولة تبدأ من الصالون الملكي وتنتقل إلى الشرفة المطلة على البحر مع إبراز المطبخ العصري..." dir="rtl"></textarea>
+                </div>
+              </div>
+
+              <!-- Control 2: Speech Description -->
+              <div class="form-group linguistic-group">
+                <div class="label-with-hint">
+                  <label for="speechDescription" class="input-label">
+                    <span>🎙️ وصف ما تريده أن يُقال في التعليق الصوتي</span>
+                  </label>
+                  <span class="hint-badge">توجيه لغوي وليس نصاً حرفياً</span>
+                </div>
+                <p class="field-help-text">
+                  وصف لغوي لما سيقال، وليس نصاً حرفياً - مثال: رحب بالمشاهدين واشرح مميزات الموقع الهادئ والتشطيبات الفاخرة وسعرها المغري.
+                </p>
+                <div class="textarea-wrap">
+                  <textarea id="speechDescription" name="speech_description" rows="3" class="form-control linguistic-textarea" placeholder="مثال: رحب بالمشاهدين واشرح مميزات الموقع الهادئ والتشطيبات الفاخرة وسعرها المغري..." dir="rtl"></textarea>
+                </div>
+              </div>
+
+              <!-- Save Prompt & Clear Actions -->
+              <div class="prompt-actions-row">
+                <button type="button" class="btn-save-prompt" id="btnSavePrompt">
+                  <span>💾</span>
+                  <span>حفظ الوصف الحالي</span>
+                </button>
+                <button type="button" class="btn-clear-prompts" id="btnClearPrompts" title="تفريغ حقلي الوصف">
+                  <span>🧹 تفريغ</span>
+                </button>
+              </div>
+              <div id="promptSaveStatus" class="prompt-status-msg" style="display: none;"></div>
+            </div>
+
             <!-- Sub-Section: Algerian Presets -->
             <div class="accordion-sub-section">
               <div class="accordion-sub-header">

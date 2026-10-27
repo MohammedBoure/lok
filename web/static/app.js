@@ -125,11 +125,22 @@
 
     // Production Stepper & CTA
     btnProduce: document.getElementById("btnProduce"),
+    submitBtn: document.getElementById("submitBtn"),
     stepperBox: document.getElementById("stepperBox"),
     stepperTimer: document.getElementById("stepperTimer"),
     progressBarFill: document.getElementById("progressBarFill"),
     stepsList: document.getElementById("stepsList"),
     btnCancelSession: document.getElementById("btnCancelSession"),
+
+    // Linguistic Video & Speech Intent Prompts + Prompt History
+    visualDescription: document.getElementById("visualDescription"),
+    speechDescription: document.getElementById("speechDescription"),
+    promptHistorySelect: document.getElementById("promptHistorySelect"),
+    promptHistoryChips: document.getElementById("promptHistoryChips"),
+    btnSavePrompt: document.getElementById("btnSavePrompt"),
+    btnRefreshPromptHistory: document.getElementById("btnRefreshPromptHistory"),
+    btnClearPrompts: document.getElementById("btnClearPrompts"),
+    promptSaveStatus: document.getElementById("promptSaveStatus"),
 
     // AI Agent Live Telemetry Elements
     aiAgentLiveCard: document.getElementById("aiAgentLiveCard"),
@@ -943,110 +954,125 @@
   // ---------------------------------------------------------------------------
   // Video Production Action & 1-Click Zero-Effort Dispatch
   // ---------------------------------------------------------------------------
-  if (dom.btnProduce) {
-    dom.btnProduce.addEventListener("click", async () => {
-      // 1. Validation: Verify video file selected
-      if (!state.selectedFile) {
-        showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً!");
-        if (dom.btnNativeCamera) {
-          dom.btnNativeCamera.scrollIntoView({ behavior: "smooth" });
-          dom.btnNativeCamera.style.transform = "scale(1.05)";
-          setTimeout(() => (dom.btnNativeCamera.style.transform = ""), 400);
-        }
-        return;
+  async function handleProduceProduction() {
+    // 1. Validation: Verify video file selected
+    if (!state.selectedFile) {
+      showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً!");
+      if (dom.btnNativeCamera) {
+        dom.btnNativeCamera.scrollIntoView({ behavior: "smooth" });
+        dom.btnNativeCamera.style.transform = "scale(1.05)";
+        setTimeout(() => (dom.btnNativeCamera.style.transform = ""), 400);
       }
+      return;
+    }
 
-      // 2. Prepare FormData matching 1-Click zero-effort mode or advanced overrides
-      const formData = new FormData();
-      formData.append("video", state.selectedFile);
+    // 2. Prepare FormData matching 1-Click zero-effort mode or advanced overrides
+    const formData = new FormData();
+    formData.append("video", state.selectedFile);
 
-      const isAccordionOpen = dom.advancedAccordion && dom.advancedAccordion.open;
-      const scriptVal = (dom.scriptText?.value || "").trim();
+    // Linguistic visual and speech intent prompt descriptions
+    const visualDesc = (dom.visualDescription?.value || "").trim();
+    const speechDesc = (dom.speechDescription?.value || "").trim();
+    if (visualDesc) {
+      formData.append("visual_description", visualDesc);
+    }
+    if (speechDesc) {
+      formData.append("speech_description", speechDesc);
+    }
 
-      if (!isAccordionOpen || !scriptVal) {
-        // Zero-effort 1-click mode: AI agent infers script, emotional tone & music automatically
-        formData.append("auto_mode", "true");
-        if (scriptVal) {
-          formData.append("script", scriptVal);
-        }
-      } else {
-        // Advanced Customization Mode (user explicitly expanded and configured)
-        if (scriptVal) {
-          formData.append("script", scriptVal);
-        }
-        if (state.currentPresetId) {
-          formData.append("preset", state.currentPresetId);
-        }
-        if (dom.voiceSelect?.value && dom.voiceSelect.value !== "auto") {
-          formData.append("voice", dom.voiceSelect.value);
-        }
-        if (dom.musicSelect?.value) {
-          formData.append("music", dom.musicSelect.value);
-        }
-        if (dom.duckSlider?.value) {
-          formData.append("duck_level", dom.duckSlider.value);
-        }
+    const isAccordionOpen = dom.advancedAccordion && dom.advancedAccordion.open;
+    const scriptVal = (dom.scriptText?.value || "").trim();
+
+    if (!isAccordionOpen || !scriptVal) {
+      // Zero-effort 1-click mode: AI agent infers script, emotional tone & music automatically
+      formData.append("auto_mode", "true");
+      if (scriptVal) {
+        formData.append("script", scriptVal);
       }
+    } else {
+      // Advanced Customization Mode (user explicitly expanded and configured)
+      if (scriptVal) {
+        formData.append("script", scriptVal);
+      }
+      if (state.currentPresetId) {
+        formData.append("preset", state.currentPresetId);
+      }
+      if (dom.voiceSelect?.value && dom.voiceSelect.value !== "auto") {
+        formData.append("voice", dom.voiceSelect.value);
+      }
+      if (dom.musicSelect?.value) {
+        formData.append("music", dom.musicSelect.value);
+      }
+      if (dom.duckSlider?.value) {
+        formData.append("duck_level", dom.duckSlider.value);
+      }
+    }
 
-      // 3. Initiate Stepper & Request
-      startProcessingStepper();
-      dom.stepperBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // 3. Initiate Stepper & Request
+    startProcessingStepper();
+    dom.stepperBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
+    try {
+      let jobId = null;
       try {
-        let jobId = null;
-        try {
-          const createResp = await fetch("/api/jobs/create", {
-            method: "POST",
-            body: formData,
-          });
-          if (createResp.ok || createResp.status === 202) {
-            const createData = await createResp.json();
-            jobId = createData.job_id;
-          }
-        } catch (e) {
-          console.warn("Async job creation not available, falling back to direct upload:", e);
+        const createResp = await fetch("/api/jobs/create", {
+          method: "POST",
+          body: formData,
+        });
+        if (createResp.ok || createResp.status === 202) {
+          const createData = await createResp.json();
+          jobId = createData.job_id;
         }
-
-        if (jobId) {
-          state.activeJobId = jobId;
-          // Store active job in localStorage for session persistence & seamless reconnection
-          localStorage.setItem(ACTIVE_JOB_KEY, jobId);
-
-          const finalData = await pollJobStatus(jobId);
-          finishProcessingStepper(true);
-          setTimeout(() => {
-            displayFinalResult(finalData);
-          }, 400);
-
-        } else {
-          // Fallback direct upload-and-process
-          const response = await fetch("/api/upload-and-process", {
-            method: "POST",
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `خطأ في المعالجة (رمز الاستجابة: ${response.status})`);
-          }
-
-          const data = await response.json();
-          if (data.job_id) {
-            localStorage.setItem(ACTIVE_JOB_KEY, data.job_id);
-          }
-          finishProcessingStepper(true);
-          setTimeout(() => {
-            displayFinalResult(data);
-          }, 500);
-        }
-
-      } catch (err) {
-        finishProcessingStepper(false);
-        localStorage.removeItem(ACTIVE_JOB_KEY);
-        console.error("Video processing failed:", err);
-        showToast(`فشل الإنتاج: ${err.message}`);
+      } catch (e) {
+        console.warn("Async job creation not available, falling back to direct upload:", e);
       }
-    });
+
+      if (jobId) {
+        state.activeJobId = jobId;
+        // Store active job in localStorage for session persistence & seamless reconnection
+        localStorage.setItem(ACTIVE_JOB_KEY, jobId);
+
+        const finalData = await pollJobStatus(jobId);
+        finishProcessingStepper(true);
+        setTimeout(() => {
+          displayFinalResult(finalData);
+        }, 400);
+
+      } else {
+        // Fallback direct upload-and-process
+        const response = await fetch("/api/upload-and-process", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `خطأ في المعالجة (رمز الاستجابة: ${response.status})`);
+        }
+
+        const data = await response.json();
+        if (data.job_id) {
+          localStorage.setItem(ACTIVE_JOB_KEY, data.job_id);
+        }
+        finishProcessingStepper(true);
+        setTimeout(() => {
+          displayFinalResult(data);
+        }, 500);
+      }
+
+    } catch (err) {
+      finishProcessingStepper(false);
+      localStorage.removeItem(ACTIVE_JOB_KEY);
+      console.error("Video processing failed:", err);
+      showToast(`فشل الإنتاج: ${err.message}`);
+    }
+  }
+
+  if (dom.btnProduce) {
+    dom.btnProduce.addEventListener("click", handleProduceProduction);
+  }
+  if (dom.submitBtn) {
+    dom.submitBtn.addEventListener("click", handleProduceProduction);
   }
 
   // ---------------------------------------------------------------------------
@@ -1492,6 +1518,238 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Linguistic Prompts & SQLite Saved History Manager
+  // ---------------------------------------------------------------------------
+  const SAVED_PROMPTS_KEY = "saved_linguistic_prompts_cache";
+
+  const DEFAULT_SAVED_PROMPTS = [
+    {
+      id: "prompt-1",
+      title: "جولة فيلا راقية بإطلالة بحرية",
+      visual_description: "جولة تبدأ من الصالون الملكي وتنتقل إلى الشرفة المطلة على البحر مع إبراز المطبخ العصري والحديقة المحيطة",
+      speech_description: "رحب بالمشاهدين واشرح مميزات الموقع الهادئ والتشطيبات الفاخرة وسعرها المغري"
+    },
+    {
+      id: "prompt-2",
+      title: "شقة عصرية F4 بالجزائر العاصمة",
+      visual_description: "استعراض بهو المدخل الفسيح والغرف المشمسة، مع إبراز المطبخ المجهز بأحدث الخزائن والأجهزة والحمام الإيطالي الفاخر",
+      speech_description: "أبرز القرب من المواصلات العامة والمدارس والمرافق الحيوية في قلب العاصمة مع الدفتر العقاري الجاهز"
+    },
+    {
+      id: "prompt-3",
+      title: "محل تجاري حيوي على واجهة رئيسية",
+      visual_description: "تصوير واجهة المحل الزجاجية العريضة على الشارع التجاري الرئيسي، والارتفاع الشاهق للسقف والمساحة المفتوحة",
+      speech_description: "ركز على الحركية التجارية العالية، الكثافة السكانية في الحي، والعائد الاستثماري المضمون للمشروع"
+    }
+  ];
+
+  let currentPromptsList = [];
+
+  async function fetchPromptHistory() {
+    try {
+      const resp = await fetch("/api/prompts/history");
+      if (resp.ok) {
+        const data = await resp.json();
+        const prompts = Array.isArray(data)
+          ? data
+          : data.prompts || data.history || data.items || [];
+
+        if (prompts && prompts.length > 0) {
+          currentPromptsList = prompts;
+          try {
+            localStorage.setItem(SAVED_PROMPTS_KEY, JSON.stringify(prompts));
+          } catch (_) {}
+          renderPromptHistory(currentPromptsList);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Backend /api/prompts/history not reachable, using cached/mock prompts:", e);
+    }
+
+    // Decoupled Fallback: Load from localStorage or DEFAULT_SAVED_PROMPTS
+    try {
+      const cached = localStorage.getItem(SAVED_PROMPTS_KEY);
+      if (cached) {
+        currentPromptsList = JSON.parse(cached);
+      } else {
+        currentPromptsList = [...DEFAULT_SAVED_PROMPTS];
+        localStorage.setItem(SAVED_PROMPTS_KEY, JSON.stringify(currentPromptsList));
+      }
+    } catch (_) {
+      currentPromptsList = [...DEFAULT_SAVED_PROMPTS];
+    }
+    renderPromptHistory(currentPromptsList);
+  }
+
+  function renderPromptHistory(prompts) {
+    if (!prompts) return;
+
+    // 1. Populate Dropdown Select
+    if (dom.promptHistorySelect) {
+      dom.promptHistorySelect.innerHTML = '<option value="">-- اختر وصفاً محفوظاً للاستعادة الفورية --</option>';
+      prompts.forEach((p, idx) => {
+        const opt = document.createElement("option");
+        opt.value = p.id || String(idx);
+        const title = p.title || p.visual_description?.slice(0, 35) || `وصف محفوظ #${idx + 1}`;
+        opt.textContent = `📜 ${title}`;
+        dom.promptHistorySelect.appendChild(opt);
+      });
+    }
+
+    // 2. Populate 1-Tap Quick Restoration Chips
+    if (dom.promptHistoryChips) {
+      dom.promptHistoryChips.innerHTML = "";
+      prompts.forEach((p, idx) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "prompt-chip";
+        const title = p.title || p.visual_description?.slice(0, 25) || `وصف ${idx + 1}`;
+        chip.textContent = `✨ ${title}`;
+        chip.title = "انقر للاستعادة الفورية في حقلي الوصف";
+        chip.addEventListener("click", () => {
+          restorePrompt(p);
+        });
+        dom.promptHistoryChips.appendChild(chip);
+      });
+    }
+  }
+
+  function restorePrompt(promptItem) {
+    if (!promptItem) return;
+    if (dom.visualDescription) {
+      dom.visualDescription.value = promptItem.visual_description || "";
+      dom.visualDescription.classList.remove("flash-highlight");
+      void dom.visualDescription.offsetWidth; // re-trigger animation
+      dom.visualDescription.classList.add("flash-highlight");
+    }
+    if (dom.speechDescription) {
+      dom.speechDescription.value = promptItem.speech_description || "";
+      dom.speechDescription.classList.remove("flash-highlight");
+      void dom.speechDescription.offsetWidth;
+      dom.speechDescription.classList.add("flash-highlight");
+    }
+    const label = promptItem.title || promptItem.visual_description?.slice(0, 25) || "الوصف";
+    showToast(`تم استعادة ${label} بنجاح!`);
+  }
+
+  async function saveCurrentPrompt() {
+    const visual = (dom.visualDescription?.value || "").trim();
+    const speech = (dom.speechDescription?.value || "").trim();
+
+    if (!visual && !speech) {
+      if (dom.promptSaveStatus) {
+        dom.promptSaveStatus.className = "prompt-status-msg error";
+        dom.promptSaveStatus.textContent = "يرجى كتابة وصف مرئي أو صوتي قبل الحفظ!";
+        dom.promptSaveStatus.style.display = "block";
+      }
+      showToast("يرجى كتابة وصف مرئي أو صوتي قبل الحفظ!");
+      return;
+    }
+
+    const title = visual.slice(0, 30) || speech.slice(0, 30) || "وصف مخصص";
+    const newPrompt = {
+      id: `prompt-${Date.now()}`,
+      title: title,
+      visual_description: visual,
+      speech_description: speech,
+      created_at: new Date().toISOString()
+    };
+
+    if (dom.btnSavePrompt) dom.btnSavePrompt.disabled = true;
+
+    try {
+      const resp = await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPrompt)
+      });
+
+      if (resp.ok) {
+        const saved = await resp.json().catch(() => ({}));
+        const savedItem = saved.prompt || saved.item || newPrompt;
+        currentPromptsList.unshift(savedItem);
+        try {
+          localStorage.setItem(SAVED_PROMPTS_KEY, JSON.stringify(currentPromptsList));
+        } catch (_) {}
+        renderPromptHistory(currentPromptsList);
+        if (dom.promptSaveStatus) {
+          dom.promptSaveStatus.className = "prompt-status-msg success";
+          dom.promptSaveStatus.textContent = "✓ تم حفظ الوصف الحالي بنجاح في قاعدة البيانات!";
+          dom.promptSaveStatus.style.display = "block";
+        }
+        showToast("✓ تم حفظ الوصف الحالي بنجاح!");
+      } else {
+        throw new Error(`Server returned status ${resp.status}`);
+      }
+    } catch (e) {
+      console.warn("Backend /api/prompts not ready, saving to decoupled localStorage:", e);
+      // Decoupled Mock Fallback
+      currentPromptsList.unshift(newPrompt);
+      try {
+        localStorage.setItem(SAVED_PROMPTS_KEY, JSON.stringify(currentPromptsList));
+      } catch (_) {}
+      renderPromptHistory(currentPromptsList);
+      if (dom.promptSaveStatus) {
+        dom.promptSaveStatus.className = "prompt-status-msg success";
+        dom.promptSaveStatus.textContent = "✓ تم حفظ الوصف بنجاح في السجل المحلي!";
+        dom.promptSaveStatus.style.display = "block";
+      }
+      showToast("✓ تم حفظ الوصف الحالي بنجاح!");
+    } finally {
+      if (dom.btnSavePrompt) dom.btnSavePrompt.disabled = false;
+      setTimeout(() => {
+        if (dom.promptSaveStatus) dom.promptSaveStatus.style.display = "none";
+      }, 4000);
+    }
+  }
+
+  // Handle prompt select change
+  if (dom.promptHistorySelect) {
+    dom.promptHistorySelect.addEventListener("change", (e) => {
+      const selectedId = e.target.value;
+      if (!selectedId) return;
+      const found = currentPromptsList.find(
+        (p, idx) => p.id === selectedId || String(idx) === selectedId
+      );
+      if (found) {
+        restorePrompt(found);
+      }
+    });
+  }
+
+  // Handle refresh prompt history
+  if (dom.btnRefreshPromptHistory) {
+    dom.btnRefreshPromptHistory.addEventListener("click", () => {
+      fetchPromptHistory();
+      showToast("تم تحديث سجل الأوصاف");
+    });
+  }
+
+  // Handle save current prompt
+  if (dom.btnSavePrompt) {
+    dom.btnSavePrompt.addEventListener("click", saveCurrentPrompt);
+  }
+
+  // Handle clear prompts
+  if (dom.btnClearPrompts) {
+    dom.btnClearPrompts.addEventListener("click", () => {
+      if (dom.visualDescription) dom.visualDescription.value = "";
+      if (dom.speechDescription) dom.speechDescription.value = "";
+      showToast("تم تفريغ حقلي الوصف");
+    });
+  }
+
+  // Handle accordion toggle to fetch prompt history
+  if (dom.advancedAccordion) {
+    dom.advancedAccordion.addEventListener("toggle", () => {
+      if (dom.advancedAccordion.open) {
+        fetchPromptHistory();
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Reset & New Video Handlers
   // ---------------------------------------------------------------------------
   if (dom.btnStartNewProduction) {
@@ -1511,6 +1769,7 @@
     checkServerHealth();
     await loadPresetsFromAPI();
     await loadPrinciplesFromAPI();
+    await fetchPromptHistory();
     updateScriptAnalytics();
     await restoreSavedSession();
   }
