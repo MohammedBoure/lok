@@ -41,13 +41,17 @@ def hash_password(password: str, iterations: int = DEFAULT_PBKDF2_ITERATIONS) ->
     """
     Hash a plaintext password using PBKDF2-HMAC-SHA256 with a cryptographically secure salt.
     Format: pbkdf2_sha256$<iterations>$<salt_hex>$<hash_hex>
+    Normalizes password by trimming leading and trailing whitespace.
     """
     if not password:
         raise ValueError("Password cannot be empty")
+    clean_pwd = str(password).strip()
+    if not clean_pwd:
+        raise ValueError("Password cannot be empty or only whitespace")
     salt = secrets.token_hex(16)
     derived = hashlib.pbkdf2_hmac(
         "sha256",
-        password.encode("utf-8"),
+        clean_pwd.encode("utf-8"),
         salt.encode("utf-8"),
         iterations,
     )
@@ -58,6 +62,7 @@ def verify_password(password: str, hashed_password: Optional[str]) -> bool:
     """
     Verify plaintext password against a stored PBKDF2-HMAC-SHA256 hash or plaintext fallback.
     Uses constant-time comparison to prevent timing attacks.
+    Supports whitespace tolerance to avoid accidental login rejections.
     """
     if not password or not hashed_password:
         return False
@@ -67,15 +72,21 @@ def verify_password(password: str, hashed_password: Optional[str]) -> bool:
             iterations = int(parts[1])
             salt = parts[2]
             expected_hash = parts[3]
-            derived = hashlib.pbkdf2_hmac(
-                "sha256",
-                password.encode("utf-8"),
-                salt.encode("utf-8"),
-                iterations,
-            )
-            return hmac.compare_digest(derived.hex(), expected_hash)
+            candidates = set([password, password.strip()])
+            for cand in candidates:
+                derived = hashlib.pbkdf2_hmac(
+                    "sha256",
+                    cand.encode("utf-8"),
+                    salt.encode("utf-8"),
+                    iterations,
+                )
+                if hmac.compare_digest(derived.hex(), expected_hash):
+                    return True
+            return False
         # Fallback for plain tokens or direct matching in test/dev
-        return hmac.compare_digest(password.strip(), hashed_password.strip())
+        clean_cand = password.strip()
+        clean_hash = hashed_password.strip()
+        return hmac.compare_digest(clean_cand, clean_hash) or hmac.compare_digest(password, hashed_password)
     except Exception as exc:
         logger.debug("verify_password encountered exception: %s", exc)
         return False
@@ -587,23 +598,9 @@ def get_session(
                 conn.execute("DELETE FROM sessions WHERE id = ?;", (row["session_id"],))
             return None
 
-        # Check if user is active
-        if not bool(row["is_active"]):
+        user_dict = _row_to_user_dict(row)
+        if not user_dict or not user_dict.get("is_active"):
             return None
-
-        user_dict = {
-            "id": row["id"],
-            "username": row["username"],
-            "business_name": row["business_name"],
-            "business_category": row["business_category"],
-            "role": row["role"],
-            "is_active": bool(row["is_active"]),
-            "expires_at": row["expires_at"],
-            "daily_quota": row["daily_quota"],
-            "weekly_quota": row["weekly_quota"],
-            "auth_token": row["auth_token"],
-            "created_at": str(row["created_at"]),
-        }
 
         return {
             "session_id": row["session_id"],
@@ -692,6 +689,7 @@ def authenticate_credentials(
     Authenticate user via username and password/token, or by username alone
     for 1-tap demo/merchant selection.
     When password_or_token is provided, verifies password hash or permanent auth token.
+    Applies whitespace trimming and case-insensitive matching for username.
     """
     if not username or not str(username).strip():
         return None
@@ -700,10 +698,14 @@ def authenticate_credentials(
     conn = get_connection(db_path)
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ? LIMIT 1;", (clean_username,))
+        cursor.execute("SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(?) LIMIT 1;", (clean_username,))
         row = cursor.fetchone()
         if not row:
-            return None
+            # Fallback: check if clean_username matches an auth_token
+            cursor.execute("SELECT * FROM users WHERE TRIM(auth_token) = ? LIMIT 1;", (clean_username,))
+            row = cursor.fetchone()
+            if not row:
+                return None
 
         # If credentials provided, verify against password_hash or auth_token
         if password_or_token is not None and str(password_or_token).strip() != "":
@@ -739,10 +741,28 @@ def authenticate_user(
     db_path: Optional[Union[str, Path]] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Authenticate user via username and password/token.
+    Authenticate user via username and password/token with whitespace trimming and case-insensitive matching.
     Guarantees master admin 'pluto' with password 'plutosw4' authenticates with role 'admin'.
     """
     return authenticate_credentials(username=username, password_or_token=password_or_token, db_path=db_path)
+
+
+def verify_admin_login(
+    username: str,
+    password_or_token: Optional[str] = None,
+    db_path: Optional[Union[str, Path]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Verify administrator credentials with whitespace trimming and case-insensitive username matching.
+    Ensures master administrator 'pluto' with password 'plutosw4' (or other admin users) authenticates with role 'admin'.
+    Returns user dictionary if valid and role is admin, otherwise None.
+    """
+    if not username or not str(username).strip():
+        return None
+    user = authenticate_user(username=username, password_or_token=password_or_token, db_path=db_path)
+    if user and user.get("role") == "admin":
+        return user
+    return None
 
 
 def log_user_event(
@@ -844,13 +864,14 @@ def get_user_by_id(user_id: int, db_path: Optional[Union[str, Path]] = None) -> 
 
 
 def get_user_by_username(username: str, db_path: Optional[Union[str, Path]] = None) -> Optional[Dict[str, Any]]:
-    """Retrieve user record by username."""
+    """Retrieve user record by username with whitespace trimming and case-insensitive matching."""
     if not username or not str(username).strip():
         return None
+    clean_username = str(username).strip()
     conn = get_connection(db_path)
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ? LIMIT 1;", (username.strip(),))
+        cursor.execute("SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(?) LIMIT 1;", (clean_username,))
         return _row_to_user_dict(cursor.fetchone())
     finally:
         conn.close()
@@ -929,10 +950,16 @@ def check_quota(user_id: int, db_path: Optional[Union[str, Path]] = None) -> Tup
         "weekly_quota": weekly_quota,
         "weekly_used": weekly_used,
         "weekly_remaining": weekly_remaining,
+        "unlimited": True if user["role"] == "admin" else False,
+        "allowed": True,
     }
 
     # Admin accounts bypass quota checks
     if user["role"] == "admin":
+        details["daily_remaining"] = 9999
+        details["weekly_remaining"] = 99999
+        details["unlimited"] = True
+        details["allowed"] = True
         return (True, "حساب مسؤول النظام - استخدام غير محدود", details)
 
     # 1. Check expiration date
@@ -1045,7 +1072,7 @@ def create_user(
     """Create a new merchant or admin user account with hashed password and date validity."""
     clean_username = username.strip()
     clean_token = auth_token.strip() if auth_token else f"token_{clean_username}_{uuid.uuid4().hex[:8]}"
-    pwd_to_hash = password if password else (DEFAULT_ADMIN_PASSWORD if role == "admin" else DEFAULT_MERCHANT_PASSWORD)
+    pwd_to_hash = password.strip() if password else (DEFAULT_ADMIN_PASSWORD if role == "admin" else DEFAULT_MERCHANT_PASSWORD)
     pwd_hash = hash_password(pwd_to_hash)
 
     clean_status = str(status).strip().lower() if status else "active"
@@ -1131,7 +1158,7 @@ def update_user(
     for k, v in kwargs.items():
         if k in allowed_fields:
             if k == "password":
-                updates["password_hash"] = hash_password(str(v))
+                updates["password_hash"] = hash_password(str(v).strip())
             elif k == "status":
                 s_val = str(v).strip().lower()
                 updates["status"] = s_val

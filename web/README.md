@@ -755,4 +755,41 @@ The pipeline supports persistent branding overlays and versatile aspect ratio re
   - `landscape` (16:9): 1920x1080 or 1280x720 (YouTube, website banners, desktop displays).
   - `square` (1:1): 1080x1080 or 720x720 with uniform scaling and padding (Instagram grid, Facebook feeds).
 
+---
+
+## 10. Unified Authentication & Quota Architecture
+
+### Master Administrator & Multi-Endpoint Authentication
+The platform provides a unified authentication subsystem where master administrators and merchants can authenticate interchangeably across API surfaces:
+1. **Master Admin (`pluto` / `plutosw4`)**:
+   - Master account configured with username `pluto` and default password `plutosw4` hashed via PBKDF2-HMAC-SHA256.
+   - Fully recognized by **both** `/api/admin/login` and `/api/auth/login`.
+   - Granted the `admin` role with unlimited video post-production quotas (`unlimited: true`, `daily_limit: 9999`, `weekly_limit: 99999`).
+2. **Harmonized Merchant Accounts**:
+   - Accounts created via the Admin Portal (`POST /api/admin/accounts`) and pre-seeded merchant accounts authenticate seamlessly via `/api/auth/login`.
+   - Password hashing and verification are fully harmonized using PBKDF2-HMAC-SHA256 with 100,000 iterations and 16-byte cryptographically secure salts.
+
+### Case-Insensitive Matching & Whitespace Normalization
+To prevent accidental 401 rejections from mobile keyboards and input autofills:
+- **Username Resolution**: Evaluated using case-insensitive SQL matching with leading and trailing whitespace trimming: `WHERE LOWER(TRIM(username)) = LOWER(?)`.
+- **Password Tolerant Verification**: Hashes and verifies passwords after stripping accidental whitespace while retaining constant-time comparison (`hmac.compare_digest`) against timing side-channel attacks.
+
+### Token Extraction & Candidate Resolution Priority
+The server inspects candidate authentication credentials using a deterministic 5-stage priority ladder (`_extract_candidate_tokens`), ensuring explicit per-request credentials override ambient browser cookies:
+1. **Authorization Header**: `Authorization: Bearer <token_or_session>`
+2. **Explicit Form Fields**: Multipart/form-data payload fields (`session_token`, `auth_token`, `token`)
+3. **Custom Authentication Headers**: `X-Session-Token`, `X-Auth-Token`
+4. **Query Parameters**: `?session_token=`, `?auth_token=`, `?token=`
+5. **Ambient Session Cookies**: `Cookie: session_token=sess_*`
+
+### Session Validation Endpoints
+- **`GET /api/auth/session`**: Validates active session tokens provided via Bearer headers or ambient HTTP-only cookies, returning the user profile, session details, and quota allowance.
+- **`GET /api/auth/me`**: Fetches user profile, active status, expiration dates, and generation history. Validates session tokens issued by either login endpoint as well as permanent merchant auth tokens. Returns `unlimited: true` for administrative roles (`pluto`, `admin`).
+
+### Gated Video Processing Pipeline Integration
+- Both `POST /api/jobs/create` (asynchronous generation) and `POST /api/upload-and-process` (direct synchronous generation) accept active session tokens across Bearer headers, form payloads, or ambient cookies.
+- Verified users are dynamically checked for quota availability (`check_quota`) and account lifecycle status (`valid_from`, `expires_at`, `status`).
+- Successful post-production jobs are automatically recorded in SaaS generation audit history (`video_generations`).
+
+
 

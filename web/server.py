@@ -105,6 +105,7 @@ from web.auth_db import (
     log_user_event,
     record_generation,
     update_user,
+    verify_admin_login,
     verify_password,
 )
 from web.video_annotator import annotate_video
@@ -153,60 +154,82 @@ async def get_music_tracks(request: Request) -> JSONResponse:
     return JSONResponse(get_music_tracks_list())
 
 
+def _extract_candidate_tokens(request: Request, form: Optional[Any] = None) -> List[str]:
+    """
+    Extract and normalize all potential session or auth tokens from request:
+    Authorization header, form fields, custom headers, query parameters, and cookies.
+    Explicit request tokens take precedence over ambient cookies.
+    """
+    raw_tokens: List[Any] = []
+
+    # 1. Authorization header (Bearer <token>)
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_header:
+        raw_tokens.append(auth_header)
+
+    # 2. Form fields (explicitly submitted with request)
+    if form:
+        for f in ("session_token", "auth_token", "token"):
+            val = form.get(f)
+            if val:
+                raw_tokens.append(val)
+
+    # 3. Custom headers
+    for h in ("X-Session-Token", "x-session-token", "X-Auth-Token", "x-auth-token"):
+        val = request.headers.get(h)
+        if val:
+            raw_tokens.append(val)
+
+    # 4. Query parameters
+    for q in ("session_token", "auth_token", "token"):
+        val = request.query_params.get(q)
+        if val:
+            raw_tokens.append(val)
+
+    # 5. Ambient Cookies
+    for c in ("session_token", "auth_token", "token"):
+        val = request.cookies.get(c)
+        if val:
+            raw_tokens.append(val)
+
+    candidates: List[str] = []
+    for item in raw_tokens:
+        if not isinstance(item, str):
+            continue
+        cleaned = item.strip()
+        if cleaned.lower().startswith("bearer "):
+            cleaned = cleaned[7:].strip()
+        if (
+            cleaned
+            and cleaned.lower() not in ("none", "null", "undefined", '""', "''")
+            and cleaned not in candidates
+        ):
+            candidates.append(cleaned)
+
+    return candidates
+
+
 def _get_authenticated_user_and_session(
     request: Request,
     form: Optional[Any] = None,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
     """
-    Authenticate user and session from Form data (session_token / auth_token / token),
-    Authorization header (Bearer <token_or_session>), custom headers (X-Session-Token, X-Auth-Token),
-    cookies (session_token), or query parameters.
+    Authenticate user and session by testing extracted candidate tokens.
     Returns:
         (user_dict, session_dict) if authenticated, else (None, None).
     """
-    token = None
-    if form:
-        token = form.get("session_token") or form.get("auth_token") or form.get("token")
+    candidates = _extract_candidate_tokens(request, form)
 
-    if not token:
-        auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
-        if auth_header and "bearer " in auth_header.lower():
-            token = auth_header.split(None, 1)[1].strip() if len(auth_header.split(None, 1)) > 1 else None
-        elif auth_header:
-            token = auth_header.strip()
+    for token in candidates:
+        # 1. Check if token is an active session
+        sess = get_session(token)
+        if sess and sess.get("user"):
+            return (sess["user"], sess)
 
-    if not token:
-        token = (
-            request.headers.get("X-Session-Token")
-            or request.headers.get("x-session-token")
-            or request.headers.get("X-Auth-Token")
-            or request.headers.get("x-auth-token")
-        )
-
-    if not token:
-        token = request.cookies.get("session_token")
-
-    if not token:
-        token = (
-            request.query_params.get("session_token")
-            or request.query_params.get("token")
-            or request.query_params.get("auth_token")
-        )
-
-    if not token or not str(token).strip():
-        return (None, None)
-
-    clean_token = str(token).strip()
-
-    # 1. Check if token is an active session
-    sess = get_session(clean_token)
-    if sess and sess.get("user"):
-        return (sess["user"], sess)
-
-    # 2. Check if token is a permanent merchant/admin auth token
-    user = authenticate_token(clean_token)
-    if user:
-        return (user, None)
+        # 2. Check if token is a permanent merchant/admin auth token
+        user = authenticate_token(token)
+        if user:
+            return (user, None)
 
     return (None, None)
 
@@ -839,9 +862,11 @@ async def upload_and_process(request: Request) -> JSONResponse:
             except Exception as pe:
                 logger.warning("Failed to auto-save prompt in upload_and_process: %s", pe)
 
-        JOBS_STORE[summary["job_id"]] = summary
-        PROGRESS_STORE[summary["job_id"]] = {
-            "job_id": summary["job_id"],
+        assigned_job_id = summary.get("job_id", job_id)
+        summary["job_id"] = assigned_job_id
+        JOBS_STORE[assigned_job_id] = summary
+        PROGRESS_STORE[assigned_job_id] = {
+            "job_id": assigned_job_id,
             "status": "completed",
             "step": 5,
             "progress_percent": 100,
@@ -1096,29 +1121,39 @@ async def login_endpoint(request: Request) -> JSONResponse:
     POST /api/auth/login
     Accepts JSON or form data: {"username": "...", "password": "..."} or {"token": "..."}.
     Validates credentials, creates authenticated session, sets cookie, and returns token + quotas.
+    Recognizes master admin 'pluto' (password 'plutosw4') as well as commercial merchant accounts.
     """
     username = None
     password = None
     token = None
     try:
         body = await request.json()
-        username = body.get("username")
-        password = body.get("password")
+        username = body.get("username") or body.get("user") or body.get("login")
+        password = body.get("password") or body.get("pass")
         token = body.get("token") or body.get("auth_token") or body.get("session_token")
     except Exception:
         try:
             form = await request.form()
-            username = form.get("username")
-            password = form.get("password")
+            username = form.get("username") or form.get("user") or form.get("login")
+            password = form.get("password") or form.get("pass")
             token = form.get("token") or form.get("auth_token") or form.get("session_token")
         except Exception:
             pass
+
+    if isinstance(username, str):
+        username = username.strip()
+    if isinstance(password, str):
+        password = password.strip()
+    if isinstance(token, str):
+        token = token.strip()
+        if token.lower().startswith("bearer "):
+            token = token[7:].strip()
 
     user = None
     if token and not username and not password:
         user = authenticate_token(token)
     elif username:
-        user = authenticate_credentials(username, password)
+        user = authenticate_user(username, password)
     elif password and not username:
         user = authenticate_token(password)
 
@@ -1131,7 +1166,7 @@ async def login_endpoint(request: Request) -> JSONResponse:
             status_code=401,
         )
 
-    if not user.get("is_active", True):
+    if not user.get("is_active", True) or user.get("status") in ("suspended", "inactive"):
         return JSONResponse(
             {
                 "status": "error",
@@ -1150,7 +1185,7 @@ async def login_endpoint(request: Request) -> JSONResponse:
             "message": "تم تسجيل الدخول بنجاح.",
             "session_token": session["session_token"],
             "token": session["session_token"],
-            "auth_token": user["auth_token"],
+            "auth_token": user.get("auth_token"),
             "expires_at": session["expires_at"],
             "user": user,
             "session": session,
@@ -1226,9 +1261,17 @@ async def auth_session_endpoint(request: Request) -> JSONResponse:
 async def auth_me_endpoint(request: Request) -> JSONResponse:
     """GET /api/auth/me - Retrieve current merchant profile, session, and quota details."""
     auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
-    token = request.query_params.get("token") or request.query_params.get("auth_token")
+    explicit_token = (
+        request.query_params.get("token")
+        or request.query_params.get("auth_token")
+        or request.query_params.get("session_token")
+        or request.headers.get("X-Session-Token")
+        or request.headers.get("x-session-token")
+        or request.headers.get("X-Auth-Token")
+        or request.headers.get("x-auth-token")
+    )
 
-    if not auth_header and not token:
+    if not auth_header and not explicit_token:
         return JSONResponse(
             {
                 "status": "error",
@@ -1276,15 +1319,26 @@ async def admin_login_endpoint(request: Request) -> JSONResponse:
     """
     POST /api/admin/login
     Admin authentication portal: validates username 'pluto' and password 'plutosw4'
-    (or any active admin credentials), creates an active session token, and records login audit log.
+    (or any active admin credentials), creates an active session token, sets cookie, and records login audit log.
     """
+    username = None
+    password = None
     try:
         body = await request.json()
-    except Exception as exc:
-        return JSONResponse({"status": "error", "error": f"Invalid JSON body: {exc}"}, status_code=400)
+        username = body.get("username") or body.get("user") or body.get("login")
+        password = body.get("password") or body.get("pass")
+    except Exception:
+        try:
+            form = await request.form()
+            username = form.get("username") or form.get("user") or form.get("login")
+            password = form.get("password") or form.get("pass")
+        except Exception:
+            pass
 
-    username = str(body.get("username", "")).strip()
-    password = str(body.get("password", "")).strip()
+    if isinstance(username, str):
+        username = username.strip()
+    if isinstance(password, str):
+        password = password.strip()
 
     if not username or not password:
         return JSONResponse({
@@ -1293,8 +1347,8 @@ async def admin_login_endpoint(request: Request) -> JSONResponse:
             "message": "يرجى إدخال اسم المستخدم وكلمة المرور",
         }, status_code=400)
 
-    user = authenticate_user(username=username, password_or_token=password)
-    if not user or user.get("role") != "admin":
+    user = verify_admin_login(username=username, password_or_token=password)
+    if not user:
         return JSONResponse({
             "status": "error",
             "error": "invalid_credentials",
@@ -1311,14 +1365,29 @@ async def admin_login_endpoint(request: Request) -> JSONResponse:
 
     session = create_session(user_id=user["id"])
     log_user_event(user["id"], "admin_login", {"username": username, "role": user.get("role")})
+    allowed, reason, quota_details = check_quota(user["id"])
 
-    return JSONResponse({
+    response = JSONResponse({
         "status": "ok",
         "message": "تم تسجيل دخول المسؤول بنجاح",
         "session_token": session["session_token"],
         "token": session["session_token"],
+        "auth_token": user.get("auth_token"),
+        "expires_at": session["expires_at"],
         "user": user,
+        "session": session,
+        "quota": quota_details,
+        "quotas": quota_details,
     })
+    response.set_cookie(
+        key="session_token",
+        value=session["session_token"],
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 86400,
+        path="/",
+    )
+    return response
 
 
 async def admin_list_accounts_endpoint(request: Request) -> JSONResponse:
