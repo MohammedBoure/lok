@@ -193,6 +193,7 @@
     btnSubmitMerchantLogin: document.getElementById("btnSubmitMerchantLogin"),
     merchantQuickLoginGrid: document.getElementById("merchantQuickLoginGrid"),
     loginErrorMessage: document.getElementById("loginErrorMessage"),
+    loginErrorAlert: document.getElementById("loginErrorAlert") || document.getElementById("loginErrorMessage"),
     loginCredentialHints: document.getElementById("loginCredentialHints"),
 
     // Studio Header
@@ -333,6 +334,9 @@
       dom.loginErrorMessage.textContent = msg;
       dom.loginErrorMessage.style.display = "block";
     }
+    if (dom.loginErrorAlert && dom.loginErrorAlert !== dom.loginErrorMessage) {
+      dom.loginErrorAlert.textContent = msg;
+    }
     showToast(msg);
   }
 
@@ -340,6 +344,9 @@
     if (dom.loginErrorMessage) {
       dom.loginErrorMessage.textContent = "";
       dom.loginErrorMessage.style.display = "none";
+    }
+    if (dom.loginErrorAlert && dom.loginErrorAlert !== dom.loginErrorMessage) {
+      dom.loginErrorAlert.textContent = "";
     }
   }
 

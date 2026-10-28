@@ -238,10 +238,28 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Settings view contracts: current balance indicator, recommendations manager, Algerian Darja audition player, and logout.
   - Repository-wide character mapping compliance confirming zero occurrences of forbidden Arabic character U+0669.
 
+- [`test_unified_auth_and_pipeline.py`](test_unified_auth_and_pipeline.py): Unified authentication and pipeline fixes test suite authored by Lead Backend Engineer `agy11`:
+  - Master admin (`pluto` / `plutosw4`) authentication parity across both `/api/admin/login` and `/api/auth/login`.
+  - Whitespace-padded and case-insensitive username/password login handling.
+  - Verification that accounts provisioned dynamically via `/api/admin/accounts` can immediately log in via `/api/auth/login`.
+  - Seamless validation of session tokens in both `/api/auth/session` and `/api/auth/me` across headers, cookies, and query params.
+  - Video production endpoints (`/api/jobs/create` and `/api/upload-and-process`) accepting active session tokens.
+  - Strict typography compliance prohibiting forbidden Arabic character U+0669.
+
+- [`test_e2e_auth_and_video_pipeline.py`](test_e2e_auth_and_video_pipeline.py): End-to-end integration, experiential UX, and video pipeline gatekeeper suite authored by Visual, Experiential & E2E Gatekeeper `agy101`:
+  - Admin account lifecycle: master admin authentication (`pluto`/`plutosw4`), dynamic merchant creation (`POST /api/admin/accounts`), and audit event logging (`GET /api/admin/accounts/{user_id}/logs`).
+  - Studio client login: `/api/auth/login` authentication for admin and merchants, whitespace trimming, case insensitivity, HTTP 401 error message for invalid credentials, and HTTP 403 Forbidden for suspended/inactive accounts.
+  - Session & cookie persistence: validation of `/api/auth/session` and `/api/auth/me` with Bearer headers and `session_token` cookies (`SameSite=Lax`, `max-age=604800`), rejecting invalid tokens with 401.
+  - Visual & DOM contracts: verification of `index.html` and `app.js` gated login elements (`#loginView`, `#loginErrorMessage`, `#loginErrorAlert`, `#loginCredentialHints`, `#merchantQuickLoginGrid`), input trimming, Enter-key submission, and `credentials: 'include'`.
+  - Video production pipeline execution: authenticated `/api/jobs/create` (202 processing, job status tracking at `/api/status/{job_id}`, quota decrementing) and `/api/upload-and-process` (200 success with cookie auth), with 401 rejection for unauthenticated requests.
+  - Repository-wide character mapping compliance verifying zero occurrences of forbidden character U+0669.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted E2E Auth, Visual Login UX, and Production Pipeline gatekeeper suite:
+pytest tests/test_e2e_auth_and_video_pipeline.py tests/test_unified_auth_and_pipeline.py tests/test_minimal_lok_and_admin_ui.py tests/test_admin_portal_and_security.py -v
 # Targeted Admin Portal, Prompt Security Guardrail, and Minimalist 'lok' Studio sprint verification suite:
 pytest tests/test_gatekeeper_admin_and_minimal_ui.py tests/test_admin_portal_and_security.py tests/test_minimal_lok_and_admin_ui.py -v
 # Targeted Session Auth, Gated Services, and Clean Studio sprint verification suite:
