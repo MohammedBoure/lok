@@ -3,1476 +3,461 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="theme-color" content="#09090b">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="منصة إنتاج الفيديو الذكية لتصوير وتسويق عقارات الجزائر عبر الهاتف الجوال بنقرة واحدة مع تعليق صوتي وموسيقى ديناميكية.">
-  <title>استوديو عقارات الجزائر | Algerian Real Estate Mobile Studio</title>
+  <meta name="description" content="lok • منصة إنتاج الفيديو الذكي للتجار والشركات بتصميم عصري وأبيض وأسود.">
+  <title>lok • استوديو إنتاج الفيديو الذكي</title>
 
-  <!-- Google Typography -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+
+  <!-- Google Typography: Cairo & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
   <link rel="stylesheet" href="/static/style.css">
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-layout">
-    <!-- Top Global App Bar -->
-    <header class="app-header">
-      <div class="header-inner">
-        <div class="brand-row">
-          <div class="brand-icon">
-            <span>🏢</span>
-          </div>
-          <div class="brand-text">
-            <h1 class="brand-title">منصة إنتاج الفيديو الذكي للتجار والشركات</h1>
-            <p class="brand-subtitle">
-              استوديو عقارات الجزائر ومتاجر الأعمال • إنتاج فوري بالذكاء الاصطناعي بنقرة واحدة
-            </p>
-          </div>
-        </div>
 
-        <!-- Active Merchant / Admin Badge & 1-Tap Account Switcher -->
-        <div class="saas-header-controls" id="saasHeaderControls">
-          <!-- Active Persona Badge -->
-          <div class="active-persona-badge" id="activePersonaBadge">
-            <span class="persona-role-icon" id="personaRoleIcon">🏢</span>
-            <div class="persona-info-wrap">
-              <span class="persona-business-name" id="personaBusinessName">دار النخبة العقارية</span>
-              <span class="persona-category-badge" id="personaCategoryBadge">عقارات فاخرة</span>
-            </div>
+  <div class="lok-app-container">
+
+    <!-- ===================================================================== -->
+    <!-- 1. GATED LOGIN VIEW (Unauthenticated First Visit)                    -->
+    <!-- ===================================================================== -->
+    <section id="loginView" class="lok-gated-login" style="display: none;">
+      <div class="login-card-wrapper">
+        <div class="login-card">
+          <!-- Brand Header -->
+          <div class="login-brand-header text-center">
+            <div class="lok-brand-title">lok</div>
+            <p class="lok-brand-tagline">منصة إنتاج الفيديو الذكي للتجار والشركات</p>
           </div>
 
-          <!-- Quick 1-Tap Account Switcher Dropdown -->
-          <div class="account-switcher-wrap" id="accountSwitcherWrap">
-            <label for="accountSwitcherSelect" class="switcher-label">
-              <span>👤 تبديل الحساب:</span>
-            </label>
-            <select id="accountSwitcherSelect" class="form-select account-switcher-select" aria-label="تبديل حساب التاجر أو الأدمن">
-              <!-- Dynamically populated with 10 pre-seeded merchant personas + Admin -->
-            </select>
-          </div>
+          <div class="login-form-box">
+            <h2 class="login-box-title">تسجيل الدخول إلى الاستوديو</h2>
+            <p class="login-box-subtitle">أدخل بيانات حسابك للمتابعة وإنتاج الفيديوهات التسويقية:</p>
 
-          <!-- Auth Session Login / Logout Gateway Controls -->
-          <div class="auth-header-actions" id="authHeaderActions">
-            <button type="button" class="btn-auth-header btn-logout" id="btnLogout" title="تسجيل الخروج من الجلسة">
-              <span>🚪</span>
-              <span class="auth-btn-text">تسجيل الخروج</span>
-            </button>
-            <button type="button" class="btn-auth-header btn-login" id="btnOpenLoginModal" title="تسجيل الدخول إلى حسابك" style="display: none;">
-              <span>🔐</span>
-              <span class="auth-btn-text">تسجيل الدخول</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Clean Tab Navigation -->
-        <nav class="saas-tabs-nav" id="saasTabsNav" aria-label="أقسام المنصة">
-          <button type="button" class="saas-tab-btn active" id="tabBtnStudio" data-tab="studio">
-            <span class="tab-icon">📹</span>
-            <span class="tab-title">استوديو الإنتاج</span>
-            <span class="tab-subtitle">Merchant Studio</span>
-          </button>
-          <button type="button" class="saas-tab-btn" id="tabBtnMerchant" data-tab="merchant">
-            <span class="tab-icon">📊</span>
-            <span class="tab-title">لوحة التاجر</span>
-            <span class="tab-subtitle">Merchant Dashboard</span>
-          </button>
-          <button type="button" class="saas-tab-btn admin-only" id="tabBtnAdmin" data-tab="admin" style="display: none;">
-            <span class="tab-icon">👑</span>
-            <span class="tab-title">لوحة الأدمن</span>
-            <span class="tab-subtitle">Admin Dashboard</span>
-          </button>
-        </nav>
-
-        <div class="system-status-chip" id="systemStatusChip">
-          <span class="status-indicator online"></span>
-          <span class="status-label">نظام المعالجة متصل وجاهز</span>
-        </div>
-      </div>
-    </header>
-
-    <main class="main-content">
-      <!-- TAB 1: MERCHANT STUDIO -->
-      <div class="saas-tab-content active" id="tabContentStudio">
-        <!-- Quota Warning / Badge Banner -->
-        <div class="quota-warning-banner" id="quotaWarningBanner">
-          <div class="quota-banner-inner">
-            <div class="quota-status-icon" id="quotaStatusIcon">⚡</div>
-            <div class="quota-info-text">
-              <span class="quota-highlight-title" id="quotaTitleText">الحصة المتاحة للحساب التجاري:</span>
-              <span class="quota-details-line" id="quotaDetailsLine">
-                الفيديوهات المتبقية اليوم: <strong id="quotaDailyRemaining">5</strong>/<span id="quotaDailyTotal">5</span> | 
-                الأسبوع: <strong id="quotaWeeklyRemaining">25</strong>/<span id="quotaWeeklyTotal">25</span> | 
-                الصلاحية: <span class="badge-expiry" id="quotaExpiryText">نشط حتى 2026-12-31</span>
-              </span>
-            </div>
-            <div class="quota-mini-progress">
-              <div class="mini-bar-track">
-                <div class="mini-bar-fill" id="quotaMiniBarFill" style="width: 100%;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 1: VIDEO INGESTION & CAMERA RECORDING -->
-        <section class="card capture-card" id="captureSection" aria-labelledby="sectionCaptureTitle">
-        <div class="card-header">
-          <div class="card-icon-wrap emerald">
-            <span>📹</span>
-          </div>
-          <div class="card-title-group">
-            <h2 id="sectionCaptureTitle" class="card-title">الخطوة 1: تسجيل أو اختيار فيديو الهاتف</h2>
-            <p class="card-subtitle">التقاط فوري بكاميرا الهاتف بجودة عالية أو تسجيل حي بالمتصفح</p>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <!-- Hidden Native File Inputs -->
-          <!-- 1. Native Environment Camera Capture (Direct mobile hardware camera, iOS Safari & Android Chrome) -->
-          <input type="file" id="cameraInput" accept="video/*" capture="environment" class="visually-hidden" aria-label="تسجيل بالكاميرا مباشرة">
-          <!-- 2. Gallery / Disk Picker -->
-          <input type="file" id="galleryInput" accept="video/*" class="visually-hidden" aria-label="اختيار فيديو من المعرض">
-
-          <!-- Primary Capture Action Buttons -->
-          <div class="capture-actions-grid">
-            <!-- Native Camera Button -->
-            <button type="button" class="action-btn btn-camera" id="btnNativeCamera">
-              <div class="btn-icon">📸</div>
-              <div class="btn-content">
-                <span class="btn-primary-text">تسجيل بالكاميرا</span>
-                <span class="btn-secondary-text">كاميرا الهاتف الأساسية (بدون قيود)</span>
-              </div>
-            </button>
-
-            <!-- In-Browser Live Viewfinder Toggle Button -->
-            <button type="button" class="action-btn btn-viewfinder" id="btnToggleViewfinder">
-              <div class="btn-icon">🔴</div>
-              <div class="btn-content">
-                <span class="btn-primary-text">معاينة مباشرة بالمتصفح</span>
-                <span class="btn-secondary-text">تسجيل فوري مع عداد ومبدل كاميرا</span>
-              </div>
-            </button>
-
-            <!-- Gallery Upload Button -->
-            <button type="button" class="action-btn btn-gallery" id="btnGalleryUpload">
-              <div class="btn-icon">🖼️</div>
-              <div class="btn-content">
-                <span class="btn-primary-text">اختر من المعرض</span>
-                <span class="btn-secondary-text">رفع ملف فيديو مسجل مسبقاً (MP4/MOV)</span>
-              </div>
-            </button>
-          </div>
-
-          <!-- Drag and Drop Desktop Fallback Zone -->
-          <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="منطقة سحب وإفلات مقاطع الفيديو">
-            <div class="drop-zone-icon">📥</div>
-            <div class="drop-zone-text">أو اسحب ملف الفيديو وأفلته هنا مباشرة</div>
-            <div class="drop-zone-hint">يدعم الفيديوهات العمودية (9:16) ومقاطع الريلز والأفقية (16:9)</div>
-          </div>
-
-          <!-- In-Browser Viewfinder Modal / Panel -->
-          <div class="viewfinder-panel" id="viewfinderPanel" style="display: none;">
-            <div class="viewfinder-header">
-              <div class="viewfinder-rec-badge" id="recBadge">
-                <span class="rec-dot"></span>
-                <span class="rec-status-text" id="recStatusText">جاهز للتسجيل</span>
-                <span class="rec-timer" id="recTimer">00:00</span>
-              </div>
-              <button type="button" class="icon-btn" id="btnCloseViewfinder" title="إغلاق المعاينة" aria-label="إغلاق">
-                <span>✕</span>
-              </button>
-            </div>
-
-            <div class="viewfinder-screen">
-              <video id="viewfinderVideo" autoplay playsinline muted></video>
-              <div class="viewfinder-crosshairs" aria-hidden="true">
-                <div class="crosshair-h"></div>
-                <div class="crosshair-v"></div>
-                <div class="crosshair-box"></div>
-              </div>
-              <div class="viewfinder-notice" id="viewfinderNotice" style="display: none;">
-                <p id="viewfinderNoticeText"></p>
-              </div>
-            </div>
-
-            <div class="viewfinder-controls">
-              <!-- Camera Flip / Facing Mode Toggle -->
-              <button type="button" class="vf-control-btn" id="btnFlipCamera" title="تبديل الكاميرا (أمامية / خلفية)">
-                <span class="vf-btn-icon">🔄</span>
-                <span class="vf-btn-label">قلب الكاميرا</span>
-              </button>
-
-              <!-- Central Record/Stop Trigger -->
-              <button type="button" class="vf-record-btn" id="btnRecordToggle" aria-label="بدء التسجيل">
-                <span class="record-inner-circle"></span>
-              </button>
-
-              <!-- Flash / Torch or Guide Placeholder -->
-              <button type="button" class="vf-control-btn" id="btnViewfinderCancel" title="إلغاء المعاينة">
-                <span class="vf-btn-icon">⏹️</span>
-                <span class="vf-btn-label">إلغاء</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Selected / Recorded Video Preview Player Box -->
-          <div class="video-preview-card" id="videoPreviewCard" style="display: none;">
-            <div class="preview-media-container">
-              <video id="previewPlayer" controls playsinline preload="metadata"></video>
-            </div>
-
-            <div class="preview-meta-row">
-              <div class="meta-item">
-                <span class="meta-label">⏱️ المدة:</span>
-                <span class="meta-val" id="previewDuration">--:--</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">💾 الحجم:</span>
-                <span class="meta-val" id="previewSize">-- MB</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">📐 الأبعاد:</span>
-                <span class="meta-val" id="previewDimensions">--</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">📱 الاتجاه:</span>
-                <span class="meta-val" id="previewOrientation">--</span>
-              </div>
-            </div>
-
-            <div class="preview-actions-row">
-              <button type="button" class="btn-subtle" id="btnChangeVideo">
-                <span>🔄 تغيير الفيديو أو إعادة التسجيل</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION: VISUAL STYLE & RECOMMENDATIONS -->
-      <section class="card visual-style-card" id="visualOrientationGroup">
-        <div class="card-header">
-          <div class="card-icon-wrap emerald">
-            <span>📐</span>
-          </div>
-          <div class="card-title-group">
-            <h2 class="card-title">توصيات شكل واتجاه الفيديو</h2>
-            <p class="card-subtitle">اختر أبعاد الفيديو المناسبة لمنصة النشر (تيك توك، إنستغرام، يوتيوب)</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="orientation-selector-grid" id="orientationSelectorGrid" role="radiogroup" aria-label="اتجاه وأبعاد الفيديو">
-            <label class="orientation-card active" id="orientationCardPortrait">
-              <input type="radio" name="video_orientation" value="portrait" checked class="orientation-radio">
-              <div class="orientation-card-inner">
-                <span class="orientation-icon">📱</span>
-                <span class="orientation-title">9:16 عمودي للهاتف</span>
-                <span class="orientation-sub">ريلز، تيك توك، شورتس</span>
-                <span class="orientation-badge">موصى به</span>
-              </div>
-            </label>
-            <label class="orientation-card" id="orientationCardLandscape">
-              <input type="radio" name="video_orientation" value="landscape" class="orientation-radio">
-              <div class="orientation-card-inner">
-                <span class="orientation-icon">🖥️</span>
-                <span class="orientation-title">16:9 شاشة عريضة</span>
-                <span class="orientation-sub">يوتيوب، مواقع وتلفاز</span>
-              </div>
-            </label>
-            <label class="orientation-card" id="orientationCardSquare">
-              <input type="radio" name="video_orientation" value="square" class="orientation-radio">
-              <div class="orientation-card-inner">
-                <span class="orientation-icon">⏹️</span>
-                <span class="orientation-title">1:1 مربع</span>
-                <span class="orientation-sub">منشورات فيسبوك وإنستغرام</span>
-              </div>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION: FIXED TEXT & SCREEN APPEARANCE -->
-      <section class="card fixed-text-card" id="fixedTextSettingsCard">
-        <div class="card-header">
-          <div class="card-icon-wrap emerald">
-            <span>🏷️</span>
-          </div>
-          <div class="card-title-group">
-            <h2 class="card-title">نص ثابت وهوية على الشاشة (Fixed Text Overlay)</h2>
-            <p class="card-subtitle">أضف رقم هاتف محلك، شعارك التجاري، أو عنوان العرض ليظهر بثبات طوال الفيديو</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="form-group text-input-group">
-            <label for="fixedTextInput" class="input-label">
-              <span>✍️ نص الشعار أو رقم التواصل أو العرض:</span>
-            </label>
-            <input type="text" id="fixedTextInput" name="fixed_text" class="form-control fixed-text-input" placeholder="مثال: 📞 0550 12 34 56 | توصيل متوفر لكافة الولايات" dir="rtl">
-          </div>
-
-          <div class="form-row-2col">
-            <div class="form-group">
-              <label for="textPositionSelect" class="input-label">
-                <span>📍 موضع ظهور النص:</span>
-              </label>
-              <select id="textPositionSelect" name="text_position" class="form-select">
-                <option value="lower_third" selected>أسفل الشاشة (Lower Third - موصى به)</option>
-                <option value="top_banner">شارة علوية (Top Banner)</option>
-                <option value="badge">شريط مدمج (Integrated Badge)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="textStyleSelect" class="input-label">
-                <span>🎨 نمط وتصميم الشارة:</span>
-              </label>
-              <select id="textStyleSelect" name="text_style" class="form-select">
-                <option value="modern_white" selected>أبيض عصري (Modern White)</option>
-                <option value="luxury_gold">ذهبي فاخر (Luxury Gold)</option>
-                <option value="commercial_red">تجاري بارز (Commercial Red / Accent)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION 2: PROMINENT VOICE SELECTOR (MAIN SCREEN) -->
-      <section class="card voice-selector-card" id="voiceSelectionCard" aria-labelledby="voiceSectionTitle">
-        <div class="card-header">
-          <div class="card-icon-wrap emerald">
-            <span>🎙️</span>
-          </div>
-          <div class="card-title-group">
-            <h2 id="voiceSectionTitle" class="card-title">الخطوة 2: اختيار المعلق الصوتي</h2>
-            <p class="card-subtitle">اختر نبرة الصوت العربي المفضل لتقديم الإعلان العقاري والتجاري مع إمكانية الاستماع المسبق</p>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="voice-cards-grid" id="mainVoiceCardsGrid" role="radiogroup" aria-label="اختيار صوت المعلق">
-            <!-- Voice 1: Female Warm & Natural (Standard A) -->
-            <label class="voice-card active" id="voiceCardStandardA">
-              <input type="radio" name="prominentVoice" value="ar-XA-Standard-A" class="voice-radio" checked>
-              <div class="voice-card-content">
-                <div class="voice-icon-pill">🎙️</div>
-                <div class="voice-text-wrap">
-                  <span class="voice-name">صوت أنثوي دافئ وطبيعي</span>
-                  <span class="voice-desc">Standard A • نبرة طبيعية دافئة ومريحة</span>
-                </div>
-                <button type="button" class="btn-voice-preview" id="btnSampleStandardA" data-voice="ar-XA-Standard-A" title="استمع لنموذج الصوت">
-                  <span class="preview-icon">▶</span>
-                  <span class="preview-text">استمع للصوت</span>
-                </button>
-                <span class="voice-radio-marker"></span>
-              </div>
-            </label>
-
-            <!-- Voice 2: Male Prestigious & Confident (Standard B) -->
-            <label class="voice-card" id="voiceCardStandardB">
-              <input type="radio" name="prominentVoice" value="ar-XA-Standard-B" class="voice-radio">
-              <div class="voice-card-content">
-                <div class="voice-icon-pill">🎙️</div>
-                <div class="voice-text-wrap">
-                  <span class="voice-name">صوت رجالي فخم وواثق</span>
-                  <span class="voice-desc">Standard B • نبرة وقورة وعميقة للعقارات والشركات</span>
-                </div>
-                <button type="button" class="btn-voice-preview" id="btnSampleStandardB" data-voice="ar-XA-Standard-B" title="استمع لنموذج الصوت">
-                  <span class="preview-icon">▶</span>
-                  <span class="preview-text">استمع للصوت</span>
-                </button>
-                <span class="voice-radio-marker"></span>
-              </div>
-            </label>
-
-            <!-- Voice 3: Male Dynamic & Modern (Standard C) -->
-            <label class="voice-card" id="voiceCardStandardC">
-              <input type="radio" name="prominentVoice" value="ar-XA-Standard-C" class="voice-radio">
-              <div class="voice-card-content">
-                <div class="voice-icon-pill">🎙️</div>
-                <div class="voice-text-wrap">
-                  <span class="voice-name">صوت رجالي حيوي وعصري</span>
-                  <span class="voice-desc">Standard C • نبرة شابة سريعة وحيوية للمتاجر</span>
-                </div>
-                <button type="button" class="btn-voice-preview" id="btnSampleStandardC" data-voice="ar-XA-Standard-C" title="استمع لنموذج الصوت">
-                  <span class="preview-icon">▶</span>
-                  <span class="preview-text">استمع للصوت</span>
-                </button>
-                <span class="voice-radio-marker"></span>
-              </div>
-            </label>
-
-            <!-- Voice 4: Female Elegant & Calm (Standard D) -->
-            <label class="voice-card" id="voiceCardStandardD">
-              <input type="radio" name="prominentVoice" value="ar-XA-Standard-D" class="voice-radio">
-              <div class="voice-card-content">
-                <div class="voice-icon-pill">🎙️</div>
-                <div class="voice-text-wrap">
-                  <span class="voice-name">صوت أنثوي أنيق وهادئ</span>
-                  <span class="voice-desc">Standard D • نبرة هادئة ورصينة للمنتجات الراقية</span>
-                </div>
-                <button type="button" class="btn-voice-preview" id="btnSampleStandardD" data-voice="ar-XA-Standard-D" title="استمع لنموذج الصوت">
-                  <span class="preview-icon">▶</span>
-                  <span class="preview-text">استمع للصوت</span>
-                </button>
-                <span class="voice-radio-marker"></span>
-              </div>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION 3: ADVANCED OPTIONS & 1-CLICK PRODUCTION ACTION -->
-      <section class="card action-card" id="actionSection">
-        <!-- Optional Collapsible Accordion: Advanced Customization -->
-        <details class="advanced-accordion" id="advancedAccordion">
-          <summary class="accordion-summary" id="accordionSummary">
-            <div class="summary-left">
-              <span class="summary-icon">⚙️</span>
-              <span class="summary-title">تخصيص متقدم (اختياري - يحدده الذكاء الاصطناعي تلقائياً)</span>
-            </div>
-            <span class="summary-chevron" aria-hidden="true">▼</span>
-          </summary>
-
-          <div class="accordion-body">
-            <!-- Production Principles Trigger Button inside Advanced Options -->
-            <div class="accordion-principles-box">
-              <button type="button" class="btn-principles-trigger" id="btnOpenPrinciples" aria-label="مبادئ ومعايير الإنتاج">
-                <span class="icon">⚙️</span>
-                <span class="label">معايير ومبادئ الإنتاج والتعليق الصوتي (Production Principles)</span>
-                <span class="badge-status">نشطة</span>
-              </button>
-            </div>
-            <!-- Sub-Section: Linguistic Video & Speech Intent Prompts -->
-            <div class="accordion-sub-section linguistic-prompts-sub-section">
-              <div class="accordion-sub-header">
-                <span class="sub-icon">🧠</span>
-                <div class="sub-header-text">
-                  <h3 class="accordion-sub-title">توجيهات الذكاء الاصطناعي اللغوية (Visual & Speech Prompts)</h3>
-                  <span class="sub-subtitle">حدد رغبتك باللغة الطبيعية وسيتكفل وكيل الذكاء الاصطناعي بضبط المشاهد والصوت</span>
-                </div>
-              </div>
-
-              <!-- Saved Prompts History Restoration -->
-              <div class="prompt-history-card" id="promptHistoryCard">
-                <div class="history-card-header">
-                  <div class="history-card-title-wrap">
-                    <span class="history-card-icon">📜</span>
-                    <label for="promptHistorySelect" class="history-card-title">سجل الأوصاف المحفوظة (Prompt History)</label>
-                  </div>
-                  <button type="button" class="btn-history-refresh" id="btnRefreshPromptHistory" title="تحديث السجل من الخادم">
-                    <span>🔄 تحديث</span>
-                  </button>
-                </div>
-                <div class="prompt-history-controls">
-                  <select id="promptHistorySelect" class="form-select prompt-history-select" aria-label="سجل الأوصاف المحفوظة">
-                    <option value="">-- اختر وصفاً محفوظاً للاستعادة الفورية --</option>
-                  </select>
-                </div>
-                <!-- Quick Restoration Chips -->
-                <div class="prompt-history-chips-wrap" id="promptHistoryChips" aria-label="شارات الأوصاف السريعة">
-                  <!-- Dynamically populated via app.js -->
-                </div>
-              </div>
-
-              <!-- Quick Merchant Category Intent Template Chips -->
-              <div class="merchant-templates-card" id="merchantTemplateChipsWrap">
-                <span class="templates-label">⚡ قوالب جاهزة حسب نشاطك التجاري (انقر للتعبئة الفورية):</span>
-                <div class="merchant-templates-grid" id="merchantTemplateChips">
-                  <button type="button" class="btn-merchant-chip active" id="chipRealEstate">
-                    <span>🏢 عقارات</span>
-                  </button>
-                  <button type="button" class="btn-merchant-chip" id="chipRestaurant">
-                    <span>🍽️ مطاعم</span>
-                  </button>
-                  <button type="button" class="btn-merchant-chip" id="chipFashion">
-                    <span>👗 أزياء</span>
-                  </button>
-                  <button type="button" class="btn-merchant-chip" id="chipTech">
-                    <span>📱 تقنية</span>
-                  </button>
-                  <button type="button" class="btn-merchant-chip" id="chipAuto">
-                    <span>🚗 سيارات</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Control 1: Visual Description -->
-              <div class="form-group linguistic-group highlight-guidance">
-                <div class="label-with-hint">
-                  <label for="visualDescription" class="input-label">
-                    <span class="guidance-main-label">👁️ وصف المشهد المرئي المطلوب</span>
-                    <span class="sub-label-dim">(وصف ما تريده أن يظهر في الفيديو)</span>
-                  </label>
-                  <span class="hint-badge emerald">توجيه مرئي ذكي</span>
-                </div>
-                <p class="field-help-text">
-                  وصف لغوي للمشاهد المرئية يتكفل بضبطه agent في الخلفية - مثال: جولة تبدأ من واجهة المعرض وتنتقل للمنتجات الأكثر مبيعاً مع إبراز العروض والأسعار.
-                </p>
-                <div class="textarea-wrap">
-                  <textarea id="visualDescription" name="visual_description" rows="3" class="form-control linguistic-textarea" placeholder="مثال: جولة تبدأ من واجهة المحل أو الصالون الملكي وتنتقل إلى تفاصيل المنتجات والتشطيبات الفاخرة وسعرها..." dir="rtl"></textarea>
-                </div>
-              </div>
-
-              <!-- Control 2: Speech Description -->
-              <div class="form-group linguistic-group highlight-guidance">
-                <div class="label-with-hint">
-                  <label for="speechDescription" class="input-label">
-                    <span class="guidance-main-label">🎙️ وصف النبرة وفحوى ما سيقال</span>
-                    <span class="sub-label-dim">(وصف ما تريده أن يُقال في التعليق الصوتي)</span>
-                  </label>
-                  <span class="hint-badge gold">توجيه نبرة وليس نصاً حرفياً</span>
-                </div>
-                <p class="field-help-text">
-                  توجيه لغوي للنبرة وفحوى ما سيقال، وليس نصاً حرفياً - مثال: رحب بالزبائن بحماس واشرح مميزات الموقع وسرعة التوصيل والأسعار المغرية.
-                </p>
-                <div class="textarea-wrap">
-                  <textarea id="speechDescription" name="speech_description" rows="3" class="form-control linguistic-textarea" placeholder="مثال: رحب بالمشاهدين بنبرة حيوية ودافئة واشرح مميزات المتجر وجودة المنتجات وتوفر التوصيل لكافة الولايات..." dir="rtl"></textarea>
-                </div>
-              </div>
-
-              <!-- Save Prompt & Clear Actions -->
-              <div class="prompt-actions-row">
-                <button type="button" class="btn-save-prompt" id="btnSavePrompt">
-                  <span>💾</span>
-                  <span>حفظ الوصف الحالي</span>
-                </button>
-                <button type="button" class="btn-clear-prompts" id="btnClearPrompts" title="تفريغ حقلي الوصف">
-                  <span>🧹 تفريغ</span>
-                </button>
-              </div>
-              <div id="promptSaveStatus" class="prompt-status-msg" style="display: none;"></div>
-            </div>
-
-            <!-- Legacy Hidden Presets & Script Containers (Decluttered from Studio UI) -->
-            <div class="legacy-hidden-controls" id="presetSection" style="display: none !important;" aria-hidden="true">
-              <div class="presets-selector-grid" id="presetsSelectorGrid"></div>
-              <div class="script-editor-container" id="customScriptContainer" style="display: none !important;" aria-hidden="true">
-                <textarea id="scriptText" style="display:none;"></textarea>
-                <button type="button" id="btnResetScript" style="display:none;"></button>
-                <button type="button" id="btnClearScript" style="display:none;"></button>
-                <span id="wordCount">0</span>
-                <span id="charCount">0</span>
-                <span id="speechEstDuration">~0 ثانية</span>
-              </div>
-            </div>
-
-            <!-- Sub-Section: Audio & Dynamic Ducking Settings -->
-            <div class="accordion-sub-section">
-              <div class="accordion-sub-header">
-                <span class="sub-icon">🎚️</span>
-                <h3 class="accordion-sub-title">إعدادات الصوت والموسيقى</h3>
-              </div>
-
-              <div class="audio-controls-grid">
-                <!-- Voice Selector -->
-                <div class="form-group">
-                  <label for="voiceSelect" class="input-label">
-                    <span>🗣️ الصوت العصبي المعتمد (Gemini Neural TTS):</span>
-                  </label>
-                  <div class="select-wrap">
-                    <select id="voiceSelect" class="form-select">
-                      <option value="auto" selected>✨ اختيار تلقائي ذكي حسب نبرة العقار (موصى به)</option>
-                      <optgroup label="أصوات الفصحى المعتمدة (الرسمية)">
-                        <option value="Aoede">عايدة (Aoede) - صوت أنثوي رخيم وواضح (مثالي للعقارات الفاخرة)</option>
-                        <option value="Charon">شارون (Charon) - صوت ذكوري عميق وواثق (مثالي للفلل والشركات)</option>
-                        <option value="Kore">كوري (Kore) - صوت أنثوي دافئ وهادئ (مثالي للمنازل العائلية)</option>
-                        <option value="Fenrir">فنرير (Fenrir) - صوت ذكوري حيوي وقوي (مثالي للمحلات والفرص التجارية)</option>
-                        <option value="Puck">باك (Puck) - صوت شبابي خفيف ومرح (للعروض السريعة)</option>
-                      </optgroup>
-                      <optgroup label="معايير الويب المتوافقة (Google Neural TTS)">
-                        <option value="ar-XA-Standard-A" selected>صوت أنثوي دافئ وطبيعي (Standard A)</option>
-                        <option value="ar-XA-Standard-B">صوت رجالي فخم وواثق (Standard B)</option>
-                        <option value="ar-XA-Standard-C">صوت رجالي حيوي وعصري (Standard C)</option>
-                        <option value="ar-XA-Standard-D">صوت أنثوي أنيق وهادئ (Standard D)</option>
-                      </optgroup>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Open Source Background Music Library -->
-                <div class="form-group">
-                  <label for="musicSelect" class="input-label">
-                    <span>🎼 الموسيقى التصويرية:</span>
-                  </label>
-                  <div class="select-wrap">
-                    <select id="musicSelect" class="form-select">
-                      <option value="auto" selected>✨ تلقائي ذكي حسب نوع العقار (موصى به)</option>
-                      <option value="luxury_piano">🎹 بيانو كلاسيكي راقي (Gymnopédie No. 1) - للعقارات الفاخرة</option>
-                      <option value="acoustic_guitar">🎸 غيتار أكوستيك مشرق وهادئ (Jason Shaw) - للمنازل والشقق</option>
-                      <option value="ambient_meditation">🌊 موسيقى تأملية مهدئة بإطلالة بحرية (Jason Shaw) - للفلل والشاليهات</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Music Volume & Ducking Slider -->
-                <div class="form-group">
-                  <div class="slider-header-row">
-                    <label for="duckSlider" class="input-label mb-0">
-                      <span>🎵 خفض الموسيقى أثناء الكلام (Ducking Level):</span>
-                    </label>
-                    <div class="ducking-value-badge" id="duckValBadge">25%</div>
-                  </div>
-                  <div class="slider-track-wrap">
-                    <input type="range" id="duckSlider" min="0.05" max="0.50" step="0.05" value="0.25" class="custom-range" aria-label="مستوى خفض الموسيقى">
-                  </div>
-                  <div class="slider-scale-labels">
-                    <span>خفوت تام (5%)</span>
-                    <span>متوازن (25%)</span>
-                    <span>موسيقى بارزة (50%)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="audio-info-tip">
-                <span class="tip-icon">💡</span>
-                <p class="tip-text">
-                  تستخدم المنظومة تعليقاً صوتياً عصبياً حقيقياً عبر <strong>Google Gemini TTS API</strong> مدمجاً مع مكتبة موسيقى حقيقية مفتوحة المصدر (بيانو وغيتار أكوستيك). تقوم خوارزمية <strong>Sidechain Ducking</strong> بخفض صوت الموسيقى بسلاسة أثناء الكلام ورفعها تلقائياً عند فواصل الصمت والخاتمة.
-                </p>
-              </div>
-            </div>
-          </div>
-        </details>
-
-        <!-- Prominent 1-Click Gold & Emerald AI Production Button -->
-        <div class="production-cta-container">
-          <button type="button" class="btn-produce btn-produce-1click" id="btnProduce">
-            <span class="btn-glow"></span>
-            <span class="btn-produce-icon">✨</span>
-            <div class="btn-produce-text">
-              <span class="btn-produce-title">✨ إنشاء الفيديو التسويقي بنقرة واحدة</span>
-              <span class="btn-produce-sub">إنتاج الفيديو تلقائياً بالذكاء الاصطناعي بنقرة واحدة • تعليق صوتي عصبي • موسيقى ديناميكية</span>
-            </div>
-          </button>
-          <!-- Accessible submission alias matching #submitBtn -->
-          <button type="button" id="submitBtn" class="sr-only" aria-hidden="true" tabindex="-1" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;"></button>
-        </div>
-
-        <!-- Animated Multi-Stage Processing Stepper & Live Telemetry -->
-        <div class="stepper-box" id="stepperBox" style="display: none;">
-          <div class="stepper-header">
-            <div class="stepper-title-row">
-              <div class="spinner-mini"></div>
-              <h3 class="stepper-title">جاري معالجة الفيديو وإنتاج الإعلان...</h3>
-            </div>
-            <div class="stepper-controls-row">
-              <div class="stepper-timer" id="stepperTimer">00:00</div>
-              <button type="button" class="btn-subtle btn-cancel-job" id="btnCancelSession" title="إلغاء والمعالجة من جديد">
-                <span>✕ إلغاء الجلسة</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Overall Progress Bar -->
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="progressBarFill" style="width: 15%;"></div>
-          </div>
-
-          <!-- 5-Step Process Tracker -->
-          <ul class="steps-list" id="stepsList">
-            <!-- Step 1 -->
-            <li class="step-item active" data-step="1" id="step1">
-              <div class="step-icon-wrapper">
-                <span class="step-icon-normal">1</span>
-                <span class="step-icon-spinner"></span>
-                <span class="step-icon-done">✓</span>
-              </div>
-              <div class="step-content">
-                <h4 class="step-title">رفع الفيديو من الهاتف</h4>
-                <p class="step-desc">نقل بيانات الفيديو بأمان إلى خادم المعالجة...</p>
-              </div>
-            </li>
-
-            <!-- Step 2 -->
-            <li class="step-item" data-step="2" id="step2">
-              <div class="step-icon-wrapper">
-                <span class="step-icon-normal">2</span>
-                <span class="step-icon-spinner"></span>
-                <span class="step-icon-done">✓</span>
-              </div>
-              <div class="step-content">
-                <h4 class="step-title">تحليل واستخراج لقطات المعاينة</h4>
-                <p class="step-desc">فحص أبعاد الفيديو واستخراج أهم الإطارات المفتاحية...</p>
-              </div>
-            </li>
-
-            <!-- Step 3 -->
-            <li class="step-item" data-step="3" id="step3">
-              <div class="step-icon-wrapper">
-                <span class="step-icon-normal">3</span>
-                <span class="step-icon-spinner"></span>
-                <span class="step-icon-done">✓</span>
-              </div>
-              <div class="step-content">
-                <h4 class="step-title">توليد التعليق الصوتي العصبي</h4>
-                <p class="step-desc">توليف الصوت العربي بجودة عالية متناسقة مع النص...</p>
-              </div>
-            </li>
-
-            <!-- Step 4 -->
-            <li class="step-item" data-step="4" id="step4">
-              <div class="step-icon-wrapper">
-                <span class="step-icon-normal">4</span>
-                <span class="step-icon-spinner"></span>
-                <span class="step-icon-done">✓</span>
-              </div>
-              <div class="step-content">
-                <h4 class="step-title">دمج الموسيقى وخفض الصوت التلقائي</h4>
-                <p class="step-desc">تطبيق الـ Sidechain Ducking والمونتاج السينمائي النهائي...</p>
-              </div>
-            </li>
-
-            <!-- Step 5 -->
-            <li class="step-item" data-step="5" id="step5">
-              <div class="step-icon-wrapper">
-                <span class="step-icon-normal">5</span>
-                <span class="step-icon-spinner"></span>
-                <span class="step-icon-done">✓</span>
-              </div>
-              <div class="step-content">
-                <h4 class="step-title">اكتمل الإنتاج بنجاح!</h4>
-                <p class="step-desc">الفيديو جاهز للعرض والمشاركة والتحميل الفوري.</p>
+            <form id="merchantLoginForm" class="lok-login-form">
+              <div class="form-group mb-3">
+                <label for="merchantLoginUsername" class="input-label">اسم المستخدم (Username):</label>
+                <input type="text" id="merchantLoginUsername" class="form-input" placeholder="مثال: dar_al_nokhba أو merchant_realestate" required dir="ltr">
               </div>
-            </li>
-          </ul>
 
-          <!-- AI Agent Live Status & Real-Time Telemetry Feed -->
-          <div class="ai-agent-live-card" id="aiAgentLiveCard">
-            <div class="ai-agent-header">
-              <div class="ai-agent-badge">
-                <span class="pulse-dot"></span>
-                <span>وكيل الذكاء الاصطناعي (AI Orchestrator)</span>
+              <div class="form-group mb-4">
+                <label for="merchantLoginPassword" class="input-label">كلمة المرور:</label>
+                <input type="password" id="merchantLoginPassword" class="form-input" placeholder="أدخل كلمة المرور" required dir="ltr">
               </div>
-              <span id="aiStepBadge" class="ai-step-badge">المرحلة 1 من 4</span>
-            </div>
-            <div id="aiAgentMessage" class="ai-agent-message">
-              جاري فحص مواصفات الفيديو والاتصال بوكيل الإنتاج...
-            </div>
-            <details class="terminal-collapsible" id="terminalWrapper">
-              <summary class="terminal-summary">
-                <div class="terminal-title">
-                  <span class="terminal-pulse-dot"></span>
-                  <span>سجل أحداث الإنتاج الفني (Live Telemetry)</span>
-                </div>
-                <span class="terminal-summary-chevron">▼</span>
-              </summary>
-              <div class="terminal-header">
-                <div class="terminal-controls">
-                  <button type="button" class="btn-terminal-action" id="btnCopyLogs" title="نسخ السجل كاملاً">
-                    📋 نسخ السجل
-                  </button>
-                  <label class="terminal-autoscroll-label" title="التمرير التلقائي نحو آخر حدث">
-                    <input type="checkbox" id="chkAutoScroll" checked>
-                    <span>تثبيت التمرير</span>
-                  </label>
-                </div>
-              </div>
-              <div id="aiAgentLogs" class="terminal-logs" role="log" aria-live="polite">
-                <div class="log-entry">
-                  <span class="log-time">--:--:--</span>
-                  <span class="log-tag tag-init">[تهيئة]</span>
-                  <span class="log-text">تم بدء جلسة المعالجة وإرسال الفيديو إلى الخادم...</span>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECTION 3: DELIVERY & VIDEO PLAYBACK STUDIO -->
-      <section class="card result-card" id="resultSection" style="display: none;" aria-labelledby="sectionResultTitle">
-        <div class="card-header result-header-flex">
-          <div class="result-title-wrap">
-            <div class="card-icon-wrap emerald pulse">
-              <span>✨</span>
-            </div>
-            <div class="card-title-group">
-              <h2 id="sectionResultTitle" class="card-title">الفيديو التسويقي النهائي الجاهز</h2>
-              <p class="card-subtitle">تم إنجاز المونتاج والميكساج الصوتي بأعلى معايير الجودة</p>
-            </div>
-          </div>
-          <!-- Subtle New Video Button in Header -->
-          <button type="button" class="btn-subtle btn-new-video-top" id="btnResetNewVideo" title="بدء جلسة جديدة">
-            <span>🔄 فيديو جديد</span>
-          </button>
-        </div>
-
-        <div class="card-body">
-          <!-- Final Video Player -->
-          <div class="final-player-wrap">
-            <video id="finalVideoPlayer" class="final-video-player" controls playsinline preload="auto"></video>
-          </div>
-
-          <!-- Emotional Tone Spotlight Banner (Dynamically injected if present) -->
-          <div class="emotional-tone-spotlight" id="emotionalToneSpotlight" style="display: none;">
-            <div class="tone-icon">🎭</div>
-            <div class="tone-content">
-              <div class="tone-title">الحالة الشعورية والرؤية السينمائية المكتشفة:</div>
-              <div class="tone-badge-val" id="emotionalToneVal">فاخر وهادئ</div>
-            </div>
-          </div>
-
-          <!-- Production Metadata Badges Grid -->
-          <div class="telemetry-badges-grid" id="telemetryBadgesGrid">
-            <!-- Dynamically populated -->
-          </div>
-
-          <!-- Delivery Action Buttons -->
-          <div class="delivery-actions-grid">
-            <!-- Download MP4 -->
-            <a id="btnDownloadVideo" class="action-btn-delivery btn-download-primary" download target="_blank">
-              <span class="btn-icon">⬇️</span>
-              <div class="btn-text-block">
-                <span class="btn-bold">تحميل الفيديو (MP4)</span>
-                <span class="btn-small">أعلى دقة جاهز للنشر</span>
-              </div>
-            </a>
-
-            <!-- Web Share API Button -->
-            <button type="button" class="action-btn-delivery btn-share-accent" id="btnShareVideo">
-              <span class="btn-icon">📲</span>
-              <div class="btn-text-block">
-                <span class="btn-bold">مشاركة الفيديو</span>
-                <span class="btn-small">واتساب، إنستغرام، تيك توك</span>
-              </div>
-            </button>
-
-            <!-- Download Audio WAV -->
-            <a id="btnDownloadAudio" class="action-btn-delivery btn-audio-secondary" download target="_blank">
-              <span class="btn-icon">🎙️</span>
-              <div class="btn-text-block">
-                <span class="btn-bold">تحميل التعليق الصوتي</span>
-                <span class="btn-small">ملف صوتي عالي النقاوة (WAV)</span>
-              </div>
-            </a>
-          </div>
-
-          <!-- Quick Social Share Shortcuts -->
-          <div class="social-share-row">
-            <span class="social-share-label">نشر مباشر سريع:</span>
-            <div class="social-chips">
-              <button type="button" class="social-chip chip-whatsapp" id="btnShareWhatsApp">
-                <span>💬 واتساب</span>
-              </button>
-              <button type="button" class="social-chip chip-telegram" id="btnShareTelegram">
-                <span>✈️ تيليجرام</span>
-              </button>
-              <button type="button" class="social-chip chip-copy" id="btnCopyVideoLink">
-                <span>📋 نسخ الرابط</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Keyframes Thumbnail Carousel -->
-          <div class="keyframes-container">
-            <div class="keyframes-header">
-              <div class="keyframes-title">
-                <span>🖼️ لقطات المعاينة المفتاحية (Keyframes):</span>
-                <span class="keyframes-count-badge" id="keyframesCountBadge">0 لقطة</span>
-              </div>
-              <span class="keyframes-sub">اضغط على أي لقطة لتكبيرها وفحصها</span>
-            </div>
-
-            <div class="keyframes-carousel" id="keyframesCarousel" role="region" aria-label="معرض الإطارات المفتاحية">
-              <!-- Dynamically populated with keyframe thumbnails -->
-            </div>
-          </div>
-
-          <!-- Produce Another Video Reset Row -->
-          <div class="reset-row">
-            <button type="button" class="btn-new-video-prominent wide" id="btnStartNewProduction">
-              <span>🔄 معالجة فيديو جديد (بدء جلسة جديدة)</span>
-            </button>
-          </div>
-        </div>
-      </section>
-      </div> <!-- /#tabContentStudio -->
-
-      <!-- TAB 2: MERCHANT DASHBOARD -->
-      <div class="saas-tab-content" id="tabContentMerchant" style="display: none;">
-        <!-- Merchant Profile Header Card -->
-        <section class="card merchant-profile-card" id="merchantProfileCard">
-          <div class="profile-header-top">
-            <div class="profile-avatar-wrap">
-              <span class="avatar-icon" id="merchantDashAvatarIcon">🏢</span>
-            </div>
-            <div class="profile-titles">
-              <div class="profile-name-row">
-                <h2 class="merchant-business-heading" id="merchantDashBusinessName">دار النخبة العقارية</h2>
-                <span class="badge-status-pill active" id="merchantDashStatus">حساب نشط</span>
-              </div>
-              <div class="profile-sub-row">
-                <span class="profile-meta-chip">
-                  <span>اسم المستخدم:</span>
-                  <strong id="merchantDashUsername">dar_al_nokhba</strong>
-                </span>
-                <span class="profile-meta-chip">
-                  <span>النشاط التجاري:</span>
-                  <strong id="merchantDashCategory">عقارات فاخرة</strong>
-                </span>
-                <span class="profile-meta-chip expiry">
-                  <span>تاريخ الصلاحية:</span>
-                  <strong id="merchantDashExpiry">2026-12-31</strong>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quota Meters Grid -->
-          <div class="quota-meters-grid" id="merchantQuotaMetersGrid">
-            <!-- Daily Meter -->
-            <div class="meter-card">
-              <div class="meter-card-header">
-                <span class="meter-icon">📅</span>
-                <span class="meter-label">الحصة اليومية (Daily Quota)</span>
-              </div>
-              <div class="meter-values">
-                <span class="meter-remaining" id="merchantDailyProgressText">5 / 5 فيديوهات متبقية اليوم</span>
-              </div>
-              <div class="progress-bar-container">
-                <div class="progress-bar-fill emerald" id="merchantDailyProgressFill" style="width: 100%;"></div>
-              </div>
-            </div>
-
-            <!-- Weekly Meter -->
-            <div class="meter-card">
-              <div class="meter-card-header">
-                <span class="meter-icon">📆</span>
-                <span class="meter-label">الحصة الأسبوعية (Weekly Quota)</span>
-              </div>
-              <div class="meter-values">
-                <span class="meter-remaining" id="merchantWeeklyProgressText">25 / 25 فيديو متبقي هذا الأسبوع</span>
-              </div>
-              <div class="progress-bar-container">
-                <div class="progress-bar-fill gold" id="merchantWeeklyProgressFill" style="width: 100%;"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Merchant Video Library Section -->
-        <section class="card merchant-library-card" id="merchantLibraryCard">
-          <div class="card-header library-header-flex">
-            <div class="card-title-group">
-              <div class="title-with-badge">
-                <span class="card-icon-wrap emerald">🎬</span>
-                <h2 class="card-title">مكتبة الفيديوهات المنتجة (Video Library)</h2>
-                <span class="library-count-badge" id="merchantVideoCountBadge">0 فيديو</span>
-              </div>
-              <p class="card-subtitle">جميع مقاطع الفيديو التي تم إنتاجها لهذا الحساب مع روابط المشاهدة والتحميل المباشر</p>
-            </div>
-            <button type="button" class="btn-create-shortcut" id="btnGoToStudioFromDash">
-              <span>➕ إنشاء فيديو جديد</span>
-            </button>
-          </div>
-
-          <div class="card-body">
-            <!-- Dynamic Video Grid or Empty State -->
-            <div class="merchant-video-grid" id="merchantVideoGrid">
-              <!-- Dynamically populated via app.js -->
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- TAB 3: ADMIN DASHBOARD -->
-      <div class="saas-tab-content" id="tabContentAdmin" style="display: none;">
-        <!-- Platform Stats Overview -->
-        <section class="card admin-stats-card" id="adminStatsCard">
-          <div class="card-header">
-            <div class="card-icon-wrap gold">
-              <span>👑</span>
-            </div>
-            <div class="card-title-group">
-              <h2 class="card-title">لوحة تحكم إدارة المنصة (Admin Overview)</h2>
-              <p class="card-subtitle">متابعة حسابات التجار، الحصص اليومية والأسبوعية، وتجديد الاشتراكات</p>
-            </div>
-          </div>
-
-          <div class="card-body">
-            <div class="admin-stats-grid">
-              <div class="stat-metric-card">
-                <div class="stat-icon-wrap">🏢</div>
-                <div class="stat-info">
-                  <span class="stat-label">إجمالي حسابات التجار</span>
-                  <span class="stat-number" id="statTotalMerchants">10</span>
-                </div>
-              </div>
-
-              <div class="stat-metric-card">
-                <div class="stat-icon-wrap">⚡</div>
-                <div class="stat-info">
-                  <span class="stat-label">فيديوهات منتجة اليوم</span>
-                  <span class="stat-number" id="statVideosToday">0</span>
-                </div>
-              </div>
-
-              <div class="stat-metric-card">
-                <div class="stat-icon-wrap">✅</div>
-                <div class="stat-info">
-                  <span class="stat-label">الاشتراكات النشطة</span>
-                  <span class="stat-number" id="statActiveSubs">10</span>
-                </div>
-              </div>
-
-              <div class="stat-metric-card">
-                <div class="stat-icon-wrap">🎬</div>
-                <div class="stat-info">
-                  <span class="stat-label">إجمالي إنتاج المنصة</span>
-                  <span class="stat-number" id="statTotalVideos">0</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Merchant Users Management Table Card -->
-        <section class="card admin-users-card" id="adminUsersCard">
-          <div class="card-header table-header-flex">
-            <div class="card-title-group">
-              <h2 class="card-title">إدارة حسابات التجار والحصص</h2>
-              <p class="card-subtitle">تعديل الحصص، إيقاف أو تنشيط الحسابات، وتجديد فترات الصلاحية</p>
-            </div>
-            <button type="button" class="btn-primary-action" id="btnOpenCreateMerchantModal">
-              <span>➕ إضافة حساب تاجر جديد</span>
-            </button>
-          </div>
-
-          <div class="card-body">
-            <div class="table-responsive-wrapper">
-              <table class="saas-data-table" id="adminUsersTable">
-                <thead>
-                  <tr>
-                    <th>التاجر والنشاط</th>
-                    <th>الفئة</th>
-                    <th>الحصة اليومية</th>
-                    <th>الحصة الأسبوعية</th>
-                    <th>تاريخ الانتهاء</th>
-                    <th>الحالة</th>
-                    <th>الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody id="adminUsersTableBody">
-                  <!-- Dynamically populated via app.js -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
 
-    <!-- Production Principles Modal -->
-    <div class="modal-backdrop" id="principlesModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="principlesModalTitle">
-      <div class="modal-card modal-principles-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-badge">⚙️ معايير الذكاء الاصطناعي</span>
-            <h2 class="modal-title" id="principlesModalTitle">مبادئ ومعايير توليد الصوت والإنتاج</h2>
-          </div>
-          <button type="button" class="icon-btn modal-close" id="btnClosePrinciples" aria-label="إغلاق">✕</button>
-        </div>
-
-        <div class="modal-body principles-modal-body">
-          <p class="principles-intro">
-            تحكم مباشرة في المبادئ التوجيهية المكتوبة التي يعتمد عليها وكيل الذكاء الاصطناعي في تحليل المشاهد، توليد التعليق الصوتي العصبي، ضبط الحالة الشعورية، وإضافة ملصقات الفيديو. التعديلات تحفظ وتطبق فورياً في الواجهة الخلفية.
-          </p>
-
-          <form id="principlesForm">
-            <!-- Section 0: Master Custom Directive (First-Class Free-Form Principles) -->
-            <fieldset class="principles-fieldset principles-master-fieldset">
-              <legend>🌟 المبدأ العام والتوجيه المفتوح للذكاء الاصطناعي (Master Custom Directive)</legend>
-              <div class="form-group">
-                <label for="principleCustomInstructions" class="master-directive-label">
-                  اكتب أي مبادئ أو توجيهات مخصصة تريدها بكل حرية وسيلتزم بها الذكاء الاصطناعي تماماً:
-                </label>
-                <textarea id="principleCustomInstructions" rows="3" class="form-control master-textarea" placeholder="مثال: إستخدم اللهجة الجزائرية الدارجة، واجعل الصوت وصفياً متصلاً تماماً مع ما يظهر في المشهد كأن الشخص الذي يصور هو من يتكلم بنفسه أثناء تجوله في العقار..."></textarea>
-              </div>
-
-              <!-- Quick Instruction Presets -->
-              <div class="quick-principles-row">
-                <span class="quick-label">⚡ شارات وقوالب سريعة (انقر للتطبيق الفوري في التوجيه):</span>
-                <div class="quick-chips-wrap">
-                  <button type="button" class="btn-quick-chip" id="chipDarja">
-                    🇩🇿 لهجة جزائرية دارجة
-                  </button>
-                  <button type="button" class="btn-quick-chip" id="chipWalkthrough">
-                    📹 المصور هو من يتكلم (Live Walkthrough)
-                  </button>
-                  <button type="button" class="btn-quick-chip" id="chipConnected">
-                    👁️ صوت وصفي متصل بالمشهد
-                  </button>
-                  <button type="button" class="btn-quick-chip" id="chipFormal">
-                    ✨ فصحى راقية
-                  </button>
-                  <button type="button" class="btn-quick-chip chip-clear" id="chipClear">
-                    🧹 تفريغ التوجيه
-                  </button>
-                </div>
-              </div>
-
-              <div class="form-row-grid" style="margin-top: 14px;">
-                <div class="form-group">
-                  <label for="principleDialect">الأسلوب اللغوي واللهجة المعتمدة:</label>
-                  <select id="principleDialect" class="form-control select-control">
-                    <option value="algerian_darja">اللهجة الجزائرية (الدارجة الجزائرية العفوية الحية)</option>
-                    <option value="standard_arabic">عربية فصيحة راقية (Modern Standard Arabic)</option>
-                    <option value="bilingual_mix">مزيج دارجة جزائرية ومصطلحات عقارية</option>
-                    <option value="french_algerian">فرنسية جزائرية (French Algerian)</option>
-                    <option value="custom">حسب التوجيه المكتوب في النص أعلاه</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="principlePerspective">منظور وزاوية السرد الصوتي:</label>
-                  <select id="principlePerspective" class="form-control select-control">
-                    <option value="videographer_walkthrough">الشخص الذي يصور هو من يتكلم (Live Walkthrough POV)</option>
-                    <option value="third_person_narrator">معلق إعلاني تسويقي خارجي (Third-Person Presenter)</option>
-                    <option value="agent_guide">مستشار عقاري ودود يرافق المشاهد (Friendly Agent)</option>
-                    <option value="custom">حسب التوجيه المكتوب في النص أعلاه</option>
-                  </select>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Section 1: Voice Principles -->
-            <fieldset class="principles-fieldset">
-              <legend>🎙️ مبادئ ومعايير التعليق الصوتي العصبي (Gemini TTS)</legend>
-              <div class="form-group">
-                <label for="principleVoiceGuidelines">النص التوجيهي للأسلوب والنبرة:</label>
-                <textarea id="principleVoiceGuidelines" rows="3" class="form-control" placeholder="تحدث بنبرة عربية فصيحة..."></textarea>
-              </div>
-              <div class="form-row-grid">
-                <div class="form-group">
-                  <label for="principleVoicePacing">وتيرة الإلقاء (Pacing):</label>
-                  <input type="text" id="principleVoicePacing" class="form-control" placeholder="معتدل (حوالي 120 إلى 140 كلمة في الدقيقة)...">
-                </div>
-                <div class="form-group">
-                  <label for="principleVoicePronunciation">توجيه النطق والمصطلحات العقارية:</label>
-                  <input type="text" id="principleVoicePronunciation" class="form-control" placeholder="نطق أسماء المدن والمصطلحات بدقة...">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="principleVoiceToneBias">النبرة والحالة الشعورية المفضلة:</label>
-                <select id="principleVoiceToneBias" class="form-control select-control">
-                  <option value="فاخر وهادئ">فاخر وهادئ (Prestigious & Luxurious)</option>
-                  <option value="دافئ وأنيق">دافئ وأنيق (Warm & Elegant)</option>
-                  <option value="متحمس وحيوي">متحمس وحيوي (Enthusiastic & Dynamic)</option>
-                  <option value="عصري وجريء">عصري وجريء (Modern & Bold)</option>
-                </select>
-              </div>
-            </fieldset>
-
-            <!-- Section 2: Narrative Principles -->
-            <fieldset class="principles-fieldset">
-              <legend>🏛️ مبادئ الوصف المعماري والترويج العقاري</legend>
-              <div class="form-group">
-                <label for="principleNarrativeGuidelines">معايير استنباط النص ووصف المزايا:</label>
-                <textarea id="principleNarrativeGuidelines" rows="3" class="form-control" placeholder="التركيز على نقاط القوة الحقيقية: المساحة الواسعة..."></textarea>
-              </div>
-              <div class="form-row-grid">
-                <div class="form-group">
-                  <label for="principleNarrativeAlignment">مواءمة مدة النص مع المشهد:</label>
-                  <input type="text" id="principleNarrativeAlignment" class="form-control">
-                </div>
-                <div class="form-group">
-                  <label for="principleNarrativeAudience">الجمهور المستهدف:</label>
-                  <input type="text" id="principleNarrativeAudience" class="form-control">
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Section 3: Visual & Music Principles -->
-            <fieldset class="principles-fieldset">
-              <legend>🎵 مبادئ الإخراج الصوتي والموسيقي</legend>
-              <div class="form-row-grid">
-                <div class="form-group">
-                  <label for="principleVisualDucking">مستوى خفض الموسيقى التلقائي (Ducking):</label>
-                  <select id="principleVisualDucking" class="form-control select-control">
-                    <option value="0.10">خفيف جداً (10% - موسيقى خافتة جداً تحت الصوت)</option>
-                    <option value="0.15">متوازن وراقي (15% - موصى به للعقارات الفاخرة)</option>
-                    <option value="0.25">واضح (25% - مستوى قياسي)</option>
-                    <option value="0.35">حماسي (35% - حضور موسيقي بارز)</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="principleVisualTheme">النمط الموسيقي الافتراضي:</label>
-                  <select id="principleVisualTheme" class="form-control select-control">
-                    <option value="luxury_piano">بيانو كلاسيكي راقي (Luxury Grand Piano)</option>
-                    <option value="acoustic_guitar">جيتار دافئ وطبيعي (Acoustic Warmth)</option>
-                    <option value="ambient_meditation">أنوار تأملية هادئة (Ambient Pad Harmony)</option>
-                  </select>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Section 4: Video Annotation Principles -->
-            <fieldset class="principles-fieldset">
-              <legend>✨ مبادئ الكتابات والملصقات التوضيحية (Video Overlay)</legend>
-              <div class="form-row-grid">
-                <div class="form-group checkbox-group-wrap">
-                  <label class="custom-toggle-label">
-                    <input type="checkbox" id="principleEnableAutoAnnotations" checked>
-                    <span class="toggle-text">تفعيل إضافة العناوين والشارات التوضيحية التلقائية</span>
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label for="principleAnnotationStyle">نمط الشارة والتصميم:</label>
-                  <select id="principleAnnotationStyle" class="form-control select-control">
-                    <option value="luxury_gold">شارة ذهبية ملكية (Luxury Gold)</option>
-                    <option value="emerald_badge">شارة زمردية جزائرية (Emerald Green)</option>
-                    <option value="modern_white">أبيض عصري ناصع (Modern White)</option>
-                    <option value="price_tag">بطاقة أسعار مميزة (Price Tag Amber)</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="principleAnnotationPosition">موضع ظهور النص:</label>
-                <select id="principleAnnotationPosition" class="form-control select-control">
-                  <option value="lower_third">الثلث السفلي (Lower Third - موصى به احترافياً)</option>
-                  <option value="top_banner">شريط علوي (Top Banner)</option>
-                  <option value="bottom_banner">شريط سفلي ملاصق (Bottom Banner)</option>
-                  <option value="center">منتصف الشاشة (Center)</option>
-                </select>
-              </div>
-            </fieldset>
-
-            <div class="principles-actions-row">
-              <button type="submit" class="btn-save-principles" id="btnSavePrinciples">
-                💾 حفظ وتطبيق المبادئ فوراً
-              </button>
-              <button type="button" class="btn-reset-principles" id="btnResetPrinciples">
-                🔄 استعادة المبادئ الافتراضية
-              </button>
-            </div>
-            <div id="principlesSaveStatus" class="principles-status-feedback"></div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Global Keyframe Modal Viewer -->
-    <div class="modal-backdrop" id="keyframeModal" style="display: none;" role="dialog" aria-modal="true" aria-label="معاينة اللقطة المفتاحية">
-      <div class="modal-card">
-        <div class="modal-header">
-          <span class="modal-title" id="modalFrameTitle">لقطة مفتاحية</span>
-          <button type="button" class="icon-btn modal-close" id="btnModalClose" aria-label="إغلاق">✕</button>
-        </div>
-        <div class="modal-image-wrap">
-          <img id="modalFrameImg" src="" alt="Keyframe Preview">
-        </div>
-        <div class="modal-footer">
-          <span class="modal-timestamp" id="modalFrameTimestamp">0.0s</span>
-          <a id="btnModalDownload" class="btn-subtle" download target="_blank">⬇️ حفظ اللقطة</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Merchant Modal -->
-    <div class="modal-backdrop" id="createMerchantModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="createMerchantTitle">
-      <div class="modal-card modal-admin-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-badge">🏢 إضافة تاجر</span>
-            <h2 class="modal-title" id="createMerchantTitle">تسجيل حساب تاجر جديد في المنصة</h2>
-          </div>
-          <button type="button" class="icon-btn modal-close" id="btnCloseCreateMerchantModal" aria-label="إغلاق">✕</button>
-        </div>
-
-        <div class="modal-body">
-          <form id="createMerchantForm">
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="newMerchantUsername" class="input-label">اسم المستخدم (Username):</label>
-                <input type="text" id="newMerchantUsername" required class="form-control" placeholder="مثال: royal_boutique" dir="ltr">
-              </div>
-              <div class="form-group">
-                <label for="newMerchantBusinessName" class="input-label">اسم المتجر / الشركة:</label>
-                <input type="text" id="newMerchantBusinessName" required class="form-control" placeholder="مثال: رويال بوتيك للأزياء" dir="rtl">
-              </div>
-            </div>
-
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="newMerchantCategory" class="input-label">النشاط التجاري (الفئة):</label>
-                <select id="newMerchantCategory" class="form-select">
-                  <option value="عقارات فاخرة">عقارات فاخرة</option>
-                  <option value="معرض سيارات">معرض سيارات</option>
-                  <option value="أزياء وقفطان راقي">أزياء وموضة</option>
-                  <option value="إلكترونيات وهواتف">إلكترونيات وهواتف</option>
-                  <option value="مطعم ومأكولات أصيلة">مطعم ومأكولات</option>
-                  <option value="مجوهرات وذهب">مجوهرات وذهب</option>
-                  <option value="عطور وتجميل">عطور وتجميل</option>
-                  <option value="أثاث وديكور راقي">أثاث وديكور</option>
-                  <option value="سياحة وأسفار">سياحة وأسفار</option>
-                  <option value="نادي رياضي ورشاقة">نادي رياضي ورشاقة</option>
-                  <option value="خدمات وأعمال عامة">خدمات وأعمال عامة</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="newMerchantExpiry" class="input-label">تاريخ انتهاء الصلاحية:</label>
-                <input type="date" id="newMerchantExpiry" required class="form-control">
-              </div>
-            </div>
-
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="newMerchantDailyQuota" class="input-label">الحصة اليومية (فيديو/يوم):</label>
-                <input type="number" id="newMerchantDailyQuota" min="1" max="100" value="5" required class="form-control">
-              </div>
-              <div class="form-group">
-                <label for="newMerchantWeeklyQuota" class="input-label">الحصة الأسبوعية (فيديو/أسبوع):</label>
-                <input type="number" id="newMerchantWeeklyQuota" min="1" max="500" value="25" required class="form-control">
-              </div>
-            </div>
-
-            <div class="modal-actions-row">
-              <button type="submit" class="btn-primary-action" id="btnSaveNewMerchant">
-                <span>💾 حفظ وإنشاء الحساب</span>
-              </button>
-              <button type="button" class="btn-subtle" id="btnCancelCreateMerchant">
-                <span>إلغاء</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Merchant Quotas Modal -->
-    <div class="modal-backdrop" id="editQuotaModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="editQuotaTitle">
-      <div class="modal-card modal-admin-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-badge">⚙️ تعديل الحصص</span>
-            <h2 class="modal-title" id="editQuotaTitle">تعديل حصص التاجر</h2>
-          </div>
-          <button type="button" class="icon-btn modal-close" id="btnCloseEditQuotaModal" aria-label="إغلاق">✕</button>
-        </div>
-
-        <div class="modal-body">
-          <form id="editQuotaForm">
-            <input type="hidden" id="editQuotaUserId">
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="editQuotaDaily" class="input-label">الحصة اليومية الجديدة:</label>
-                <input type="number" id="editQuotaDaily" min="1" max="100" required class="form-control">
-              </div>
-              <div class="form-group">
-                <label for="editQuotaWeekly" class="input-label">الحصة الأسبوعية الجديدة:</label>
-                <input type="number" id="editQuotaWeekly" min="1" max="500" required class="form-control">
-              </div>
-            </div>
-            <div class="modal-actions-row">
-              <button type="submit" class="btn-primary-action" id="btnSaveEditQuota">
-                <span>💾 حفظ التعديلات</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Professional Session Login Gateway Modal -->
-    <div class="modal-backdrop" id="sessionLoginModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="sessionLoginTitle">
-      <div class="modal-card modal-login-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-badge">🔐 بوابة تسجيل الدخول</span>
-            <h2 class="modal-title" id="sessionLoginTitle">تسجيل الدخول إلى منصة الإنتاج الذكي</h2>
-          </div>
-          <button type="button" class="icon-btn modal-close" id="btnCloseLoginModal" aria-label="إغلاق">✕</button>
-        </div>
-
-        <div class="modal-body">
-          <!-- Login Role Toggle Tabs -->
-          <div class="login-role-tabs" id="loginRoleTabs">
-            <button type="button" class="btn-role-tab active" id="tabLoginAdmin" data-role="admin">
-              <span>👑 دخول المسؤول (Admin)</span>
-            </button>
-            <button type="button" class="btn-role-tab" id="tabLoginMerchant" data-role="merchant">
-              <span>🏢 دخول التجار (Merchant)</span>
-            </button>
-          </div>
-
-          <!-- Section 1: Admin Login -->
-          <div class="login-section" id="loginAdminSection">
-            <!-- Visible Default Credentials Helper Note -->
-            <div class="login-helper-note" id="adminHelperNote">
-              <span class="note-icon">💡</span>
-              <div class="note-text">
-                <strong class="note-heading">بيانات الدخول الافتراضية للمسؤول:</strong>
-                <div class="note-creds">اسم المستخدم: admin | كلمة المرور الافتراضية: admin123</div>
-              </div>
-            </div>
-
-            <form id="adminLoginForm">
-              <div class="form-group">
-                <label for="adminLoginUsername" class="input-label">اسم المستخدم:</label>
-                <input type="text" id="adminLoginUsername" class="form-control" value="admin" required dir="ltr">
-              </div>
-              <div class="form-group">
-                <label for="adminLoginPassword" class="input-label">كلمة المرور:</label>
-                <input type="password" id="adminLoginPassword" class="form-control" value="admin123" required dir="ltr">
-              </div>
-              <button type="submit" class="btn-login-submit admin" id="btnSubmitAdminLogin">
-                <span>👑 تسجيل الدخول كمسؤول</span>
+              <button type="submit" id="btnSubmitMerchantLogin" class="btn-bw-primary w-100 py-3">
+                <span>دخول الاستوديو</span>
               </button>
             </form>
-          </div>
 
-          <!-- Section 2: Merchant Login -->
-          <div class="login-section" id="loginMerchantSection" style="display: none;">
-            <p class="merchant-login-hint">
-              اختر متجرك للدخول الفوري بنقرة واحدة أو أدخل بيانات الحساب:
-            </p>
-
-            <!-- Fast 1-Tap Demo Merchant Login Grid -->
-            <div class="merchant-quick-login-wrap">
-              <span class="quick-title">⚡ دخول سريع بنقرة واحدة (حسابات تجريبية):</span>
-              <div class="merchant-quick-grid" id="merchantQuickLoginGrid">
+            <!-- 1-Tap Quick Demo Login Section -->
+            <div class="quick-demo-section mt-4">
+              <div class="quick-divider">
+                <span>أو الدخول السريع بحساب تجريبي (1-Tap):</span>
+              </div>
+              <div class="merchant-quick-grid mt-3" id="merchantQuickLoginGrid">
                 <!-- Dynamically populated via app.js -->
               </div>
             </div>
 
-            <form id="merchantLoginForm" style="margin-top: 14px;">
-              <div class="form-group">
-                <label for="merchantLoginUsername" class="input-label">اسم مستخدم التاجر:</label>
-                <input type="text" id="merchantLoginUsername" class="form-control" placeholder="مثال: dar_al_nokhba أو auto_algerie" dir="ltr">
+            <!-- Admin Portal Link -->
+            <div class="admin-portal-shortcut mt-4 text-center">
+              <a href="/admin" class="link-admin-portal" target="_blank">
+                <span>👑 الدخول إلى لوحة التحكم الإدارية (/admin)</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 2. MINIMALIST STUDIO UI (Clean, Uncluttered, Essential Controls Only) -->
+    <!-- ===================================================================== -->
+    <div id="studioView" class="lok-studio-view" style="display: none;">
+      
+      <!-- Top Minimal Header Bar -->
+      <header class="lok-header">
+        <div class="header-inner">
+          <div class="header-brand-group">
+            <div class="lok-header-logo">lok</div>
+            <div class="header-user-status" id="headerUserStatus">
+              <span class="user-role-icon" id="userRoleIcon">🏢</span>
+              <span class="user-business-name" id="userBusinessName">دار النخبة العقارية</span>
+            </div>
+          </div>
+
+          <!-- Simple Settings Button -->
+          <div class="header-actions">
+            <button type="button" class="btn-bw-settings" id="btnOpenSettings" title="إعدادات الحساب والتوصيات والرصيد">
+              <span class="settings-icon">⚙️</span>
+              <span class="settings-label">الإعدادات</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Studio Container -->
+      <main class="lok-main-content">
+        <div class="studio-center-card">
+
+          <!-- Studio Hero Headline -->
+          <div class="studio-headline-group">
+            <h1 class="studio-title">إنتاج الفيديو التسويقي بنقرة واحدة</h1>
+            <p class="studio-subtitle">
+              ارفع مقطع الفيديو المسجل مسبقاً، واكتب توجيهاتك بالتفصيل لصياغة سيناريو احترافي، تعليق صوتي بالدارجة، ومونتاج ديناميكي فوري.
+            </p>
+          </div>
+
+          <!-- CONTROL 1: Pre-recorded Video Upload Area (Dropzone, No in-browser camera) -->
+          <div class="studio-section upload-section">
+            <label class="section-label">1. مقطع الفيديو المسجل (Pre-recorded Video):</label>
+            
+            <div class="video-dropzone" id="videoDropzone">
+              <input type="file" id="videoFileInput" accept="video/*" class="visually-hidden" aria-label="اختيار مقطع فيديو">
+              
+              <div class="dropzone-idle-content" id="dropzoneIdleContent">
+                <div class="dropzone-icon">📹</div>
+                <div class="dropzone-primary-text">اسحب وأفلت مقطع الفيديو المسجل هنا أو انقر للاختيار</div>
+                <div class="dropzone-sub-text">مخصص للفيديوهات الجاهزة والمسجلة مسبقاً من الهاتف أو الكاميرا (MP4, MOV, WebM)</div>
+                <button type="button" class="btn-bw-secondary btn-browse" id="btnBrowseVideo">
+                  <span>تصفح واختيار الفيديو</span>
+                </button>
               </div>
-              <div class="form-group">
-                <label for="merchantLoginPassword" class="input-label">كلمة المرور (اختياري للتجار):</label>
-                <input type="password" id="merchantLoginPassword" class="form-control" placeholder="كلمة المرور أو اتركها فارغة" dir="ltr">
+
+              <!-- Selected Video State (Revealed when a file is picked) -->
+              <div class="dropzone-selected-content" id="dropzoneSelectedContent" style="display: none;">
+                <div class="selected-video-icon">🎬</div>
+                <div class="selected-video-info">
+                  <div class="selected-video-name" id="selectedVideoName">video.mp4</div>
+                  <div class="selected-video-meta" id="selectedVideoMeta">الحجم: 12.4 ميغابايت</div>
+                </div>
+                <button type="button" class="btn-bw-secondary btn-replace" id="btnReplaceVideo">
+                  <span>تغيير الفيديو</span>
+                </button>
               </div>
-              <button type="submit" class="btn-login-submit merchant" id="btnSubmitMerchantLogin">
-                <span>🏢 دخول حساب التاجر</span>
+            </div>
+          </div>
+
+          <!-- CONTROL 2: Detailed Prompt Textarea -->
+          <div class="studio-section prompt-section">
+            <div class="prompt-header-row">
+              <label for="promptTextarea" class="section-label mb-0">2. توجيهات المشهد والصوت والأسلوب (Detailed Prompt):</label>
+              <div class="prompt-hint-chip" id="attachedRecIndicator" style="display: none;">
+                <span class="rec-icon">🎯</span>
+                <span class="rec-text" id="attachedRecText">توصية نشطة</span>
+                <button type="button" class="btn-clear-rec" id="btnClearRec" title="إزالة التوصية">✕</button>
+              </div>
+            </div>
+
+            <div class="prompt-textarea-wrapper">
+              <textarea 
+                id="promptTextarea" 
+                class="lok-prompt-textarea" 
+                rows="6"
+                placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو:
+• سرعة الإلقاء (Speech Speed): مثلاً وتيرة سريعة وحماسية، أو هادئة ومتزنة.
+• المشاهد المرئية (Visuals): مثلاً التركيز على الإضاءة الطبيعية، الواجهات العصرية، الغرف الواسعة.
+• نبرة الصوت (Tone): مثلاً نبرة ترويجية فخمة ومقنعة، أو ودودة ودافئة.
+• اللهجة (Dialect): بالدارجة الجزائرية العاصمية، أو الوهرانية، أو بالعربية الفصحى."
+              ></textarea>
+              <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
+            </div>
+          </div>
+
+          <!-- CONTROL 4: Produce Video Action Button -->
+          <div class="studio-section action-section">
+            <button type="button" class="btn-bw-primary btn-produce-main" id="btnProduceVideo">
+              <span class="produce-icon">✨</span>
+              <span class="produce-label">إنتاج الفيديو التسويقي بنقرة واحدة</span>
+            </button>
+          </div>
+
+          <!-- Processing Stepper Progress -->
+          <div class="processing-stepper-box" id="processingStepper" style="display: none;">
+            <div class="stepper-header">
+              <div class="stepper-spinner"></div>
+              <div class="stepper-status-text" id="stepperStatusText">جاري معالجة الفيديو وإنتاج المحتوى الذكي...</div>
+            </div>
+            <div class="stepper-progress-bar">
+              <div class="stepper-fill" id="stepperFill" style="width: 15%;"></div>
+            </div>
+            <div class="stepper-steps-list">
+              <span class="step-chip active" id="stepAnalyze">1. تحليل المشاهد</span>
+              <span class="step-chip" id="stepScript">2. صياغة السيناريو</span>
+              <span class="step-chip" id="stepVoice">3. توليد الصوت بالدارجة</span>
+              <span class="step-chip" id="stepRender">4. المونتاج النهائي</span>
+            </div>
+          </div>
+
+          <!-- Final Result Card -->
+          <div class="result-container" id="resultContainer" style="display: none;">
+            <div class="result-header">
+              <h3 class="result-title">🎉 تم إنتاج الفيديو التسويقي بنجاح!</h3>
+              <p class="result-subtitle">الفيديو جاهز للعرض والمشاركة بجودة عالية وصوت نقي</p>
+            </div>
+            <div class="result-video-wrapper">
+              <video id="resultVideo" controls playsinline class="lok-result-video"></video>
+            </div>
+            <div class="result-actions">
+              <a href="#" download="lok_production.mp4" class="btn-bw-primary btn-download" id="btnDownloadVideo">
+                <span>⬇️ تحميل الفيديو النهائي (MP4)</span>
+              </a>
+              <button type="button" class="btn-bw-secondary btn-new-video" id="btnStartNewProduction">
+                <span>🔄 إنتاج فيديو جديد</span>
               </button>
-            </form>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. DEDICATED SETTINGS VIEW (With Back Button "زر عودة")                -->
+    <!-- ===================================================================== -->
+    <div id="settingsModal" class="lok-settings-overlay" style="display: none;">
+      <div class="settings-modal-dialog">
+        <div class="settings-modal-content">
+          
+          <!-- Settings View Header with Back Button -->
+          <div class="settings-header">
+            <button type="button" class="btn-bw-back" id="btnSettingsBack">
+              <span>← العودة للاستوديو</span>
+            </button>
+            <h2 class="settings-main-title">إعدادات الاستوديو والحساب</h2>
+          </div>
+
+          <div class="settings-body">
+
+            <!-- SETTINGS COMPONENT 1: Current Balance & Quota Indicator -->
+            <section class="settings-card mb-4" id="sectionBalanceQuota">
+              <div class="settings-card-header">
+                <div class="header-icon">⚡</div>
+                <div>
+                  <h3 class="settings-card-title">حالة الرصيد والحصة المتاحة</h3>
+                  <p class="settings-card-subtitle">الرصيد المتبقي لحسابك التجاري لإنتاج الفيديوهات اليوم والأسبوع</p>
+                </div>
+              </div>
+              <div class="quota-meters-row">
+                <div class="quota-meter-box">
+                  <span class="quota-box-label">الحصة اليومية:</span>
+                  <div class="quota-box-value">
+                    <strong id="quotaDailyRemaining">10</strong>/<span id="quotaDailyTotal">10</span>
+                  </div>
+                  <span class="quota-box-sub">فيديوهات متبقية اليوم</span>
+                </div>
+                <div class="quota-meter-box">
+                  <span class="quota-box-label">الحصة الأسبوعية:</span>
+                  <div class="quota-box-value">
+                    <strong id="quotaWeeklyRemaining">50</strong>/<span id="quotaWeeklyTotal">50</span>
+                  </div>
+                  <span class="quota-box-sub">فيديوهات هذا الأسبوع</span>
+                </div>
+                <div class="quota-meter-box">
+                  <span class="quota-box-label">صلاحية الاشتراك:</span>
+                  <div class="quota-box-value fs-6 font-monospace" id="quotaExpiryText">نشط حتى 2027-12-31</div>
+                  <span class="quota-box-sub">اشتراك تجاري سارٍ</span>
+                </div>
+              </div>
+              <div class="quota-bar-track mt-3">
+                <div class="quota-bar-fill" id="quotaMiniBarFill" style="width: 100%;"></div>
+              </div>
+            </section>
+
+            <!-- SETTINGS COMPONENT 2: Recommendations Manager (CRUD + Attach) -->
+            <section class="settings-card mb-4" id="sectionRecommendations">
+              <div class="settings-card-header">
+                <div class="header-icon">💡</div>
+                <div>
+                  <h3 class="settings-card-title">إدارة التوصيات وقوالب التوجيه</h3>
+                  <p class="settings-card-subtitle">أنشئ، عدّل، واحذف التوصيات المفضلة لتطبيقها بنقرة واحدة في الاستوديو</p>
+                </div>
+              </div>
+
+              <!-- Add New Recommendation Form -->
+              <div class="add-rec-box mb-3">
+                <div class="input-group d-flex gap-2">
+                  <input type="text" id="newRecommendationInput" class="form-input flex-grow-1" placeholder="اكتب نص توصية جديد (مثال: إعلان عقاري سريع بالدارجة العاصمية...)">
+                  <button type="button" class="btn-bw-primary px-4" id="btnAddRecommendation">
+                    <span>➕ إضافة توصية</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Recommendations List -->
+              <div class="recommendations-list" id="recommendationsList">
+                <!-- Dynamically populated via app.js -->
+              </div>
+            </section>
+
+            <!-- SETTINGS COMPONENT 3: Voiceover Artist Picker (With Darja Audition Player) -->
+            <section class="settings-card mb-4" id="sectionVoiceoverPicker">
+              <div class="settings-card-header">
+                <div class="header-icon">🎙️</div>
+                <div>
+                  <h3 class="settings-card-title">تعيين المعلق الصوتي (Voiceover Artist)</h3>
+                  <p class="settings-card-subtitle">اختر المعلق الصوتي المعتمد للفيديو واستمع إلى عينة صوتية مسجلة بالدارجة الجزائرية</p>
+                </div>
+              </div>
+
+              <div class="voice-personas-grid">
+                <!-- Voice 1: ar-XA-Standard-A -->
+                <div class="voice-persona-card active" data-voice="ar-XA-Standard-A" id="voiceCardStandardA">
+                  <div class="voice-card-header">
+                    <span class="voice-avatar">👩</span>
+                    <div class="voice-info">
+                      <div class="voice-name">عائشة (Standard A)</div>
+                      <div class="voice-desc">صوت نسائي دافئ بالدارجة الجزائرية الفاخرة</div>
+                    </div>
+                  </div>
+                  <div class="voice-card-actions">
+                    <button type="button" class="btn-bw-audition btn-voice-preview" id="btnSampleStandardA" data-voice="ar-XA-Standard-A">
+                      <span>▶ عينة صوتية بالدارجة</span>
+                    </button>
+                    <button type="button" class="btn-bw-select-voice active" data-voice="ar-XA-Standard-A">
+                      <span>تم التعيين ✓</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Voice 2: ar-XA-Standard-B -->
+                <div class="voice-persona-card" data-voice="ar-XA-Standard-B" id="voiceCardStandardB">
+                  <div class="voice-card-header">
+                    <span class="voice-avatar">👨</span>
+                    <div class="voice-info">
+                      <div class="voice-name">أمين (Standard B)</div>
+                      <div class="voice-desc">صوت رجالي وقور وموثوق بالدارجة التجارية</div>
+                    </div>
+                  </div>
+                  <div class="voice-card-actions">
+                    <button type="button" class="btn-bw-audition btn-voice-preview" id="btnSampleStandardB" data-voice="ar-XA-Standard-B">
+                      <span>▶ عينة صوتية بالدارجة</span>
+                    </button>
+                    <button type="button" class="btn-bw-select-voice" data-voice="ar-XA-Standard-B">
+                      <span>تعيين الصوت</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Voice 3: ar-XA-Standard-C -->
+                <div class="voice-persona-card" data-voice="ar-XA-Standard-C" id="voiceCardStandardC">
+                  <div class="voice-card-header">
+                    <span class="voice-avatar">🧑</span>
+                    <div class="voice-info">
+                      <div class="voice-name">كريم (Standard C)</div>
+                      <div class="voice-desc">صوت رجالي شبابي وحيوي للمتاجر والتقنية</div>
+                    </div>
+                  </div>
+                  <div class="voice-card-actions">
+                    <button type="button" class="btn-bw-audition btn-voice-preview" id="btnSampleStandardC" data-voice="ar-XA-Standard-C">
+                      <span>▶ عينة صوتية بالدارجة</span>
+                    </button>
+                    <button type="button" class="btn-bw-select-voice" data-voice="ar-XA-Standard-C">
+                      <span>تعيين الصوت</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Voice 4: ar-XA-Standard-D -->
+                <div class="voice-persona-card" data-voice="ar-XA-Standard-D" id="voiceCardStandardD">
+                  <div class="voice-card-header">
+                    <span class="voice-avatar">🧕</span>
+                    <div class="voice-info">
+                      <div class="voice-name">مريم (Standard D)</div>
+                      <div class="voice-desc">صوت نسائي هادئ وأنيق للأزياء والديكور</div>
+                    </div>
+                  </div>
+                  <div class="voice-card-actions">
+                    <button type="button" class="btn-bw-audition btn-voice-preview" id="btnSampleStandardD" data-voice="ar-XA-Standard-D">
+                      <span>▶ عينة صوتية بالدارجة</span>
+                    </button>
+                    <button type="button" class="btn-bw-select-voice" data-voice="ar-XA-Standard-D">
+                      <span>تعيين الصوت</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- SETTINGS COMPONENT 4: Logout Button -->
+            <section class="settings-card logout-card">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                  <h4 class="settings-card-title text-danger mb-1">تسجيل الخروج من الجلسة</h4>
+                  <p class="settings-card-subtitle mb-0">إنهاء الجلسة الحالية وإعادة فتح شاشة تسجيل الدخول</p>
+                </div>
+                <button type="button" class="btn-bw-danger" id="btnLogout">
+                  <span>🚪 تسجيل الخروج</span>
+                </button>
+              </div>
+            </section>
+
           </div>
         </div>
       </div>
     </div>
 
     <!-- Feedback Toast -->
-    <div class="toast" id="appToast" role="alert" aria-live="polite"></div>
+    <div class="lok-toast" id="appToast" role="alert" aria-live="polite"></div>
 
-    <!-- Application Footer -->
-    <footer class="app-footer">
-      <div class="footer-inner">
-        <p class="footer-text">
-          منصة استوديو عقارات الجزائر | Mobile Real Estate Front-End Suite
-        </p>
-        <p class="footer-meta">
-          فريق التطوير: agy51 & agy11 | المؤلف: MohammedBoure | الفرع: frontend/agy51-one-click-ux-and-session-persistence
-        </p>
+    <!-- ===================================================================== -->
+    <!-- 4. BACKWARD-COMPATIBILITY HOOKS (Preserved in Hidden DOM Container)   -->
+    <!-- ===================================================================== -->
+    <div class="legacy-hidden-controls" style="display: none !important;" aria-hidden="true">
+      <!-- Legacy Preset Section -->
+      <div id="presetSection" style="display: none !important;"></div>
+      <!-- Legacy Custom Script Container -->
+      <div id="customScriptContainer" style="display: none !important;">
+        <textarea id="scriptText" style="display: none !important;"></textarea>
       </div>
-    </footer>
+      <!-- Legacy Inputs -->
+      <div style="display: none !important;">
+        <span class="badge highlight-guidance">توجيه مرئي ذكي</span>
+        <span class="badge highlight-guidance">توجيه نبرة وليس نصاً حرفياً</span>
+      </div>
+      <input type="text" id="visualDescription" name="visual_description" value="وصف المشهد المرئي المطلوب" style="display: none !important;">
+      <input type="text" id="speechDescription" name="speech_description" value="وصف النبرة وفحوى ما سيقال" style="display: none !important;">
+      <div id="merchantTemplateChips" style="display: none !important;">
+        <span id="chipRealEstate">عقارات</span>
+        <span id="chipRestaurant">مطاعم</span>
+        <span id="chipFashion">أزياء</span>
+        <span id="chipTech">تقنية</span>
+        <span id="chipAuto">سيارات</span>
+      </div>
+      <!-- Legacy Auth Modal Container -->
+      <div id="sessionLoginModal" style="display: none !important;">
+        <div id="sessionLoginTitle">تسجيل الدخول</div>
+        <button type="button" id="btnCloseLoginModal">إغلاق</button>
+        <div id="loginRoleTabs">
+          <button type="button" id="tabLoginAdmin">👑 دخول المشرف</button>
+          <button type="button" id="tabLoginMerchant">🏢 دخول التاجر</button>
+        </div>
+        <div id="loginAdminSection">
+          <div id="adminHelperNote">اسم المستخدم: admin | كلمة المرور الافتراضية: admin123</div>
+          <form id="adminLoginForm">
+            <input type="text" id="adminLoginUsername" value="admin">
+            <input type="password" id="adminLoginPassword" value="admin123">
+            <button type="submit" id="btnSubmitAdminLogin">دخول</button>
+          </form>
+        </div>
+        <div id="loginMerchantSection"></div>
+      </div>
+      <button type="button" id="btnOpenLoginModal" style="display: none !important;">تسجيل الدخول</button>
+      <button type="button" id="btnProduce" style="display: none !important;"></button>
+      <button type="button" id="submitBtn" style="display: none !important;"></button>
+    </div>
+
   </div>
 
   <!-- Application Script -->
   <script src="/static/app.js" defer></script>
-  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,145 +1,181 @@
-# SaaS Platform, Merchant Studio, Session Login Gateway & Admin Dashboard (`web/static/`)
+# lok • Minimalist Studio & Bootstrap Admin Portal Architecture (`web/static/`)
 
-## 1. Overview & System Mission
-The `web/static/` directory houses the client-side architecture for the **Smart Video Production Platform for Merchants & Enterprises** (`منصة إنتاج الفيديو الذكي للتجار والشركات`), incorporating the **Decluttered Commercial Studio** and **Professional Session Login Gateway**. Engineered specifically for mobile smartphone and desktop workflows, this interface empowers merchants across multiple business categories (real estate, automotive, fashion, electronics, gastronomy, jewelry, beauty, furniture, tourism, and fitness) and platform administrators to:
+## 1. Executive Summary & Design Mission
+The `web/static/` directory provides the client-side user interface for **'lok'** (`منصة إنتاج الفيديو الذكي للتجار والشركات`), following a radical minimalist redesign and a modern high-contrast Black & White monochrome aesthetic.
 
-1. **Top SaaS Navigation & Authenticated Header Controls**:
-   - **Platform Branding**: Centered around high-converting promotional video creation for Algerian businesses.
-   - **Active Persona Badge**: Displays the current logged-in business name, sector category badge, and active status.
-   - **Session Authentication Gateway**:
-     - Fast login trigger button (**"🔐 تسجيل الدخول"** / `#btnOpenLoginModal`) when unauthenticated.
-     - Fast logout trigger button (**"🚪 تسجيل الخروج"** / `#btnLogout`) with session termination.
-   - **1-Tap Quick Account Switcher**: Instant switching between 10 pre-seeded merchant personas and the Master Admin account for testing.
-   - **Clean 3-Tab Architecture**:
-     - `[📹 استوديو الإنتاج (Merchant Studio)]`: Decluttered production suite.
-     - `[📊 لوحة التاجر (Merchant Dashboard)]`: Account quotas, business details, and video library.
-     - `[👑 لوحة الأدمن (Admin Dashboard)]`: System overview, user management, and quota administration (visible when admin is active).
-
-2. **Tab 1: Decluttered Merchant Studio (استوديو الإنتاج)**:
-   - **Decluttering of Legacy Controls**: Removed/hidden real estate presets (`#presetSection`) and verbatim script textareas (`#customScriptContainer` / `#scriptText`) using `display: none !important;` so users are never overloaded with redundant technical fields, while preserving backward-compatibility for legacy test harnesses.
-   - **Highlighted Linguistic Guidance Controls**:
-     - **Visual Scene Linguistic Guidance** (`#visualDescription`): `"وصف المشهد المرئي المطلوب"` with emerald badge `"توجيه مرئي ذكي"`.
-     - **Speech Intent & Tone Guidance** (`#speechDescription`): `"وصف النبرة وفحوى ما سيقال"` with gold badge `"توجيه نبرة وليس نصاً حرفياً"`.
-   - **Diverse Commercial Recommendation Chips**: Quick 1-tap template chips for Real Estate (`#chipRealEstate`), Restaurant (`#chipRestaurant`), Fashion (`#chipFashion`), Tech (`#chipTech`), and Auto (`#chipAuto`).
-   - **Quota Warning / Status Banner**: Displays remaining daily and weekly video allowances, subscription expiration date, and visual meters.
-   - **Video Ingestion**: Native smartphone camera capture (`capture="environment"`), browser live viewfinder, file picker, and drag-and-drop.
-   - **Visual Style & Orientation Recommendations**: Radio cards selecting video aspect ratio: `9:16 portrait` (Reels, TikTok, Shorts), `16:9 landscape` (YouTube, TV, web), and `1:1 square` (Feed posts).
-   - **Fixed Text & Screen Appearance (Overlay)**: Input for business phone/slogan/promo, position picker (`lower_third`, `top_banner`, `badge`), and style picker (`modern_white`, `luxury_gold`, `commercial_red`).
-   - **Live Voice Persona Audition**: 4 Arabic voice persona cards (`ar-XA-Standard-A/B/C/D`) with prominent `"▶ استمع للصوت"` buttons auditioning via `/api/voices/{voice_id}/sample` and Web Audio API synthesis.
-   - **Gated 1-Click Production Action**: Single high-converting CTA (**"✨ إنشاء الفيديو التسويقي بنقرة واحدة"** / `#btnProduce` / `#submitBtn`). Prompts login modal if user is not authenticated.
-
-3. **Professional Session Login Gateway Modal (`#sessionLoginModal`)**:
-   - Role toggle tabs: **👑 دخول المسؤول (Admin)** vs **🏢 دخول التجار (Merchant)**.
-   - **Visible Default Admin Credentials Note**: Clear guidance box displaying `"اسم المستخدم: admin | كلمة المرور الافتراضية: admin123"`.
-   - **Fast 1-Tap Demo Merchant Login Grid**: Grid of quick login cards for all 10 pre-seeded merchant personas (`#merchantQuickLoginGrid`).
-   - Direct credential forms for admin and merchant authentication with JWT/Bearer token storage in `localStorage['saas_session_token']`.
-
-4. **Tab 2: Merchant Dashboard (لوحة التاجر)**:
-   - Displays merchant business profile, sector category, account status (Active / Suspended), and active expiration date.
-   - Interactive daily quota and weekly quota progress meters.
-   - **Video Library**: Responsive gallery of previously generated videos with embedded HTML5 video playback, duration, timestamp, format metadata, and direct MP4 download links.
-
-5. **Tab 3: Admin Dashboard (لوحة تحكم الأدمن)**:
-   - **Platform Stats Overview**: Total Merchants, Videos Produced Today, Active Subscriptions, and Total Platform Generations.
-   - **Merchant Users Management Table**: Tabular view of all registered merchants with username, business name, category, daily quota, weekly quota, expiration date, and status.
-   - **Action Controls**: Instant Toggle Active/Suspended, Renew Expiration (+30 days), and Edit Quotas.
-   - **Create Merchant Modal**: Rapid onboarding modal to register new merchant accounts with custom quotas and validity periods.
+The platform is structured into two core environments:
+1. **Public/Merchant Client UI (`/` -> `index.html`)**:
+   - Modern Black & White (`lok`) styling with zero clutter.
+   - **Gated Authentication**: Unauthenticated visitors are greeted with a clean login screen before any studio features or controls become visible.
+   - **Minimalist Studio ("الواجهة نظيفة وفارغة")**: Keeps strictly essential controls:
+     1. Pre-recorded video upload area (dropzone and file picker for ready videos; camera recording streams removed).
+     2. Detailed prompt textarea (instructing speech speed, visual scenes, emotional tone, and Algerian Darja/Arabic dialect).
+     3. Simple Settings button (`"⚙️ الإعدادات"`) opening a focused settings view with a Back button (`"← العودة للاستوديو"`).
+     4. 1-Click Produce Video button (`"✨ إنتاج الفيديو التسويقي"`).
+   - **Focused Settings View**:
+     - Current balance and remaining quota indicator (daily remaining, weekly remaining, subscription validity).
+     - Recommendations Manager (create, edit, delete prompt snippets, and attach directly to the studio prompt).
+     - Voiceover Artist Picker with Algerian Darja audition audio player (`ar-XA-Standard-A/B/C/D`).
+     - Session Logout button.
+2. **Dedicated Bootstrap Admin Portal (`/admin` -> `admin.html`)**:
+   - Built with **Bootstrap 5** for mobile and desktop responsiveness.
+   - Dedicated administrator login view for credentials `pluto` and `plutosw4`.
+   - Complete Accounts Management Table listing: username, business name, category, active/suspended status, start validity date (`valid_from`), expiration date (`expires_at`), daily quota, and weekly quota.
+   - Modals for adding new accounts, editing details/quotas, changing passwords, and reviewing historical activity event logs.
 
 ---
 
-## 2. Itemized File Manifest & Responsibilities
+## 2. File Manifest & Responsibilities
 
-| File | Language / Format | Primary Responsibility |
+| File | Language / Framework | Primary Responsibility |
 | :--- | :--- | :--- |
-| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | 3-tab SaaS platform layout, session login modal with admin default password note, merchant quick login grid, header auth buttons, decluttered studio with highlighted linguistic guidance inputs, commercial chips, live voice audition buttons, merchant video library, and admin management tables. |
-| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | SaaS header controls, login modal styles, role tabs, default credentials helper note, quick merchant login grid, animated soundwave pulse indicators for voice auditions, linguistic guidance highlight borders, and responsive mobile layouts. |
-| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | SaaS state engine, session authentication gateway (`setupSessionAuth`, `handleAdminLogin`, `handleMerchantLogin`, `handleLogout`), gated production enforcement, token persistence, 10 pre-seeded merchant personas + Admin, Web Audio voice audition engine, and 1-click production dispatch. |
-| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete documentation of SaaS features, session gateway, decluttered studio architecture, and API integration matrix. |
+| [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | Minimalist 'lok' client UI layout: gated login screen, pre-recorded video dropzone, detailed prompt textarea, produce button, settings modal with Back button, balance meters, recommendations manager, and voiceover Darja audition player. |
+| [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | Black & White monochrome design system: deep black backgrounds (`#09090b`), pure white buttons (`.btn-bw-primary`), dropzone states, custom textareas, settings overlays, and responsive mobile breakpoints. |
+| [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | Client state engine: session gating, pre-recorded file ingestion, prompt binding, recommendations CRUD and prompt attachment, Darja voice audition playback, quota updates, and video production dispatch. |
+| [`admin.html`](file:///home/pluto/projects/lok/web/static/admin.html) | HTML5 / Bootstrap 5 | Dedicated Admin Portal served at `/admin`: authentication for `pluto` / `plutosw4`, accounts management table, quota configuration, validity dates, password resets, and activity event log viewer. |
+| [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete technical documentation, state workflows, user journey diagrams, and REST API integration specifications. |
 
 ---
 
-## 3. SaaS UI Architecture & Authentication Flow
+## 3. UI Architecture & Navigation Workflow
 
 ```mermaid
 flowchart TD
-    subgraph Header["Top Navigation & Session State"]
-        Brand["SaaS App Header: Platform Branding"]
-        Badge["Active Persona Badge"]
-        AuthBtn["Auth Actions: Login / Logout"]
-        Switcher["1-Tap Account Switcher"]
-        Tabs["Tabs: Studio | Merchant Dashboard | Admin Dashboard"]
+    subgraph ClientSession["Client UI Navigation Flow (lok)"]
+        Start(["User Visits /"]) --> CheckToken{"Has Active Session?"}
+        CheckToken -->|No| GatedLogin["Gated Login Screen (#loginView)"]
+        CheckToken -->|Yes| Studio["Minimalist Studio UI (#studioView)"]
+
+        GatedLogin -->|Submit Credentials / 1-Tap Demo| AuthVerify["Verify Token / Login API"]
+        AuthVerify -->|Valid| Studio
+
+        Studio --> Upload["1. Upload Pre-recorded Video (#videoDropzone)"]
+        Studio --> Prompt["2. Detailed Prompt (#promptTextarea)"]
+        Studio --> SettingsBtn["3. Simple Settings Button (#btnOpenSettings)"]
+        Studio --> ProduceBtn["4. Produce Video (#btnProduceVideo)"]
+
+        SettingsBtn --> SettingsModal["Settings View (#settingsModal)"]
+        SettingsModal --> BackBtn["Back Button: ← العودة للاستوديو (#btnSettingsBack)"]
+        BackBtn --> Studio
+
+        SettingsModal --> Quotas["Current Balance & Quota Display"]
+        SettingsModal --> RecManager["Recommendations Manager (CRUD + Attach)"]
+        SettingsModal --> VoicePicker["Voiceover Artist Picker & Darja Audition"]
+        SettingsModal --> LogoutBtn["Logout Button (#btnLogout)"]
+
+        RecManager -->|Attach Snippet| Prompt
+        LogoutBtn --> GatedLogin
     end
 
-    subgraph LoginGateway["Session Login Gateway Modal (#sessionLoginModal)"]
-        TabAdmin["Tab: Admin Login (Default: admin / admin123)"]
-        TabMerch["Tab: Merchant Login + 1-Tap Demo Grid"]
-        TokenStore["Store Bearer Token in localStorage (saas_session_token)"]
-    end
+    subgraph AdminPortal["Admin Portal Navigation Flow (/admin)"]
+        AdminVisit(["Admin Visits /admin"]) --> CheckAdmin{"Admin Logged In?"}
+        CheckAdmin -->|No| AdminLogin["Admin Login View (pluto / plutosw4)"]
+        CheckAdmin -->|Yes| AdminDash["Admin Dashboard View"]
 
-    subgraph Studio["Decluttered Merchant Studio (#tabContentStudio)"]
-        QuotaBanner["Quota Meter & Expiry Banner"]
-        VideoInput["Camera / File Picker"]
-        VoiceAudition["Voice Audition Player (/api/voices/sample)"]
-        LinguisticInputs["Linguistic Guidance (Visual & Speech Intent)"]
-        CategoryChips["Sector Recommendation Chips (Real Estate, Resto, Fashion, Tech, Auto)"]
-        ProduceBtn["1-Click Production Button (#btnProduce)"]
+        AdminLogin -->|Authenticate| AdminDash
+        AdminDash --> AccountsTable["Accounts Table (valid_from, expires_at, quotas)"]
+        AdminDash --> AddModal["Add Account Modal"]
+        AdminDash --> EditModal["Edit Account Modal"]
+        AdminDash --> PassModal["Change Password Modal"]
+        AdminDash --> LogsModal["Activity Event Logs Modal"]
+        AdminDash --> AdminLogout["Logout"] --> AdminLogin
     end
-
-    Header --> AuthBtn
-    AuthBtn -->|Click Login| LoginGateway
-    ProduceBtn -->|Check Auth: Not Logged In| LoginGateway
-    LoginGateway -->|Successful Auth| TokenStore
-    TokenStore -->|Update Header & Authorize Requests| Header
-    Tabs --> Studio
 ```
 
 ---
 
-## 4. Pre-Seeded Merchant Personas Catalog
+## 4. 'lok' Studio UI Details
 
-| User ID | Username | Business Name (Arabic) | Category | Role | Daily Quota | Weekly Quota | Sample Contact Text |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `usr_dar_al_nokhba` | `dar_al_nokhba` | دار النخبة العقارية | عقارات فاخرة | `merchant` | 5 | 25 | 📞 0550 11 22 33 \| دار النخبة - عقارات راقية في قلب الجزائر |
-| `usr_auto_algerie` | `auto_algerie` | أوتو الجزائر للسيارات | معرض سيارات | `merchant` | 8 | 40 | 🚗 أوتو الجزائر \| سيارات مضمونة وبأفضل الأسعار - 0661 44 55 66 |
-| `usr_anaqat_el_awras` | `anaqat_el_awras` | أناقة الأوراس للأزياء | أزياء وقفطان راقي | `merchant` | 6 | 30 | 👗 قفطان وملابس تقليدية راقية \| توصيل مجاني لكافة الولايات |
-| `usr_techno_phone` | `techno_phone` | تكنو فون ستور | إلكترونيات وهواتف | `merchant` | 10 | 50 | 📱 تكنو فون \| أحدث الهواتف الذكية مع الضمان - 0540 22 33 44 |
-| `usr_el_kasbah_resto` | `el_kasbah_resto` | مطعم القصبة العريق | مطعم ومأكولات أصيلة | `merchant` | 5 | 25 | 🍽️ مطعم القصبة \| أطباق تقليدية جزائرية بنكهة الأصالة |
-| `usr_zumurrud_jewelry` | `zumurrud_jewelry` | مجوهرات الزمرد | مجوهرات وذهب | `merchant` | 4 | 20 | 💎 مجوهرات الزمرد \| تشكيلات ذهب وألماس فاخرة لعرائسنا |
-| `usr_abeer_parfums` | `abeer_parfums` | عبير باريس للعطور | عطور وتجميل | `merchant` | 5 | 25 | ✨ عطور فرنسية وشرقية أصلية \| ثبات يدوم طويلاً |
-| `usr_golden_furniture` | `golden_furniture` | الموبليا الذهبية | أثاث وديكور راقي | `merchant` | 6 | 30 | 🛋️ صالونات وغرف نوم عصرية بأجود أنواع الخشب التركي |
-| `usr_atlas_tours` | `atlas_tours` | أطلس تورز للرحلات | سياحة وأسفار | `merchant` | 5 | 25 | ✈️ رحلات سياحية وعمرة بأفضل البرامج والأسعار الفندقية |
-| `usr_force_fitness` | `force_fitness` | أكاديمية القوة فيتنس | نادي رياضي ورشاقة | `merchant` | 5 | 25 | 💪 اشترك الآن في أكبر قاعة كمال أجسام ورشاقة مع كوتش متخصص |
-| `usr_admin` | `admin` | مدير النظام العام | مسؤول المنصة | `admin` | 999 | 9999 | 👑 نظام إدارة منصة إنتاج الفيديو الذكي |
+### A. Pre-Recorded Video Upload Area
+- Clean drag-and-drop zone (`#videoDropzone`) with hidden `<input type="file" id="videoFileInput" accept="video/*">`.
+- Dedicated exclusively to pre-recorded / phone camera video files (MP4, MOV, WebM).
+- In-browser live camera recording controls and viewfinder elements have been eliminated to ensure pure zero-friction simplicity.
+- Automatically computes and displays video file name, size (MB), and format.
+
+### B. Detailed Prompt Input
+- Generous, high-contrast textarea (`#promptTextarea`) guiding merchants to define:
+  1. **Speech Speed (`سرعة الإلقاء`)**: Dynamic pacing vs. calm measured delivery.
+  2. **Visual Scenes (`المشاهد المرئية`)**: Architectural highlights, interior lighting, exterior facades, product closeups.
+  3. **Tone (`نبرة الصوت`)**: Prestigious commercial, warm and inviting, or high-energy youth.
+  4. **Dialect (`اللهجة`)**: Algerian Darja (Algiers, Oran, Constantine) or Modern Standard Arabic.
+- Integrated indicator chip (`#attachedRecIndicator`) showing active attached recommendation template.
+
+### C. Settings View with Back Button
+Accessible via `#btnOpenSettings` and dismissible via `#btnSettingsBack` (`"← العودة للاستوديو"`):
+1. **Balance & Quota Indicator**:
+   - Daily videos remaining / total (`#quotaDailyRemaining` / `#quotaDailyTotal`).
+   - Weekly videos remaining / total (`#quotaWeeklyRemaining` / `#quotaWeeklyTotal`).
+   - Active subscription validity date (`#quotaExpiryText`).
+   - High-contrast visual progress meter (`#quotaMiniBarFill`).
+2. **Recommendations Manager ("التوصيات")**:
+   - Manage reusable prompt snippets.
+   - **Create**: Add new recommendation with instant persistence.
+   - **Edit**: Inline modal prompt to edit recommendation text.
+   - **Delete**: Remove obsolete recommendation.
+   - **Attach (`🎯 تطبيق في التوجيه`)**: Instantly populates the recommendation text into `#promptTextarea`, shows confirmation feedback, and returns smoothly to the studio view.
+3. **Voiceover Artist Picker**:
+   - Selection of 4 neural voice models:
+     - `ar-XA-Standard-A`: Aisha (warm female tone in Algerian Darja).
+     - `ar-XA-Standard-B`: Amine (authoritative male tone in Algerian Darja).
+     - `ar-XA-Standard-C`: Karim (dynamic youth male tone in Algerian Darja).
+     - `ar-XA-Standard-D`: Meriem (elegant female tone in Algerian Darja).
+   - Audio Audition Player (`"▶ عينة صوتية بالدارجة"`): Plays real audio sample streamed from `/api/voices/{voice_id}/sample` with Web Audio harmonic synth fallback if offline.
+4. **Session Logout**:
+   - Invalidates local credentials and smoothly resets interface to the gated login view.
 
 ---
 
-## 5. Live Voice Audition Engine
+## 5. Bootstrap Admin Portal (`/admin` -> `admin.html`)
 
-Each voice persona card includes an interactive audition trigger:
-- **Audio Stream Binding**: Fetches sample audio from `/api/voices/{voice_id}/sample`.
-- **Harmonic Web Audio Fallback**: If backend is in development, offline, or returns 404, the client smoothly generates a multi-frequency synthesized harmonic preview via `AudioContext` matching the persona's acoustic register:
-  - Female Warm (Standard A): ~260Hz root with gentle ascending pitch ramp.
-  - Male Prestigious (Standard B): ~140Hz deep resonance.
-  - Male Dynamic (Standard C): ~185Hz energetic frequency sweep.
-  - Female Calm (Standard D): ~290Hz delicate crystal resonance.
-- **State Feedback**: Button transitions to `"⏹️ إيقاف الصوت"` with a glowing golden pulse indicator and animated soundwave bars while playing, automatically reverting on completion.
+### A. Dedicated Authentication
+- Standard credentials: **`pluto`** / **`plutosw4`**.
+- Accessible directly at `/admin` or `/static/admin.html`.
+
+### B. Accounts Management Table
+Responsive Bootstrap 5 dark table (`#accountsTable`):
+- **User ID**: System numeric identifier.
+- **Username**: Unique tenant handle (`dar_al_nokhba`, `auto_algerie`, etc.).
+- **Business Name**: Commercial brand or company name.
+- **Category**: Sector taxonomy badge.
+- **Status**: Live status badge (`Active` / `Suspended`).
+- **Validity Start Date (`valid_from`)**: Account initiation / subscription commencement.
+- **Expiration Date (`expires_at`)**: Subscription termination date.
+- **Daily Quota**: Current usage vs. daily limit.
+- **Weekly Quota**: Current usage vs. weekly limit.
+- **Action Buttons**:
+  - `✏️ تعديل`: Modifies business name, category, quotas, validity dates, and status.
+  - `🔑 كلمة المرور`: Resets account password.
+  - `📜 السجل`: Opens the chronological activity event logs modal.
+  - `تبديل الحالة`: Instantly toggles between Active and Suspended states.
+
+### C. Activity Event Log Viewer Modal
+Displays timestamped historical actions for any tenant:
+- Account creation and initial quota allocation.
+- Subscription renewals and quota revisions.
+- Password change events.
+- Video generation dispatches and completed cuts.
+- Administrative status overrides.
 
 ---
 
 ## 6. REST API Integration Matrix
 
-| Endpoint | Method | Client Headers / Payload | Client Handling |
-| :--- | :--- | :--- | :--- |
-| `/api/auth/login` | `POST` | JSON: `username`, `password`, `role` | Authenticates admin or merchant and returns JWT/session token. |
-| `/api/auth/logout` | `POST` | `Authorization: Bearer <token>` | Terminates current session and clears local credentials. |
-| `/api/auth/session` | `GET` | `Authorization: Bearer <token>` | Validates active session on page reload. |
-| `/api/auth/demo-accounts` | `GET` | None | Loads pre-seeded accounts into `#accountSwitcherSelect`. |
-| `/api/auth/me` | `GET` | `Authorization: Bearer <token>` | Syncs current active user quotas and validity. |
-| `/api/admin/stats` | `GET` | `Authorization: Bearer <token>` | Populates Admin Dashboard platform metric cards. |
-| `/api/admin/users` | `GET` | `Authorization: Bearer <token>` | Populates Admin Users Management table. |
-| `/api/admin/users` | `POST` | JSON: `username`, `business_name`, `business_category`, `expires_at`, quotas | Creates new merchant account with immediate UI refresh. |
-| `/api/admin/users/{id}` | `PATCH` | JSON: `status`, `daily_quota`, `weekly_quota`, `expires_at` | Modifies user quota or toggles active/suspended status. |
-| `/api/voices/{id}/sample` | `GET` | Voice ID in URL | Streams audio sample preview for live audition. |
-| `/api/jobs/create` | `POST` | `multipart/form-data`: `video`, `video_orientation`, `fixed_text`, `text_position`, `text_style`, `voice`, `token` + `Authorization` header | Dispatches production job with quota verification. |
-| `/api/upload-and-process` | `POST` | `multipart/form-data`: `video`, `fixed_text`, `voice`, etc. + `Authorization` header | Direct synchronous generation fallback. |
-| `/api/status/{job_id}` | `GET` | `job_id` in URL | Polling live telemetry feed until video completion. |
+| Endpoint | Method | Caller | Payload / Headers | Responsibility |
+| :--- | :--- | :--- | :--- | :--- |
+| `/admin` | `GET` | Browser | None | Serves the Bootstrap 5 Admin Portal (`admin.html`). |
+| `/api/auth/login` | `POST` | Client UI | JSON: `username`, `password` | Authenticates merchant and creates session token. |
+| `/api/auth/logout` | `POST` | Client / Admin | `Authorization: Bearer <token>` | Invalidation of active session. |
+| `/api/auth/session` | `GET` | Client UI | `Authorization: Bearer <token>` | Reconnects existing session on page load. |
+| `/api/admin/login` | `POST` | Admin Portal | JSON: `username`, `password` (`pluto` / `plutosw4`) | Authenticates administrator. |
+| `/api/admin/accounts` | `GET` | Admin Portal | `Authorization: Bearer <token>` | Retrieves full list of merchant accounts. |
+| `/api/admin/accounts` | `POST` | Admin Portal | JSON: account fields & quotas | Registers new merchant account. |
+| `/api/admin/accounts/{id}` | `PATCH` | Admin Portal | JSON: quota, status, dates | Updates merchant account metadata and quotas. |
+| `/api/admin/accounts/{id}/logs`| `GET` | Admin Portal | `Authorization: Bearer <token>` | Retrieves chronological activity events for tenant. |
+| `/api/voices/{id}/sample` | `GET` | Client UI | `voice_id` parameter | Streams Algerian Darja audio sample for audition. |
+| `/api/jobs/create` | `POST` | Client UI | `multipart/form-data`: `video`, `script`, `voice` | Dispatches video production job. |
+| `/api/status/{job_id}` | `GET` | Client UI | `job_id` parameter | Live status polling for production job. |
+
+---
+
+## 7. Strict Character Mapping Compliance
+As mandated by platform directives, all text, comments, documentation, and HTML/CSS/JS code maintain strict typography standards with **zero occurrences of the forbidden character U+0669**.

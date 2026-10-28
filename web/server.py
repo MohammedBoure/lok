@@ -949,8 +949,6 @@ async def favicon_endpoint(request: Request) -> Response:
         return FileResponse(str(fav_file), media_type="image/x-icon")
     svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🎬</text></svg>'
     return Response(content=svg_icon, media_type="image/svg+xml")
-
-
 async def get_principles_endpoint(request: Request) -> JSONResponse:
     """GET /api/principles - Retrieve currently active production & voice principles."""
     return JSONResponse(load_principles())

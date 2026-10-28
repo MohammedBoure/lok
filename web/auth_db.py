@@ -949,7 +949,6 @@ def check_quota(user_id: int, db_path: Optional[Union[str, Path]] = None) -> Tup
     # 3. Check active / suspended status
     if not is_active or user.get("status") in ("suspended", "inactive"):
         return (False, "الحساب معطل حالياً من قِبل إدارة المنصة", details)
-
     # 4. Check daily quota limit
     if today_used >= daily_quota:
         return (False, f"تم استنفاد الحصة اليومية المسموحة ({today_used}/{daily_quota} فيديو). تتجدد الحصة غداً.", details)

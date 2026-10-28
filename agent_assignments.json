@@ -7,7 +7,7 @@
       "branch": "backend/agy11-admin-portal-and-prompt-security",
       "scope": "1. In web/auth_db.py: Provision master admin credentials username 'pluto' and password 'plutosw4' (PBKDF2-HMAC-SHA256). Support start date ('valid_from'), expiration date ('expires_at'), daily_quota, and weekly_quota. Implement user_activity_logs tracking account actions. 2. In web/server.py: Expose admin REST APIs: POST /api/admin/login (authenticating pluto/plutosw4), GET /api/admin/accounts, POST /api/admin/accounts, PATCH /api/admin/accounts/{user_id}, GET /api/admin/accounts/{user_id}/logs, and serve GET /admin route serving web/static/admin.html. 3. Implement prompt security sanitizer (sanitize_and_validate_prompt) in web/pipeline_bridge.py preventing command injection, path traversal, or shell exploit payloads before reaching the AI agent. 4. Author tests in tests/test_admin_portal_and_security.py; update web/README.md; commit as MohammedBoure on backend/agy11-admin-portal-and-prompt-security; notify coordinator.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy51",
