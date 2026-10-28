@@ -223,6 +223,8 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Settings modal with Back button, daily/weekly balance indicators, recommendations manager (CRUD), Algerian Darja voice audition player (`ar-XA-Standard-A/B/C/D`), and logout action.
   - Authentic high-contrast monochrome Black & White theme tokens (`TestModernBlackAndWhiteTheme`).
   - Dedicated Bootstrap 5 admin portal markup verification (`TestDedicatedBootstrapAdminPortal`).
+  - Standalone embedded CSS stylesheet verification (`test_admin_standalone_embedded_css_stylesheet`): self-contained grid (`.container`, `.row`, `.col-*`), cards, responsive tables, badge statuses (`.bg-success`, `.bg-danger`, `.badge-active`, etc.), form controls, alerts, and high-z-index modal dialogs without CDN dependencies.
+  - Offline standalone JS polyfill verification (`test_admin_standalone_offline_js_polyfill`): native fallback implementation for `window.bootstrap.Modal` and `window.bootstrap.Toast` for complete offline air-gapped functionality.
   - Strict typography compliance prohibiting forbidden Arabic character U+0669 (`TestStrictTypographyCompliance`).
 
 - [`test_gatekeeper_admin_and_minimal_ui.py`](test_gatekeeper_admin_and_minimal_ui.py): Comprehensive integration gatekeeper verification suite authored by Quality Gatekeeper `agy100`:
