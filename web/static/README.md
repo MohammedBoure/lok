@@ -32,7 +32,7 @@ The platform is structured into two core environments:
 | [`index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Semantic HTML5 (RTL) | Minimalist 'lok' client UI layout: gated login screen, pre-recorded video dropzone, detailed prompt textarea, produce button, settings modal with Back button, balance meters, recommendations manager, and voiceover Darja audition player. |
 | [`style.css`](file:///home/pluto/projects/lok/web/static/style.css) | Modern CSS3 | Black & White monochrome design system: deep black backgrounds (`#09090b`), pure white buttons (`.btn-bw-primary`), dropzone states, custom textareas, settings overlays, and responsive mobile breakpoints. |
 | [`app.js`](file:///home/pluto/projects/lok/web/static/app.js) | Vanilla ES2022 JavaScript | Client state engine: session gating, pre-recorded file ingestion, prompt binding, recommendations CRUD and prompt attachment, Darja voice audition playback, quota updates, and video production dispatch. |
-| [`admin.html`](file:///home/pluto/projects/lok/web/static/admin.html) | HTML5 / Bootstrap 5 | Dedicated Admin Portal served at `/admin`: authentication for `pluto` / `plutosw4`, accounts management table, quota configuration, validity dates, password resets, and activity event log viewer. |
+| [`admin.html`](file:///home/pluto/projects/lok/web/static/admin.html) | HTML5 / Bootstrap 5 (Standalone CSS) | Dedicated Admin Portal served at `/admin`: standalone embedded CSS design system (zero external CDN dependency), authentication for `pluto` / `plutosw4`, accounts management table, quota configuration, validity dates, password resets, and activity event log viewer. |
 | [`README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Markdown (English) | Complete technical documentation, state workflows, user journey diagrams, and REST API integration specifications. |
 
 ---
@@ -155,6 +155,11 @@ Displays timestamped historical actions for any tenant:
 - Password change events.
 - Video generation dispatches and completed cuts.
 - Administrative status overrides.
+
+### D. Standalone Embedded CSS & Offline Resiliency
+- **Self-Contained Rendering**: All Bootstrap 5 layout rules, responsive grid, reset, typography, cards, badges, buttons, form controls, alerts, and modals are embedded directly into a `<style>` block within `admin.html`.
+- **Zero External CDN Reliance**: The admin portal renders with full high-fidelity visual styling in isolated offline environments without requiring internet access or CDN availability.
+- **Native Modal & Toast Polyfill**: Built-in fallback in pure vanilla JavaScript ensures modals and toasts function seamlessly even if external JavaScript bundles cannot be retrieved.
 
 ---
 

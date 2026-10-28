@@ -202,6 +202,105 @@ class TestDedicatedBootstrapAdminPortal:
         assert "لوحة التحكم الإدارية" in res.text
         assert "pluto" in res.text
 
+    def test_admin_standalone_embedded_css_stylesheet(self):
+        """Verify admin.html embeds a comprehensive, self-contained standalone CSS stylesheet."""
+        html = (STATIC_DIR / "admin.html").read_text(encoding="utf-8")
+        assert "<style>" in html, "admin.html must contain an embedded <style> block"
+
+        # 1. Reset, box-sizing, and typography
+        assert "box-sizing: border-box" in html
+        assert "--bs-body-font-family" in html or "font-family" in html
+        assert "Cairo" in html or "Inter" in html
+        assert "radial-gradient" in html or "background-color" in html
+
+        # 2. Grid & Layout System
+        assert ".container" in html
+        assert ".container-fluid" in html
+        assert ".row" in html
+        assert ".col-6" in html
+        assert ".col-md-3" in html
+        assert ".col-lg-4" in html
+        assert ".d-flex" in html
+        assert ".justify-content-center" in html
+        assert ".align-items-center" in html
+        assert ".gap-2" in html
+        assert ".mb-3" in html
+        assert ".p-3" in html
+
+        # 3. Navbar & Branding
+        assert ".navbar" in html
+        assert ".navbar-brand" in html
+        assert ".brand-logo-text" in html
+
+        # 4. Cards & Metrics
+        assert ".card" in html
+        assert ".card-header" in html
+        assert ".card-body" in html
+        assert ".shadow-lg" in html
+        assert "border-radius: 12px" in html or ".card" in html
+
+        # 5. Tables & Wrapping
+        assert ".table" in html
+        assert ".table-hover" in html
+        assert ".table-responsive" in html
+        assert ".table-bordered" in html
+
+        # 6. Badges
+        assert ".badge" in html
+        assert ".bg-success" in html
+        assert ".bg-danger" in html
+        assert ".bg-warning" in html
+        assert ".bg-secondary" in html
+        assert ".bg-primary" in html
+        assert ".badge-active" in html
+        assert ".badge-suspended" in html
+
+        # 7. Buttons
+        assert ".btn" in html
+        assert ".btn-primary" in html
+        assert ".btn-secondary" in html
+        assert ".btn-success" in html
+        assert ".btn-danger" in html
+        assert ".btn-dark" in html
+        assert ".btn-light" in html
+        assert ".btn-sm" in html
+        assert ".btn-lok-primary" in html
+        assert ".btn-lok-outline" in html
+
+        # 8. Form Controls
+        assert ".form-control" in html
+        assert ".form-select" in html
+        assert ".form-label" in html
+        assert ".input-group" in html
+
+        # 9. Alerts
+        assert ".alert" in html
+        assert ".alert-info" in html
+        assert ".alert-danger" in html
+        assert ".alert-success" in html
+        assert ".alert-warning" in html
+
+        # 10. Modals & Dialogs
+        assert ".modal" in html
+        assert ".modal-backdrop" in html
+        assert ".modal-dialog" in html
+        assert ".modal-content" in html
+        assert ".modal-header" in html
+        assert ".modal-body" in html
+        assert ".modal-footer" in html
+        assert ".modal-title" in html
+        assert ".btn-close" in html
+        assert "z-index: 1055" in html
+        assert "z-index: 1050" in html
+
+    def test_admin_standalone_offline_js_polyfill(self):
+        """Verify admin.html includes native standalone polyfill for Bootstrap Modal and Toast offline."""
+        html = (STATIC_DIR / "admin.html").read_text(encoding="utf-8")
+        assert 'window.bootstrap = {' in html or "typeof window.bootstrap" in html
+        assert "Modal:" in html
+        assert "Toast:" in html
+        assert "data-bs-dismiss" in html
+
 
 # ==============================================================================
 # 4. Strict Typography & Zero U+0669 Character Compliance

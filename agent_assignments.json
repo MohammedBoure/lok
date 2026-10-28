@@ -1,34 +1,24 @@
 {
   "assignments": [
     {
-      "agent_id": "agy11",
-      "worker_id": "worker-1",
-      "role": "Backend Admin Portal Auth, Account Quotas & Security Guardrail",
-      "branch": "backend/agy11-admin-portal-and-prompt-security",
-      "scope": "1. In web/auth_db.py: Provision master admin credentials username 'pluto' and password 'plutosw4' (PBKDF2-HMAC-SHA256). Support start date ('valid_from'), expiration date ('expires_at'), daily_quota, and weekly_quota. Implement user_activity_logs tracking account actions. 2. In web/server.py: Expose admin REST APIs: POST /api/admin/login (authenticating pluto/plutosw4), GET /api/admin/accounts, POST /api/admin/accounts, PATCH /api/admin/accounts/{user_id}, GET /api/admin/accounts/{user_id}/logs, and serve GET /admin route serving web/static/admin.html. 3. Implement prompt security sanitizer (sanitize_and_validate_prompt) in web/pipeline_bridge.py preventing command injection, path traversal, or shell exploit payloads before reaching the AI agent. 4. Author tests in tests/test_admin_portal_and_security.py; update web/README.md; commit as MohammedBoure on backend/agy11-admin-portal-and-prompt-security; notify coordinator.",
-      "dependencies": [],
-      "state": "COMPLETED"
-    },
-    {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Minimal B&W lok UI & Bootstrap Admin Portal",
-      "branch": "frontend/agy51-minimal-lok-and-admin-ui",
-      "scope": "1. Radical redesign of client UI into sleek black & white modern theme branded 'lok' (web/static/index.html, style.css, app.js). Require login before viewing studio. Display only: pre-recorded video file upload, detailed prompt textarea, produce button, and simple Settings button. 2. Inside Settings modal/view (with Back button): display remaining balance/quota, recommendations manager (CRUD and pick to attach to prompt), voice actor selector with Algerian Darja audition audio player, and logout button. Delete all other cluttered UI elements. 3. Create dedicated Bootstrap-powered responsive admin portal at web/static/admin.html (served at /admin): login for pluto/plutosw4, full accounts list, manage passwords, set validity start and expiration dates, configure daily/weekly quotas, and view account activity logs. 4. Strict character mapping (no U+0669); author tests in tests/test_minimal_lok_and_admin_ui.py; update web/static/README.md; commit as MohammedBoure on frontend/agy51-minimal-lok-and-admin-ui; notify coordinator.",
+      "role": "Frontend Admin Portal Standalone CSS & Offline Styling",
+      "branch": "frontend/agy51-admin-portal-standalone-css",
+      "scope": "1. In web/static/admin.html: The user reported that /admin lacks CSS (likely due to external CDN failure or missing standalone styles). Fully embed a complete, comprehensive, beautiful standalone Bootstrap 5-compatible CSS styling system directly inside <style> in admin.html (and/or local static CSS) with zero dependency on external network CDNs. Provide rich styling for: body, navbar, cards, stats badges, tables, modal overlays, modal dialogs, form inputs, buttons (.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-dark, .btn-light), alerts, typography, and responsive grid layout for both mobile and desktop. 2. Verify all UI elements (login card, accounts table, create/edit modals, activity log modal, stats cards) look modern, polished, and beautifully styled even when completely offline. 3. Ensure zero occurrences of forbidden character U+0669. 4. Update tests/test_minimal_lok_and_admin_ui.py to verify standalone CSS embedded rules; update web/static/README.md; commit as MohammedBoure on frontend/agy51-admin-portal-standalone-css; notify coordinator.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Quality Gatekeeper & Integration Verification",
-      "branch": "test/agy100-admin-and-minimal-ui-gatekeeper",
-      "scope": "Validate radical minimalist black & white client UI, settings view with recommendations and Darja voice audition player, bootstrap admin portal at /admin with login for pluto/plutosw4, accounts management, validity dates, quota controls, activity logs, prompt injection security sanitizer in pipeline_bridge, zero occurrences of U+0669; merge backend/agy11-admin-portal-and-prompt-security and frontend/agy51-minimal-lok-and-admin-ui into develop; signal idle.",
+      "role": "Quality Gatekeeper & CSS Integration Verification",
+      "branch": "test/agy100-admin-portal-css-gatekeeper",
+      "scope": "Integrate frontend/agy51-admin-portal-standalone-css into develop; verify standalone styling, responsive design, test suite, and typography compliance; merge into develop; notify coordinator.",
       "dependencies": [
-        "backend/agy11-admin-portal-and-prompt-security",
-        "frontend/agy51-minimal-lok-and-admin-ui"
+        "frontend/agy51-admin-portal-standalone-css"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
