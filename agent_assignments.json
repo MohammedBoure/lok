@@ -7,7 +7,7 @@
       "branch": "backend/agy11-unified-auth-and-pipeline-fixes",
       "scope": "Investigate why POST /api/auth/login returns 401 Unauthorized for accounts created via admin portal and for master admin pluto. Ensure: 1) Master admin pluto (with password plutosw4) can log into both /api/auth/login (client studio) and /api/admin/login (admin portal). 2) All merchant accounts created via /api/admin/accounts can log into /api/auth/login with their configured password (PBKDF2 verification and password hashing consistency). 3) Support whitespace trimming and case-insensitive username lookup. 4) Ensure GET /api/auth/session and GET /api/auth/me recognize session tokens from both endpoints and return valid quotas. 5) Ensure pluto has unlimited quota (role='admin') and merchants have valid quotas. 6) Verify /api/jobs/create and /api/upload-and-process accept session tokens via Bearer header or cookie and successfully process video cuts without 401/403 errors. 7) Verify zero U+0669 characters. Update web/README.md; commit as MohammedBoure on branch backend/agy11-unified-auth-and-pipeline-fixes; notify coordinator.",
       "dependencies": [],
-      "state": "IN_PROGRESS"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
@@ -28,7 +28,7 @@
         "backend/agy11-unified-auth-and-pipeline-fixes",
         "frontend/agy51-login-ux-and-studio-pipeline"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }
