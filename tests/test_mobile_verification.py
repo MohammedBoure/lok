@@ -252,17 +252,17 @@ def test_mobile_html_responsive_viewport_and_pwa_tags():
 
 
 def test_mobile_html_arabic_rtl_and_character_mapping():
-    """Verify RTL layout and User Rule 5 character mapping compliance (no raw '٩')."""
+    """Verify RTL layout and User Rule 5 character mapping compliance (no raw U+0669)."""
     index_file = Path("web/static/index.html")
     content = index_file.read_text(encoding="utf-8")
 
     assert 'dir="rtl"' in content
     assert 'lang="ar"' in content
 
-    # User Rule 5: character '٩' must never be used as text where 'ج' is intended
+    # User Rule 5: character U+0669 must never be used as text where 'ج' is intended
     app_js_file = Path("web/static/app.js")
     app_js = app_js_file.read_text(encoding="utf-8")
-    assert "٩" not in app_js, "Found forbidden character '٩' in app.js"
+    assert "\u0669" not in app_js, "Found forbidden character U+0669 in app.js"
 
 
 def test_mobile_css_responsive_media_queries():

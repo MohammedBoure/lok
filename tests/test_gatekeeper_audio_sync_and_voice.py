@@ -380,7 +380,7 @@ class TestMobileUiDeclutter:
 # ---------------------------------------------------------------------------
 
 class TestTypographyCharacterMapping:
-    """Verifies that the forbidden Arabic numeral ٩ (U+0669) is not present in code or deliverables."""
+    """Verifies that the forbidden Arabic numeral U+0669 is not present in code or deliverables."""
 
     @pytest.mark.parametrize(
         "relative_path",

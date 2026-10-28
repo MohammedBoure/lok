@@ -216,10 +216,32 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - API endpoint injection rejection with HTTP 400 Bad Request on `POST /api/jobs/create` and `POST /api/upload-and-process`.
   - User Rule 5 Arabic typography compliance (strictly zero occurrences of character U+0669).
 
+- [`test_minimal_lok_and_admin_ui.py`](test_minimal_lok_and_admin_ui.py): Frontend minimalist 'lok' client UI & Bootstrap admin portal test suite authored by Lead Frontend Engineer `agy51`:
+  - 'lok' studio branding, typography tokens, and RTL interface structure (`TestMinimalLokClientUi`).
+  - Gated authentication view (#loginView) before studio access with merchant credential login.
+  - Minimal studio essential controls: pre-recorded video upload dropzone (no webcam recording), detailed prompt textarea with speed/tone/visuals guidance, settings button, and produce video CTA.
+  - Settings modal with Back button, daily/weekly balance indicators, recommendations manager (CRUD), Algerian Darja voice audition player (`ar-XA-Standard-A/B/C/D`), and logout action.
+  - Authentic high-contrast monochrome Black & White theme tokens (`TestModernBlackAndWhiteTheme`).
+  - Dedicated Bootstrap 5 admin portal markup verification (`TestDedicatedBootstrapAdminPortal`).
+  - Strict typography compliance prohibiting forbidden Arabic character U+0669 (`TestStrictTypographyCompliance`).
+
+- [`test_gatekeeper_admin_and_minimal_ui.py`](test_gatekeeper_admin_and_minimal_ui.py): Comprehensive integration gatekeeper verification suite authored by Quality Gatekeeper `agy100`:
+  - Bootstrap 5 Admin Portal HTTP serving (`GET /admin`) and master admin credentials authentication (`POST /api/admin/login` with `pluto` / `plutosw4`).
+  - HTTP 401 Unauthorized rejection for invalid credentials and non-admin logins.
+  - Accounts management lifecycle: listing accounts with valid_from, expires_at, daily/weekly quotas, status (`GET /api/admin/accounts`), account creation (`POST /api/admin/accounts`), updates (`PATCH /api/admin/accounts/{user_id}`), and activity logs (`GET /api/admin/accounts/{user_id}/logs`).
+  - Global platform telemetry endpoint (`GET /api/admin/stats`).
+  - Prompt Security Guardrail (`sanitize_and_validate_prompt`) rejecting command injections (`;`, `&&`, `|`), destructive utilities (`rm`), downloaders (`curl`, `wget`), shells (`bash`, `sh`), evaluation (`eval`, `subprocess`), and path traversal (`../`) with `ValueError` and API HTTP 400 Bad Request.
+  - Verification of safe parameter extraction (`parse_prompt_instructions`) for speech speed and emotional tone.
+  - Gated authentication and decluttered minimalist 'lok' Studio UI contracts.
+  - Settings view contracts: current balance indicator, recommendations manager, Algerian Darja audition player, and logout.
+  - Repository-wide character mapping compliance confirming zero occurrences of forbidden Arabic character U+0669.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Admin Portal, Prompt Security Guardrail, and Minimalist 'lok' Studio sprint verification suite:
+pytest tests/test_gatekeeper_admin_and_minimal_ui.py tests/test_admin_portal_and_security.py tests/test_minimal_lok_and_admin_ui.py -v
 # Targeted Session Auth, Gated Services, and Clean Studio sprint verification suite:
 pytest tests/test_gatekeeper_session_auth_and_tts.py tests/test_session_auth_and_tts_samples.py tests/test_clean_studio_and_session_ui.py -v
 # Targeted SaaS Platform Gatekeeper sprint verification suite:

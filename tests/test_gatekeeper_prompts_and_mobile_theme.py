@@ -400,7 +400,7 @@ def test_frontend_app_js_prompts_history_and_formdata_bindings():
 
 
 def test_no_forbidden_arabic_character_compliance():
-    """Ensure character mapping rule: Arabic numeral ٩ (U+0669) does not appear in test suite or deliverables."""
+    """Ensure character mapping rule: Arabic numeral U+0669 does not appear in test suite or deliverables."""
     for fname in ["index.html", "style.css", "app.js"]:
         content = (STATIC_DIR / fname).read_text(encoding="utf-8")
         assert "\u0669" not in content, f"Forbidden Arabic numeral U+0669 detected in {fname}"
