@@ -864,6 +864,17 @@ async def index_page(request: Request) -> Response:
     })
 
 
+async def admin_page(request: Request) -> Response:
+    """GET /admin - Serve dedicated Bootstrap admin portal."""
+    admin_file = STATIC_DIR / "admin.html"
+    if admin_file.is_file():
+        return FileResponse(str(admin_file), media_type="text/html")
+    return JSONResponse({
+        "status": "not_found",
+        "message": "Admin portal template not found.",
+    }, status_code=404)
+
+
 async def get_principles_endpoint(request: Request) -> JSONResponse:
     """GET /api/principles - Retrieve currently active production & voice principles."""
     return JSONResponse(load_principles())
@@ -1293,6 +1304,7 @@ routes = [
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),
     Route("/", index_page, methods=["GET"]),
+    Route("/admin", admin_page, methods=["GET"]),
     Mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs"),
     Mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static"),
 ]
