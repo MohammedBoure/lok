@@ -42,7 +42,65 @@ class TestMinimalLokClientUi:
         assert 'id="merchantLoginPassword"' in html
         assert 'id="btnSubmitMerchantLogin"' in html
         assert 'id="merchantQuickLoginGrid"' in html
+        assert 'id="loginErrorMessage"' in html
+        assert 'id="loginCredentialHints"' in html
+        assert "pluto" in html
+        assert "plutosw4" in html
         assert "/admin" in html
+
+    def test_login_ux_and_error_feedback_logic(self):
+        """Verify app.js implements input trimming, Enter key submission, and friendly Arabic errors."""
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+        # 1. Whitespace trimming
+        assert ".trim()" in js
+
+        # 2. Enter key handling
+        assert 'e.key === "Enter"' in js or 'key === "Enter"' in js
+        assert "keydown" in js
+
+        # 3. Arabic error feedback on 401 and 403
+        assert "اسم المستخدم أو كلمة المرور غير صحيحة" in js
+        assert "الحساب معطل أو منتهي الصلاحية" in js
+
+        # 4. Quick login helpers for pluto / plutosw4
+        assert "pluto" in js
+        assert "plutosw4" in js
+
+    def test_session_state_and_cookie_persistence(self):
+        """Verify app.js stores tokens in localStorage and cookies with proper expiry."""
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+        # LocalStorage persistence
+        assert 'localStorage.setItem("session_token"' in js
+        assert 'localStorage.setItem("auth_token"' in js
+
+        # Cookie persistence
+        assert "document.cookie" in js
+        assert "session_token=" in js
+        assert "max-age=604800" in js
+        assert "SameSite=Lax" in js
+
+        # /api/auth/session verification
+        assert "/api/auth/session" in js
+        assert "Bearer" in js
+        assert 'credentials: "include"' in js or "credentials: 'include'" in js
+
+    def test_video_production_authorization_and_stepper_feedback(self):
+        """Verify video production sends credentials and displays live processing feedback."""
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+
+        # Endpoint dispatches with Authorization header & credentials
+        assert "/api/jobs/create" in js
+        assert "/api/upload-and-process" in js
+        assert "Authorization" in js
+        assert "Bearer" in js
+
+        # Stepper status and progress bar updates
+        assert "updateStepperStatus" in js
+        assert "stepperStatusText" in js
+        assert "stepperFill" in js
+
 
     def test_minimalist_studio_essential_controls_only(self):
         """Verify Studio UI keeps ONLY upload dropzone, detailed prompt, settings button, and produce button."""

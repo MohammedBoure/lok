@@ -20,6 +20,20 @@
   // Pre-seeded Diverse Merchant Personas + Master Admin
   const PRESEEDED_ACCOUNTS = [
     {
+      id: "usr_pluto",
+      username: "pluto",
+      business_name: "المشرف العام (Pluto Admin)",
+      business_category: "مسؤول المنصة",
+      role: "admin",
+      status: "active",
+      expires_at: "2099-12-31",
+      daily_quota: 999,
+      weekly_quota: 9999,
+      videos_today: 0,
+      videos_this_week: 0,
+      token: "token_admin_pluto"
+    },
+    {
       id: "usr_merchant_realestate",
       username: "merchant_realestate",
       business_name: "تاجر (عقارات فاخرة)",
@@ -178,6 +192,8 @@
     merchantLoginPassword: document.getElementById("merchantLoginPassword"),
     btnSubmitMerchantLogin: document.getElementById("btnSubmitMerchantLogin"),
     merchantQuickLoginGrid: document.getElementById("merchantQuickLoginGrid"),
+    loginErrorMessage: document.getElementById("loginErrorMessage"),
+    loginCredentialHints: document.getElementById("loginCredentialHints"),
 
     // Studio Header
     userRoleIcon: document.getElementById("userRoleIcon"),
@@ -265,8 +281,71 @@
   // ---------------------------------------------------------------------------
   // 1. Gated Login & Authentication Lifecycle
   // ---------------------------------------------------------------------------
+  function getStoredSessionToken() {
+    // 1. Check localStorage keys
+    const fromLocal = localStorage.getItem("session_token") ||
+                      localStorage.getItem(SESSION_TOKEN_KEY) ||
+                      localStorage.getItem("auth_token");
+    if (fromLocal && fromLocal.trim()) return fromLocal.trim();
+
+    // 2. Check document.cookie
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)(?:session_token|auth_token)=([^;]+)/);
+      if (match && match[1]) {
+        return decodeURIComponent(match[1]).trim();
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  function persistSessionTokens(token, user) {
+    if (!token) return;
+    // Store in localStorage
+    localStorage.setItem("session_token", token);
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+    if (user) {
+      localStorage.setItem(CURRENT_USER_KEY, String(user.id || user.username));
+    }
+
+    // Store in document.cookie: path=/; max-age=604800 (7 days); SameSite=Lax
+    try {
+      document.cookie = `session_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `auth_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+    } catch (e) {}
+  }
+
+  function clearSessionTokens() {
+    localStorage.removeItem("session_token");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    localStorage.removeItem(CURRENT_USER_KEY);
+
+    try {
+      document.cookie = "session_token=; path=/; max-age=0; SameSite=Lax";
+      document.cookie = "auth_token=; path=/; max-age=0; SameSite=Lax";
+    } catch (e) {}
+  }
+
+  function showLoginError(msg) {
+    if (dom.loginErrorMessage) {
+      dom.loginErrorMessage.textContent = msg;
+      dom.loginErrorMessage.style.display = "block";
+    }
+    showToast(msg);
+  }
+
+  function clearLoginError() {
+    if (dom.loginErrorMessage) {
+      dom.loginErrorMessage.textContent = "";
+      dom.loginErrorMessage.style.display = "none";
+    }
+  }
+
   function openLoginModal() {
     state.isAuthenticated = false;
+    clearLoginError();
     if (dom.studioView) dom.studioView.style.display = "none";
     if (dom.settingsModal) dom.settingsModal.style.display = "none";
     if (dom.loginView) dom.loginView.style.display = "flex";
@@ -274,55 +353,75 @@
 
   function closeLoginModal() {
     if (state.isAuthenticated) {
+      clearLoginError();
       if (dom.loginView) dom.loginView.style.display = "none";
       if (dom.studioView) dom.studioView.style.display = "block";
     }
   }
 
   async function checkExistingSession() {
-    const savedToken = localStorage.getItem(SESSION_TOKEN_KEY);
+    const savedToken = getStoredSessionToken();
     const savedUserId = localStorage.getItem(CURRENT_USER_KEY);
 
     if (savedToken) {
       state.sessionToken = savedToken;
       try {
         const resp = await fetch("/api/auth/session", {
-          headers: { "Authorization": `Bearer ${savedToken}` }
+          headers: { "Authorization": `Bearer ${savedToken}` },
+          credentials: "include"
         });
+
         if (resp.ok) {
           const data = await resp.json();
           if (data.user) {
             const matched = state.accounts.find(
-              (a) => a.id === data.user.id || a.username === data.user.username
+              (a) => a.id === data.user.id || a.username.toLowerCase() === data.user.username.toLowerCase()
             );
             state.currentUser = matched || data.user;
             state.isAuthenticated = true;
+            persistSessionTokens(savedToken, state.currentUser);
             applyActiveUserToUI(state.currentUser);
             updateAuthUI(true, state.currentUser);
             return;
           }
+        } else if (resp.status === 401 || resp.status === 403) {
+          // Session is invalid or revoked -> clear and present login view
+          clearSessionTokens();
+          state.isAuthenticated = false;
+          state.sessionToken = null;
+          state.currentUser = null;
+          updateAuthUI(false, null);
+          return;
         }
-      } catch (e) {}
+      } catch (e) {
+        // Network or offline fallback
+      }
 
-      // Fallback matching against pre-seeded list
+      // Fallback matching against pre-seeded list for offline demo
       let user = state.accounts.find(
         (a) => a.token === savedToken || a.id === savedUserId || a.username === savedUserId
       );
-      if (!user) user = state.accounts[0];
-
-      state.currentUser = user;
-      state.isAuthenticated = true;
-      applyActiveUserToUI(user);
-      updateAuthUI(true, user);
-      return;
+      if (user) {
+        state.currentUser = user;
+        state.isAuthenticated = true;
+        persistSessionTokens(savedToken, user);
+        applyActiveUserToUI(user);
+        updateAuthUI(true, user);
+        return;
+      }
     }
 
     // Unauthenticated: reveal gated login view
+    clearSessionTokens();
+    state.isAuthenticated = false;
+    state.sessionToken = null;
+    state.currentUser = null;
     updateAuthUI(false, null);
   }
 
   function updateAuthUI(isLoggedIn, user) {
     if (isLoggedIn && user) {
+      clearLoginError();
       if (dom.loginView) dom.loginView.style.display = "none";
       if (dom.studioView) dom.studioView.style.display = "block";
       if (dom.userBusinessName) dom.userBusinessName.textContent = user.business_name;
@@ -371,46 +470,93 @@
     if (!dom.merchantQuickLoginGrid) return;
     dom.merchantQuickLoginGrid.innerHTML = "";
 
-    state.accounts.slice(0, 4).forEach((acc) => {
+    const quickList = [
+      { username: "pluto", label: "👑 المشرف pluto", pass: "plutosw4" },
+      { username: "merchant_realestate", label: "🏢 عقارات فاخرة", pass: "merchant123" },
+      { username: "dar_al_nokhba", label: "🏢 دار النخبة", pass: "merchant123" },
+      { username: "auto_algerie", label: "🚗 أوتو الجزائر", pass: "merchant123" }
+    ];
+
+    quickList.forEach((item) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-merchant-quick";
-      btn.innerHTML = `<span>${acc.role === "admin" ? "👑" : "🏢"} ${acc.business_name}</span>`;
-      btn.addEventListener("click", () => handleQuickMerchantLogin(acc.username));
+      btn.innerHTML = `<span>${item.label}</span>`;
+      btn.title = `دخول سريع بالحساب (${item.username})`;
+      btn.addEventListener("click", () => {
+        if (dom.merchantLoginUsername) dom.merchantLoginUsername.value = item.username;
+        if (dom.merchantLoginPassword) dom.merchantLoginPassword.value = item.pass;
+        clearLoginError();
+        handleMerchantLogin(item.username, item.pass);
+      });
       dom.merchantQuickLoginGrid.appendChild(btn);
     });
   }
 
-  async function handleMerchantLogin(username, password) {
+  async function handleMerchantLogin(rawUsername, rawPassword) {
+    clearLoginError();
+    const username = (rawUsername || "").trim();
+    const password = (rawPassword || "").trim();
+
+    if (!username) {
+      showLoginError("يرجى إدخال اسم المستخدم.");
+      return;
+    }
+
+    if (dom.btnSubmitMerchantLogin) {
+      dom.btnSubmitMerchantLogin.disabled = true;
+    }
+
     // 1. Try server API login
     try {
       const resp = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ username, password })
       });
+
       if (resp.ok) {
         const data = await resp.json();
-        const token = data.session_token || data.token || `tok_${username}`;
-        const user = data.user || state.accounts.find(a => a.username === username) || state.accounts[0];
+        const token = data.session_token || data.token || (data.session && data.session.token) || `tok_${username}`;
+        const user = data.user || state.accounts.find(a => a.username.toLowerCase() === username.toLowerCase()) || state.accounts[0];
         setSessionAndProceed(token, user);
         showToast(`مرحباً بك مجدداً: ${user.business_name}! ✨`);
+        if (dom.btnSubmitMerchantLogin) dom.btnSubmitMerchantLogin.disabled = false;
+        return;
+      } else if (resp.status === 401) {
+        showLoginError("اسم المستخدم أو كلمة المرور غير صحيحة");
+        if (dom.btnSubmitMerchantLogin) dom.btnSubmitMerchantLogin.disabled = false;
+        return;
+      } else if (resp.status === 403) {
+        showLoginError("الحساب معطل أو منتهي الصلاحية");
+        if (dom.btnSubmitMerchantLogin) dom.btnSubmitMerchantLogin.disabled = false;
         return;
       }
-    } catch (e) {}
-
-    // 2. Pre-seeded fallback
-    let user = state.accounts.find(a => a.username.toLowerCase() === username.toLowerCase());
-    if (!user && (username === "admin" || username === "merchant")) {
-      user = state.accounts[0];
+    } catch (e) {
+      // Network failure, fallback to offline accounts
     }
 
+    // 2. Pre-seeded fallback (offline mode)
+    let user = state.accounts.find(a => a.username.toLowerCase() === username.toLowerCase());
     if (user) {
-      const token = user.token || `tok_${user.username}`;
-      setSessionAndProceed(token, user);
-      showToast(`تم تسجيل الدخول بنجاح: ${user.business_name}! ✨`);
+      const isPlutoValid = (username.toLowerCase() === "pluto" && (password === "plutosw4" || !password));
+      const isAdminValid = (username.toLowerCase() === "admin" && (password === "admin123" || !password));
+      const isMerchantValid = (password === "merchant123" || !password);
+
+      if (isPlutoValid || isAdminValid || isMerchantValid) {
+        const token = user.token || `tok_${user.username}`;
+        setSessionAndProceed(token, user);
+        showToast(`تم تسجيل الدخول بنجاح: ${user.business_name}! ✨`);
+      } else {
+        showLoginError("اسم المستخدم أو كلمة المرور غير صحيحة");
+      }
     } else {
-      showToast("اسم المستخدم أو كلمة المرور غير صحيحة.");
+      showLoginError("اسم المستخدم أو كلمة المرور غير صحيحة");
+    }
+
+    if (dom.btnSubmitMerchantLogin) {
+      dom.btnSubmitMerchantLogin.disabled = false;
     }
   }
 
@@ -419,7 +565,7 @@
   }
 
   function handleQuickMerchantLogin(username) {
-    const user = state.accounts.find(a => a.username === username);
+    const user = state.accounts.find(a => a.username.toLowerCase() === username.toLowerCase());
     if (!user) return;
     const token = user.token || `tok_${user.username}`;
     setSessionAndProceed(token, user);
@@ -430,8 +576,7 @@
     state.sessionToken = token;
     state.currentUser = user;
     state.isAuthenticated = true;
-    localStorage.setItem(SESSION_TOKEN_KEY, token);
-    localStorage.setItem(CURRENT_USER_KEY, user.id || user.username);
+    persistSessionTokens(token, user);
     updateAuthUI(true, user);
   }
 
@@ -440,16 +585,16 @@
       try {
         await fetch("/api/auth/logout", {
           method: "POST",
-          headers: { "Authorization": `Bearer ${state.sessionToken}` }
+          headers: { "Authorization": `Bearer ${state.sessionToken}` },
+          credentials: "include"
         });
       } catch (e) {}
     }
 
+    clearSessionTokens();
     state.isAuthenticated = false;
     state.sessionToken = null;
     state.currentUser = null;
-    localStorage.removeItem(SESSION_TOKEN_KEY);
-    localStorage.removeItem(CURRENT_USER_KEY);
     updateAuthUI(false, null);
     showToast("تم تسجيل الخروج بنجاح. 🚪");
   }
@@ -460,8 +605,27 @@
         e.preventDefault();
         const u = (dom.merchantLoginUsername?.value || "").trim();
         const p = (dom.merchantLoginPassword?.value || "").trim();
-        if (u) handleMerchantLogin(u, p);
+        handleMerchantLogin(u, p);
       });
+    }
+
+    // Support Enter key submission on username and password fields
+    const handleEnterKey = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const u = (dom.merchantLoginUsername?.value || "").trim();
+        const p = (dom.merchantLoginPassword?.value || "").trim();
+        handleMerchantLogin(u, p);
+      }
+    };
+
+    if (dom.merchantLoginUsername) {
+      dom.merchantLoginUsername.addEventListener("keydown", handleEnterKey);
+      dom.merchantLoginUsername.addEventListener("input", clearLoginError);
+    }
+    if (dom.merchantLoginPassword) {
+      dom.merchantLoginPassword.addEventListener("keydown", handleEnterKey);
+      dom.merchantLoginPassword.addEventListener("input", clearLoginError);
     }
 
     if (dom.btnLogout) {
@@ -893,7 +1057,7 @@
     }
 
     const promptText = (dom.promptTextarea?.value || "").trim();
-    const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || "";
+    const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
 
     // Prepare FormData
     const formData = new FormData();
@@ -904,61 +1068,111 @@
 
     if (promptText) {
       formData.append("script", promptText);
+      formData.append("prompt", promptText);
       formData.append("speech_description", promptText);
       formData.append("visual_description", promptText);
     }
 
     if (activeToken) {
       formData.append("token", activeToken);
+      formData.append("session_token", activeToken);
+      formData.append("auth_token", activeToken);
     }
     if (state.currentUser?.id) {
-      formData.append("user_id", state.currentUser.id);
+      formData.append("user_id", String(state.currentUser.id));
     }
 
-    // Start Stepper
+    // Prepare request headers with Authorization: Bearer <token>
+    const headers = {};
+    if (activeToken) {
+      headers["Authorization"] = `Bearer ${activeToken}`;
+      headers["X-Session-Token"] = activeToken;
+    }
+
+    // Start Stepper with live production status
     startStepper();
+    updateStepperStatus("1. جاري تحميل مقطع الفيديو والتحقق من الجلسة...", 15, "stepAnalyze");
 
     try {
       let jobId = null;
-      const headers = activeToken ? { "Authorization": `Bearer ${activeToken}` } : {};
 
       try {
+        updateStepperStatus("2. جاري تحليل المشاهد وصياغة السيناريو الذكي...", 35, "stepScript");
         const createResp = await fetch("/api/jobs/create", {
           method: "POST",
           headers: headers,
+          credentials: "include",
           body: formData,
         });
+
+        if (createResp.status === 401) {
+          throw new Error("جلسة العمل منتهية أو غير مصرح بها. يرجى تسجيل الدخول مجدداً.");
+        }
+        if (createResp.status === 403) {
+          throw new Error("الحساب معطل أو تم استنفاد الحصة المسموحة.");
+        }
+
         if (createResp.ok || createResp.status === 202) {
           const createData = await createResp.json();
           jobId = createData.job_id;
         }
-      } catch (e) {}
+      } catch (e) {
+        if (e.message && (e.message.includes("جلسة") || e.message.includes("الحساب"))) {
+          throw e;
+        }
+      }
 
       if (jobId) {
         state.activeJobId = jobId;
         localStorage.setItem(ACTIVE_JOB_KEY, jobId);
+        updateStepperStatus("3. جاري توليد الصوت بالدارجة والمونتاج التلقائي...", 70, "stepVoice");
         const finalData = await pollJobStatus(jobId);
+        updateStepperStatus("4. إتمام المونتاج النهائي للفيديو...", 95, "stepRender");
         finishStepper(true, finalData);
       } else {
         // Fallback upload-and-process
+        updateStepperStatus("جاري معالجة الفيديو والمونتاج المباشر...", 50, "stepVoice");
         const resp = await fetch("/api/upload-and-process", {
           method: "POST",
           headers: headers,
+          credentials: "include",
           body: formData,
         });
 
+        if (resp.status === 401) {
+          throw new Error("جلسة العمل منتهية أو غير مصرح بها. يرجى تسجيل الدخول مجدداً.");
+        }
+        if (resp.status === 403) {
+          throw new Error("الحساب معطل أو تم استنفاد الحصة المسموحة.");
+        }
+
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
-          throw new Error(err.error || `خطأ في المعالجة (${resp.status})`);
+          throw new Error(err.message || err.error || `خطأ في المعالجة (${resp.status})`);
         }
 
         const data = await resp.json();
+        updateStepperStatus("4. إتمام المونتاج النهائي للفيديو...", 100, "stepRender");
         finishStepper(true, data);
       }
 
     } catch (err) {
       finishStepper(false, null, err.message);
     }
+  }
+
+  function updateStepperStatus(statusText, progressPercent, activeStepId) {
+    if (dom.stepperStatusText) dom.stepperStatusText.textContent = statusText;
+    if (dom.stepperFill) dom.stepperFill.style.width = `${progressPercent}%`;
+
+    const steps = ["stepAnalyze", "stepScript", "stepVoice", "stepRender"];
+    const activeIdx = steps.indexOf(activeStepId);
+    steps.forEach((step, idx) => {
+      const el = document.getElementById(step);
+      if (el) {
+        el.classList.toggle("active", idx <= activeIdx);
+      }
+    });
   }
 
   function startStepper() {
@@ -971,19 +1185,19 @@
   }
 
   function animateStepperProgress() {
-    let p = 15;
+    let p = 20;
     const interval = setInterval(() => {
       if (!state.isProcessing) {
         clearInterval(interval);
         return;
       }
-      p = Math.min(92, p + Math.floor(Math.random() * 8) + 4);
+      p = Math.min(92, p + Math.floor(Math.random() * 6) + 3);
       if (dom.stepperFill) dom.stepperFill.style.width = `${p}%`;
 
-      if (p > 30 && dom.stepScript) dom.stepScript.classList.add("active");
-      if (p > 60 && dom.stepVoice) dom.stepVoice.classList.add("active");
-      if (p > 80 && dom.stepRender) dom.stepRender.classList.add("active");
-    }, 800);
+      if (p > 35 && dom.stepScript) dom.stepScript.classList.add("active");
+      if (p > 65 && dom.stepVoice) dom.stepVoice.classList.add("active");
+      if (p > 85 && dom.stepRender) dom.stepRender.classList.add("active");
+    }, 900);
   }
 
   async function pollJobStatus(jobId) {
@@ -992,18 +1206,25 @@
       attempts++;
       await new Promise(r => setTimeout(r, 1500));
       try {
-        const resp = await fetch(`/api/status/${jobId}`);
+        const headers = state.sessionToken ? { "Authorization": `Bearer ${state.sessionToken}` } : {};
+        const resp = await fetch(`/api/status/${jobId}`, {
+          headers: headers,
+          credentials: "include"
+        });
         if (resp.ok) {
           const d = await resp.json();
+          if (d.progress) {
+            updateStepperStatus(`جاري الإنتاج (${d.progress}%): ${d.step || "معالجة الفيديو"}...`, d.progress, "stepVoice");
+          }
           if (d.status === "completed" || d.status === "done") {
             return d;
           }
           if (d.status === "failed") {
-            throw new Error(d.error || "فشلت معالجة الفيديو.");
+            throw new Error(d.error || d.message || "فشلت معالجة الفيديو.");
           }
         }
       } catch (e) {
-        if (attempts > 15) throw e;
+        if (attempts > 20) throw e;
       }
     }
     return { status: "completed", output_video: "/outputs/final_cut.mp4" };

@@ -40,10 +40,13 @@
             <h2 class="login-box-title">تسجيل الدخول إلى الاستوديو</h2>
             <p class="login-box-subtitle">أدخل بيانات حسابك للمتابعة وإنتاج الفيديوهات التسويقية:</p>
 
+            <!-- Dynamic Login Error Feedback -->
+            <div id="loginErrorMessage" class="login-error-alert mb-3" style="display: none;" role="alert"></div>
+
             <form id="merchantLoginForm" class="lok-login-form">
               <div class="form-group mb-3">
                 <label for="merchantLoginUsername" class="input-label">اسم المستخدم (Username):</label>
-                <input type="text" id="merchantLoginUsername" class="form-input" placeholder="مثال: dar_al_nokhba أو merchant_realestate" required dir="ltr">
+                <input type="text" id="merchantLoginUsername" class="form-input" placeholder="مثال: pluto أو dar_al_nokhba" required dir="ltr">
               </div>
 
               <div class="form-group mb-4">
@@ -56,10 +59,22 @@
               </button>
             </form>
 
+            <!-- Quick Credentials Helper Box -->
+            <div class="quick-credentials-hint" id="loginCredentialHints">
+              <div class="d-flex align-items-center mb-1 text-white fw-bold">
+                <span class="me-2">🔐</span>
+                <span>بيانات الدخول السريع للاختبار:</span>
+              </div>
+              <div class="font-monospace text-secondary small" dir="ltr">
+                • المشرف العام: <strong class="text-white">pluto</strong> / <strong class="text-white">plutosw4</strong><br>
+                • حساب تاجر: <strong class="text-white">merchant_realestate</strong> / <strong class="text-white">merchant123</strong>
+              </div>
+            </div>
+
             <!-- 1-Tap Quick Demo Login Section -->
             <div class="quick-demo-section mt-4">
               <div class="quick-divider">
-                <span>أو الدخول السريع بحساب تجريبي (1-Tap):</span>
+                <span>أو الدخول السريع بنقرة واحدة (1-Tap):</span>
               </div>
               <div class="merchant-quick-grid mt-3" id="merchantQuickLoginGrid">
                 <!-- Dynamically populated via app.js -->
