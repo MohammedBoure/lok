@@ -3,18 +3,18 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Session Auth & TTS Voice Reference Samples",
-      "branch": "backend/agy11-session-auth-tts-voice-samples",
-      "scope": "Implement session-based authentication in web/auth_db.py and web/server.py with default admin password ('admin123') and merchant credentials, password hashing/verification, session validation endpoints (POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me, GET /api/auth/session); gate video production endpoints strictly by active authenticated session; generate high-fidelity reference voice sample clips for ar-XA-Standard-A/B/C/D using the existing tts library module and serve via GET /api/voices/{voice_id}/sample as the true reference audio; author tests in tests/test_session_auth_and_tts_samples.py; update web/README.md; commit with author MohammedBoure; signal idle via notify_coordinator_worker_idle.",
+      "role": "Backend Admin Portal Auth, Account Quotas & Security Guardrail",
+      "branch": "backend/agy11-admin-portal-and-prompt-security",
+      "scope": "1. In web/auth_db.py: Provision master admin credentials username 'pluto' and password 'plutosw4' (PBKDF2-HMAC-SHA256). Support start date ('valid_from'), expiration date ('expires_at'), daily_quota, and weekly_quota. Implement user_activity_logs tracking account actions. 2. In web/server.py: Expose admin REST APIs: POST /api/admin/login (authenticating pluto/plutosw4), GET /api/admin/accounts, POST /api/admin/accounts, PATCH /api/admin/accounts/{user_id}, GET /api/admin/accounts/{user_id}/logs, and serve GET /admin route serving web/static/admin.html. 3. Implement prompt security sanitizer (sanitize_and_validate_prompt) in web/pipeline_bridge.py preventing command injection, path traversal, or shell exploit payloads before reaching the AI agent. 4. Author tests in tests/test_admin_portal_and_security.py; update web/README.md; commit as MohammedBoure on backend/agy11-admin-portal-and-prompt-security; notify coordinator.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Clean Studio, Session Login & Voice Audition UI",
-      "branch": "frontend/agy51-clean-studio-session-login-ui",
-      "scope": "Refactor UI to remove/hide 'قوالب العقارات الجزائرية' (real estate presets) and 'نص التعليق الصوتي التسويقي (Script)' (raw script textarea); preserve only the high-value linguistic scene & speech intent description inputs with merchant suggestions; implement an elegant, professional Admin/Merchant Session Login Modal with default credentials helper ('admin / admin123' and merchant quick login); gate the studio by authenticated session; polish theme with responsive glassmorphism and real-time quota badge; ensure voice audition buttons trigger the tts-generated sample audio with waveform indicators; ensure zero occurrences of forbidden character U+0669; author tests in tests/test_clean_studio_and_session_ui.py; update web/static/README.md; commit with author MohammedBoure; signal idle via notify_coordinator_worker_idle.",
+      "role": "Frontend Minimal B&W lok UI & Bootstrap Admin Portal",
+      "branch": "frontend/agy51-minimal-lok-and-admin-ui",
+      "scope": "1. Radical redesign of client UI into sleek black & white modern theme branded 'lok' (web/static/index.html, style.css, app.js). Require login before viewing studio. Display only: pre-recorded video file upload, detailed prompt textarea, produce button, and simple Settings button. 2. Inside Settings modal/view (with Back button): display remaining balance/quota, recommendations manager (CRUD and pick to attach to prompt), voice actor selector with Algerian Darja audition audio player, and logout button. Delete all other cluttered UI elements. 3. Create dedicated Bootstrap-powered responsive admin portal at web/static/admin.html (served at /admin): login for pluto/plutosw4, full accounts list, manage passwords, set validity start and expiration dates, configure daily/weekly quotas, and view account activity logs. 4. Strict character mapping (no U+0669); author tests in tests/test_minimal_lok_and_admin_ui.py; update web/static/README.md; commit as MohammedBoure on frontend/agy51-minimal-lok-and-admin-ui; notify coordinator.",
       "dependencies": [],
       "state": "COMPLETED"
     },
@@ -22,13 +22,13 @@
       "agent_id": "agy100",
       "worker_id": "worker-3",
       "role": "Quality Gatekeeper & Integration Verification",
-      "branch": "test/agy100-session-auth-and-tts-gatekeeper",
-      "scope": "Validate removal of real estate presets and raw script elements from the visible UI, session-based password authentication, default admin login ('admin' / 'admin123'), session gating on video production endpoints, tts library voice sample generation and streaming, and strict character mapping; merge feature branches into develop; commit with author MohammedBoure; signal idle via notify_coordinator_worker_idle.",
+      "branch": "test/agy100-admin-and-minimal-ui-gatekeeper",
+      "scope": "Validate radical minimalist black & white client UI, settings view with recommendations and Darja voice audition player, bootstrap admin portal at /admin with login for pluto/plutosw4, accounts management, validity dates, quota controls, activity logs, prompt injection security sanitizer in pipeline_bridge, zero occurrences of U+0669; merge backend/agy11-admin-portal-and-prompt-security and frontend/agy51-minimal-lok-and-admin-ui into develop; signal idle.",
       "dependencies": [
-        "backend/agy11-session-auth-tts-voice-samples",
-        "frontend/agy51-clean-studio-session-login-ui"
+        "backend/agy11-admin-portal-and-prompt-security",
+        "frontend/agy51-minimal-lok-and-admin-ui"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }

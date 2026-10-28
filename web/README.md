@@ -16,14 +16,15 @@ The system combines:
 
 | File | Purpose |
 | :--- | :--- |
-| [`auth_db.py`](file:///home/pluto/projects/lok/web/auth_db.py) | Multi-tenant SaaS SQLite database managing user authentication, admin governance, expiration tracking, daily/weekly generation quotas, and audit logs at `outputs/saas_platform.db`. |
+| [`auth_db.py`](file:///home/pluto/projects/lok/web/auth_db.py) | Multi-tenant SaaS SQLite database managing user authentication, PBKDF2 password hashing, master admin (`pluto` / `plutosw4`), start validity (`valid_from`), expiration date (`expires_at`), account status lifecycle (`active`, `suspended`, `expired`, `pending`), daily/weekly quotas, and audit events at `outputs/saas_platform.db` (`user_activity_logs`). |
 | [`prompt_db.py`](file:///home/pluto/projects/lok/web/prompt_db.py) | SQLite persistence layer for prompt descriptions history, managing visual & speech intent descriptions, pre-seeded Algerian presets, and script storage at `outputs/prompts.db`. |
-| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, linguistic intent processing, and video assembly. |
+| [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) | Core post-production pipeline engine orchestrating keyframe extraction, narration synthesis, audio ducking, auto-annotations, linguistic intent processing, video assembly, and Prompt Security Guardrails (`sanitize_and_validate_prompt`, `parse_prompt_instructions`). |
 | [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music steered by linguistic speech and visual intent. |
 | [`video_annotator.py`](file:///home/pluto/projects/lok/web/video_annotator.py) | Fast hardware-accelerated video annotation engine using FFmpeg drawtext filters for luxury badges, price tags, and lower-third captions. |
 | [`video_annotator_mcp.py`](file:///home/pluto/projects/lok/web/video_annotator_mcp.py) | MCP (Model Context Protocol) tool bridge and CLI interface exposing `annotate_video_cut` via stdio JSON-RPC. |
-| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, static asset mounting (`/outputs`, `/static`), principles endpoints, prompt history management, and CORS middleware. |
+| [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, admin portal backend (`/admin`, `/api/admin/*`), root static aliases (`/style.css`, `/app.js`, `/favicon.ico`), prompt security guardrails, static asset mounting (`/outputs`, `/static`), principles endpoints, and CORS middleware. |
 | [`run_server.py`](file:///home/pluto/projects/lok/web/run_server.py) | Production CLI launcher that detects host LAN IP (`192.168.1.7`), generates terminal ASCII QR code, and boots Uvicorn. |
+| [`static/admin.html`](file:///home/pluto/projects/lok/web/static/admin.html) | Dedicated Bootstrap 5 responsive Admin Dashboard for account management, password updates, date validity configuration, quota adjustments, and activity event auditing. |
 | [`static/index.html`](file:///home/pluto/projects/lok/web/static/index.html) | Mobile-first responsive web studio supporting live camera capture, preset selection, custom script editing, principles modal, live telemetry logs, and video preview. |
 | [`static/README.md`](file:///home/pluto/projects/lok/web/static/README.md) | Documentation for static frontend assets and mobile camera interface. |
 | [`README.md`](file:///home/pluto/projects/lok/web/README.md) | This master documentation document. |
@@ -211,15 +212,39 @@ Returns the public list of pre-seeded demo accounts (1 admin and 10 commercial m
   }
   ```
 
-### `GET /api/admin/users`
-Admin-only endpoint listing all registered platform accounts with real-time generation metrics (`videos_today`, `videos_this_week`, `total_videos`).
-- **Authentication**: Requires admin role token (`token_admin_master`).
-- **Response (200 OK)**: JSON array of users with quota usage metrics.
-- **Response (403 Forbidden)**: `{"status": "error", "message": "Admin authorization required."}`
+### `GET /admin`
+Serves the dedicated Bootstrap 5 Admin Portal interface (`web/static/admin.html`).
 
-### `POST /api/admin/users`
-Admin-only endpoint provisioning a new merchant account with custom quotas and expiry.
-- **Authentication**: Requires admin role token.
+### `POST /api/admin/login`
+Master admin login endpoint. Validates username `pluto` and password `plutosw4` (or any active administrator account) and generates a session token.
+- **Payload**:
+  ```json
+  {
+    "username": "pluto",
+    "password": "plutosw4"
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "message": "تم تسجيل دخول المسؤول بنجاح",
+    "session_token": "sess_...",
+    "user": {
+      "id": 1,
+      "username": "pluto",
+      "role": "admin",
+      "status": "active"
+    }
+  }
+  ```
+
+### `GET /api/admin/accounts` (Alias: `GET /api/admin/users`)
+Admin endpoint listing all accounts with quotas, validity dates (`valid_from`, `expires_at`), status (`active`, `suspended`, `expired`, `pending`), and usage metrics.
+- **Response (200 OK)**: JSON array of all accounts.
+
+### `POST /api/admin/accounts` (Alias: `POST /api/admin/users`)
+Creates a new merchant or administrator account with custom password, validity dates, quotas, and status. Automatically logs `account_created` audit event.
 - **Payload**:
   ```json
   {
@@ -227,35 +252,73 @@ Admin-only endpoint provisioning a new merchant account with custom quotas and e
     "business_name": "فندق ومسبح الباهية وهران",
     "business_category": "tourism",
     "role": "merchant",
+    "password": "custom_password_123",
+    "valid_from": "2026-01-01",
+    "expires_at": "2028-06-30",
     "daily_quota": 10,
     "weekly_quota": 50,
-    "expires_at": "2028-06-30"
+    "status": "active"
   }
   ```
-- **Response (201 Created)**: Created user record with generated `auth_token`.
+- **Response (201 Created)**: Created account object.
 
-### `PATCH /api/admin/users/{user_id}`
-Admin-only endpoint updating quotas, expiration date, business metadata, or active status.
-- **Authentication**: Requires admin role token.
-- **Payload**: Any of `{"daily_quota": 15, "weekly_quota": 70, "expires_at": "2028-12-31", "is_active": true}`
-- **Response (200 OK)**: `{"status": "ok", "message": "User 3 updated successfully."}`
+### `PATCH /api/admin/accounts/{user_id}` (Alias: `PATCH /api/admin/users/{user_id}`)
+Updates password (hashed securely via PBKDF2), status (`active`, `suspended`), valid_from, expires_at, or daily/weekly quotas. Automatically logs `account_updated` audit event.
+- **Payload**: Any combination of:
+  ```json
+  {
+    "password": "new_secure_password",
+    "status": "suspended",
+    "valid_from": "2026-01-01",
+    "expires_at": "2028-12-31",
+    "daily_quota": 20,
+    "weekly_quota": 100
+  }
+  ```
+- **Response (200 OK)**: Updated account object.
 
-### `GET /api/admin/stats`
-Admin-only endpoint returning high-level platform SaaS analytics.
-- **Authentication**: Requires admin role token.
+### `GET /api/admin/accounts/{user_id}/logs` (Alias: `GET /api/admin/users/{user_id}/logs`)
+Retrieves audit events from `user_activity_logs` recorded for the account (e.g. `account_created`, `account_updated`, `admin_login`).
+- **Query Params**: `limit` (default: 50).
 - **Response (200 OK)**:
   ```json
   {
     "status": "ok",
-    "stats": {
-      "total_users": 11,
-      "active_users": 11,
-      "total_videos_generated": 42,
-      "videos_today": 8,
-      "videos_this_week": 34
-    }
+    "user_id": 12,
+    "count": 2,
+    "logs": [
+      {
+        "id": 1,
+        "user_id": 12,
+        "event_type": "account_created",
+        "details": "{\"username\": \"oran_boutique_hotel\", ...}",
+        "created_at": "2026-10-28 18:30:00"
+      }
+    ]
   }
   ```
+
+### `GET /api/admin/stats`
+Returns macro-level platform SaaS statistics: total users, active merchants, total admins, total generations, and category breakdown.
+
+---
+
+## 5. Security & Prompt Guardrails (`sanitize_and_validate_prompt`)
+
+To safeguard the platform against prompt injection, shell command execution, and unauthorized file access, `web/pipeline_bridge.py` enforces active input validation:
+
+1. **Dangerous Pattern Inspection**:
+   - **Path Traversal**: Blocks `../`, `..\\`, `/etc/passwd`, `/etc/shadow`.
+   - **Shell Command Substitution**: Blocks `$(...)` and `` `...` ``.
+   - **Destructive File Commands**: Blocks `rm`, `rm -rf`, `rm -r`.
+   - **Network Fetch Tools**: Blocks `curl`, `wget`.
+   - **Process Execution**: Blocks `bash`, `sh`, `zsh`.
+   - **Dynamic Evaluation**: Blocks `eval(`, `subprocess`, `os.system`, `exec(`.
+
+2. **Execution Flow**:
+   - Validated on `/api/jobs/create` and `/api/upload-and-process`.
+   - If an injection payload is detected, the API rejects the request immediately with **HTTP 400 Bad Request** and `{"status": "error", "error": "security_violation", "message": "..."}`.
+   - Safe prompt instructions (speech speed `speed: 1.2x`, tone `tone: enthusiastic` or Arabic intent `حماسي`, `هادئ`) are safely extracted via `parse_prompt_instructions()` without shell invocation.
 
 ### `GET /api/principles`
 Returns currently active production principles (voice, narrative, visual/music, and video annotations).

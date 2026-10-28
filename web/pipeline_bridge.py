@@ -14,6 +14,7 @@ import json
 import logging
 import math
 import os
+import re
 import shutil
 import struct
 import subprocess
@@ -100,6 +101,97 @@ ALGERIAN_REAL_ESTATE_PRESETS: Dict[str, Dict[str, str]] = {
 DEFAULT_PROMO_SCRIPT = (
     "عقار استثنائي بموقع استراتيجي وتشطيبات عصرية راقية، فرصة مثالية للاستثمار أو السكن العائلي الهادئ."
 )
+
+# ---------------------------------------------------------------------------
+# Prompt Security Guardrails & Instruction Parser
+# ---------------------------------------------------------------------------
+
+DANGEROUS_PROMPT_PATTERNS = [
+    (r"\.\.[\\/]", "File traversal attempt (../)"),
+    (r"\$\([^)]*\)", "Shell command substitution ($(...))"),
+    (r"`[^`]+`", "Shell backtick execution (`...`)"),
+    (r"(?:^|[\s;&|`\"'$()<>])rm(?:\s+-[a-zA-Z]+|\s+)", "Destructive file removal command (rm)"),
+    (r"(?:^|[\s;&|`\"'$()<>])(?:curl|wget)(?:\s+|$)", "Network utility execution (curl/wget)"),
+    (r"(?:^|[\s;&|`\"'$()<>])(?:bash|zsh)(?:\s+|$)", "Shell process execution (bash)"),
+    (r"(?:^|[\s;&|`\"'$()<>])sh(?:\s+-[a-zA-Z]+|\s+)", "Shell process execution (sh)"),
+    (r"(?:^|[\s;&|`\"'$()<>])(?:eval|subprocess|os\.system|exec)\s*[\(\[]", "Dynamic code execution (eval/subprocess/exec)"),
+    (r"(?:^|[\s;&|`\"'$()<>])(?:eval|subprocess)\b", "Dynamic code invocation (eval/subprocess)"),
+    (r"(?:/etc/passwd|/etc/shadow|/bin/sh|/bin/bash)", "System binary or file path access"),
+]
+
+
+def sanitize_and_validate_prompt(prompt_text: Optional[str]) -> str:
+    """
+    Prompt Security Guardrail: Inspect prompt for dangerous injection patterns.
+    Rejects directory traversal (../), shell command substitution ($(), ``),
+    and system binary executions (rm, curl, wget, bash, sh, eval, subprocess).
+
+    Raises ValueError with a descriptive security message if malicious payload is detected.
+    Returns the sanitized stripped prompt string when valid.
+    """
+    if prompt_text is None:
+        return ""
+
+    text = str(prompt_text).strip()
+    if not text:
+        return ""
+
+    for pattern, description in DANGEROUS_PROMPT_PATTERNS:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            matched_segment = match.group(0).strip()
+            raise ValueError(
+                f"Security Guardrail Violation: Dangerous injection payload detected "
+                f"[{description}: '{matched_segment}']. Request rejected for platform security."
+            )
+
+    return text
+
+
+def parse_prompt_instructions(prompt_text: Optional[str]) -> Dict[str, Any]:
+    """
+    Safely parse user prompt instructions (speech speed, tone, descriptions)
+    without permitting shell execution.
+    """
+    clean_text = sanitize_and_validate_prompt(prompt_text)
+    instructions: Dict[str, Any] = {
+        "raw_text": clean_text,
+        "speed": 1.0,
+        "tone": "engaging",
+        "category": None,
+        "emphasis": None,
+    }
+
+    if not clean_text:
+        return instructions
+
+    # Parse speed modifiers: e.g. "speed: 1.2" or "speed=0.9" or "سريع" / "بطيء"
+    speed_match = re.search(r"\bspeed\s*[:=]\s*(\d+(?:\.\d+)?)\s*x?", clean_text, re.IGNORECASE)
+    if speed_match:
+        try:
+            val = float(speed_match.group(1))
+            instructions["speed"] = max(0.5, min(2.0, val))
+        except ValueError:
+            pass
+    elif "سريع" in clean_text or "fast" in clean_text.lower():
+        instructions["speed"] = 1.15
+    elif "بطيء" in clean_text or "slow" in clean_text.lower():
+        instructions["speed"] = 0.85
+
+    # Parse tone modifiers: e.g. "tone: enthusiastic" or "حماسي", "هادئ", "رسمي"
+    tone_match = re.search(r"\btone\s*[:=]\s*([a-zA-Z\u0600-\u06FF_-]+)", clean_text, re.IGNORECASE)
+    if tone_match:
+        instructions["tone"] = tone_match.group(1).lower()
+    elif "حماسي" in clean_text or "enthusiastic" in clean_text.lower():
+        instructions["tone"] = "enthusiastic"
+    elif "هادئ" in clean_text or "calm" in clean_text.lower():
+        instructions["tone"] = "calm"
+    elif "فاخر" in clean_text or "luxury" in clean_text.lower():
+        instructions["tone"] = "luxury"
+    elif "رسمي" in clean_text or "professional" in clean_text.lower():
+        instructions["tone"] = "professional"
+
+    return instructions
 
 
 def get_presets_list() -> List[Dict[str, str]]:
@@ -532,6 +624,18 @@ def process_mobile_video(
     input_path = Path(video_path).resolve()
     if not input_path.is_file():
         raise FileNotFoundError(f"Input video file not found: {input_path}")
+
+    # Guardrail: sanitize and validate all user prompts and descriptions
+    if script:
+        script = sanitize_and_validate_prompt(script)
+    if speech_description:
+        speech_description = sanitize_and_validate_prompt(speech_description)
+    if visual_description:
+        visual_description = sanitize_and_validate_prompt(visual_description)
+    if style_prompt:
+        style_prompt = sanitize_and_validate_prompt(style_prompt)
+    if fixed_text:
+        fixed_text = sanitize_and_validate_prompt(fixed_text)
 
     # Generate unique job identifier
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

@@ -204,6 +204,18 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Front-end logic, prompt caching, restoration, saving, and dual button event bindings in `app.js` (`test_frontend_app_js_prompts_history_and_formdata_bindings`).
   - User Rule 5 Arabic typography compliance (`test_no_forbidden_arabic_character_compliance`).
 
+- [`test_admin_portal_and_security.py`](test_admin_portal_and_security.py): Admin portal backend & Prompt Security Guardrail test suite authored by Lead Backend Engineer `agy11`:
+  - Master administrator provisioning and PBKDF2 authentication (`pluto` / `plutosw4`) with role `admin`.
+  - Admin login endpoint `POST /api/admin/login` issuing active session token.
+  - Dedicated Bootstrap admin dashboard serving `GET /admin` with 200 OK HTML.
+  - Full accounts CRUD and date validity management (`GET /api/admin/accounts`, `POST /api/admin/accounts`, `PATCH /api/admin/accounts/{user_id}`).
+  - Account lifecycle tracking in SQLite table `user_activity_logs` (`GET /api/admin/accounts/{user_id}/logs`).
+  - Quota enforcement gating accounts by active status, future start date (`valid_from`), and expiration date (`expires_at`).
+  - Prompt security guardrails (`sanitize_and_validate_prompt`) blocking directory traversal (`../`), command substitution (`$(...)`, `` `...` ``), destructive commands (`rm`), network utilities (`curl`, `wget`), and shell evaluation (`bash`, `sh`, `eval`, `subprocess`).
+  - Safe prompt instruction extraction (`parse_prompt_instructions`) for speech speed and emotional tone without shell execution.
+  - API endpoint injection rejection with HTTP 400 Bad Request on `POST /api/jobs/create` and `POST /api/upload-and-process`.
+  - User Rule 5 Arabic typography compliance (strictly zero occurrences of character U+0669).
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash

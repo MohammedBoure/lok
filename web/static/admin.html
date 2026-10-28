@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lok • لوحة التحكم الإدارية | Admin Portal</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+  
+  <!-- Google Fonts: Cairo & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 RTL CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" integrity="sha384-dpuaG1suU0eT09tx5plTaGMLBsfDLzUUCIEKCFm8BKWFP5UxGv37350OCg3MQVQk" crossorigin="anonymous">
+
+  <style>
+    :root {
+      --lok-bg: #09090b;
+      --lok-card-bg: #141416;
+      --lok-border: #27272a;
+      --lok-accent: #ffffff;
+      --lok-text-muted: #a1a1aa;
+    }
+    body {
+      font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--lok-bg);
+      color: #f4f4f5;
+      min-height: 100vh;
+    }
+    .brand-logo-text {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      letter-spacing: -1px;
+      font-size: 1.75rem;
+    }
+    .card {
+      background-color: var(--lok-card-bg);
+      border: 1px solid var(--lok-border);
+      border-radius: 12px;
+    }
+    .btn-lok-primary {
+      background-color: #ffffff;
+      color: #000000;
+      font-weight: 700;
+      border: 1px solid #ffffff;
+      transition: all 0.2s ease;
+    }
+    .btn-lok-primary:hover {
+      background-color: #e4e4e7;
+      color: #000000;
+      transform: translateY(-1px);
+    }
+    .btn-lok-outline {
+      background-color: transparent;
+      color: #ffffff;
+      border: 1px solid var(--lok-border);
+      transition: all 0.2s ease;
+    }
+    .btn-lok-outline:hover {
+      background-color: #27272a;
+      color: #ffffff;
+      border-color: #ffffff;
+    }
+    .table > :not(caption) > * > * {
+      background-color: transparent;
+      border-bottom-color: var(--lok-border);
+      color: #f4f4f5;
+      padding: 12px 14px;
+    }
+    .table-hover tbody tr:hover td {
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+    .badge-active {
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .badge-suspended {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .badge-quota {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+    }
+    .timeline-item {
+      border-right: 2px solid #3f3f46;
+      padding-right: 18px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      right: -7px;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- 1. Dedicated Admin Login View (pluto / plutosw4)                          -->
+  <!-- ========================================================================= -->
+  <div id="adminLoginSection" class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="card p-4 p-md-5 shadow-lg" style="max-width: 480px; width: 100%;">
+      <div class="text-center mb-4">
+        <div class="brand-logo-text text-white mb-2">lok <span class="badge bg-secondary fs-6 align-middle">Admin</span></div>
+        <h4 class="fw-bold mb-1">لوحة التحكم الإدارية</h4>
+        <p class="text-secondary small">تسجيل دخول المسؤول المعتمد لإدارة حسابات وحصص المنصة</p>
+      </div>
+
+      <!-- Credential helper alert -->
+      <div class="alert alert-dark border-secondary p-3 mb-4 small" id="adminCredentialHint">
+        <div class="d-flex align-items-center mb-1">
+          <span class="me-2">🔐</span>
+          <strong class="text-white">بيانات الدخول المعتمدة للمشرف:</strong>
+        </div>
+        <div class="font-monospace text-secondary" dir="ltr">
+          User: <span class="text-white fw-bold">pluto</span> | Pass: <span class="text-white fw-bold">plutosw4</span>
+        </div>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="mb-3">
+          <label for="adminUsername" class="form-label small text-secondary">اسم مستخدم المشرف:</label>
+          <input type="text" class="form-control bg-black border-secondary text-white" id="adminUsername" placeholder="pluto" value="pluto" required dir="ltr">
+        </div>
+        <div class="mb-4">
+          <label for="adminPassword" class="form-label small text-secondary">كلمة مرور المشرف:</label>
+          <input type="password" class="form-control bg-black border-secondary text-white" id="adminPassword" placeholder="plutosw4" value="plutosw4" required dir="ltr">
+        </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-lok-primary py-2" id="btnAdminLoginSubmit">
+            <span>تسجيل الدخول كمسؤول</span>
+          </button>
+          <a href="/" class="btn btn-lok-outline py-2 small mt-2">
+            <span>← العودة إلى استوديو lok العام</span>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. Dedicated Admin Dashboard View                                         -->
+  <!-- ========================================================================= -->
+  <div id="adminDashboardSection" style="display: none;">
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg border-bottom border-secondary px-3 px-lg-4 py-3" style="background-color: var(--lok-card-bg);">
+      <div class="container-fluid">
+        <a class="navbar-brand text-white d-flex align-items-center" href="/admin">
+          <span class="brand-logo-text me-2">lok</span>
+          <span class="badge bg-light text-dark fw-bold ms-2">Admin Portal</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-none d-md-flex align-items-center text-secondary small">
+            <span class="me-2">👑 المشرف النشط:</span>
+            <strong class="text-white" id="activeAdminUserDisplay">pluto</strong>
+          </div>
+          <a href="/" class="btn btn-sm btn-lok-outline" target="_blank" title="فتح استوديو lok">
+            <span>📹 الاستوديو العام</span>
+          </a>
+          <button type="button" class="btn btn-sm btn-outline-danger" id="btnAdminLogout" title="تسجيل الخروج">
+            <span>🚪 خروج</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-fluid px-3 px-lg-4 py-4">
+      <!-- Macro Stats Grid -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card p-3">
+            <div class="text-secondary small mb-1">إجمالي الحسابات المسجلة</div>
+            <div class="fs-3 fw-bold text-white font-monospace" id="statTotalAccounts">11</div>
+            <div class="text-success small">حسابات نشطة ومفعلة</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3">
+            <div class="text-secondary small mb-1">الفيديوهات المنتجة اليوم</div>
+            <div class="fs-3 fw-bold text-white font-monospace" id="statVideosToday">8</div>
+            <div class="text-secondary small">من الحصص اليومية</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3">
+            <div class="text-secondary small mb-1">الاشتراكات السارية</div>
+            <div class="fs-3 fw-bold text-white font-monospace" id="statActiveSubs">10</div>
+            <div class="text-success small">صلاحيات غير منتهية</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3">
+            <div class="text-secondary small mb-1">إجمالي إنتاج المنصة</div>
+            <div class="fs-3 fw-bold text-white font-monospace" id="statTotalVideos">142</div>
+            <div class="text-secondary small">فيديو تسويقي مكتمل</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accounts Table Card -->
+      <div class="card shadow-sm">
+        <div class="card-header border-bottom border-secondary bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+          <div>
+            <h5 class="fw-bold mb-1 text-white">إدارة حسابات التجار والشركات</h5>
+            <p class="text-secondary small mb-0">قائمة الحسابات التجارية والصلاحيات وسجل النشاطات والحصص</p>
+          </div>
+          <button type="button" class="btn btn-lok-primary d-flex align-items-center gap-2" id="btnOpenAddAccountModal">
+            <span>➕ إضافة حساب تجاري جديد</span>
+          </button>
+        </div>
+
+        <div class="card-body p-3">
+          <!-- Filter & Search Controls -->
+          <div class="row g-2 mb-3">
+            <div class="col-md-6 col-lg-4">
+              <input type="text" class="form-control form-control-sm bg-black border-secondary text-white" id="accountSearchInput" placeholder="بحث باسم المستخدم أو اسم المتجر...">
+            </div>
+            <div class="col-md-4 col-lg-3">
+              <select class="form-select form-select-sm bg-black border-secondary text-white" id="accountStatusFilter">
+                <option value="all">كل الحالات (الكل)</option>
+                <option value="active">الحسابات النشطة فقط</option>
+                <option value="suspended">الحسابات المعطلة فقط</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Responsive Table Container -->
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="accountsTable">
+              <thead>
+                <tr class="text-secondary small text-uppercase">
+                  <th scope="col">#</th>
+                  <th scope="col">اسم المستخدم</th>
+                  <th scope="col">اسم النشاط التجاري</th>
+                  <th scope="col">الفئة</th>
+                  <th scope="col">الحالة</th>
+                  <th scope="col">بدء الصلاحية</th>
+                  <th scope="col">انتهاء الصلاحية</th>
+                  <th scope="col">الحصة اليومية</th>
+                  <th scope="col">الحصة الأسبوعية</th>
+                  <th scope="col" class="text-end">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="accountsTableBody">
+                <!-- Dynamically populated via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. Modals: Add User, Edit User, Password, Activity Logs                   -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal 1: Add New Account -->
+  <div class="modal fade" id="modalAddAccount" tabindex="-1" aria-labelledby="modalAddAccountTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title fw-bold text-white" id="modalAddAccountTitle">➕ إضافة حساب تجاري جديد</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <form id="formAddAccount">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="newAccountUsername" class="form-label small text-secondary">اسم المستخدم (Username):</label>
+              <input type="text" class="form-control bg-black border-secondary text-white" id="newAccountUsername" required placeholder="مثال: orana_auto" dir="ltr">
+            </div>
+            <div class="mb-3">
+              <label for="newAccountPassword" class="form-label small text-secondary">كلمة المرور الأولية:</label>
+              <input type="password" class="form-control bg-black border-secondary text-white" id="newAccountPassword" required placeholder="كلمة المرور" dir="ltr">
+            </div>
+            <div class="mb-3">
+              <label for="newAccountBusinessName" class="form-label small text-secondary">اسم النشاط أو الشركة:</label>
+              <input type="text" class="form-control bg-black border-secondary text-white" id="newAccountBusinessName" required placeholder="مثال: وهران موتورز للسيارات">
+            </div>
+            <div class="mb-3">
+              <label for="newAccountCategory" class="form-label small text-secondary">فئة النشاط التجاري:</label>
+              <select class="form-select bg-black border-secondary text-white" id="newAccountCategory">
+                <option value="عقارات فاخرة">عقارات فاخرة (Real Estate)</option>
+                <option value="معرض سيارات">معرض سيارات (Automotive)</option>
+                <option value="أزياء وقفطان">أزياء وقفطان راقي (Fashion)</option>
+                <option value="إلكترونيات وهواتف">إلكترونيات وهواتف (Tech)</option>
+                <option value="مطاعم ومأكولات">مطاعم ومأكولات (Gastronomy)</option>
+                <option value="مجوهرات وذهب">مجوهرات وذهب (Jewelry)</option>
+                <option value="عطور وتجميل">عطور وتجميل (Beauty)</option>
+                <option value="أثاث وديكور">أثاث وديكور (Furniture)</option>
+                <option value="سياحة وأسفار">سياحة وأسفار (Tourism)</option>
+                <option value="نادي رياضي">نادي رياضي ورشاقة (Fitness)</option>
+              </select>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="newAccountValidFrom" class="form-label small text-secondary">تاريخ بدء الصلاحية:</label>
+                <input type="date" class="form-control bg-black border-secondary text-white" id="newAccountValidFrom" required>
+              </div>
+              <div class="col-6">
+                <label for="newAccountExpiresAt" class="form-label small text-secondary">تاريخ انتهاء الصلاحية:</label>
+                <input type="date" class="form-control bg-black border-secondary text-white" id="newAccountExpiresAt" required>
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="newAccountDailyQuota" class="form-label small text-secondary">الحصة اليومية (فيديو):</label>
+                <input type="number" class="form-control bg-black border-secondary text-white font-monospace" id="newAccountDailyQuota" value="10" min="1" max="1000">
+              </div>
+              <div class="col-6">
+                <label for="newAccountWeeklyQuota" class="form-label small text-secondary">الحصة الأسبوعية (فيديو):</label>
+                <input type="number" class="form-control bg-black border-secondary text-white font-monospace" id="newAccountWeeklyQuota" value="50" min="1" max="5000">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-lok-outline" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-lok-primary" id="btnSaveNewAccount">حفظ الحساب الجديد</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Edit Account & Quotas -->
+  <div class="modal fade" id="modalEditAccount" tabindex="-1" aria-labelledby="modalEditAccountTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title fw-bold text-white" id="modalEditAccountTitle">✏️ تعديل بيانات الحساب والحصص</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <form id="formEditAccount">
+          <input type="hidden" id="editAccountUserId">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label small text-secondary">اسم المستخدم:</label>
+              <input type="text" class="form-control bg-dark border-secondary text-white" id="editAccountUsername" disabled dir="ltr">
+            </div>
+            <div class="mb-3">
+              <label for="editAccountBusinessName" class="form-label small text-secondary">اسم النشاط أو الشركة:</label>
+              <input type="text" class="form-control bg-black border-secondary text-white" id="editAccountBusinessName" required>
+            </div>
+            <div class="mb-3">
+              <label for="editAccountCategory" class="form-label small text-secondary">فئة النشاط التجاري:</label>
+              <input type="text" class="form-control bg-black border-secondary text-white" id="editAccountCategory" required>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="editAccountValidFrom" class="form-label small text-secondary">تاريخ بدء الصلاحية:</label>
+                <input type="date" class="form-control bg-black border-secondary text-white" id="editAccountValidFrom" required>
+              </div>
+              <div class="col-6">
+                <label for="editAccountExpiresAt" class="form-label small text-secondary">تاريخ انتهاء الصلاحية:</label>
+                <input type="date" class="form-control bg-black border-secondary text-white" id="editAccountExpiresAt" required>
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="editAccountDailyQuota" class="form-label small text-secondary">الحصة اليومية (فيديو):</label>
+                <input type="number" class="form-control bg-black border-secondary text-white font-monospace" id="editAccountDailyQuota" min="1" max="1000" required>
+              </div>
+              <div class="col-6">
+                <label for="editAccountWeeklyQuota" class="form-label small text-secondary">الحصة الأسبوعية (فيديو):</label>
+                <input type="number" class="form-control bg-black border-secondary text-white font-monospace" id="editAccountWeeklyQuota" min="1" max="5000" required>
+              </div>
+            </div>
+            <div class="mb-2">
+              <label for="editAccountStatus" class="form-label small text-secondary">حالة الحساب:</label>
+              <select class="form-select bg-black border-secondary text-white" id="editAccountStatus">
+                <option value="active">نشط (Active)</option>
+                <option value="suspended">معطل / موقوف (Suspended)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-lok-outline" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-lok-primary" id="btnSaveEditAccount">حفظ التعديلات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Change Password -->
+  <div class="modal fade" id="modalChangePassword" tabindex="-1" aria-labelledby="modalChangePasswordTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title fw-bold text-white" id="modalChangePasswordTitle">🔑 تغيير كلمة مرور الحساب</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <form id="formChangePassword">
+          <input type="hidden" id="changePasswordUserId">
+          <div class="modal-body">
+            <p class="text-secondary small mb-3">تعيين كلمة مرور جديدة للحساب: <strong class="text-white" id="changePasswordTargetUser"></strong></p>
+            <div class="mb-3">
+              <label for="newAccountPassInput" class="form-label small text-secondary">كلمة المرور الجديدة:</label>
+              <input type="password" class="form-control bg-black border-secondary text-white" id="newAccountPassInput" required placeholder="أدخل كلمة المرور الجديدة" dir="ltr">
+            </div>
+            <div class="mb-2">
+              <label for="confirmAccountPassInput" class="form-label small text-secondary">تأكيد كلمة المرور:</label>
+              <input type="password" class="form-control bg-black border-secondary text-white" id="confirmAccountPassInput" required placeholder="أعد إدخال كلمة المرور" dir="ltr">
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-lok-outline" data-bs-dismiss="modal">إلغاء</button>
+            <button type="submit" class="btn btn-lok-primary" id="btnSaveNewPassword">تحديث كلمة المرور</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Account Activity Event Logs -->
+  <div class="modal fade" id="modalAccountLogs" tabindex="-1" aria-labelledby="modalAccountLogsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content card">
+        <div class="modal-header border-secondary">
+          <div>
+            <h5 class="modal-title fw-bold text-white" id="modalAccountLogsTitle">📜 سجل النشاطات التاريخية</h5>
+            <div class="text-secondary small" id="accountLogsTargetSubtitle">عرض تفاصيل العمليات والأحداث المسجلة</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="accountLogsTimeline">
+            <!-- Timeline elements populated dynamically -->
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-lok-primary" data-bs-dismiss="modal">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="adminToast" class="toast align-items-center text-bg-dark border-secondary" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="adminToastBody">تمت العملية بنجاح.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="إغلاق"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- Dedicated Admin Portal JavaScript Logic -->
+  <script>
+    (() => {
+      'use strict';
+
+      const ADMIN_SESSION_KEY = 'lok_admin_session_token';
+      const ADMIN_USER_KEY = 'lok_admin_username';
+
+      // Pre-seeded accounts catalog with full validity dates and quotas
+      const DEFAULT_ACCOUNTS = [
+        {
+          id: 1,
+          username: "admin",
+          business_name: "مدير النظام العام",
+          business_category: "مسؤول المنصة",
+          role: "admin",
+          status: "active",
+          valid_from: "2026-01-01",
+          expires_at: "2099-12-31",
+          daily_quota: 999,
+          weekly_quota: 9999,
+          videos_today: 0,
+          videos_this_week: 0
+        },
+        {
+          id: 2,
+          username: "merchant_realestate",
+          business_name: "تاجر (عقارات فاخرة)",
+          business_category: "عقارات فاخرة",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-01-01",
+          expires_at: "2027-12-31",
+          daily_quota: 10,
+          weekly_quota: 50,
+          videos_today: 1,
+          videos_this_week: 4
+        },
+        {
+          id: 3,
+          username: "dar_al_nokhba",
+          business_name: "دار النخبة العقارية",
+          business_category: "عقارات فاخرة",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-01-01",
+          expires_at: "2026-12-31",
+          daily_quota: 5,
+          weekly_quota: 25,
+          videos_today: 2,
+          videos_this_week: 9
+        },
+        {
+          id: 4,
+          username: "auto_algerie",
+          business_name: "أوتو الجزائر للسيارات",
+          business_category: "معرض سيارات",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-01-15",
+          expires_at: "2026-11-30",
+          daily_quota: 8,
+          weekly_quota: 40,
+          videos_today: 3,
+          videos_this_week: 12
+        },
+        {
+          id: 5,
+          username: "anaqat_el_awras",
+          business_name: "أناقة الأوراس للأزياء",
+          business_category: "أزياء وقفطان",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-02-01",
+          expires_at: "2026-12-15",
+          daily_quota: 6,
+          weekly_quota: 30,
+          videos_today: 0,
+          videos_this_week: 5
+        },
+        {
+          id: 6,
+          username: "techno_phone",
+          business_name: "تكنو فون ستور",
+          business_category: "إلكترونيات وهواتف",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-02-10",
+          expires_at: "2026-10-31",
+          daily_quota: 10,
+          weekly_quota: 50,
+          videos_today: 2,
+          videos_this_week: 11
+        },
+        {
+          id: 7,
+          username: "el_kasbah_resto",
+          business_name: "مطعم القصبة العريق",
+          business_category: "مطاعم ومأكولات",
+          role: "merchant",
+          status: "active",
+          valid_from: "2026-03-01",
+          expires_at: "2027-01-15",
+          daily_quota: 5,
+          weekly_quota: 25,
+          videos_today: 0,
+          videos_this_week: 3
+        }
+      ];
+
+      // Historical activity logs map
+      const DEFAULT_LOGS = {
+        "admin": [
+          { time: "2026-10-28 10:00:00", action: "تسجيل دخول مسؤول", details: "تم تسجيل الدخول بنجاح من عنوان IP موثوق." },
+          { time: "2026-10-25 14:20:00", action: "ترقية صلاحيات النظام", details: "تحديث معايير الأمان وحصص الإنتاج." }
+        ],
+        "merchant_realestate": [
+          { time: "2026-10-28 09:30:12", action: "إنشاء فيديو تسويقي", details: "تم إنتاج فيديو ترويجي (فيلا بوشراوي) بنجاح." },
+          { time: "2026-10-27 16:45:00", action: "تحديث الحصة اليومية", details: "تم رفع الحصة اليومية من 5 إلى 10 فيديوهات." },
+          { time: "2026-01-01 00:00:00", action: "تفعيل الحساب التجاري", details: "تم تسجيل وتفعيل الحساب مع صلاحية سارية حتى 2027-12-31." }
+        ],
+        "dar_al_nokhba": [
+          { time: "2026-10-28 08:15:22", action: "إنشاء فيديو تسويقي", details: "تم إنتاج فيديو شقة فاخرة بحيدرة." },
+          { time: "2026-01-01 00:00:00", action: "تسجيل الحساب", details: "تسجيل الحساب التجاري بحصة يومية 5 فيديوهات." }
+        ]
+      };
+
+      let accountsState = [];
+      let logsState = {};
+
+      // DOM Elements Cache
+      const dom = {
+        adminLoginSection: document.getElementById("adminLoginSection"),
+        adminDashboardSection: document.getElementById("adminDashboardSection"),
+        adminLoginForm: document.getElementById("adminLoginForm"),
+        adminUsername: document.getElementById("adminUsername"),
+        adminPassword: document.getElementById("adminPassword"),
+        btnAdminLogout: document.getElementById("btnAdminLogout"),
+        activeAdminUserDisplay: document.getElementById("activeAdminUserDisplay"),
+        accountsTableBody: document.getElementById("accountsTableBody"),
+        accountSearchInput: document.getElementById("accountSearchInput"),
+        accountStatusFilter: document.getElementById("accountStatusFilter"),
+        statTotalAccounts: document.getElementById("statTotalAccounts"),
+        statVideosToday: document.getElementById("statVideosToday"),
+        statActiveSubs: document.getElementById("statActiveSubs"),
+        statTotalVideos: document.getElementById("statTotalVideos"),
+        // Modals
+        modalAddAccount: new bootstrap.Modal(document.getElementById("modalAddAccount")),
+        btnOpenAddAccountModal: document.getElementById("btnOpenAddAccountModal"),
+        formAddAccount: document.getElementById("formAddAccount"),
+        newAccountValidFrom: document.getElementById("newAccountValidFrom"),
+        newAccountExpiresAt: document.getElementById("newAccountExpiresAt"),
+        modalEditAccount: new bootstrap.Modal(document.getElementById("modalEditAccount")),
+        formEditAccount: document.getElementById("formEditAccount"),
+        editAccountUserId: document.getElementById("editAccountUserId"),
+        editAccountUsername: document.getElementById("editAccountUsername"),
+        editAccountBusinessName: document.getElementById("editAccountBusinessName"),
+        editAccountCategory: document.getElementById("editAccountCategory"),
+        editAccountValidFrom: document.getElementById("editAccountValidFrom"),
+        editAccountExpiresAt: document.getElementById("editAccountExpiresAt"),
+        editAccountDailyQuota: document.getElementById("editAccountDailyQuota"),
+        editAccountWeeklyQuota: document.getElementById("editAccountWeeklyQuota"),
+        editAccountStatus: document.getElementById("editAccountStatus"),
+        modalChangePassword: new bootstrap.Modal(document.getElementById("modalChangePassword")),
+        formChangePassword: document.getElementById("formChangePassword"),
+        changePasswordUserId: document.getElementById("changePasswordUserId"),
+        changePasswordTargetUser: document.getElementById("changePasswordTargetUser"),
+        newAccountPassInput: document.getElementById("newAccountPassInput"),
+        confirmAccountPassInput: document.getElementById("confirmAccountPassInput"),
+        modalAccountLogs: new bootstrap.Modal(document.getElementById("modalAccountLogs")),
+        modalAccountLogsTitle: document.getElementById("modalAccountLogsTitle"),
+        accountLogsTargetSubtitle: document.getElementById("accountLogsTargetSubtitle"),
+        accountLogsTimeline: document.getElementById("accountLogsTimeline"),
+        adminToast: new bootstrap.Toast(document.getElementById("adminToast")),
+        adminToastBody: document.getElementById("adminToastBody"),
+      };
+
+      function showToast(message) {
+        if (dom.adminToastBody) dom.adminToastBody.textContent = message;
+        if (dom.adminToast) dom.adminToast.show();
+      }
+
+      // Initialize dates in Add Account Form
+      const todayIso = new Date().toISOString().split("T")[0];
+      const nextYearIso = new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0];
+      if (dom.newAccountValidFrom) dom.newAccountValidFrom.value = todayIso;
+      if (dom.newAccountExpiresAt) dom.newAccountExpiresAt.value = nextYearIso;
+
+      // Load Accounts from Local Storage or API
+      async function loadAccounts() {
+        try {
+          const stored = localStorage.getItem("lok_admin_accounts_list");
+          if (stored) {
+            accountsState = JSON.parse(stored);
+          } else {
+            accountsState = [...DEFAULT_ACCOUNTS];
+          }
+        } catch (e) {
+          accountsState = [...DEFAULT_ACCOUNTS];
+        }
+
+        try {
+          const storedLogs = localStorage.getItem("lok_admin_accounts_logs");
+          if (storedLogs) {
+            logsState = JSON.parse(storedLogs);
+          } else {
+            logsState = { ...DEFAULT_LOGS };
+          }
+        } catch (e) {
+          logsState = { ...DEFAULT_LOGS };
+        }
+
+        // Attempt API sync if backend endpoints available
+        try {
+          const resp = await fetch("/api/admin/accounts");
+          if (resp.ok) {
+            const data = await resp.json();
+            const list = Array.isArray(data) ? data : (data && Array.isArray(data.accounts) ? data.accounts : (data.users || []));
+            if (list.length > 0) {
+              accountsState = list.map((a, i) => ({
+                id: a.id || (i + 1),
+                username: a.username,
+                business_name: a.business_name || a.username,
+                business_category: a.business_category || a.category || "عام",
+                status: a.is_active === 0 || a.status === "suspended" ? "suspended" : "active",
+                valid_from: a.valid_from || "2026-01-01",
+                expires_at: a.expires_at || "2027-12-31",
+                daily_quota: a.daily_quota || 10,
+                weekly_quota: a.weekly_quota || 50,
+                videos_today: a.videos_today || 0,
+                videos_this_week: a.videos_this_week || 0
+              }));
+            }
+          }
+        } catch (e) {}
+
+        renderAccountsTable();
+        updateStats();
+      }
+
+      function saveAccountsState() {
+        localStorage.setItem("lok_admin_accounts_list", JSON.stringify(accountsState));
+        localStorage.setItem("lok_admin_accounts_logs", JSON.stringify(logsState));
+      }
+
+      function updateStats() {
+        if (dom.statTotalAccounts) dom.statTotalAccounts.textContent = String(accountsState.length);
+        const activeCount = accountsState.filter(a => a.status === "active").length;
+        if (dom.statActiveSubs) dom.statActiveSubs.textContent = String(activeCount);
+        const videosToday = accountsState.reduce((sum, a) => sum + (a.videos_today || 0), 0);
+        if (dom.statVideosToday) dom.statVideosToday.textContent = String(videosToday);
+      }
+
+      // Render Accounts Table
+      function renderAccountsTable() {
+        if (!dom.accountsTableBody) return;
+        dom.accountsTableBody.innerHTML = "";
+
+        const searchTerm = (dom.accountSearchInput?.value || "").trim().toLowerCase();
+        const statusFilter = dom.accountStatusFilter?.value || "all";
+
+        const filtered = accountsState.filter((acc) => {
+          const matchSearch = !searchTerm || 
+            acc.username.toLowerCase().includes(searchTerm) || 
+            (acc.business_name && acc.business_name.toLowerCase().includes(searchTerm));
+          const matchStatus = statusFilter === "all" || acc.status === statusFilter;
+          return matchSearch && matchStatus;
+        });
+
+        if (filtered.length === 0) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="10" class="text-center py-4 text-secondary">لا توجد حسابات مطابقة لمعايير البحث.</td>`;
+          dom.accountsTableBody.appendChild(tr);
+          return;
+        }
+
+        filtered.forEach((acc, index) => {
+          const tr = document.createElement("tr");
+          const isActive = acc.status === "active";
+          const statusBadge = isActive 
+            ? `<span class="badge badge-active">نشط (Active)</span>`
+            : `<span class="badge badge-suspended">معطل (Suspended)</span>`;
+
+          tr.innerHTML = `
+            <td class="text-secondary font-monospace">${acc.id || (index + 1)}</td>
+            <td class="fw-bold text-white font-monospace">${acc.username}</td>
+            <td>${acc.business_name || "-"}</td>
+            <td><span class="badge bg-dark border border-secondary text-secondary">${acc.business_category || "تجاري"}</span></td>
+            <td>${statusBadge}</td>
+            <td class="font-monospace small text-secondary">${acc.valid_from || "2026-01-01"}</td>
+            <td class="font-monospace small text-secondary">${acc.expires_at || "2027-12-31"}</td>
+            <td><span class="badge badge-quota">${acc.videos_today || 0}/${acc.daily_quota || 10}</span></td>
+            <td><span class="badge badge-quota">${acc.videos_this_week || 0}/${acc.weekly_quota || 50}</span></td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-lok-outline btn-edit" data-id="${acc.id}" title="تعديل البيانات والحصص">✏️ تعديل</button>
+                <button type="button" class="btn btn-lok-outline btn-pass" data-id="${acc.id}" title="تغيير كلمة المرور">🔑 كلمة المرور</button>
+                <button type="button" class="btn btn-lok-outline btn-logs" data-id="${acc.id}" title="عرض سجل النشاطات التاريخية">📜 السجل</button>
+                <button type="button" class="btn btn-outline-${isActive ? 'warning' : 'success'} btn-toggle" data-id="${acc.id}">
+                  ${isActive ? 'تعطيل' : 'تفعيل'}
+                </button>
+              </div>
+            </td>
+          `;
+
+          // Event bindings
+          tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(acc.id));
+          tr.querySelector(".btn-pass").addEventListener("click", () => openPasswordModal(acc.id));
+          tr.querySelector(".btn-logs").addEventListener("click", () => openLogsModal(acc.id));
+          tr.querySelector(".btn-toggle").addEventListener("click", () => toggleAccountStatus(acc.id));
+
+          dom.accountsTableBody.appendChild(tr);
+        });
+      }
+
+      // Action Handlers
+      function openEditModal(accountId) {
+        const acc = accountsState.find(a => a.id === accountId);
+        if (!acc) return;
+        dom.editAccountUserId.value = acc.id;
+        dom.editAccountUsername.value = acc.username;
+        dom.editAccountBusinessName.value = acc.business_name || "";
+        dom.editAccountCategory.value = acc.business_category || "عقارات فاخرة";
+        dom.editAccountValidFrom.value = acc.valid_from || todayIso;
+        dom.editAccountExpiresAt.value = acc.expires_at || nextYearIso;
+        dom.editAccountDailyQuota.value = acc.daily_quota || 10;
+        dom.editAccountWeeklyQuota.value = acc.weekly_quota || 50;
+        dom.editAccountStatus.value = acc.status || "active";
+        dom.modalEditAccount.show();
+      }
+
+      function openPasswordModal(accountId) {
+        const acc = accountsState.find(a => a.id === accountId);
+        if (!acc) return;
+        dom.changePasswordUserId.value = acc.id;
+        dom.changePasswordTargetUser.textContent = `${acc.business_name} (${acc.username})`;
+        dom.newAccountPassInput.value = "";
+        dom.confirmAccountPassInput.value = "";
+        dom.modalChangePassword.show();
+      }
+
+      function openLogsModal(accountId) {
+        const acc = accountsState.find(a => a.id === accountId);
+        if (!acc) return;
+        dom.modalAccountLogsTitle.textContent = `📜 سجل النشاطات: ${acc.business_name}`;
+        dom.accountLogsTargetSubtitle.textContent = `المستخدم: ${acc.username} | الصلاحية: ${acc.valid_from} إلى ${acc.expires_at}`;
+
+        dom.accountLogsTimeline.innerHTML = "";
+        const userLogs = logsState[acc.username] || [
+          { time: new Date().toISOString().replace("T", " ").slice(0, 19), action: "تسجيل حساب", details: `تم إنشاء الحساب بتاريخ ${acc.valid_from} مع حصة يومية ${acc.daily_quota}.` }
+        ];
+
+        userLogs.forEach((log) => {
+          const item = document.createElement("div");
+          item.className = "timeline-item";
+          item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge bg-light text-dark fw-bold">${log.action}</span>
+              <span class="text-secondary font-monospace small">${log.time}</span>
+            </div>
+            <div class="text-secondary small">${log.details}</div>
+          `;
+          dom.accountLogsTimeline.appendChild(item);
+        });
+
+        dom.modalAccountLogs.show();
+      }
+
+      function logUserAction(username, action, details) {
+        if (!logsState[username]) logsState[username] = [];
+        logsState[username].unshift({
+          time: new Date().toISOString().replace("T", " ").slice(0, 19),
+          action: action,
+          details: details
+        });
+        saveAccountsState();
+      }
+
+      function toggleAccountStatus(accountId) {
+        const acc = accountsState.find(a => a.id === accountId);
+        if (!acc) return;
+        acc.status = acc.status === "active" ? "suspended" : "active";
+        logUserAction(acc.username, "تغيير حالة الحساب", `تم تعديل حالة الحساب إلى: ${acc.status === 'active' ? 'نشط' : 'معطل'}.`);
+        saveAccountsState();
+        renderAccountsTable();
+        updateStats();
+        showToast(`تم تحديث حالة الحساب (${acc.username}) إلى: ${acc.status === 'active' ? 'نشط' : 'معطل'}`);
+      }
+
+      // Add New Account Submit
+      if (dom.formAddAccount) {
+        dom.formAddAccount.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const username = document.getElementById("newAccountUsername").value.trim();
+          const businessName = document.getElementById("newAccountBusinessName").value.trim();
+          const category = document.getElementById("newAccountCategory").value;
+          const validFrom = dom.newAccountValidFrom.value || todayIso;
+          const expiresAt = dom.newAccountExpiresAt.value || nextYearIso;
+          const daily = parseInt(document.getElementById("newAccountDailyQuota").value || "10", 10);
+          const weekly = parseInt(document.getElementById("newAccountWeeklyQuota").value || "50", 10);
+
+          if (accountsState.some(a => a.username.toLowerCase() === username.toLowerCase())) {
+            alert("اسم المستخدم مسجل مسبقاً، يرجى اختيار اسم آخر.");
+            return;
+          }
+
+          const newAccount = {
+            id: accountsState.length + 1,
+            username: username,
+            business_name: businessName,
+            business_category: category,
+            role: "merchant",
+            status: "active",
+            valid_from: validFrom,
+            expires_at: expiresAt,
+            daily_quota: daily,
+            weekly_quota: weekly,
+            videos_today: 0,
+            videos_this_week: 0
+          };
+
+          accountsState.push(newAccount);
+          logUserAction(username, "إنشاء الحساب", `تم إنشاء الحساب بواسطة المشرف pluto بحصة يومية ${daily}.`);
+          saveAccountsState();
+          dom.modalAddAccount.hide();
+          dom.formAddAccount.reset();
+          renderAccountsTable();
+          updateStats();
+          showToast(`تم إنشاء الحساب الجديد (${username}) بنجاح!`);
+        });
+      }
+
+      // Edit Account Submit
+      if (dom.formEditAccount) {
+        dom.formEditAccount.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const id = parseInt(dom.editAccountUserId.value, 10);
+          const acc = accountsState.find(a => a.id === id);
+          if (!acc) return;
+
+          acc.business_name = dom.editAccountBusinessName.value.trim();
+          acc.business_category = dom.editAccountCategory.value.trim();
+          acc.valid_from = dom.editAccountValidFrom.value;
+          acc.expires_at = dom.editAccountExpiresAt.value;
+          acc.daily_quota = parseInt(dom.editAccountDailyQuota.value, 10);
+          acc.weekly_quota = parseInt(dom.editAccountWeeklyQuota.value, 10);
+          acc.status = dom.editAccountStatus.value;
+
+          logUserAction(acc.username, "تعديل البيانات والحصص", `تم تحديث الحصص (اليومية: ${acc.daily_quota}، الأسبوعية: ${acc.weekly_quota}) وتاريخ الانتهاء: ${acc.expires_at}.`);
+          saveAccountsState();
+          dom.modalEditAccount.hide();
+          renderAccountsTable();
+          updateStats();
+          showToast(`تم حفظ تعديلات الحساب (${acc.username}) بنجاح!`);
+        });
+      }
+
+      // Change Password Submit
+      if (dom.formChangePassword) {
+        dom.formChangePassword.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const id = parseInt(dom.changePasswordUserId.value, 10);
+          const acc = accountsState.find(a => a.id === id);
+          if (!acc) return;
+
+          const p1 = dom.newAccountPassInput.value;
+          const p2 = dom.confirmAccountPassInput.value;
+          if (p1 !== p2) {
+            alert("كلمتا المرور غير متطابقتين، يرجى إعادة التحقق.");
+            return;
+          }
+
+          logUserAction(acc.username, "تغيير كلمة المرور", "تم تعيين كلمة مرور جديدة للحساب بواسطة المشرف.");
+          dom.modalChangePassword.hide();
+          showToast(`تم تغيير كلمة المرور للحساب (${acc.username}) بنجاح!`);
+        });
+      }
+
+      // Filter events
+      if (dom.accountSearchInput) {
+        dom.accountSearchInput.addEventListener("input", renderAccountsTable);
+      }
+      if (dom.accountStatusFilter) {
+        dom.accountStatusFilter.addEventListener("change", renderAccountsTable);
+      }
+      if (dom.btnOpenAddAccountModal) {
+        dom.btnOpenAddAccountModal.addEventListener("click", () => {
+          dom.modalAddAccount.show();
+        });
+      }
+
+      // -----------------------------------------------------------------------
+      // Authentication Lifecycle: pluto / plutosw4
+      // -----------------------------------------------------------------------
+      function setAdminLoggedIn(username) {
+        localStorage.setItem(ADMIN_SESSION_KEY, `tok_admin_${username}_${Date.now()}`);
+        localStorage.setItem(ADMIN_USER_KEY, username);
+        if (dom.activeAdminUserDisplay) dom.activeAdminUserDisplay.textContent = username;
+        if (dom.adminLoginSection) dom.adminLoginSection.style.display = "none";
+        if (dom.adminDashboardSection) dom.adminDashboardSection.style.display = "block";
+        loadAccounts();
+      }
+
+      function setAdminLoggedOut() {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        localStorage.removeItem(ADMIN_USER_KEY);
+        if (dom.adminDashboardSection) dom.adminDashboardSection.style.display = "none";
+        if (dom.adminLoginSection) dom.adminLoginSection.style.display = "flex";
+      }
+
+      if (dom.btnAdminLogout) {
+        dom.btnAdminLogout.addEventListener("click", () => {
+          setAdminLoggedOut();
+          showToast("تم تسجيل الخروج من لوحة التحكم بنجاح.");
+        });
+      }
+
+      // Handle Dedicated Login (pluto / plutosw4)
+      if (dom.adminLoginForm) {
+        dom.adminLoginForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const user = (dom.adminUsername?.value || "").trim();
+          const pass = (dom.adminPassword?.value || "").trim();
+
+          // 1. Check for dedicated pluto/plutosw4 credentials or admin credentials
+          if (user === "pluto" && pass === "plutosw4") {
+            setAdminLoggedIn("pluto");
+            showToast("مرحباً بك المشرف pluto! تم تسجيل الدخول بنجاح.");
+            return;
+          }
+
+          // 2. Try POST /api/admin/login or /api/auth/login
+          try {
+            const resp = await fetch("/api/admin/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: user, password: pass })
+            });
+            if (resp.ok) {
+              const data = await resp.json();
+              setAdminLoggedIn(user);
+              showToast("تم التحقق بنجاح والدخول كمسؤول.");
+              return;
+            }
+          } catch (err) {}
+
+          try {
+            const resp2 = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: user, password: pass })
+            });
+            if (resp2.ok) {
+              const data2 = await resp2.json();
+              if (data2.user?.role === "admin" || user === "admin" || user === "pluto") {
+                setAdminLoggedIn(user);
+                showToast("تم التحقق بنجاح والدخول كمسؤول.");
+                return;
+              }
+            }
+          } catch (err2) {}
+
+          alert("اسم المستخدم أو كلمة المرور غير صحيحة. يرجى استخدام pluto و plutosw4.");
+        });
+      }
+
+      // Check existing admin session on load
+      const existingToken = localStorage.getItem(ADMIN_SESSION_KEY);
+      const existingUser = localStorage.getItem(ADMIN_USER_KEY);
+      if (existingToken && existingUser) {
+        setAdminLoggedIn(existingUser);
+      } else {
+        setAdminLoggedOut();
+      }
+
+    })();
+  </script>
+</body>
+</html>

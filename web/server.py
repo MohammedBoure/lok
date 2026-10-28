@@ -73,8 +73,10 @@ from web.pipeline_bridge import (
     get_or_create_voice_sample,
     get_presets_list,
     get_voice_profiles_list,
+    parse_prompt_instructions,
     process_mobile_video,
     resolve_voice_profile,
+    sanitize_and_validate_prompt,
 )
 from web.prompt_db import (
     delete_prompt,
@@ -86,6 +88,7 @@ from web.prompt_db import (
 from web.auth_db import (
     authenticate_credentials,
     authenticate_token,
+    authenticate_user,
     check_quota,
     create_session,
     create_user,
@@ -93,11 +96,13 @@ from web.auth_db import (
     get_demo_accounts,
     get_platform_stats,
     get_session,
+    get_user_activity_logs,
     get_user_by_id,
     get_user_by_username,
     get_user_history,
     hash_password,
     list_users,
+    log_user_event,
     record_generation,
     update_user,
     verify_password,
@@ -447,6 +452,29 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         fixed_text = None
 
+    # Prompt Security Guardrails
+    raw_prompt = form.get("prompt")
+    try:
+        if isinstance(raw_prompt, str) and raw_prompt.strip():
+            sanitize_and_validate_prompt(raw_prompt)
+        if script:
+            script = sanitize_and_validate_prompt(script)
+        if speech_description:
+            speech_description = sanitize_and_validate_prompt(speech_description)
+        if visual_description:
+            visual_description = sanitize_and_validate_prompt(visual_description)
+        if fixed_text:
+            fixed_text = sanitize_and_validate_prompt(fixed_text)
+    except ValueError as sec_err:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "security_violation",
+                "message": str(sec_err),
+            },
+            status_code=400,
+        )
+
     text_position = form.get("text_position")
     if isinstance(text_position, str):
         text_position = text_position.strip() or "lower_third"
@@ -669,6 +697,29 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         fixed_text = None
 
+    # Prompt Security Guardrails
+    raw_prompt = form.get("prompt")
+    try:
+        if isinstance(raw_prompt, str) and raw_prompt.strip():
+            sanitize_and_validate_prompt(raw_prompt)
+        if script:
+            script = sanitize_and_validate_prompt(script)
+        if speech_description:
+            speech_description = sanitize_and_validate_prompt(speech_description)
+        if visual_description:
+            visual_description = sanitize_and_validate_prompt(visual_description)
+        if fixed_text:
+            fixed_text = sanitize_and_validate_prompt(fixed_text)
+    except ValueError as sec_err:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "security_violation",
+                "message": str(sec_err),
+            },
+            status_code=400,
+        )
+
     text_position = form.get("text_position")
     if isinstance(text_position, str):
         text_position = text_position.strip() or "lower_third"
@@ -862,6 +913,42 @@ async def index_page(request: Request) -> Response:
         "service": "Mobile Video API",
         "message": "Welcome. The static frontend will be served here.",
     })
+
+
+async def admin_page(request: Request) -> Response:
+    """GET /admin - Serve dedicated Bootstrap admin portal."""
+    admin_file = STATIC_DIR / "admin.html"
+    if admin_file.is_file():
+        return FileResponse(str(admin_file), media_type="text/html")
+    return JSONResponse({
+        "status": "not_found",
+        "message": "Admin portal template not found.",
+    }, status_code=404)
+
+
+async def style_css_endpoint(request: Request) -> Response:
+    """GET /style.css - Root alias for CSS stylesheet."""
+    css_file = STATIC_DIR / "style.css"
+    if css_file.is_file():
+        return FileResponse(str(css_file), media_type="text/css")
+    return Response(content="/* style.css */", media_type="text/css")
+
+
+async def app_js_endpoint(request: Request) -> Response:
+    """GET /app.js - Root alias for JavaScript application bundle."""
+    js_file = STATIC_DIR / "app.js"
+    if js_file.is_file():
+        return FileResponse(str(js_file), media_type="application/javascript")
+    return Response(content="// app.js", media_type="application/javascript")
+
+
+async def favicon_endpoint(request: Request) -> Response:
+    """GET /favicon.ico - Returns clean SVG or empty icon to prevent 404."""
+    fav_file = STATIC_DIR / "favicon.ico"
+    if fav_file.is_file():
+        return FileResponse(str(fav_file), media_type="image/x-icon")
+    svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🎬</text></svg>'
+    return Response(content=svg_icon, media_type="image/svg+xml")
 
 
 async def get_principles_endpoint(request: Request) -> JSONResponse:
@@ -1187,16 +1274,73 @@ async def demo_accounts_endpoint(request: Request) -> JSONResponse:
     })
 
 
-async def admin_list_users_endpoint(request: Request) -> JSONResponse:
-    """GET /api/admin/users - Returns all merchant accounts with usage and quota statistics."""
+async def admin_login_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/admin/login
+    Admin authentication portal: validates username 'pluto' and password 'plutosw4'
+    (or any active admin credentials), creates an active session token, and records login audit log.
+    """
+    try:
+        body = await request.json()
+    except Exception as exc:
+        return JSONResponse({"status": "error", "error": f"Invalid JSON body: {exc}"}, status_code=400)
+
+    username = str(body.get("username", "")).strip()
+    password = str(body.get("password", "")).strip()
+
+    if not username or not password:
+        return JSONResponse({
+            "status": "error",
+            "error": "Missing username or password",
+            "message": "يرجى إدخال اسم المستخدم وكلمة المرور",
+        }, status_code=400)
+
+    user = authenticate_user(username=username, password_or_token=password)
+    if not user or user.get("role") != "admin":
+        return JSONResponse({
+            "status": "error",
+            "error": "invalid_credentials",
+            "message": "بيانات تسجيل الدخول غير صحيحة أو ليس لديك صلاحية مدير النظام",
+        }, status_code=401)
+
+    # Check status
+    if user.get("status") in ("suspended", "inactive") or not user.get("is_active"):
+        return JSONResponse({
+            "status": "error",
+            "error": "account_suspended",
+            "message": "تم تعطيل حساب المدير",
+        }, status_code=403)
+
+    session = create_session(user_id=user["id"])
+    log_user_event(user["id"], "admin_login", {"username": username, "role": user.get("role")})
+
     return JSONResponse({
         "status": "ok",
-        "users": list_users(),
+        "message": "تم تسجيل دخول المسؤول بنجاح",
+        "session_token": session["session_token"],
+        "token": session["session_token"],
+        "user": user,
     })
 
 
-async def admin_create_user_endpoint(request: Request) -> JSONResponse:
-    """POST /api/admin/users - Admin creates new commercial merchant account."""
+async def admin_list_accounts_endpoint(request: Request) -> JSONResponse:
+    """
+    GET /api/admin/accounts & GET /api/admin/users
+    Returns all accounts with usage and quota statistics, status, and validity dates.
+    """
+    users = list_users()
+    return JSONResponse({
+        "status": "ok",
+        "accounts": users,
+        "users": users,
+    })
+
+
+async def admin_create_account_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/admin/accounts & POST /api/admin/users
+    Admin creates new commercial merchant or admin account with custom dates, quotas, and password.
+    """
     try:
         body = await request.json()
     except Exception as exc:
@@ -1208,28 +1352,35 @@ async def admin_create_user_endpoint(request: Request) -> JSONResponse:
         return JSONResponse({"status": "error", "error": "Missing required 'username' or 'business_name'"}, status_code=400)
 
     try:
-        new_user = create_user(
-            username=username,
-            business_name=business_name,
+        new_account = create_user(
+            username=str(username).strip(),
+            business_name=str(business_name).strip(),
             business_category=body.get("business_category", "ecommerce"),
             role=body.get("role", "merchant"),
+            password=body.get("password"),
+            valid_from=body.get("valid_from"),
             expires_at=body.get("expires_at"),
             daily_quota=int(body.get("daily_quota", 5)),
             weekly_quota=int(body.get("weekly_quota", 25)),
             auth_token=body.get("auth_token"),
             is_active=1 if body.get("is_active", True) else 0,
+            status=body.get("status", "active"),
         )
         return JSONResponse({
             "status": "ok",
-            "message": "تم إنشاء حساب التاجر بنجاح",
-            "user": new_user,
+            "message": "تم إنشاء الحساب بنجاح",
+            "account": new_account,
+            "user": new_account,
         }, status_code=201)
     except Exception as exc:
         return JSONResponse({"status": "error", "error": str(exc)}, status_code=400)
 
 
-async def admin_update_user_endpoint(request: Request) -> JSONResponse:
-    """PATCH /api/admin/users/{user_id} - Admin updates user account status, quotas, or expiry."""
+async def admin_update_account_endpoint(request: Request) -> JSONResponse:
+    """
+    PATCH /api/admin/accounts/{user_id} & PATCH /api/admin/users/{user_id}
+    Admin updates user password, status, valid_from, expires_at, daily/weekly quotas.
+    """
     user_id_raw = request.path_params.get("user_id")
     try:
         user_id = int(user_id_raw)
@@ -1243,13 +1394,40 @@ async def admin_update_user_endpoint(request: Request) -> JSONResponse:
 
     updated = update_user(user_id, **body)
     if not updated:
-        return JSONResponse({"status": "error", "message": f"User {user_id} not found or no updates provided"}, status_code=404)
+        return JSONResponse({"status": "error", "message": f"Account {user_id} not found or no updates provided"}, status_code=404)
 
     user = get_user_by_id(user_id)
     return JSONResponse({
         "status": "ok",
         "message": "تم تحديث بيانات الحساب بنجاح",
+        "account": user,
         "user": user,
+    })
+
+
+async def admin_account_logs_endpoint(request: Request) -> JSONResponse:
+    """
+    GET /api/admin/accounts/{user_id}/logs
+    Return activity audit log events recorded for a specific user account.
+    """
+    user_id_raw = request.path_params.get("user_id")
+    try:
+        user_id = int(user_id_raw)
+    except (ValueError, TypeError):
+        return JSONResponse({"status": "error", "error": "Invalid user_id parameter"}, status_code=400)
+
+    limit_param = request.query_params.get("limit", "50")
+    try:
+        limit = max(1, min(200, int(limit_param)))
+    except (ValueError, TypeError):
+        limit = 50
+
+    logs = get_user_activity_logs(user_id=user_id, limit=limit)
+    return JSONResponse({
+        "status": "ok",
+        "user_id": user_id,
+        "count": len(logs),
+        "logs": logs,
     })
 
 
@@ -1284,14 +1462,27 @@ routes = [
     Route("/api/auth/session", auth_session_endpoint, methods=["GET"]),
     Route("/api/auth/me", auth_me_endpoint, methods=["GET"]),
     Route("/api/auth/demo-accounts", demo_accounts_endpoint, methods=["GET"]),
-    Route("/api/admin/users", admin_list_users_endpoint, methods=["GET"]),
-    Route("/api/admin/users", admin_create_user_endpoint, methods=["POST"]),
-    Route("/api/admin/users/{user_id:int}", admin_update_user_endpoint, methods=["PATCH"]),
-    Route("/api/admin/users/{user_id}", admin_update_user_endpoint, methods=["PATCH"]),
+    Route("/api/admin/login", admin_login_endpoint, methods=["POST"]),
+    Route("/api/admin/accounts", admin_list_accounts_endpoint, methods=["GET"]),
+    Route("/api/admin/accounts", admin_create_account_endpoint, methods=["POST"]),
+    Route("/api/admin/accounts/{user_id:int}", admin_update_account_endpoint, methods=["PATCH"]),
+    Route("/api/admin/accounts/{user_id}", admin_update_account_endpoint, methods=["PATCH"]),
+    Route("/api/admin/accounts/{user_id:int}/logs", admin_account_logs_endpoint, methods=["GET"]),
+    Route("/api/admin/accounts/{user_id}/logs", admin_account_logs_endpoint, methods=["GET"]),
+    Route("/api/admin/users", admin_list_accounts_endpoint, methods=["GET"]),
+    Route("/api/admin/users", admin_create_account_endpoint, methods=["POST"]),
+    Route("/api/admin/users/{user_id:int}", admin_update_account_endpoint, methods=["PATCH"]),
+    Route("/api/admin/users/{user_id}", admin_update_account_endpoint, methods=["PATCH"]),
+    Route("/api/admin/users/{user_id:int}/logs", admin_account_logs_endpoint, methods=["GET"]),
+    Route("/api/admin/users/{user_id}/logs", admin_account_logs_endpoint, methods=["GET"]),
     Route("/api/admin/stats", admin_stats_endpoint, methods=["GET"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),
+    Route("/admin", admin_page, methods=["GET"]),
+    Route("/style.css", style_css_endpoint, methods=["GET"]),
+    Route("/app.js", app_js_endpoint, methods=["GET"]),
+    Route("/favicon.ico", favicon_endpoint, methods=["GET"]),
     Route("/", index_page, methods=["GET"]),
     Mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs"),
     Mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static"),

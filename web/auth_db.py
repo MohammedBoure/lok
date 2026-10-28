@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import logging
 import secrets
 import sqlite3
@@ -81,19 +82,37 @@ def verify_password(password: str, hashed_password: Optional[str]) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Pre-seeded Accounts (1 Master Admin + 10 Commercial Merchants)
+# Pre-seeded Accounts (Master Admin + Commercial Merchants)
 # ---------------------------------------------------------------------------
 
+MASTER_ADMIN_USERNAME = "pluto"
+MASTER_ADMIN_PASSWORD = "plutosw4"
 DEFAULT_ADMIN_PASSWORD = "admin123"
 DEFAULT_MERCHANT_PASSWORD = "merchant123"
 
 PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
+    {
+        "username": MASTER_ADMIN_USERNAME,
+        "business_name": "منصة إدارة النظام (lok Master Admin)",
+        "business_category": "tech",
+        "role": "admin",
+        "is_active": 1,
+        "status": "active",
+        "valid_from": "2024-01-01",
+        "expires_at": "2099-12-31",
+        "daily_quota": 9999,
+        "weekly_quota": 99999,
+        "auth_token": "token_admin_pluto",
+        "default_password": MASTER_ADMIN_PASSWORD,
+    },
     {
         "username": "admin",
         "business_name": "منصة إدارة النظام (SaaS Master Admin)",
         "business_category": "tech",
         "role": "admin",
         "is_active": 1,
+        "status": "active",
+        "valid_from": "2024-01-01",
         "expires_at": "2099-12-31",
         "daily_quota": 9999,
         "weekly_quota": 99999,
@@ -264,6 +283,8 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                     business_category TEXT NOT NULL,
                     role TEXT NOT NULL DEFAULT 'merchant',
                     is_active INTEGER NOT NULL DEFAULT 1,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    valid_from TEXT,
                     expires_at TEXT,
                     daily_quota INTEGER NOT NULL DEFAULT 5,
                     weekly_quota INTEGER NOT NULL DEFAULT 25,
@@ -273,12 +294,16 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                 """
             )
 
-            # Ensure password_hash column exists if table was created earlier without it
+            # Ensure columns exist if table was created earlier without them
             cursor = conn.cursor()
             cursor.execute("PRAGMA table_info(users);")
             columns = [row["name"] for row in cursor.fetchall()]
             if "password_hash" not in columns:
                 cursor.execute("ALTER TABLE users ADD COLUMN password_hash TEXT;")
+            if "valid_from" not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN valid_from TEXT;")
+            if "status" not in columns:
+                cursor.execute("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';")
 
             # 2. Sessions table
             conn.execute(
@@ -309,28 +334,43 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                 """
             )
 
-            # Create indexes for fast quota, session, and token lookups
+            # 4. User activity logs table
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_activity_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    event_type TEXT NOT NULL,
+                    details TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                """
+            )
+
+            # Create indexes for fast quota, session, token, and activity lookups
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_token ON users(auth_token);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_generations_user_date ON video_generations(user_id, created_at);")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_activity_user_date ON user_activity_logs(user_id, created_at);")
 
             # Check if seeding or password upgrade is required
             cursor.execute("SELECT COUNT(*) AS cnt FROM users;")
             user_count = cursor.fetchone()["cnt"]
 
             if user_count == 0:
-                logger.info("Pre-seeding SaaS database with 1 admin and 10 diverse merchant accounts...")
+                logger.info("Pre-seeding SaaS database with master admin pluto and commercial merchant accounts...")
                 for acc in PRESEEDED_ACCOUNTS:
                     pwd_hash = hash_password(acc.get("default_password", DEFAULT_MERCHANT_PASSWORD))
                     cursor.execute(
                         """
                         INSERT INTO users (
                             username, password_hash, business_name, business_category, role,
-                            is_active, expires_at, daily_quota, weekly_quota, auth_token
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                            is_active, status, valid_from, expires_at, daily_quota, weekly_quota, auth_token
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                         """,
                         (
                             acc["username"],
@@ -339,6 +379,8 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                             acc["business_category"],
                             acc.get("role", "merchant"),
                             acc.get("is_active", 1),
+                            acc.get("status", "active"),
+                            acc.get("valid_from", "2024-01-01"),
                             acc.get("expires_at"),
                             acc.get("daily_quota", 5),
                             acc.get("weekly_quota", 25),
@@ -358,6 +400,39 @@ def init_db(db_path: Optional[Union[str, Path]] = None) -> None:
                         """,
                         (pwd_hash, acc["username"]),
                     )
+
+            # Ensure master administrator pluto exists and is updated with plutosw4
+            pluto_hash = hash_password(MASTER_ADMIN_PASSWORD)
+            cursor.execute("SELECT id, password_hash FROM users WHERE username = 'pluto';")
+            pluto_row = cursor.fetchone()
+            if not pluto_row:
+                cursor.execute(
+                    """
+                    INSERT INTO users (
+                        username, password_hash, business_name, business_category, role,
+                        is_active, status, valid_from, expires_at, daily_quota, weekly_quota, auth_token
+                    ) VALUES (
+                        'pluto', ?, 'منصة إدارة النظام (lok Master Admin)', 'tech', 'admin',
+                        1, 'active', '2024-01-01', '2099-12-31', 9999, 99999, 'token_admin_pluto'
+                    );
+                    """,
+                    (pluto_hash,),
+                )
+                pid = cursor.lastrowid
+                cursor.execute(
+                    "INSERT INTO user_activity_logs (user_id, event_type, details) VALUES (?, 'system_init', 'Master admin pluto auto-provisioned');",
+                    (pid,),
+                )
+            else:
+                # Update pluto to ensure plutosw4 password, admin role, and active status
+                cursor.execute(
+                    """
+                    UPDATE users
+                    SET password_hash = ?, role = 'admin', is_active = 1, status = 'active'
+                    WHERE username = 'pluto';
+                    """,
+                    (pluto_hash,),
+                )
     finally:
         conn.close()
 
@@ -377,14 +452,35 @@ def _row_to_user_dict(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
     """
     if not row:
         return None
+
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    keys = row.keys() if hasattr(row, "keys") else []
+
+    valid_from = row["valid_from"] if "valid_from" in keys else None
+    expires_at = row["expires_at"] if "expires_at" in keys else None
+    raw_status = row["status"] if "status" in keys else "active"
+    is_active = bool(row["is_active"])
+
+    # Compute effective status: active, suspended, expired, pending
+    if not is_active or raw_status in ("suspended", "inactive"):
+        status = "suspended"
+    elif expires_at and str(expires_at).strip() and str(expires_at).strip()[:10] < today_str:
+        status = "expired"
+    elif valid_from and str(valid_from).strip() and str(valid_from).strip()[:10] > today_str:
+        status = "pending"
+    else:
+        status = raw_status or "active"
+
     return {
         "id": row["id"],
         "username": row["username"],
         "business_name": row["business_name"],
         "business_category": row["business_category"],
         "role": row["role"],
-        "is_active": bool(row["is_active"]),
-        "expires_at": row["expires_at"],
+        "is_active": is_active and status == "active",
+        "status": status,
+        "valid_from": valid_from,
+        "expires_at": expires_at,
         "daily_quota": row["daily_quota"],
         "weekly_quota": row["weekly_quota"],
         "auth_token": row["auth_token"],
@@ -627,8 +723,111 @@ def authenticate_credentials(
             # Credentials failed verification
             return None
 
+        # Admin accounts require password or token verification
+        if row["role"] == "admin" and (password_or_token is None or str(password_or_token).strip() == ""):
+            return None
+
         # If no password/token provided (1-tap merchant selection)
         return _row_to_user_dict(row)
+    finally:
+        conn.close()
+
+
+def authenticate_user(
+    username: str,
+    password_or_token: Optional[str] = None,
+    db_path: Optional[Union[str, Path]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Authenticate user via username and password/token.
+    Guarantees master admin 'pluto' with password 'plutosw4' authenticates with role 'admin'.
+    """
+    return authenticate_credentials(username=username, password_or_token=password_or_token, db_path=db_path)
+
+
+def log_user_event(
+    user_id: Optional[int],
+    event_type: str,
+    details: Optional[Union[str, Dict[str, Any]]] = None,
+    db_path: Optional[Union[str, Path]] = None,
+    conn: Optional[sqlite3.Connection] = None,
+) -> int:
+    """
+    Record an administrative or account lifecycle event into user_activity_logs table.
+    details may be a string or JSON-serializable dictionary.
+    """
+    details_str = ""
+    if details is not None:
+        if isinstance(details, (dict, list)):
+            try:
+                details_str = json.dumps(details, ensure_ascii=False)
+            except Exception:
+                details_str = str(details)
+        else:
+            details_str = str(details)
+
+    should_close = False
+    active_conn = conn
+    if active_conn is None:
+        active_conn = get_connection(db_path)
+        should_close = True
+
+    try:
+        cursor = active_conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO user_activity_logs (user_id, event_type, details)
+            VALUES (?, ?, ?);
+            """,
+            (user_id, event_type, details_str),
+        )
+        if should_close:
+            active_conn.commit()
+        return cursor.lastrowid
+    finally:
+        if should_close:
+            active_conn.close()
+
+
+def get_user_activity_logs(
+    user_id: Optional[int] = None,
+    limit: int = 50,
+    db_path: Optional[Union[str, Path]] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieve recent user activity events, optionally filtered by user_id."""
+    conn = get_connection(db_path)
+    try:
+        cursor = conn.cursor()
+        if user_id is not None:
+            cursor.execute(
+                """
+                SELECT id, user_id, event_type, details, created_at
+                FROM user_activity_logs
+                WHERE user_id = ?
+                ORDER BY id DESC LIMIT ?;
+                """,
+                (user_id, limit),
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT id, user_id, event_type, details, created_at
+                FROM user_activity_logs
+                ORDER BY id DESC LIMIT ?;
+                """,
+                (limit,),
+            )
+        rows = cursor.fetchall()
+        return [
+            {
+                "id": r["id"],
+                "user_id": r["user_id"],
+                "event_type": r["event_type"],
+                "details": r["details"],
+                "created_at": str(r["created_at"]),
+            }
+            for r in rows
+        ]
     finally:
         conn.close()
 
@@ -720,6 +919,8 @@ def check_quota(user_id: int, db_path: Optional[Union[str, Path]] = None) -> Tup
         "business_category": user["business_category"],
         "role": user["role"],
         "is_active": is_active,
+        "status": user.get("status", "active"),
+        "valid_from": user.get("valid_from"),
         "expires_at": expires_at,
         "is_expired": is_expired,
         "daily_quota": daily_quota,
@@ -734,19 +935,26 @@ def check_quota(user_id: int, db_path: Optional[Union[str, Path]] = None) -> Tup
     if user["role"] == "admin":
         return (True, "حساب مسؤول النظام - استخدام غير محدود", details)
 
-    # 1. Check active status
-    if not is_active:
-        return (False, "الحساب معطل حالياً من قِبل إدارة المنصة", details)
-
-    # 2. Check expiration date
-    if is_expired:
+    # 1. Check expiration date
+    if is_expired or user.get("status") == "expired":
         return (False, f"انتهت صلاحية اشتراك الحساب بتاريخ {expires_at}. يرجى تجديد الاشتراك.", details)
 
-    # 3. Check daily quota limit
+    # 2. Check valid_from start date
+    valid_from = user.get("valid_from")
+    if valid_from and str(valid_from).strip():
+        clean_valid = str(valid_from).strip()[:10]
+        if clean_valid > today_str:
+            return (False, f"حساب الاشتراك يبدأ في تاريخ {valid_from}.", details)
+
+    # 3. Check active / suspended status
+    if not is_active or user.get("status") in ("suspended", "inactive"):
+        return (False, "الحساب معطل حالياً من قِبل إدارة المنصة", details)
+
+    # 4. Check daily quota limit
     if today_used >= daily_quota:
         return (False, f"تم استنفاد الحصة اليومية المسموحة ({today_used}/{daily_quota} فيديو). تتجدد الحصة غداً.", details)
 
-    # 4. Check weekly quota limit
+    # 5. Check weekly quota limit
     if weekly_used >= weekly_quota:
         return (False, f"تم استنفاد الحصة الأسبوعية المسموحة ({weekly_used}/{weekly_quota} فيديو).", details)
 
@@ -826,18 +1034,23 @@ def create_user(
     business_category: str = "ecommerce",
     role: str = "merchant",
     password: Optional[str] = None,
+    valid_from: Optional[str] = None,
     expires_at: Optional[str] = None,
     daily_quota: int = 5,
     weekly_quota: int = 25,
     auth_token: Optional[str] = None,
     is_active: int = 1,
+    status: str = "active",
     db_path: Optional[Union[str, Path]] = None,
 ) -> Dict[str, Any]:
-    """Create a new merchant or admin user account with hashed password."""
+    """Create a new merchant or admin user account with hashed password and date validity."""
     clean_username = username.strip()
     clean_token = auth_token.strip() if auth_token else f"token_{clean_username}_{uuid.uuid4().hex[:8]}"
     pwd_to_hash = password if password else (DEFAULT_ADMIN_PASSWORD if role == "admin" else DEFAULT_MERCHANT_PASSWORD)
     pwd_hash = hash_password(pwd_to_hash)
+
+    clean_status = str(status).strip().lower() if status else "active"
+    effective_is_active = 0 if clean_status in ("suspended", "inactive") or not is_active else 1
 
     conn = get_connection(db_path)
     try:
@@ -847,8 +1060,8 @@ def create_user(
                 """
                 INSERT INTO users (
                     username, password_hash, business_name, business_category, role,
-                    is_active, expires_at, daily_quota, weekly_quota, auth_token
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    is_active, status, valid_from, expires_at, daily_quota, weekly_quota, auth_token
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     clean_username,
@@ -856,7 +1069,9 @@ def create_user(
                     business_name.strip(),
                     business_category.strip(),
                     role.strip(),
-                    int(is_active),
+                    effective_is_active,
+                    clean_status,
+                    valid_from.strip() if valid_from else None,
                     expires_at.strip() if expires_at else None,
                     int(daily_quota),
                     int(weekly_quota),
@@ -868,6 +1083,22 @@ def create_user(
             created = _row_to_user_dict(cursor.fetchone())
             if created is None:
                 raise RuntimeError("Failed to retrieve created user")
+
+            log_user_event(
+                user_id=new_id,
+                event_type="account_created",
+                details={
+                    "username": clean_username,
+                    "role": role,
+                    "status": clean_status,
+                    "valid_from": valid_from,
+                    "expires_at": expires_at,
+                    "daily_quota": daily_quota,
+                    "weekly_quota": weekly_quota,
+                },
+                db_path=db_path,
+                conn=conn,
+            )
             return created
     finally:
         conn.close()
@@ -880,14 +1111,16 @@ def update_user(
 ) -> bool:
     """
     Update fields of an existing user account.
-    Accepted fields: business_name, business_category, role, is_active,
-    expires_at, daily_quota, weekly_quota, auth_token, password, password_hash.
+    Accepted fields: business_name, business_category, role, is_active, status,
+    valid_from, expires_at, daily_quota, weekly_quota, auth_token, password, password_hash.
     """
     allowed_fields = {
         "business_name",
         "business_category",
         "role",
         "is_active",
+        "status",
+        "valid_from",
         "expires_at",
         "daily_quota",
         "weekly_quota",
@@ -900,10 +1133,19 @@ def update_user(
         if k in allowed_fields:
             if k == "password":
                 updates["password_hash"] = hash_password(str(v))
+            elif k == "status":
+                s_val = str(v).strip().lower()
+                updates["status"] = s_val
+                if "is_active" not in kwargs:
+                    updates["is_active"] = 0 if s_val in ("suspended", "inactive") else 1
             elif k == "is_active":
-                updates[k] = 1 if v else 0
+                updates["is_active"] = 1 if v else 0
+                if "status" not in kwargs:
+                    updates["status"] = "active" if v else "suspended"
             elif k in ("daily_quota", "weekly_quota"):
                 updates[k] = int(v)
+            elif k in ("valid_from", "expires_at"):
+                updates[k] = str(v).strip() if v else None
             else:
                 updates[k] = v
 
@@ -918,7 +1160,13 @@ def update_user(
         with conn:
             cursor = conn.cursor()
             cursor.execute(f"UPDATE users SET {set_clause} WHERE id = ?;", values)
-            return cursor.rowcount > 0
+            success = cursor.rowcount > 0
+            if success:
+                log_details = {k: v for k, v in updates.items() if k != "password_hash"}
+                if "password_hash" in updates:
+                    log_details["password_changed"] = True
+                log_user_event(user_id, "account_updated", log_details, db_path=db_path, conn=conn)
+            return success
     finally:
         conn.close()
 
@@ -962,13 +1210,26 @@ def list_users(db_path: Optional[Union[str, Path]] = None) -> List[Dict[str, Any
                 if clean_exp < today_str:
                     is_expired = True
 
+            v_from = u["valid_from"] if "valid_from" in u.keys() else None
+            raw_status = u["status"] if "status" in u.keys() and u["status"] else ("active" if u["is_active"] else "suspended")
+            if not bool(u["is_active"]) or raw_status in ("suspended", "inactive"):
+                eff_status = "suspended"
+            elif is_expired:
+                eff_status = "expired"
+            elif v_from and str(v_from).strip()[:10] > today_str:
+                eff_status = "pending"
+            else:
+                eff_status = raw_status or "active"
+
             results.append({
                 "id": u["id"],
                 "username": u["username"],
                 "business_name": u["business_name"],
                 "business_category": u["business_category"],
                 "role": u["role"],
-                "is_active": bool(u["is_active"]),
+                "is_active": bool(u["is_active"]) and eff_status == "active",
+                "status": eff_status,
+                "valid_from": v_from,
                 "expires_at": u["expires_at"],
                 "is_expired": is_expired,
                 "daily_quota": u["daily_quota"],
