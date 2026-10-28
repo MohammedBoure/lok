@@ -1,24 +1,34 @@
 {
   "assignments": [
     {
+      "agent_id": "agy11",
+      "worker_id": "worker-1",
+      "role": "Backend Unified Authentication, Plutosw4 Studio Access & E2E Pipeline Quotas",
+      "branch": "backend/agy11-unified-auth-and-pipeline-fixes",
+      "scope": "Investigate why POST /api/auth/login returns 401 Unauthorized for accounts created via admin portal and for master admin pluto. Ensure: 1) Master admin pluto (with password plutosw4) can log into both /api/auth/login (client studio) and /api/admin/login (admin portal). 2) All merchant accounts created via /api/admin/accounts can log into /api/auth/login with their configured password (PBKDF2 verification and password hashing consistency). 3) Support whitespace trimming and case-insensitive username lookup. 4) Ensure GET /api/auth/session and GET /api/auth/me recognize session tokens from both endpoints and return valid quotas. 5) Ensure pluto has unlimited quota (role='admin') and merchants have valid quotas. 6) Verify /api/jobs/create and /api/upload-and-process accept session tokens via Bearer header or cookie and successfully process video cuts without 401/403 errors. 7) Verify zero U+0669 characters. Update web/README.md; commit as MohammedBoure on branch backend/agy11-unified-auth-and-pipeline-fixes; notify coordinator.",
+      "dependencies": [],
+      "state": "IN_PROGRESS"
+    },
+    {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Admin Portal Standalone CSS & Offline Styling",
-      "branch": "frontend/agy51-admin-portal-standalone-css",
-      "scope": "1. In web/static/admin.html: The user reported that /admin lacks CSS (likely due to external CDN failure or missing standalone styles). Fully embed a complete, comprehensive, beautiful standalone Bootstrap 5-compatible CSS styling system directly inside <style> in admin.html (and/or local static CSS) with zero dependency on external network CDNs. Provide rich styling for: body, navbar, cards, stats badges, tables, modal overlays, modal dialogs, form inputs, buttons (.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-dark, .btn-light), alerts, typography, and responsive grid layout for both mobile and desktop. 2. Verify all UI elements (login card, accounts table, create/edit modals, activity log modal, stats cards) look modern, polished, and beautifully styled even when completely offline. 3. Ensure zero occurrences of forbidden character U+0669. 4. Update tests/test_minimal_lok_and_admin_ui.py to verify standalone CSS embedded rules; update web/static/README.md; commit as MohammedBoure on frontend/agy51-admin-portal-standalone-css; notify coordinator.",
+      "role": "Frontend Gated Login UX, Input Sanitation & Video Production Flow Auditing",
+      "branch": "frontend/agy51-login-ux-and-studio-pipeline",
+      "scope": "In web/static/app.js and web/static/index.html: 1) Audit the client login form (#loginView): trim input values, support Enter key submission, provide distinct user-friendly Arabic error messages if credentials fail (401) or account is suspended/expired (403). 2) Ensure credentials pluto / plutosw4 as well as any merchant account work seamlessly. 3) Store session token consistently in localStorage and cookie so /api/auth/session and subsequent API calls succeed. 4) Ensure the video production request (#btnProduceVideo) attaches the session token in Authorization header and handles both /api/jobs/create and /api/upload-and-process gracefully with clear progress indicators. 5) Audit visual/DOM state transitions between loginView, studioView, and settingsModal. 6) Verify zero U+0669 characters. Update web/static/README.md; commit as MohammedBoure on branch frontend/agy51-login-ux-and-studio-pipeline; notify coordinator.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
-      "agent_id": "agy100",
+      "agent_id": "agy101",
       "worker_id": "worker-3",
-      "role": "Quality Gatekeeper & CSS Integration Verification",
-      "branch": "test/agy100-admin-portal-css-gatekeeper",
-      "scope": "Integrate frontend/agy51-admin-portal-standalone-css into develop; verify standalone styling, responsive design, test suite, and typography compliance; merge into develop; notify coordinator.",
+      "role": "Visual, Experiential & E2E Automated Integration Gatekeeper",
+      "branch": "test/agy101-e2e-auth-and-video-production-gatekeeper",
+      "scope": "Author comprehensive end-to-end integration and visual/experiential tests in tests/test_e2e_auth_and_video_pipeline.py: 1) Admin pluto login -> create new merchant account via /api/admin/accounts. 2) Login to /api/auth/login as pluto AND as newly created merchant. 3) Verify /api/auth/session and quota allowance. 4) Produce video through /api/jobs/create and /api/upload-and-process end-to-end. 5) Test visual/DOM state transitions and error messages. 6) Verify zero U+0669 characters across repository. Merge backend and frontend into develop; commit as MohammedBoure; notify coordinator.",
       "dependencies": [
-        "frontend/agy51-admin-portal-standalone-css"
+        "backend/agy11-unified-auth-and-pipeline-fixes",
+        "frontend/agy51-login-ux-and-studio-pipeline"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }

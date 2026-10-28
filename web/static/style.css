@@ -270,6 +270,28 @@ body {
   border-color: var(--lok-white);
 }
 
+.login-error-alert {
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  border-radius: var(--lok-radius-md);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.quick-credentials-hint {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-md);
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: var(--lok-text-muted);
+  margin-top: 16px;
+}
+
 .quick-divider {
   display: flex;
   align-items: center;

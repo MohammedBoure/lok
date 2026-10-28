@@ -123,6 +123,14 @@ Accessible via `#btnOpenSettings` and dismissible via `#btnSettingsBack` (`"← 
 4. **Session Logout**:
    - Invalidates local credentials and smoothly resets interface to the gated login view.
 
+### D. Gated Client Login UX & Production Pipeline Integration
+- **Whitespace Sanitation**: Automatically trims leading and trailing whitespace from username and password inputs.
+- **Keyboard Navigation**: Full support for `Enter` key submission across input fields.
+- **User-Friendly Error Feedback**: Clear visual alerts in Arabic distinguishing 401 ("اسم المستخدم أو كلمة المرور غير صحيحة") from 403 ("الحساب معطل أو منتهي الصلاحية").
+- **Quick Credentials Helpers**: Direct display of credentials for master administrator (`pluto` / `plutosw4`) and demo merchant accounts (`merchant_realestate`), alongside 1-tap quick login buttons.
+- **Dual Session Persistence**: Stores `session_token` and `auth_token` simultaneously across `localStorage` and `document.cookie` (`path=/; max-age=604800; SameSite=Lax`), ensuring smooth multi-tab consistency and API compatibility.
+- **Robust Video Production Dispatch**: Enforces authenticated requests sending `Authorization: Bearer <token>` and `credentials: 'include'` for both `/api/jobs/create` and `/api/upload-and-process`, with real-time multistep progress feedback.
+
 ---
 
 ## 5. Bootstrap Admin Portal (`/admin` -> `admin.html`)
