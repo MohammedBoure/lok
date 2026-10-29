@@ -69,10 +69,13 @@ from config.production_principles_manager import (
 from web.pipeline_bridge import (
     ALGERIAN_REAL_ESTATE_PRESETS,
     MUSIC_LIBRARY,
+    extract_algerian_phone,
+    extract_directives,
     get_music_tracks_list,
     get_or_create_voice_sample,
     get_presets_list,
     get_voice_profiles_list,
+    is_meta_prompt,
     parse_prompt_instructions,
     process_mobile_video,
     resolve_voice_profile,
@@ -262,6 +265,8 @@ def _execute_processing_job(
     text_position: Optional[str] = "lower_third",
     text_style: Optional[str] = "modern_white",
     video_orientation: Optional[str] = None,
+    bottom_text: Optional[str] = None,
+    phone_number: Optional[str] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -284,6 +289,9 @@ def _execute_processing_job(
             "visual_lead_in": visual_lead_in,
             "user_id": user_id,
             "fixed_text": fixed_text,
+            "bottom_text": event.get("bottom_text") or curr.get("bottom_text") or bottom_text,
+            "phone_number": event.get("phone_number") or curr.get("phone_number") or phone_number,
+            "script": event.get("script") or curr.get("script") or script,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -306,6 +314,8 @@ def _execute_processing_job(
             text_position=text_position,
             text_style=text_style,
             video_orientation=video_orientation,
+            bottom_text=bottom_text,
+            phone_number=phone_number,
         )
 
         # Record video generation in SaaS audit history
@@ -388,6 +398,9 @@ def _execute_processing_job(
             "analyzed_frames_count": summary.get("analyzed_frames_count"),
             "user_id": user_id,
             "fixed_text": fixed_text,
+            "bottom_text": summary.get("bottom_text", bottom_text),
+            "phone_number": summary.get("phone_number", phone_number),
+            "script": summary.get("script", script),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -508,6 +521,18 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         fixed_text = None
 
+    bottom_text = form.get("bottom_text")
+    if isinstance(bottom_text, str):
+        bottom_text = bottom_text.strip() or None
+    else:
+        bottom_text = None
+
+    phone_number = form.get("phone_number")
+    if isinstance(phone_number, str):
+        phone_number = phone_number.strip() or None
+    else:
+        phone_number = None
+
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
     try:
@@ -521,6 +546,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             visual_description = sanitize_and_validate_prompt(visual_description)
         if fixed_text:
             fixed_text = sanitize_and_validate_prompt(fixed_text)
+        if bottom_text:
+            bottom_text = sanitize_and_validate_prompt(bottom_text)
     except ValueError as sec_err:
         return JSONResponse(
             {
@@ -530,6 +557,21 @@ async def create_job_async(request: Request) -> JSONResponse:
             },
             status_code=400,
         )
+
+    # Prompt intent & directive disentanglement
+    incoming_prompt_sources = [s for s in [raw_prompt, script, speech_description, fixed_text, bottom_text] if s and str(s).strip()]
+    merged_prompt_text = "\n".join(incoming_prompt_sources)
+    if merged_prompt_text:
+        dirs = extract_directives(merged_prompt_text)
+        if not phone_number and dirs.get("phone_number"):
+            phone_number = dirs["phone_number"]
+        if not bottom_text and dirs.get("bottom_text"):
+            bottom_text = dirs["bottom_text"]
+        if dirs.get("is_meta_prompt"):
+            auto_mode = True
+            if script and is_meta_prompt(script):
+                speech_description = (f"{speech_description or ''}\n{script}").strip()
+                script = None
 
     text_position = form.get("text_position")
     if isinstance(text_position, str):
@@ -594,6 +636,9 @@ async def create_job_async(request: Request) -> JSONResponse:
         "visual_lead_in": visual_lead_in,
         "user_id": user["id"],
         "fixed_text": fixed_text,
+        "bottom_text": bottom_text,
+        "phone_number": phone_number,
+        "script": script,
         "inferred_script": None,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -620,6 +665,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             text_position,
             text_style,
             video_orientation,
+            bottom_text,
+            phone_number,
         ),
         daemon=True,
     )
@@ -636,6 +683,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             "prompt_id": prompt_id,
             "voice": voice,
             "visual_lead_in_seconds": visual_lead_in,
+            "bottom_text": bottom_text,
+            "phone_number": phone_number,
             "user": {
                 "id": user["id"],
                 "username": user["username"],
@@ -753,6 +802,18 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         fixed_text = None
 
+    bottom_text = form.get("bottom_text")
+    if isinstance(bottom_text, str):
+        bottom_text = bottom_text.strip() or None
+    else:
+        bottom_text = None
+
+    phone_number = form.get("phone_number")
+    if isinstance(phone_number, str):
+        phone_number = phone_number.strip() or None
+    else:
+        phone_number = None
+
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
     try:
@@ -766,6 +827,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             visual_description = sanitize_and_validate_prompt(visual_description)
         if fixed_text:
             fixed_text = sanitize_and_validate_prompt(fixed_text)
+        if bottom_text:
+            bottom_text = sanitize_and_validate_prompt(bottom_text)
     except ValueError as sec_err:
         return JSONResponse(
             {
@@ -775,6 +838,21 @@ async def upload_and_process(request: Request) -> JSONResponse:
             },
             status_code=400,
         )
+
+    # Prompt intent & directive disentanglement
+    incoming_prompt_sources = [s for s in [raw_prompt, script, speech_description, fixed_text, bottom_text] if s and str(s).strip()]
+    merged_prompt_text = "\n".join(incoming_prompt_sources)
+    if merged_prompt_text:
+        dirs = extract_directives(merged_prompt_text)
+        if not phone_number and dirs.get("phone_number"):
+            phone_number = dirs["phone_number"]
+        if not bottom_text and dirs.get("bottom_text"):
+            bottom_text = dirs["bottom_text"]
+        if dirs.get("is_meta_prompt"):
+            auto_mode = True
+            if script and is_meta_prompt(script):
+                speech_description = (f"{speech_description or ''}\n{script}").strip()
+                script = None
 
     text_position = form.get("text_position")
     if isinstance(text_position, str):
@@ -838,6 +916,9 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "inferred_script": event.get("inferred_script") or curr.get("inferred_script"),
             "user_id": user["id"],
             "fixed_text": fixed_text,
+            "bottom_text": event.get("bottom_text") or curr.get("bottom_text") or bottom_text,
+            "phone_number": event.get("phone_number") or curr.get("phone_number") or phone_number,
+            "script": event.get("script") or curr.get("script") or script,
         }
 
     try:
@@ -859,6 +940,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             text_position=text_position,
             text_style=text_style,
             video_orientation=video_orientation,
+            bottom_text=bottom_text,
+            phone_number=phone_number,
         )
 
         # Record video generation in SaaS audit history
@@ -941,6 +1024,9 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "emotional_tone": summary.get("emotional_tone"),
             "inferred_script": summary.get("inferred_script"),
             "user_id": user["id"],
+            "bottom_text": summary.get("bottom_text", bottom_text),
+            "phone_number": summary.get("phone_number", phone_number),
+            "script": summary.get("script", script),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -987,6 +1073,9 @@ async def get_job_status(request: Request) -> JSONResponse:
             res_dict = dict(p_data["result"])
             res_dict.setdefault("emotional_tone", p_data.get("emotional_tone"))
             res_dict.setdefault("inferred_script", p_data.get("inferred_script"))
+            res_dict.setdefault("script", p_data.get("script") or p_data.get("inferred_script"))
+            res_dict.setdefault("bottom_text", p_data.get("bottom_text"))
+            res_dict.setdefault("phone_number", p_data.get("phone_number"))
             res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
             res_dict["video_url"] = video_web_url
             res_dict["output_video_url"] = video_web_url

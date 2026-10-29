@@ -830,6 +830,42 @@ The server provides a dedicated endpoint for serving rendered cuts:
 - **MIME Type**: `video/mp4`
 - **Byte-Range Support**: Full HTTP 206 Partial Content streaming support with `Range` and `Content-Range` headers, allowing seamless seek and playback across desktop and mobile browsers.
 
+---
+
+## 12. Prompt Intent Disentanglement & Persistent Video Overlays Architecture
+
+### Prompt Intent & Directive Disentanglement
+When non-technical merchants or mobile users submit natural language instructions in the creative prompt box (e.g. requesting specific voiceover styles, Algerian Darja dialect, and persistent contact numbers at the bottom of the video), the platform automatically disentangles meta-instructions from narration text:
+
+1. **Directive & Meta-Prompt Detection (`is_meta_prompt`, `extract_directives`)**:
+   - Detects user command verbs (`أريد`, `اجعل`, `اكتب`, `ضع`, `دير`, `تكلم`) and directive phrases (`أسفل الفيديو`, `طول ما الفيديو شغال`, `تعليق صوتي`, `بالدارجة`, `به الرقم التالي`).
+   - Standardizes and extracts Algerian mobile phone numbers (`05...`, `06...`, `07...`, and international prefixes `+213` / `00213`) into canonical 10-digit formats (`0XXXXXXXXX`).
+   - Automatically detects persistent lower-third banner requests and assigns appropriate overlay labels.
+
+2. **Strict Voiceover Isolation Mandate**:
+   - **User instructions are NEVER read aloud by Gemini Speech TTS!**
+   - If a meta-prompt is submitted in place of a literal script, the system switches to auto-mode, moves the directives into thematic steering instructions, and prompts Gemini Multimodal Vision / LLM:
+     > *"The user provided instructions: {user_prompt}. Do NOT speak these instructions literally. Instead, compose an authentic, vivid marketing voiceover script in Algerian Darja tailored to the actual video frames. Additionally, extract any visual overlay directives (such as persistent bottom text, phone numbers, contact info)."*
+   - Only the organically composed Algerian Darja narration describing the property is passed to the neural TTS synthesizer.
+   - Smart fallback profile generators (`_get_smart_fallback`) similarly guard against echoing meta-prompts into narration text.
+   - Script sanitization (`sanitize_script_against_meta_prompts`) strips any LLM artifacts or labeling prefixes (e.g. `السيناريو:`, `التعليق الصوتي:`).
+
+### Persistent Bottom Text & Phone Number Overlays
+When persistent text or a phone number is detected or provided:
+1. **FFmpeg Filtergraph Styling**:
+   - Styled via `_build_drawtext_filter` using `style="persistent_bottom"`:
+     - **Positioning**: Centered horizontally (`x=(w-text_w)/2`), aligned at the lower edge (`y=h-text_h-40`).
+     - **High-Contrast Box**: Semi-transparent black background box (`box=1:boxcolor=black@0.6:boxborderw=8`) ensuring clear readability against bright floors or sunlit windows.
+     - **Typography**: Crisp white lettering (`fontcolor=white`) at `fontsize=28`.
+     - **Full Duration Persistence**: Active across the entire video duration from `0.00s` to `total_duration` (`enable='between(t,0.00,total_duration)'` or full stream duration).
+
+2. **Status Telemetry & API Contract**:
+   - The synthesized script, persistent bottom text, and phone number are exposed in all job telemetry states and responses:
+     - `data["script"]`: Composed voiceover narration script.
+     - `data["bottom_text"]`: Applied persistent bottom text overlay.
+     - `data["phone_number"]`: Extracted contact phone number.
+   - Accessible via `POST /api/jobs/create`, `POST /api/upload-and-process`, and `GET /api/status/{job_id}`.
+
 
 
 

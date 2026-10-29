@@ -57,13 +57,21 @@ def _build_drawtext_filter(
     text = annotation.get("text", "").strip()
     escaped_text = escape_ffmpeg_drawtext(text)
     start_sec = max(0.0, float(annotation.get("start_sec", 0.0)))
-    end_sec = max(start_sec + 0.5, float(annotation.get("end_sec", start_sec + 3.0)))
-    position = annotation.get("position", "lower_third").lower()
-    style = annotation.get("style", "luxury_gold").lower()
+    raw_end = annotation.get("end_sec")
+    end_sec = max(start_sec + 0.5, float(raw_end)) if raw_end is not None else None
+    position = str(annotation.get("position", "lower_third")).lower()
+    style = str(annotation.get("style", "luxury_gold")).lower()
     font_size = int(annotation.get("font_size", 36))
+    boxborderw = int(annotation.get("boxborderw", 12))
+    is_persistent = bool(annotation.get("persistent") or annotation.get("is_persistent") or style == "persistent_bottom")
 
     # Color themes
-    if style == "emerald_badge":
+    if style in ("persistent_bottom", "bottom_box", "phone_overlay"):
+        font_color = "white"
+        box_color = "black@0.6"
+        boxborderw = int(annotation.get("boxborderw", 8))
+        font_size = int(annotation.get("font_size", 28))
+    elif style == "emerald_badge":
         font_color = "0x10B981"
         box_color = "0x064E3B@0.85"
     elif style == "price_tag":
@@ -80,7 +88,10 @@ def _build_drawtext_filter(
         box_color = "0x18181B@0.85"
 
     # Positioning coordinates
-    if position == "top_banner":
+    if position in ("bottom_banner", "persistent_bottom", "bottom") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
+        coord_x = "(w-text_w)/2"
+        coord_y = "h-text_h-40"
+    elif position == "top_banner":
         coord_x = "(w-text_w)/2"
         coord_y = "60"
     elif position == "badge":
@@ -89,9 +100,6 @@ def _build_drawtext_filter(
     elif position == "center":
         coord_x = "(w-text_w)/2"
         coord_y = "(h-text_h)/2"
-    elif position == "bottom_banner":
-        coord_x = "(w-text_w)/2"
-        coord_y = "h-text_h-50"
     else:  # lower_third (default)
         coord_x = "(w-text_w)/2"
         coord_y = "h*0.75"
@@ -102,11 +110,15 @@ def _build_drawtext_filter(
         f"fontcolor={font_color}",
         f"box=1",
         f"boxcolor={box_color}",
-        f"boxborderw=12",
+        f"boxborderw={boxborderw}",
         f"x={coord_x}",
         f"y={coord_y}",
-        f"enable='between(t,{start_sec:.2f},{end_sec:.2f})'"
     ]
+
+    if end_sec is not None:
+        filter_parts.append(f"enable='between(t,{start_sec:.2f},{end_sec:.2f})'")
+    elif start_sec > 0:
+        filter_parts.append(f"enable='gte(t,{start_sec:.2f})'")
 
     if font_file:
         filter_parts.append(f"fontfile='{font_file}'")

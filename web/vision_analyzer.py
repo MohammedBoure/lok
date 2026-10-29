@@ -23,6 +23,12 @@ from config.production_principles_manager import (
     build_vision_prompt_principles,
     load_principles,
 )
+from web.pipeline_bridge import (
+    extract_algerian_phone,
+    is_meta_prompt,
+    extract_directives,
+    sanitize_script_against_meta_prompts,
+)
 
 logger = logging.getLogger("vision_analyzer")
 if not logger.handlers:
@@ -137,12 +143,24 @@ def _get_smart_fallback(
         profile = FALLBACK_PROFILES[0]
 
     # Synthesize fallback script incorporating speech_description intent if provided
+    directives = extract_directives(speech_description or "")
     if speech_description and speech_description.strip():
-        intent = speech_description.strip().rstrip(".،")
-        if is_darja_or_walkthrough:
-            script = f"شوفو معايا هاد العقار الاستثنائي، {intent}. موقع استراتيجي وتصميم راقي يلبي كل تطلعاتكم للراحة والفخامة."
+        if directives.get("is_meta_prompt"):
+            # Do NOT speak meta-prompt words! Formulate authentic real estate marketing script in Algerian Darja
+            if preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"]):
+                script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة."
+            elif preset_hint == "constantine_commercial" or any(w in desc_for_mood for w in ["محل", "تجاري", "استثمار", "شارع", "commercial"]):
+                script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة."
+            elif preset_hint == "rental_apartment" or any(w in desc_for_mood for w in ["كراء", "إيجار", "مؤثثة", "rental"]):
+                script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك."
+            else:
+                script = "شوفو معايا هاد العقار الاستثنائي بتصميم راقي وتشطيبات عصرية، موقع هادئ وقريب من كل المرافق الحيوية في قلب المدينة."
         else:
-            script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+            intent = speech_description.strip().rstrip(".،")
+            if is_darja_or_walkthrough:
+                script = f"شوفو معايا هاد العقار الاستثنائي، {intent}. موقع استراتيجي وتصميم راقي يلبي كل تطلعاتكم للراحة والفخامة."
+            else:
+                script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
     elif preset_hint == "oran_seaview_villa":
         script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة." if is_darja_or_walkthrough else profile["script"]
     elif preset_hint == "constantine_commercial":
@@ -165,7 +183,7 @@ def _get_smart_fallback(
         if custom_badges:
             highlights = custom_badges[:3]
 
-    return {
+    fb_result = {
         "script": script,
         "emotional_tone": profile["emotional_tone"],
         "emotional_prompt": profile["emotional_prompt"],
@@ -176,6 +194,12 @@ def _get_smart_fallback(
         "visual_lead_in_seconds": visual_lead_in,
         "speech_duration": speech_duration,
     }
+    if directives.get("phone_number"):
+        fb_result["phone_number"] = directives["phone_number"]
+    if directives.get("bottom_text"):
+        fb_result["bottom_text"] = directives["bottom_text"]
+
+    return fb_result
 
 
 # ---------------------------------------------------------------------------
@@ -250,15 +274,26 @@ def infer_video_script_and_mood(
     principles_section = build_vision_prompt_principles()
 
     intent_guidance = ""
+    directives = extract_directives(speech_description or "")
     if speech_description and speech_description.strip():
-        intent_guidance += (
-            f"\n--- LINGUISTIC SPEECH INTENT GUIDANCE (وصف لغوي لما تريده أن يقال وليس نصاً حرفياً) ---\n"
-            f"User Linguistic Speech Guidance: \"{speech_description.strip()}\"\n"
-            f"CRITICAL INSTRUCTION: Treat this description strictly as linguistic intent and thematic guidance, NOT literal text. "
-            f"Orchestrate and expand this intent into a complete, natural spoken marketing script that coordinates with the visual "
-            f"camera movement across the net speaking duration ({speech_duration:.1f}s net speaking window out of {video_duration:.1f}s total video), strictly conforming to the Algerian Darja dialect and "
-            f"walkthrough perspective rules set in the Production Principles below.\n"
-        )
+        if directives.get("is_meta_prompt"):
+            intent_guidance += (
+                f"\n--- USER CREATIVE & PRODUCTION DIRECTIVES (توجيهات وتعليمات إنتاجية) ---\n"
+                f"The user provided instructions: \"{speech_description.strip()}\".\n"
+                f"CRITICAL DISENTANGLEMENT MANDATE:\n"
+                f"Do NOT speak these instructions literally or echo phrases like 'أريد أن يظهر نص' or phone numbers in the voiceover!\n"
+                f"Instead, compose an authentic, vivid marketing voiceover script in Algerian Darja tailored to the actual visual video frames.\n"
+                f"Additionally, extract any visual overlay directives (such as persistent bottom text, phone numbers, contact info, discounts).\n"
+            )
+        else:
+            intent_guidance += (
+                f"\n--- LINGUISTIC SPEECH INTENT GUIDANCE (وصف لغوي لما تريده أن يقال وليس نصاً حرفياً) ---\n"
+                f"User Linguistic Speech Guidance: \"{speech_description.strip()}\"\n"
+                f"CRITICAL INSTRUCTION: Treat this description strictly as linguistic intent and thematic guidance, NOT literal text. "
+                f"Orchestrate and expand this intent into a complete, natural spoken marketing script that coordinates with the visual "
+                f"camera movement across the net speaking duration ({speech_duration:.1f}s net speaking window out of {video_duration:.1f}s total video), strictly conforming to the Algerian Darja dialect and "
+                f"walkthrough perspective rules set in the Production Principles below.\n"
+            )
 
     if visual_description and visual_description.strip():
         intent_guidance += (
@@ -273,12 +308,12 @@ def infer_video_script_and_mood(
         f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the entire walkthrough from a real estate smartphone video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
         f"{intent_guidance}\n"
         f"{principles_section}\n\n"
-        f"Based on what you visually see across all rooms, architecture, interior, lighting, finishes, and the user's linguistic guidance above, return a JSON response with:\n"
+        f"Based on what you visually see across all rooms, architecture, interior, lighting, finishes, and the user's instructions above, return a JSON response with:\n"
         f"1. 'script': The marketing voiceover script describing this specific property in chronological visual order as the camera moves through the space.\n"
         f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
         f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
-        f"If linguistic speech intent guidance is provided above, organically transform its intent into the spoken script. "
+        f"CRITICAL: NEVER speak or repeat user meta-instructions, directions, or overlay requests (e.g. 'أريد', 'رقم الهاتف', 'يظهر أسفل الفيديو') in the script. The script is strictly voiceover narration of the visual tour. "
         f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
         f"The script duration MUST strictly match the net speaking window: approximately {target_words} words (around {speech_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
         f"2. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
@@ -288,8 +323,10 @@ def infer_video_script_and_mood(
         f"   - 'acoustic_guitar' (best for cozy family homes, bright apartments, cheerful or modern spaces)\n"
         f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
         f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
-        f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n\n"
-        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights'."
+        f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n"
+        f"6. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
+        f"7. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
+        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'phone_number', 'bottom_text'."
     )
     parts.append({"text": prompt})
 
@@ -357,10 +394,12 @@ def infer_video_script_and_mood(
                         clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
 
                         parsed = json.loads(clean_json_str)
-                        inferred_script = str(parsed.get("script", "")).strip()
+                        inferred_script = sanitize_script_against_meta_prompts(str(parsed.get("script", "")).strip())
                         emotional_tone = str(parsed.get("emotional_tone", "فاخر وهادئ")).strip()
                         emotional_prompt = str(parsed.get("emotional_prompt", "Warm, prestigious, and calm real estate tone")).strip()
                         recommended_music = str(parsed.get("recommended_music", "luxury_piano")).strip().lower()
+                        phone_number = parsed.get("phone_number") or directives.get("phone_number")
+                        bottom_text = parsed.get("bottom_text") or directives.get("bottom_text")
 
                         if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
                             recommended_music = "luxury_piano"
@@ -379,6 +418,8 @@ def infer_video_script_and_mood(
                                 "emotional_prompt": emotional_prompt,
                                 "recommended_music": recommended_music,
                                 "highlights": parsed.get("highlights", []),
+                                "phone_number": phone_number,
+                                "bottom_text": bottom_text,
                                 "engine": "gemini_multimodal_vision",
                                 "model_used": model_name,
                                 "analyzed_frames_count": len(selected_frames),

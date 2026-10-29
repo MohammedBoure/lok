@@ -165,6 +165,10 @@ def parse_prompt_instructions(prompt_text: Optional[str]) -> Dict[str, Any]:
     if not clean_text:
         return instructions
 
+    # Parse directives (meta-prompts, phone numbers, persistent overlays)
+    dirs = extract_directives(clean_text)
+    instructions.update(dirs)
+
     # Parse speed modifiers: e.g. "speed: 1.2" or "speed=0.9" or "سريع" / "بطيء"
     speed_match = re.search(r"\bspeed\s*[:=]\s*(\d+(?:\.\d+)?)\s*x?", clean_text, re.IGNORECASE)
     if speed_match:
@@ -192,6 +196,132 @@ def parse_prompt_instructions(prompt_text: Optional[str]) -> Dict[str, Any]:
         instructions["tone"] = "professional"
 
     return instructions
+
+
+# ---------------------------------------------------------------------------
+# Prompt Intent & Directive Disentanglement System
+# ---------------------------------------------------------------------------
+
+ALGERIAN_PHONE_PATTERNS = [
+    re.compile(r'(?:\+213|00213|213)[\s.-]?([567])[\s.-]?(\d{2})[\s.-]?(\d{2})[\s.-]?(\d{2})[\s.-]?(\d{2})'),
+    re.compile(r'(?:\+213|00213|213)[\s.-]?([567]\d{8})'),
+    re.compile(r'\b(0[567])[\s.-]?(\d{2})[\s.-]?(\d{2})[\s.-]?(\d{2})[\s.-]?(\d{2})\b'),
+    re.compile(r'\b(0[567]\d{8})\b'),
+]
+
+META_DIRECTIVE_KEYWORDS = [
+    "أريد", "اريد", "اجعل", "اكتب", "ضع", "حط", "أضف", "اضف", "خليه", "دير", "ديرلي",
+    "تكلم", "احكي", "اعمل", "سوي", "ركز على", "يرجى", "الرجاء",
+    "أسفل الفيديو", "اسفل الفيديو", "تحت في الفيديو", "في الأسفل", "في اسفل", "شريط سفلي", "نص أسفل",
+    "طول ما الفيديو", "طوال الفيديو", "كامل الفيديو", "على مدار الفيديو", "شغال",
+    "تعليق صوتي", "صوت مع الفيديو", "يتناسب مع الفيديو", "وصف صوتي", "فويس اوفر", "voiceover",
+    "بالدارجة", "دارجة جزائرية", "لهجة جزائرية", "باللهجة",
+    "به الرقم التالي", "رقم الهاتف", "رقم الاتصال", "الرقم التالي", "اتصل بنا", "للاتصال",
+]
+
+
+def extract_algerian_phone(text: Optional[str]) -> Optional[str]:
+    """Extract and standardize Algerian mobile phone number (10 digits starting with 05, 06, or 07)."""
+    if not text:
+        return None
+    clean = str(text).replace("\xa0", " ")
+    for pattern in ALGERIAN_PHONE_PATTERNS:
+        match = pattern.search(clean)
+        if match:
+            groups = match.groups()
+            if len(groups) == 5:
+                first = groups[0] if groups[0].startswith("0") else f"0{groups[0]}"
+                return f"{first}{groups[1]}{groups[2]}{groups[3]}{groups[4]}"
+            elif len(groups) == 1:
+                num = groups[0]
+                return num if num.startswith("0") else f"0{num}"
+    return None
+
+
+def is_meta_prompt(text: Optional[str]) -> bool:
+    """
+    Determine whether input represents meta-directions (instructions, phone overlay,
+    Darja narration request) rather than a literal voiceover script to read word-for-word.
+    """
+    if not text:
+        return False
+    norm = str(text).strip().lower()
+    if not norm:
+        return False
+    count = sum(1 for kw in META_DIRECTIVE_KEYWORDS if kw in norm)
+    if count >= 1:
+        return True
+    cleaned_digits = re.sub(r"[\s.-]", "", norm)
+    if re.search(r"(?:0|\+?213)[567]\d{8}", cleaned_digits):
+        if any(w in norm for w in ["رقم", "هاتف", "اتصال", "اتصل", "نص", "فيديو", "اسفل", "أسفل", "طول", "شغال"]):
+            return True
+    return False
+
+
+def extract_directives(text: Optional[str]) -> Dict[str, Any]:
+    """
+    Parse freeform creative user instructions, extracting meta-intent flags,
+    phone number, persistent bottom overlay text, and styling preferences.
+    """
+    raw = str(text or "").strip()
+    is_meta = is_meta_prompt(raw)
+    phone = extract_algerian_phone(raw)
+
+    bottom_text: Optional[str] = None
+    if phone:
+        bottom_text = phone
+
+    if raw and is_meta:
+        m_quoted = re.search(r'["“\']([^"”\']+)["”\']', raw)
+        if m_quoted:
+            bottom_text = m_quoted.group(1).strip()
+        elif not phone:
+            m_custom = re.search(r"(?:نص(?:اً)? أسفل الفيديو|الشريط السفلي|اكتب في الأسفل|ضع في الأسفل)(?:\s*به|\s*فيه|\s*:)?\s*([^\n.،]+)", raw)
+            if m_custom:
+                extracted_phrase = m_custom.group(1).strip()
+                cleaned_phrase = re.sub(r"^(?:الرقم التالي|رقم|به الرقم التالي)\s*", "", extracted_phrase).strip()
+                if cleaned_phrase:
+                    bottom_text = cleaned_phrase
+
+    darja_requested = any(w in raw.lower() for w in ["دارجة", "بالدارجة", "لهجة جزائرية", "جزائرية"])
+    voiceover_requested = any(w in raw.lower() for w in ["تعليق صوتي", "صوت", "فويس اوفر", "voiceover", "نص يتناسب"])
+    persistent_overlay = any(w in raw.lower() for w in ["طول ما الفيديو", "طوال الفيديو", "كامل الفيديو", "دائم", "طول الفيديو", "شغال"])
+
+    return {
+        "is_meta_prompt": is_meta,
+        "phone_number": phone,
+        "bottom_text": bottom_text,
+        "darja_requested": darja_requested,
+        "voiceover_requested": voiceover_requested,
+        "persistent_overlay": persistent_overlay,
+        "raw_text": raw,
+    }
+
+
+def sanitize_script_against_meta_prompts(
+    script: Optional[str],
+    fallback_hint: Optional[str] = None
+) -> str:
+    """
+    Ensure the synthesized script does not leak user instructions, meta-prompts,
+    or LLM labeling prefixes (e.g. 'السيناريو:', 'التعليق الصوتي:').
+    If the script itself is a meta-prompt, returns a clean marketing narration in Algerian Darja.
+    """
+    default_darja = "شوفو معايا هاد العقار الاستثنائي بتصميم راقي وتشطيبات عصرية، موقع هادئ وقريب من كل المرافق الحيوية في قلب المدينة."
+    if not script or not str(script).strip():
+        return default_darja
+
+    clean = str(script).strip()
+    clean = re.sub(r"^```(?:json|text)?\s*", "", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"\s*```$", "", clean)
+
+    clean = re.sub(r"^(?:السيناريو|التعليق الصوتي|نص التعليق|نص الإعلان|Voiceover|Script)\s*[:：\-]\s*", "", clean, flags=re.IGNORECASE)
+    clean = clean.strip(' "“\'')
+
+    if is_meta_prompt(clean) and any(w in clean for w in ["أريد أن يظهر", "طول ما الفيديو شغال", "به الرقم التالي", "يظهر النص التالي"]):
+        return default_darja
+
+    return clean
 
 
 def get_presets_list() -> List[Dict[str, str]]:
@@ -608,6 +738,8 @@ def process_mobile_video(
     text_position: Optional[str] = "lower_third",
     text_style: Optional[str] = "modern_white",
     video_orientation: Optional[str] = None,
+    bottom_text: Optional[str] = None,
+    phone_number: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -636,6 +768,30 @@ def process_mobile_video(
         style_prompt = sanitize_and_validate_prompt(style_prompt)
     if fixed_text:
         fixed_text = sanitize_and_validate_prompt(fixed_text)
+    if bottom_text:
+        bottom_text = sanitize_and_validate_prompt(bottom_text)
+
+    # Directive & Intent Disentanglement:
+    # Check all incoming text fields for phone numbers and instructions
+    all_incoming_texts = [t for t in [script, speech_description, visual_description, fixed_text, bottom_text] if t and str(t).strip()]
+    merged_text = "\n".join(all_incoming_texts)
+    parsed_dirs = extract_directives(merged_text)
+
+    if not phone_number:
+        phone_number = parsed_dirs.get("phone_number")
+    if not bottom_text:
+        bottom_text = parsed_dirs.get("bottom_text") or (phone_number if phone_number else None)
+
+    # Disentangle script: if script was provided as a meta-instruction (e.g. asking for video text or phone overlay),
+    # do NOT speak it! Redirect to speech_description and activate auto_mode.
+    if script and is_meta_prompt(script):
+        logger.info("Disentangling user meta-prompt instructions from narration script: %s", script[:80])
+        if speech_description:
+            speech_description = f"{speech_description}\n{script}"
+        else:
+            speech_description = script
+        script = None
+        auto_mode = True
 
     # Generate unique job identifier
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -789,12 +945,16 @@ def process_mobile_video(
                 visual_lead_in=visual_lead_in,
                 outro_buffer=outro_buffer,
             )
-            inferred_script = vision_result.get("script")
+            inferred_script = sanitize_script_against_meta_prompts(vision_result.get("script"))
             selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
             resolved_tone = emotional_tone or vision_result.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
             resolved_style_prompt = style_prompt or vision_result.get("emotional_prompt")
             inferred_music = vision_result.get("recommended_music")
             vision_engine = vision_result.get("engine")
+            if not phone_number and vision_result.get("phone_number"):
+                phone_number = vision_result.get("phone_number")
+            if not bottom_text and vision_result.get("bottom_text"):
+                bottom_text = vision_result.get("bottom_text")
         except Exception as exc:
             logger.warning("Vision analysis error: %s. Using fallback.", exc)
             from web.vision_analyzer import _get_smart_fallback
@@ -807,12 +967,16 @@ def process_mobile_video(
                 outro_buffer=outro_buffer,
                 keyframe_count=len(keyframe_files),
             )
-            selected_script = fb_res.get("script") or DEFAULT_PROMO_SCRIPT
+            selected_script = sanitize_script_against_meta_prompts(fb_res.get("script")) or DEFAULT_PROMO_SCRIPT
             inferred_script = selected_script
             resolved_tone = emotional_tone or fb_res.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
             resolved_style_prompt = style_prompt or fb_res.get("emotional_prompt") or "Warm, luxurious and prestigious real estate tone"
             inferred_music = fb_res.get("recommended_music", "luxury_piano")
             vision_engine = "fallback_on_error"
+            if not phone_number and fb_res.get("phone_number"):
+                phone_number = fb_res.get("phone_number")
+            if not bottom_text and fb_res.get("bottom_text"):
+                bottom_text = fb_res.get("bottom_text")
 
         _notify(
             step=3,
@@ -831,7 +995,7 @@ def process_mobile_video(
         inferred_script = None
         inferred_music = None
         if script and script.strip():
-            selected_script = script.strip()
+            selected_script = sanitize_script_against_meta_prompts(script.strip())
             selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
         elif preset_id and preset_id in ALGERIAN_REAL_ESTATE_PRESETS:
             selected_script = ALGERIAN_REAL_ESTATE_PRESETS[preset_id]["description"]
@@ -1019,8 +1183,22 @@ def process_mobile_video(
     applied_annotations_count = 0
     annotations_list: List[Dict[str, Any]] = []
 
+    # Insert persistent bottom text / phone number overlay
+    effective_bottom = bottom_text or (phone_number if phone_number else None)
+    if effective_bottom and str(effective_bottom).strip():
+        annotations_list.append({
+            "text": str(effective_bottom).strip(),
+            "start_sec": 0.0,
+            "end_sec": total_duration,
+            "position": "bottom_banner",
+            "style": "persistent_bottom",
+            "font_size": 28,
+            "boxborderw": 8,
+            "persistent": True,
+        })
+
     # Insert fixed promotional text if supplied by merchant
-    if fixed_text and str(fixed_text).strip():
+    if fixed_text and str(fixed_text).strip() and str(fixed_text).strip() != str(effective_bottom or "").strip():
         annotations_list.append({
             "text": str(fixed_text).strip(),
             "start_sec": 0.0,
@@ -1119,6 +1297,8 @@ def process_mobile_video(
         "aspect_ratio": aspect_label,
         "resolution": f"{target_w}x{target_h}",
         "fixed_text": fixed_text,
+        "bottom_text": effective_bottom,
+        "phone_number": phone_number,
         "text_position": text_position,
         "text_style": text_style,
         "auto_mode": is_auto_mode,
