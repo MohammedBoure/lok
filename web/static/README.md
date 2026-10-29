@@ -131,6 +131,24 @@ Accessible via `#btnOpenSettings` and dismissible via `#btnSettingsBack` (`"← 
 - **Dual Session Persistence**: Stores `session_token` and `auth_token` simultaneously across `localStorage` and `document.cookie` (`path=/; max-age=604800; SameSite=Lax`), ensuring smooth multi-tab consistency and API compatibility.
 - **Robust Video Production Dispatch**: Enforces authenticated requests sending `Authorization: Bearer <token>` and `credentials: 'include'` for both `/api/jobs/create` and `/api/upload-and-process`, with real-time multistep progress feedback.
 
+### E. Dynamic Video Playback, Cache-Busting & Real-Time Stepper Pipeline
+- **Dynamic Video Source Resolution**:
+  - The video player (`#resultVideo`) never hardcodes `/outputs/final_cut.mp4` as the sole video source.
+  - Dynamically inspects the backend response: `data.video_url || data.output_video_url || data.output_video || data.result?.video_url || data.result?.output_video_url || '/outputs/final_cut.mp4'`.
+- **Cache-Busting URL Construction (`?v=Date.now()`)**:
+  - Appends a high-precision timestamp parameter (`?v=${Date.now()}`) to the resolved video source URL.
+  - Guarantees that mobile browsers (iOS Safari, Android Chrome) and desktop clients bypass HTTP 304 Not Modified caches and immediately play the newly generated cut.
+  - Dynamically updates `#btnDownloadVideo` (with dedicated download filename `lok_<job_id>.mp4`) and the direct video share link `#btnShareVideo`.
+- **Real-Time Backend Telemetry Stepper (`#processingStepper`)**:
+  - Dynamically maps telemetry events from `/api/status/{job_id}` across five processing stages:
+    1. **Extracting Frames (`#stepFrames`)**: Video format probing and keyframe extraction.
+    2. **Vision AI Analysis (`#stepAnalyze`)**: Architectural & product scene analysis via multimodal AI.
+    3. **Speech Generation (`#stepVoice`)**: Algerian Darja neural TTS narration synthesis.
+    4. **Video Rendering (`#stepRender`)**: Audio-video assembly, ducking, and rendering.
+    5. **Annotations (`#stepAnnotations`)**: Marketing badges, textual overlays, and final packaging.
+- **Strict Completion Gating**:
+  - Polling keeps the progress indicator active and guards against prematurely revealing the result container (`#resultContainer`) or setting `video.src` until the backend explicitly returns `status === 'completed'` or progress reaches 100%.
+
 ---
 
 ## 5. Bootstrap Admin Portal (`/admin` -> `admin.html`)

@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Unified Authentication, Plutosw4 Studio Access & E2E Pipeline Quotas",
-      "branch": "backend/agy11-unified-auth-and-pipeline-fixes",
-      "scope": "Investigate why POST /api/auth/login returns 401 Unauthorized for accounts created via admin portal and for master admin pluto. Ensure: 1) Master admin pluto (with password plutosw4) can log into both /api/auth/login (client studio) and /api/admin/login (admin portal). 2) All merchant accounts created via /api/admin/accounts can log into /api/auth/login with their configured password (PBKDF2 verification and password hashing consistency). 3) Support whitespace trimming and case-insensitive username lookup. 4) Ensure GET /api/auth/session and GET /api/auth/me recognize session tokens from both endpoints and return valid quotas. 5) Ensure pluto has unlimited quota (role='admin') and merchants have valid quotas. 6) Verify /api/jobs/create and /api/upload-and-process accept session tokens via Bearer header or cookie and successfully process video cuts without 401/403 errors. 7) Verify zero U+0669 characters. Update web/README.md; commit as MohammedBoure on branch backend/agy11-unified-auth-and-pipeline-fixes; notify coordinator.",
+      "role": "Backend Dynamic Video Pipeline, Vision Models & Atomic Job Result Exposure",
+      "branch": "backend/agy11-dynamic-video-pipeline-and-vision-models",
+      "scope": "1) Gemini Vision Model Updates: In vision_analyzer.py, replace retired models returning 404 (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-pro) with active models (gemini-3.8-flash, gemini-2.5-flash, gemini-3.1-pro-preview), increase read timeout if needed, and ensure uploaded video keyframes are successfully analyzed by Gemini Vision without premature fallback. 2) Atomic Job Result Exposure & Video Dynamic URL: In web/server.py and web/pipeline_bridge.py, ensure /api/status/{job_id} reports 'completed' only AFTER the final cut and video annotations are 100% finished and flushed to disk. Return the dynamic output video URL for the specific job (e.g. data['video_url'] / data['output_video_url']) and atomically update /outputs/final_cut.mp4. Support serving the specific job cut. 3) Author tests in tests/test_dynamic_video_pipeline.py. 4) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "IN_PROGRESS"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Gated Login UX, Input Sanitation & Video Production Flow Auditing",
-      "branch": "frontend/agy51-login-ux-and-studio-pipeline",
-      "scope": "In web/static/app.js and web/static/index.html: 1) Audit the client login form (#loginView): trim input values, support Enter key submission, provide distinct user-friendly Arabic error messages if credentials fail (401) or account is suspended/expired (403). 2) Ensure credentials pluto / plutosw4 as well as any merchant account work seamlessly. 3) Store session token consistently in localStorage and cookie so /api/auth/session and subsequent API calls succeed. 4) Ensure the video production request (#btnProduceVideo) attaches the session token in Authorization header and handles both /api/jobs/create and /api/upload-and-process gracefully with clear progress indicators. 5) Audit visual/DOM state transitions between loginView, studioView, and settingsModal. 6) Verify zero U+0669 characters. Update web/static/README.md; commit as MohammedBoure on branch frontend/agy51-login-ux-and-studio-pipeline; notify coordinator.",
+      "role": "Frontend Dynamic Video Result Loading, Cache Busting & Premature Playback Guard",
+      "branch": "frontend/agy51-dynamic-video-playback-and-stepper",
+      "scope": "1) In web/static/app.js: Ensure #resultVideo strictly waits until /api/status/{job_id} returns status === 'completed' before setting video.src and revealing the result card. 2) Never load stale /outputs/final_cut.mp4 prematurely; use the dynamic video_url or output_video_url returned by the status API, and append a cache-busting query parameter (?v=Date.now()) to prevent mobile browsers from showing cached cuts. 3) Ensure the download button (#btnDownloadVideo) and share button link to the exact new cut. 4) Ensure stepper displays live progress accurately across all steps. 5) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
-      "agent_id": "agy101",
+      "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Visual, Experiential & E2E Automated Integration Gatekeeper",
-      "branch": "test/agy101-e2e-auth-and-video-production-gatekeeper",
-      "scope": "Author comprehensive end-to-end integration and visual/experiential tests in tests/test_e2e_auth_and_video_pipeline.py: 1) Admin pluto login -> create new merchant account via /api/admin/accounts. 2) Login to /api/auth/login as pluto AND as newly created merchant. 3) Verify /api/auth/session and quota allowance. 4) Produce video through /api/jobs/create and /api/upload-and-process end-to-end. 5) Test visual/DOM state transitions and error messages. 6) Verify zero U+0669 characters across repository. Merge backend and frontend into develop; commit as MohammedBoure; notify coordinator.",
+      "role": "Integration Gatekeeper & E2E Dynamic Video Delivery Verification",
+      "branch": "test/agy100-dynamic-video-delivery-gatekeeper",
+      "scope": "Author integration and E2E verification tests in tests/test_dynamic_video_delivery.py: 1) Verify vision model hierarchy and retry resiliency. 2) Verify status polling states (extracting -> analyzing -> synthesizing -> rendering -> annotating -> completed) and verify output video URL returned is dynamic and specific to the job. 3) Verify that /api/status/{job_id} does not return completed until output file exists and is readable. 4) Verify frontend DOM contracts for dynamic video playback and cache-busting. 5) Run test suites, verify zero U+0669 across repository, merge backend and frontend branches into develop, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
       "dependencies": [
-        "backend/agy11-unified-auth-and-pipeline-fixes",
-        "frontend/agy51-login-ux-and-studio-pipeline"
+        "backend/agy11-dynamic-video-pipeline-and-vision-models",
+        "frontend/agy51-dynamic-video-playback-and-stepper"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }

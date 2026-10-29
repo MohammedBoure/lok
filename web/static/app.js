@@ -223,15 +223,18 @@
     processingStepper: document.getElementById("processingStepper"),
     stepperStatusText: document.getElementById("stepperStatusText"),
     stepperFill: document.getElementById("stepperFill"),
+    stepFrames: document.getElementById("stepFrames"),
     stepAnalyze: document.getElementById("stepAnalyze"),
     stepScript: document.getElementById("stepScript"),
     stepVoice: document.getElementById("stepVoice"),
     stepRender: document.getElementById("stepRender"),
+    stepAnnotations: document.getElementById("stepAnnotations"),
 
     // Result Card
     resultContainer: document.getElementById("resultContainer"),
     resultVideo: document.getElementById("resultVideo"),
     btnDownloadVideo: document.getElementById("btnDownloadVideo"),
+    btnShareVideo: document.getElementById("btnShareVideo"),
     btnStartNewProduction: document.getElementById("btnStartNewProduction"),
 
     // Settings View
@@ -1098,13 +1101,13 @@
 
     // Start Stepper with live production status
     startStepper();
-    updateStepperStatus("1. جاري تحميل مقطع الفيديو والتحقق من الجلسة...", 15, "stepAnalyze");
+    updateStepperStatus("1. جاري استخراج الإطارات وفحص خصائص الفيديو...", 15, "stepFrames");
 
     try {
       let jobId = null;
 
       try {
-        updateStepperStatus("2. جاري تحليل المشاهد وصياغة السيناريو الذكي...", 35, "stepScript");
+        updateStepperStatus("2. جاري تحليل المشاهد وصياغة السيناريو الذكي...", 35, "stepAnalyze");
         const createResp = await fetch("/api/jobs/create", {
           method: "POST",
           headers: headers,
@@ -1132,9 +1135,8 @@
       if (jobId) {
         state.activeJobId = jobId;
         localStorage.setItem(ACTIVE_JOB_KEY, jobId);
-        updateStepperStatus("3. جاري توليد الصوت بالدارجة والمونتاج التلقائي...", 70, "stepVoice");
         const finalData = await pollJobStatus(jobId);
-        updateStepperStatus("4. إتمام المونتاج النهائي للفيديو...", 95, "stepRender");
+        updateStepperStatus("اكتمل إنتاج الفيديو التسويقي بنجاح!", 100, "stepAnnotations");
         finishStepper(true, finalData);
       } else {
         // Fallback upload-and-process
@@ -1159,7 +1161,7 @@
         }
 
         const data = await resp.json();
-        updateStepperStatus("4. إتمام المونتاج النهائي للفيديو...", 100, "stepRender");
+        updateStepperStatus("اكتمل إنتاج الفيديو التسويقي بنجاح!", 100, "stepAnnotations");
         finishStepper(true, data);
       }
 
@@ -1168,16 +1170,47 @@
     }
   }
 
-  function updateStepperStatus(statusText, progressPercent, activeStepId) {
-    if (dom.stepperStatusText) dom.stepperStatusText.textContent = statusText;
-    if (dom.stepperFill) dom.stepperFill.style.width = `${progressPercent}%`;
+  function buildDynamicVideoUrl(rawUrl) {
+    if (!rawUrl) return "";
+    const buster = `v=${Date.now()}`;
+    return rawUrl.includes("?") ? `${rawUrl}&${buster}` : `${rawUrl}?${buster}`;
+  }
 
-    const steps = ["stepAnalyze", "stepScript", "stepVoice", "stepRender"];
+  function resolveStepFromTelemetry(stepNum, percent, message) {
+    const msg = (message || "").toLowerCase();
+    if (msg.includes("ملصق") || msg.includes("نصوص") || msg.includes("كتاب") || stepNum >= 5 || percent >= 95) {
+      return "stepAnnotations";
+    }
+    if (msg.includes("رندرة") || msg.includes("مونتاج") || msg.includes("موسيقى") || stepNum === 4 || (percent >= 80 && percent < 95)) {
+      return "stepRender";
+    }
+    if (msg.includes("صوت") || msg.includes("تعليق") || msg.includes("tts") || (percent >= 65 && percent < 80)) {
+      return "stepVoice";
+    }
+    if (msg.includes("سيناريو") || msg.includes("وصف") || (percent >= 45 && percent < 65)) {
+      return "stepScript";
+    }
+    if (msg.includes("vision") || msg.includes("تحليل") || msg.includes("مشاهد") || stepNum === 2 || (percent >= 25 && percent < 45)) {
+      return "stepAnalyze";
+    }
+    return "stepFrames";
+  }
+
+  function updateStepperStatus(statusText, progressPercent, activeStepId) {
+    if (dom.stepperStatusText && statusText) {
+      dom.stepperStatusText.textContent = statusText;
+    }
+    const percent = Math.max(5, Math.min(100, Math.round(progressPercent || 0)));
+    if (dom.stepperFill) {
+      dom.stepperFill.style.width = `${percent}%`;
+    }
+
+    const steps = ["stepFrames", "stepAnalyze", "stepScript", "stepVoice", "stepRender", "stepAnnotations"];
     const activeIdx = steps.indexOf(activeStepId);
-    steps.forEach((step, idx) => {
-      const el = document.getElementById(step);
+    steps.forEach((stepId, idx) => {
+      const el = document.getElementById(stepId);
       if (el) {
-        el.classList.toggle("active", idx <= activeIdx);
+        el.classList.toggle("active", activeIdx >= 0 ? idx <= activeIdx : false);
       }
     });
   }
@@ -1186,55 +1219,70 @@
     state.isProcessing = true;
     if (dom.processingStepper) dom.processingStepper.style.display = "block";
     if (dom.resultContainer) dom.resultContainer.style.display = "none";
+    if (dom.resultVideo) {
+      dom.resultVideo.removeAttribute("src");
+      dom.resultVideo.load();
+    }
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = true;
 
     animateStepperProgress();
   }
 
   function animateStepperProgress() {
-    let p = 20;
+    let p = 15;
     const interval = setInterval(() => {
       if (!state.isProcessing) {
         clearInterval(interval);
         return;
       }
-      p = Math.min(92, p + Math.floor(Math.random() * 6) + 3);
+      p = Math.min(92, p + Math.floor(Math.random() * 4) + 2);
       if (dom.stepperFill) dom.stepperFill.style.width = `${p}%`;
-
-      if (p > 35 && dom.stepScript) dom.stepScript.classList.add("active");
-      if (p > 65 && dom.stepVoice) dom.stepVoice.classList.add("active");
-      if (p > 85 && dom.stepRender) dom.stepRender.classList.add("active");
-    }, 900);
+      const stepId = resolveStepFromTelemetry(0, p, "");
+      const steps = ["stepFrames", "stepAnalyze", "stepScript", "stepVoice", "stepRender", "stepAnnotations"];
+      const activeIdx = steps.indexOf(stepId);
+      steps.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle("active", idx <= activeIdx);
+      });
+    }, 1200);
   }
 
   async function pollJobStatus(jobId) {
     let attempts = 0;
-    while (attempts < 60) {
+    const maxAttempts = 120;
+    while (attempts < maxAttempts) {
       attempts++;
       await new Promise(r => setTimeout(r, 1500));
       try {
-        const headers = state.sessionToken ? { "Authorization": `Bearer ${state.sessionToken}` } : {};
+        const token = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
+        const headers = token ? { "Authorization": `Bearer ${token}` } : {};
         const resp = await fetch(`/api/status/${jobId}`, {
           headers: headers,
           credentials: "include"
         });
         if (resp.ok) {
           const d = await resp.json();
-          if (d.progress) {
-            updateStepperStatus(`جاري الإنتاج (${d.progress}%): ${d.step || "معالجة الفيديو"}...`, d.progress, "stepVoice");
-          }
-          if (d.status === "completed" || d.status === "done") {
+          const percent = d.progress_percent !== undefined ? d.progress_percent : (d.progress !== undefined ? d.progress : 15);
+          const msg = d.message || d.step_description || "جاري معالجة الفيديو وإنتاج المحتوى الذكي...";
+          const stepId = resolveStepFromTelemetry(d.step, percent, msg);
+
+          // Real-time stage reflection (Extracting frames, Vision AI analysis, Speech generation, Video rendering, Annotations)
+          updateStepperStatus(msg, percent, stepId);
+
+          const isComplete = (d.status === "completed" || d.status === "done" || percent >= 100);
+          if (isComplete) {
+            // DO NOT load or reveal the video card or set video.src until status === 'completed' or progress === 100
             return d;
           }
-          if (d.status === "failed") {
+          if (d.status === "failed" || d.status === "error") {
             throw new Error(d.error || d.message || "فشلت معالجة الفيديو.");
           }
         }
       } catch (e) {
-        if (attempts > 20) throw e;
+        if (attempts > 30) throw e;
       }
     }
-    return { status: "completed", output_video: "/outputs/final_cut.mp4" };
+    throw new Error("استغرقت معالجة الفيديو وقتاً طويلاً. يرجى التحقق من لوحة التحكم أو إعادة المحاولة.");
   }
 
   function finishStepper(success, data, errorMsg) {
@@ -1243,18 +1291,37 @@
     if (dom.processingStepper) dom.processingStepper.style.display = "none";
 
     if (success) {
-      const videoSrc = data?.output_video || data?.video_url || "/outputs/final_cut.mp4";
+      // NEVER hardcode '/outputs/final_cut.mp4' as the sole video source!
+      // Dynamically inspect data.video_url || data.output_video_url || ...
+      const rawVideoUrl = (data && (
+        data.video_url ||
+        data.output_video_url ||
+        data.output_video ||
+        (data.result && (data.result.video_url || data.result.output_video_url || data.result.output_video))
+      )) || "/outputs/final_cut.mp4";
+
+      // Append timestamp cache-busting query parameter (?v=Date.now()) to video src
+      const dynamicVideoSrc = buildDynamicVideoUrl(rawVideoUrl);
+
       if (dom.resultVideo) {
-        dom.resultVideo.src = videoSrc;
+        dom.resultVideo.src = dynamicVideoSrc;
         dom.resultVideo.load();
       }
       if (dom.btnDownloadVideo) {
-        dom.btnDownloadVideo.href = videoSrc;
+        dom.btnDownloadVideo.href = dynamicVideoSrc;
+        const jobSlug = (data && data.job_id) ? `lok_${data.job_id}.mp4` : "lok_production.mp4";
+        dom.btnDownloadVideo.setAttribute("download", jobSlug);
       }
-      if (dom.resultContainer) dom.resultContainer.style.display = "block";
-      dom.resultContainer?.scrollIntoView({ behavior: "smooth" });
+      if (dom.btnShareVideo) {
+        dom.btnShareVideo.href = dynamicVideoSrc;
+      }
+      if (dom.resultContainer) {
+        dom.resultContainer.style.display = "block";
+        dom.resultContainer.scrollIntoView({ behavior: "smooth" });
+      }
       showToast("تم إنجاز الفيديو التسويقي بنجاح! 🎉");
     } else {
+      if (dom.resultContainer) dom.resultContainer.style.display = "none";
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
     }
   }
@@ -1265,6 +1332,10 @@
     if (dom.dropzoneIdleContent) dom.dropzoneIdleContent.style.display = "block";
     if (dom.dropzoneSelectedContent) dom.dropzoneSelectedContent.style.display = "none";
     if (dom.resultContainer) dom.resultContainer.style.display = "none";
+    if (dom.resultVideo) {
+      dom.resultVideo.removeAttribute("src");
+      dom.resultVideo.load();
+    }
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
