@@ -792,5 +792,44 @@ The server inspects candidate authentication credentials using a deterministic 5
 - Verified users are dynamically checked for quota availability (`check_quota`) and account lifecycle status (`valid_from`, `expires_at`, `status`).
 - Successful post-production jobs are automatically recorded in SaaS generation audit history (`video_generations`).
 
+---
+
+## 11. Dynamic Video Pipeline, Vision Models & Atomic Job Delivery
+
+### Gemini Vision Model Hierarchy & Resiliency
+To ensure video keyframes are genuinely analyzed rather than prematurely falling back to generic scripts, the multimodal vision engine (`web/vision_analyzer.py`) implements a resilient model failover architecture:
+1. **Active High-Performance Vision Models**:
+   - `gemini-3.8-flash`: Primary high-speed multimodal vision analyzer.
+   - `gemini-2.5-flash`: Secondary robust multimodal fallback.
+   - `gemini-3.1-pro-preview`: Advanced analytical vision fallback.
+   - *Retired models (`gemini-1.5-flash`, `gemini-2.0-flash`, `gemini-2.5-pro`) that previously returned HTTP 404 have been deprecated and removed.*
+2. **Extended Timeout & Retry Support**:
+   - Read timeout increased to **45 seconds** (`GEMINI_VISION_READ_TIMEOUT=45.0`) to comfortably accommodate dense keyframe image payloads.
+   - Transient network errors and timeouts automatically trigger a retry before falling back to the next model in the hierarchy.
+   - HTTP 404 responses immediately trigger fast failover to the next active candidate model.
+   - If all API candidates fail, the system activates the smart architectural heuristic fallback (`_get_smart_fallback`).
+
+### Dynamic Job Video Output & Premature Completion Guard
+To eliminate stale cached video loads and playback failures on mobile browsers:
+1. **Premature Completion Guard (`/api/status/{job_id}`)**:
+   - The status endpoint strictly verifies that the output cut file (`outputs/mobile_cuts/cut_{job_id}.mp4`) is completely written, non-empty, and closed on disk.
+   - If a job is nearing completion but the file is not yet finalized, the endpoint holds status at `processing` (progress: 98%), preventing clients from loading unrendered or partial files.
+   - Reports `status: 'completed'` and `progress: 100` **only** when the final cut and all FFmpeg video annotations have successfully finished rendering and flushed to disk.
+2. **Dynamic URL Exposure**:
+   - Every completed job response dynamically exposes:
+     - `"video_url"`: `/outputs/mobile_cuts/cut_{job_id}.mp4`
+     - `"output_video_url"`: `/outputs/mobile_cuts/cut_{job_id}.mp4`
+     - `"output_video"`: `/outputs/mobile_cuts/cut_{job_id}.mp4`
+     - `"file_size_bytes"`: Real-time byte count of the rendered MP4 file.
+3. **Atomic Legacy Mirroring**:
+   - Upon completion, the rendered video cut is atomically copied to `outputs/final_cut.mp4` via a temporary file (`outputs/final_cut_{job_id}.mp4.tmp`) using atomic filesystem replacement (`replace()`). This guarantees that legacy consumers always receive a complete, valid cut without race conditions.
+
+### Video Cut Endpoint Streaming (`/outputs/mobile_cuts/{filename}`)
+The server provides a dedicated endpoint for serving rendered cuts:
+- **Route**: `GET /outputs/mobile_cuts/{filename}`
+- **MIME Type**: `video/mp4`
+- **Byte-Range Support**: Full HTTP 206 Partial Content streaming support with `Range` and `Content-Range` headers, allowing seamless seek and playback across desktop and mobile browsers.
+
+
 
 

@@ -273,7 +273,8 @@ def _execute_processing_job(
             "job_id": job_id,
             "status": "processing",
             "step": event.get("step", 1),
-            "progress_percent": event.get("progress_percent", 15),
+            "progress": event.get("percent") or event.get("progress_percent", 15),
+            "progress_percent": event.get("percent") or event.get("progress_percent", 15),
             "message": event.get("message", "جاري المعالجة..."),
             "agent_logs": agent_logs,
             "auto_mode": auto_mode,
@@ -339,12 +340,44 @@ def _execute_processing_job(
             except Exception as pe:
                 logger.warning("Failed to auto-save prompt in background job: %s", pe)
 
+        # Verify output cut file if present on disk
+        cut_file = None
+        for cand in [summary.get("output_path"), summary.get("video_path"), OUTPUTS_DIR / "mobile_cuts" / f"cut_{job_id}.mp4"]:
+            if cand and Path(cand).is_file():
+                cut_file = Path(cand)
+                break
+
+        video_web_url = summary.get("video_url") or f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+        summary["video_url"] = video_web_url
+        summary["output_video_url"] = video_web_url
+        summary["output_video"] = video_web_url
+        summary["progress"] = 100
+        summary["progress_percent"] = 100
+        summary.setdefault("status", "completed")
+
+        if cut_file:
+            summary["file_size_bytes"] = cut_file.stat().st_size
+            # Atomically update legacy outputs/final_cut.mp4 for backward compatibility
+            try:
+                legacy_final = OUTPUTS_DIR / "final_cut.mp4"
+                legacy_tmp = OUTPUTS_DIR / f"final_cut_{job_id}.mp4.tmp"
+                shutil.copyfile(cut_file, legacy_tmp)
+                legacy_tmp.replace(legacy_final)
+                logger.info("Job %s: Atomically mirrored to legacy %s", job_id, legacy_final)
+            except Exception as l_err:
+                logger.warning("Job %s: Failed to mirror to legacy final_cut.mp4: %s", job_id, l_err)
+
         JOBS_STORE[job_id] = summary
         PROGRESS_STORE[job_id] = {
             "job_id": job_id,
             "status": "completed",
             "step": 5,
+            "progress": 100,
             "progress_percent": 100,
+            "video_url": video_web_url,
+            "output_video_url": video_web_url,
+            "output_video": video_web_url,
+            "file_size_bytes": cut_file.stat().st_size if cut_file else summary.get("file_size_bytes", 0),
             "message": "اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
             "agent_logs": PROGRESS_STORE.get(job_id, {}).get("agent_logs", []) + ["اكتملت جميع مراحل المعالجة بنجاح."],
             "auto_mode": summary.get("auto_mode", auto_mode),
@@ -864,18 +897,52 @@ async def upload_and_process(request: Request) -> JSONResponse:
 
         assigned_job_id = summary.get("job_id", job_id)
         summary["job_id"] = assigned_job_id
+
+        # Verify output cut file if present on disk
+        cut_file = None
+        for cand in [summary.get("output_path"), summary.get("video_path"), OUTPUTS_DIR / "mobile_cuts" / f"cut_{assigned_job_id}.mp4"]:
+            if cand and Path(cand).is_file():
+                cut_file = Path(cand)
+                break
+
+        video_web_url = summary.get("video_url") or f"/outputs/mobile_cuts/cut_{assigned_job_id}.mp4"
+        summary["video_url"] = video_web_url
+        summary["output_video_url"] = video_web_url
+        summary["output_video"] = video_web_url
+        summary["progress"] = 100
+        summary["progress_percent"] = 100
+        summary.setdefault("status", "completed")
+
+        if cut_file:
+            summary["file_size_bytes"] = cut_file.stat().st_size
+            # Atomically update legacy outputs/final_cut.mp4 for backward compatibility
+            try:
+                legacy_final = OUTPUTS_DIR / "final_cut.mp4"
+                legacy_tmp = OUTPUTS_DIR / f"final_cut_{assigned_job_id}.mp4.tmp"
+                shutil.copyfile(cut_file, legacy_tmp)
+                legacy_tmp.replace(legacy_final)
+                logger.info("Job %s: Atomically mirrored upload cut to legacy %s", assigned_job_id, legacy_final)
+            except Exception as l_err:
+                logger.warning("Job %s: Failed to mirror upload cut to legacy final_cut.mp4: %s", assigned_job_id, l_err)
+
         JOBS_STORE[assigned_job_id] = summary
         PROGRESS_STORE[assigned_job_id] = {
             "job_id": assigned_job_id,
             "status": "completed",
             "step": 5,
+            "progress": 100,
             "progress_percent": 100,
+            "video_url": video_web_url,
+            "output_video_url": video_web_url,
+            "output_video": video_web_url,
+            "file_size_bytes": cut_file.stat().st_size if cut_file else summary.get("file_size_bytes", 0),
             "message": "اكتمل الإنتاج بنجاح!",
             "auto_mode": summary.get("auto_mode", auto_mode),
             "emotional_tone": summary.get("emotional_tone"),
             "inferred_script": summary.get("inferred_script"),
             "user_id": user["id"],
             "result": summary,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         return JSONResponse(summary, status_code=200)
 
@@ -897,20 +964,64 @@ async def get_job_status(request: Request) -> JSONResponse:
     if not job_id:
         return JSONResponse({"error": "Missing job_id parameter."}, status_code=400)
 
+    output_cut_file = OUTPUTS_DIR / "mobile_cuts" / f"cut_{job_id}.mp4"
+    video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+
     # 1. Check in-flight progress telemetry
     if job_id in PROGRESS_STORE:
         p_data = PROGRESS_STORE[job_id]
         if p_data.get("status") == "completed" and "result" in p_data:
+            # Strictly verify that output MP4 file is completely written and non-empty on disk
+            if not output_cut_file.is_file() or output_cut_file.stat().st_size == 0:
+                logger.info("Job %s: Cut file not yet finalized on disk. Returning processing 98%%.", job_id)
+                return JSONResponse({
+                    "job_id": job_id,
+                    "status": "processing",
+                    "step": 5,
+                    "progress": 98,
+                    "progress_percent": 98,
+                    "message": "جاري الانتهاء من كتابة وتصدير ملف الفيديو...",
+                    "agent_logs": p_data.get("agent_logs", []),
+                })
+
             res_dict = dict(p_data["result"])
             res_dict.setdefault("emotional_tone", p_data.get("emotional_tone"))
             res_dict.setdefault("inferred_script", p_data.get("inferred_script"))
             res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
+            res_dict["video_url"] = video_web_url
+            res_dict["output_video_url"] = video_web_url
+            res_dict["output_video"] = video_web_url
+            res_dict["status"] = "completed"
+            res_dict["progress"] = 100
+            res_dict["progress_percent"] = 100
+            res_dict["file_size_bytes"] = output_cut_file.stat().st_size
             return JSONResponse(res_dict)
-        return JSONResponse(p_data)
+
+        resp = dict(p_data)
+        if "progress_percent" in resp and "progress" not in resp:
+            resp["progress"] = resp["progress_percent"]
+        return JSONResponse(resp)
 
     # 2. Check in-memory completed store
     if job_id in JOBS_STORE:
-        return JSONResponse(JOBS_STORE[job_id])
+        if not output_cut_file.is_file() or output_cut_file.stat().st_size == 0:
+            return JSONResponse({
+                "job_id": job_id,
+                "status": "processing",
+                "step": 5,
+                "progress": 98,
+                "progress_percent": 98,
+                "message": "جاري الانتهاء من كتابة وتصدير ملف الفيديو...",
+            })
+        res = dict(JOBS_STORE[job_id])
+        res["video_url"] = video_web_url
+        res["output_video_url"] = video_web_url
+        res["output_video"] = video_web_url
+        res["status"] = "completed"
+        res["progress"] = 100
+        res["progress_percent"] = 100
+        res["file_size_bytes"] = output_cut_file.stat().st_size
+        return JSONResponse(res)
 
     # 3. Check disk for summary_<job_id>.json
     summary_file = OUTPUTS_DIR / "mobile_cuts" / f"summary_{job_id}.json"
@@ -918,14 +1029,43 @@ async def get_job_status(request: Request) -> JSONResponse:
         try:
             with open(summary_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            JOBS_STORE[job_id] = data
-            return JSONResponse(data)
+            if output_cut_file.is_file() and output_cut_file.stat().st_size > 0:
+                data["video_url"] = video_web_url
+                data["output_video_url"] = video_web_url
+                data["output_video"] = video_web_url
+                data["status"] = "completed"
+                data["progress"] = 100
+                data["progress_percent"] = 100
+                data["file_size_bytes"] = output_cut_file.stat().st_size
+                JOBS_STORE[job_id] = data
+                return JSONResponse(data)
         except Exception as exc:
             logger.warning("Failed to read summary file %s: %s", summary_file, exc)
 
     return JSONResponse(
         {"error": f"Job '{job_id}' not found.", "status": "not_found"},
         status_code=404,
+    )
+
+
+async def get_mobile_cut_endpoint(request: Request) -> Response:
+    """
+    GET /outputs/mobile_cuts/{filename}
+    Serve rendered job video cut with MIME type video/mp4, Accept-Ranges,
+    and full HTTP 206 Partial Content range streaming support.
+    """
+    filename = request.path_params.get("filename", "")
+    safe_name = Path(filename).name
+    cut_path = OUTPUTS_DIR / "mobile_cuts" / safe_name
+    if not cut_path.is_file():
+        return JSONResponse(
+            {"status": "error", "error": "file_not_found", "message": f"Video cut '{safe_name}' not found."},
+            status_code=404,
+        )
+    return FileResponse(
+        str(cut_path),
+        media_type="video/mp4",
+        filename=safe_name,
     )
 
 
@@ -1550,6 +1690,7 @@ routes = [
     Route("/style.css", style_css_endpoint, methods=["GET"]),
     Route("/app.js", app_js_endpoint, methods=["GET"]),
     Route("/favicon.ico", favicon_endpoint, methods=["GET"]),
+    Route("/outputs/mobile_cuts/{filename}", get_mobile_cut_endpoint, methods=["GET"]),
     Route("/", index_page, methods=["GET"]),
     Mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs"),
     Mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static"),

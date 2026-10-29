@@ -28,6 +28,13 @@ logger = logging.getLogger("vision_analyzer")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s")
 
+# Active high-performance Gemini Multimodal Vision models in preference order
+ACTIVE_VISION_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-3.1-pro-preview",
+]
+
 # Ensure environment configuration (.env)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -301,14 +308,19 @@ def infer_video_script_and_mood(
             logger.warning("Failed to encode keyframe %s: %s", kf_path, exc)
 
     # Candidate Gemini multimodal vision models in preference order
-    candidate_models = [
-        "gemini-2.5-flash",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.5-pro",
-    ]
+    env_models = os.getenv("GEMINI_VISION_MODELS")
+    if env_models:
+        candidate_models = [m.strip() for m in env_models.split(",") if m.strip()]
+    else:
+        candidate_models = list(ACTIVE_VISION_MODELS)
+
+    # Configurable timeouts: 45s read timeout to accommodate large multi-keyframe payloads
+    read_timeout = float(os.getenv("GEMINI_VISION_READ_TIMEOUT", "45.0"))
+    connect_timeout = float(os.getenv("GEMINI_VISION_CONNECT_TIMEOUT", "10.0"))
+    max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "2"))
 
     import requests
+    import time
 
     for model_name in candidate_models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -320,53 +332,113 @@ def infer_video_script_and_mood(
             },
         }
 
-        logger.info("Querying Gemini Vision model '%s' with %d keyframes...", model_name, len(selected_frames))
-        try:
-            resp = requests.post(url, json=request_body, timeout=20)
-            if resp.status_code == 200:
-                data = resp.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    candidate_part = candidates[0].get("content", {}).get("parts", [{}])[0]
-                    raw_text = candidate_part.get("text", "").strip()
-                    # Clean potential markdown wrapping
-                    clean_json_str = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
-                    clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
+        for attempt in range(1, max_retries + 1):
+            logger.info(
+                "Querying Gemini Vision model '%s' (attempt %d/%d) with %d keyframes...",
+                model_name,
+                attempt,
+                max_retries,
+                len(selected_frames),
+            )
+            try:
+                resp = requests.post(
+                    url,
+                    json=request_body,
+                    timeout=(connect_timeout, read_timeout),
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        candidate_part = candidates[0].get("content", {}).get("parts", [{}])[0]
+                        raw_text = candidate_part.get("text", "").strip()
+                        # Clean potential markdown wrapping
+                        clean_json_str = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
+                        clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
 
-                    parsed = json.loads(clean_json_str)
-                    inferred_script = str(parsed.get("script", "")).strip()
-                    emotional_tone = str(parsed.get("emotional_tone", "فاخر وهادئ")).strip()
-                    emotional_prompt = str(parsed.get("emotional_prompt", "Warm, prestigious, and calm real estate tone")).strip()
-                    recommended_music = str(parsed.get("recommended_music", "luxury_piano")).strip().lower()
+                        parsed = json.loads(clean_json_str)
+                        inferred_script = str(parsed.get("script", "")).strip()
+                        emotional_tone = str(parsed.get("emotional_tone", "فاخر وهادئ")).strip()
+                        emotional_prompt = str(parsed.get("emotional_prompt", "Warm, prestigious, and calm real estate tone")).strip()
+                        recommended_music = str(parsed.get("recommended_music", "luxury_piano")).strip().lower()
 
-                    if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
-                        recommended_music = "luxury_piano"
+                        if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
+                            recommended_music = "luxury_piano"
 
-                    if inferred_script:
-                        logger.info(
-                            "Gemini Vision successfully inferred script (%d words, mood: %s, music: %s)",
-                            len(inferred_script.split()),
-                            emotional_tone,
-                            recommended_music,
-                        )
-                        return {
-                            "script": inferred_script,
-                            "emotional_tone": emotional_tone,
-                            "emotional_prompt": emotional_prompt,
-                            "recommended_music": recommended_music,
-                            "highlights": parsed.get("highlights", []),
-                            "engine": "gemini_multimodal_vision",
-                            "model_used": model_name,
-                            "analyzed_frames_count": len(selected_frames),
-                            "visual_lead_in_seconds": visual_lead_in,
-                            "speech_duration": speech_duration,
-                        }
+                        if inferred_script:
+                            logger.info(
+                                "Gemini Vision model '%s' successfully inferred script (%d words, mood: %s, music: %s)",
+                                model_name,
+                                len(inferred_script.split()),
+                                emotional_tone,
+                                recommended_music,
+                            )
+                            return {
+                                "script": inferred_script,
+                                "emotional_tone": emotional_tone,
+                                "emotional_prompt": emotional_prompt,
+                                "recommended_music": recommended_music,
+                                "highlights": parsed.get("highlights", []),
+                                "engine": "gemini_multimodal_vision",
+                                "model_used": model_name,
+                                "analyzed_frames_count": len(selected_frames),
+                                "visual_lead_in_seconds": visual_lead_in,
+                                "speech_duration": speech_duration,
+                            }
+                elif resp.status_code == 404:
+                    logger.warning("Gemini Vision model '%s' returned 404 Not Found. Skipping to next fallback model.", model_name)
+                    break
+                elif resp.status_code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                    logger.warning(
+                        "Gemini Vision model '%s' returned transient status %d on attempt %d/%d: %s. Retrying...",
+                        model_name,
+                        resp.status_code,
+                        attempt,
+                        max_retries,
+                        resp.text[:160],
+                    )
+                    time.sleep(1.0)
+                    continue
+                else:
+                    logger.warning(
+                        "Gemini Vision model '%s' returned status %d on attempt %d: %s",
+                        model_name,
+                        resp.status_code,
+                        attempt,
+                        resp.text[:200],
+                    )
+                    break
 
-            else:
-                logger.warning("Gemini Vision model '%s' returned status %d: %s", model_name, resp.status_code, resp.text[:200])
-
-        except Exception as exc:
-            logger.warning("Failed querying Gemini Vision model '%s': %s", model_name, exc)
+            except requests.exceptions.Timeout as t_err:
+                logger.warning(
+                    "Timeout (read_timeout=%.1fs) querying Gemini Vision model '%s' on attempt %d/%d: %s",
+                    read_timeout,
+                    model_name,
+                    attempt,
+                    max_retries,
+                    t_err,
+                )
+                if attempt < max_retries:
+                    time.sleep(1.0)
+                    continue
+                else:
+                    break
+            except requests.exceptions.RequestException as req_err:
+                logger.warning(
+                    "Network error querying Gemini Vision model '%s' on attempt %d/%d: %s",
+                    model_name,
+                    attempt,
+                    max_retries,
+                    req_err,
+                )
+                if attempt < max_retries:
+                    time.sleep(1.0)
+                    continue
+                else:
+                    break
+            except Exception as exc:
+                logger.warning("Unexpected error querying Gemini Vision model '%s': %s", model_name, exc)
+                break
 
     # If all models fail, return smart fallback
     logger.warning("All Gemini Vision models failed or timed out. Activating smart fallback.")

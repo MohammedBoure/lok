@@ -1084,12 +1084,32 @@ def process_mobile_video(
         except Exception as annot_err:
             logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
 
+    # Verify final cut is completely written and non-empty
+    if not final_cut_path.is_file() or final_cut_path.stat().st_size == 0:
+        raise RuntimeError(f"Rendered video cut file was not found or is empty: {final_cut_path}")
+
+    # Atomically update legacy outputs/final_cut.mp4 so legacy endpoints work
+    try:
+        legacy_dir = REPO_ROOT / "outputs"
+        legacy_dir.mkdir(parents=True, exist_ok=True)
+        legacy_cut_path = legacy_dir / "final_cut.mp4"
+        legacy_cut_tmp = legacy_dir / f"final_cut_{job_id}.mp4.tmp"
+        shutil.copyfile(final_cut_path, legacy_cut_tmp)
+        legacy_cut_tmp.replace(legacy_cut_path)
+        logger.info("Job %s: Atomically updated legacy cut -> %s (%d bytes)", job_id, legacy_cut_path, legacy_cut_path.stat().st_size)
+    except Exception as copy_err:
+        logger.warning("Job %s: Failed to copy to legacy final_cut.mp4: %s", job_id, copy_err)
+
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
     summary: Dict[str, Any] = {
         "job_id": job_id,
         "status": "completed",
+        "progress": 100,
+        "progress_percent": 100,
         "video_url": video_web_url,
+        "output_video_url": video_web_url,
+        "output_video": video_web_url,
         "output_path": str(final_cut_path),
         "absolute_output_path": str(final_cut_path.resolve()),
         "file_size_bytes": final_cut_path.stat().st_size,
