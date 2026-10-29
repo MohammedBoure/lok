@@ -22,6 +22,12 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
     - `test_ducked_audio_track_levels`: Analyzes audio volume dynamics via `ffmpeg volumedetect` filter ensuring non-silent mixed sound with dynamic ducking.
   - `TestExecutionSummary`:
     - `test_execution_summary_schema`: Verifies all required fields (`output_video`, `narration`, `source_clips`, `editorial_timeline`, `audio_mixing_parameters`, `editorial_collective`) in `outputs/execution_summary.json`.
+- [`test_ai_video_montage.py`](file:///home/pluto/projects/lok/tests/test_ai_video_montage.py): AI video montage, shot trimming, and MCP server test suite verifying:
+  - Natural language trimming directives in Arabic, English, and French (interval ranges, start trims, end offsets, target duration, smart montage).
+  - High-performance video editor primitives (`trim_video_clip`, `assemble_shot_segments`, `calculate_smart_montage_segments`, `auto_smart_montage`).
+  - Fast Video Montage MCP server (`tools/list`, `montage_cut_and_trim`, `smart_ai_montage`, `detect_video_scenes`).
+  - End-to-end `process_mobile_video` integration with prompt-directed montage and persistent overlays.
+  - Strict typography invariant: 0 occurrences of U+0669.
 - [`test_frame_extractor.py`](test_frame_extractor.py): Visual extraction engine test suite verifying:
   - Technical metadata probing (`test_get_video_metadata_success`, `test_get_video_metadata_file_not_found`).
   - Native I-frame and scene cut transition detection (`test_detect_scene_cut_timestamps`, `test_detect_keyframe_timestamps`).

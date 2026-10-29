@@ -183,6 +183,8 @@ python3 -m web.run_server
 - [`web/`](web/): Mobile API server, post-production bridge, QR launcher, and mobile web studio.
   - [`web/auth_db.py`](web/auth_db.py): Multi-tenant SQLite database manager for tenant authentication, quotas, and admin operations.
   - [`web/pipeline_bridge.py`](web/pipeline_bridge.py): Core mobile video processing and FFmpeg assembly engine.
+  - [`web/video_editor.py`](web/video_editor.py): Autonomous video trimming, shot slicing, and multi-segment montage engine.
+  - [`web/video_montage_mcp.py`](web/video_montage_mcp.py): Fast Video Montage MCP server exposing editing and scene detection tools.
   - [`web/prompt_db.py`](web/prompt_db.py): SQLite database manager for linguistic prompt descriptions and user history.
   - [`web/vision_analyzer.py`](web/vision_analyzer.py): Gemini Multimodal Vision analysis module for script & mood inference.
   - [`web/server.py`](web/server.py): Starlette REST API server with CORS and static file mounting.

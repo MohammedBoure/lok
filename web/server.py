@@ -401,6 +401,8 @@ def _execute_processing_job(
             "bottom_text": summary.get("bottom_text", bottom_text),
             "phone_number": summary.get("phone_number", phone_number),
             "script": summary.get("script", script),
+            "montage_applied": summary.get("montage_applied", False),
+            "montage_details": summary.get("montage_details"),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -1027,6 +1029,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "bottom_text": summary.get("bottom_text", bottom_text),
             "phone_number": summary.get("phone_number", phone_number),
             "script": summary.get("script", script),
+            "montage_applied": summary.get("montage_applied", False),
+            "montage_details": summary.get("montage_details"),
             "result": summary,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }

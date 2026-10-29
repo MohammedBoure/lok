@@ -22,6 +22,8 @@ The system combines:
 | [`vision_analyzer.py`](file:///home/pluto/projects/lok/web/vision_analyzer.py) | Gemini Multimodal Vision analysis module for inferring Arabic real estate marketing scripts, emotional atmosphere / mood, property highlights, and recommended music steered by linguistic speech and visual intent. |
 | [`video_annotator.py`](file:///home/pluto/projects/lok/web/video_annotator.py) | Fast hardware-accelerated video annotation engine using FFmpeg drawtext filters for luxury badges, price tags, and lower-third captions. |
 | [`video_annotator_mcp.py`](file:///home/pluto/projects/lok/web/video_annotator_mcp.py) | MCP (Model Context Protocol) tool bridge and CLI interface exposing `annotate_video_cut` via stdio JSON-RPC. |
+| [`video_editor.py`](file:///home/pluto/projects/lok/web/video_editor.py) | Autonomous Video Montage & Editorial Decision Engine providing frame-accurate video trimming, multi-segment shot concatenation, and smart highlight montage assembly. |
+| [`video_montage_mcp.py`](file:///home/pluto/projects/lok/web/video_montage_mcp.py) | Fast Video Montage MCP Server exposing `montage_cut_and_trim`, `smart_ai_montage`, and `detect_video_scenes` via standard JSON-RPC. |
 | [`server.py`](file:///home/pluto/projects/lok/web/server.py) | Starlette ASGI application exposing REST endpoints, admin portal backend (`/admin`, `/api/admin/*`), root static aliases (`/style.css`, `/app.js`, `/favicon.ico`), prompt security guardrails, static asset mounting (`/outputs`, `/static`), principles endpoints, and CORS middleware. |
 | [`run_server.py`](file:///home/pluto/projects/lok/web/run_server.py) | Production CLI launcher that detects host LAN IP (`192.168.1.7`), generates terminal ASCII QR code, and boots Uvicorn. |
 | [`static/admin.html`](file:///home/pluto/projects/lok/web/static/admin.html) | Dedicated Bootstrap 5 responsive Admin Dashboard for account management, password updates, date validity configuration, quota adjustments, and activity event auditing. |
@@ -865,6 +867,33 @@ When persistent text or a phone number is detected or provided:
      - `data["bottom_text"]`: Applied persistent bottom text overlay.
      - `data["phone_number"]`: Extracted contact phone number.
    - Accessible via `POST /api/jobs/create`, `POST /api/upload-and-process`, and `GET /api/status/{job_id}`.
+
+---
+
+## 13. Autonomous AI Video Montage, Shot Trimming & MCP Server Architecture
+
+The platform provides adaptive video editing, shot trimming, and multi-segment assembly driven directly by natural language user prompts or autonomous Multimodal Vision decision-making.
+
+### 1. Natural Language Montage Directives
+The directive parser in [`pipeline_bridge.py`](file:///home/pluto/projects/lok/web/pipeline_bridge.py) safely extracts editing instructions across Arabic, English, and French:
+- **Interval Trimming**: e.g., *"قص الفيديو من الثانية 2 إلى 8"* or *"trim from 0:02 to 0:15"* -> extracts `trim_start=2.0`, `trim_end=8.0`.
+- **Head Trimming**: e.g., *"قص أول 3 ثواني من الفيديو"* or *"cut the first 4s"* -> extracts `trim_start=3.0`.
+- **Tail Trimming**: e.g., *"احذف آخر 5 ثواني"* or *"cut the last 5s"* -> extracts `trim_end_offset=5.0`.
+- **Target Duration & Highlights**: e.g., *"اجعل مدة الفيديو 15 ثانية ومونتاج ذكي"* -> extracts `target_duration=15.0`, `smart_montage=True`.
+
+### 2. Video Editing Engine (`video_editor.py`)
+Implemented in [`video_editor.py`](file:///home/pluto/projects/lok/web/video_editor.py):
+- **`trim_video_clip`**: Frame-accurate single segment cutting using FFmpeg `trim`/`atrim` and `setpts`/`asetpts` filtergraphs, maintaining audio-video sync.
+- **`assemble_shot_segments`**: Multi-clip concatenation taking an array of `(start, end)` tuples and fusing them into a continuous stream.
+- **`auto_smart_montage`**: Autonomous selection of diverse key moments (establishing, interior highlight, climax) to reach target durations without empty pauses.
+
+### 3. Dedicated Fast Video Montage MCP Server (`video_montage_mcp.py`)
+Exposes standardized Model Context Protocol tools via JSON-RPC stdio for autonomous AI agents:
+- **`montage_cut_and_trim`**: Programmatic cutting and segment slicing.
+- **`smart_ai_montage`**: Natural language prompt-directed editing.
+- **`detect_video_scenes`**: Scene change detection and candidate cut timestamp calculation.
+- Configured in [`mcp_config.json`](file:///home/pluto/projects/lok/mcp_config.json) under the `video-montage` service identifier.
+
 
 
 

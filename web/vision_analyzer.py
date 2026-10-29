@@ -189,6 +189,10 @@ def _get_smart_fallback(
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
         "highlights": highlights,
+        "recommended_cuts": [
+            {"start_sec": 0.0, "end_sec": min(5.0, duration), "title": "المدخل والإطلالة"},
+            {"start_sec": min(duration * 0.4, max(0.0, duration - 6.0)), "end_sec": min(duration * 0.4 + 5.0, duration), "title": "المساحات الرئيسية"},
+        ] if duration > 12.0 else None,
         "engine": "smart_vision_fallback",
         "analyzed_frames_count": keyframe_count,
         "visual_lead_in_seconds": visual_lead_in,
@@ -324,9 +328,10 @@ def infer_video_script_and_mood(
         f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
         f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
         f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n"
-        f"6. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
-        f"7. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
-        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'phone_number', 'bottom_text'."
+        f"6. 'recommended_cuts': Optional array of highlight video shots to keep if montage or trimming is desired (e.g. [{{'start_sec': 0.0, 'end_sec': 5.0, 'title': 'المدخل'}}]) or null.\n"
+        f"7. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
+        f"8. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
+        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text'."
     )
     parts.append({"text": prompt})
 
@@ -418,6 +423,7 @@ def infer_video_script_and_mood(
                                 "emotional_prompt": emotional_prompt,
                                 "recommended_music": recommended_music,
                                 "highlights": parsed.get("highlights", []),
+                                "recommended_cuts": parsed.get("recommended_cuts"),
                                 "phone_number": phone_number,
                                 "bottom_text": bottom_text,
                                 "engine": "gemini_multimodal_vision",

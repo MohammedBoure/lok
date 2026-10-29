@@ -178,6 +178,7 @@
                 rows="6"
                 placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو بحرية تامة:
 • مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو
+• المونتاج والاقتطاع: مثلاً 'قص أول 3 ثواني'، 'قص الفيديو من الثانية 2 إلى 15'، أو 'مونتاج ذكي لأفضل 15 ثانية'.
 • سرعة الإلقاء (Speech Speed): مثلاً وتيرة سريعة وحماسية، أو هادئة ومتزنة.
 • المشاهد المرئية (Visuals): مثلاً التركيز على الإضاءة الطبيعية، الواجهات العصرية، الغرف الواسعة.
 • نبرة الصوت (Tone): مثلاً نبرة ترويجية فخمة ومقنعة، أو ودودة ودافئة.
@@ -186,7 +187,7 @@
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 يمكنك كتابة أي تعليمات خاصة بحرية: نبرة الصوت، تفاصيل العرض، وإظهار رقم الهاتف أو العنوان في الشريط السفلي (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+              💡 يمكنك كتابة أي تعليمات خاصة بحرية: قص واقتطاع لقطات معينة، مونتاج ذكي لأفضل المشاهد، نبرة الصوت، وإظهار رقم الهاتف في الشريط السفلي.
             </div>
           </div>
 
@@ -230,6 +231,13 @@
                 <span class="overlay-label">الشريط السفلي:</span>
                 <span class="overlay-text" id="resultOverlayText"></span>
                 <span class="bottom-text-badge" id="bottomTextBadge"></span>
+              </div>
+
+              <!-- Montage Feedback Pill -->
+              <div class="result-montage-pill" id="resultMontagePill" style="display: none;">
+                <span class="montage-icon">✂️</span>
+                <span class="montage-label">المونتاج واقتطاع المشاهد:</span>
+                <span class="montage-text" id="resultMontageText"></span>
               </div>
 
               <div class="result-video-wrapper">

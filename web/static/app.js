@@ -247,6 +247,8 @@
     resultOverlayPill: document.getElementById("resultOverlayPill"),
     resultOverlayText: document.getElementById("resultOverlayText"),
     bottomTextBadge: document.getElementById("bottomTextBadge"),
+    resultMontagePill: document.getElementById("resultMontagePill"),
+    resultMontageText: document.getElementById("resultMontageText"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1403,6 +1405,20 @@
         }
       }
 
+      // 3. Display Video Montage Feedback Pill
+      const isMontageApplied = Boolean(data && (data.montage_applied || (data.result && data.result.montage_applied)));
+      const montageInfo = (data && (data.montage_details || (data.result && data.result.montage_details))) || {};
+      if (dom.resultMontagePill && dom.resultMontageText) {
+        if (isMontageApplied) {
+          const postDur = montageInfo.duration ? `${montageInfo.duration.toFixed(1)} ثانية` : "";
+          const origDur = montageInfo.original_duration ? ` (من أصل ${montageInfo.original_duration.toFixed(1)} ثانية)` : "";
+          dom.resultMontageText.textContent = `تم اقتطاع المشاهد وتجهيز الفيديو بمدة ${postDur}${origDur}`;
+          dom.resultMontagePill.style.display = "inline-flex";
+        } else {
+          dom.resultMontagePill.style.display = "none";
+        }
+      }
+
       if (dom.resultContainer) {
         dom.resultContainer.style.display = "block";
         dom.resultContainer.scrollIntoView({ behavior: "smooth" });
@@ -1412,6 +1428,7 @@
       if (dom.resultContainer) dom.resultContainer.style.display = "none";
       if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
       if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
+      if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
     }
   }

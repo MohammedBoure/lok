@@ -217,6 +217,8 @@ META_DIRECTIVE_KEYWORDS = [
     "تعليق صوتي", "صوت مع الفيديو", "يتناسب مع الفيديو", "وصف صوتي", "فويس اوفر", "voiceover",
     "بالدارجة", "دارجة جزائرية", "لهجة جزائرية", "باللهجة",
     "به الرقم التالي", "رقم الهاتف", "رقم الاتصال", "الرقم التالي", "اتصل بنا", "للاتصال",
+    "قص", "اقتطع", "احذف", "ازل", "أزل", "مونتاج", "تقطيع", "اقتصاص", "لقطات", "مشاهد",
+    "trim", "cut", "crop", "duration", "مدة", "ثواني", "ثانية",
 ]
 
 
@@ -238,10 +240,120 @@ def extract_algerian_phone(text: Optional[str]) -> Optional[str]:
     return None
 
 
+def parse_time_directive(s: str) -> float:
+    """Parse time string in seconds or MM:SS format to float seconds."""
+    s = str(s).strip()
+    if ":" in s:
+        p = s.split(":")
+        if len(p) == 2:
+            return float(p[0]) * 60 + float(p[1])
+        elif len(p) == 3:
+            return float(p[0]) * 3600 + float(p[1]) * 60 + float(p[2])
+    return float(s)
+
+
+def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
+    """
+    Parse video montage, trimming, and shot selection directives from user prompt.
+    Supports Arabic, English, and French natural language formats.
+    """
+    plan: Dict[str, Any] = {
+        "requested": False,
+        "mode": "none",
+        "trim_start": None,
+        "trim_end": None,
+        "trim_end_offset": None,
+        "target_duration": None,
+        "smart_montage": False,
+        "raw_directive": None,
+    }
+    if not text:
+        return plan
+
+    norm = str(text).strip().lower()
+    time_rx = r"(\d+:\d+(?::\d+)?|\d+(?:\.\d+)?)"
+
+    # 1. Range / Interval: e.g. "قص من 2 إلى 8 ثواني" or "trim from 0:02 to 0:15"
+    m_range = re.search(
+        rf"(?:من|from|between|entre)\s*(?:الثانية|second|sec)?\s*{time_rx}\s*(?:إلى|الى|حتى|to|et|-)\s*(?:الثانية|second|sec)?\s*{time_rx}",
+        norm,
+    )
+    if m_range:
+        try:
+            st = parse_time_directive(m_range.group(1))
+            en = parse_time_directive(m_range.group(2))
+            if en > st:
+                plan["requested"] = True
+                plan["trim_start"] = st
+                plan["trim_end"] = en
+                plan["mode"] = "interval"
+                plan["raw_directive"] = m_range.group(0)
+        except (ValueError, TypeError):
+            pass
+
+    # 2. Trim start: e.g. "قص أول 3 ثواني" or "cut the first 4s"
+    m_start = re.search(
+        rf"(?:قص|احذف|ازل|أزل|اقتطع|تجاوز|cut|trim)\s*(?:the\s+)?(?:أول|اول|بداية|start|first)\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        norm,
+    )
+    if m_start:
+        try:
+            val = parse_time_directive(m_start.group(1))
+            plan["requested"] = True
+            plan["trim_start"] = val
+            if plan["mode"] == "none":
+                plan["mode"] = "trim_start"
+                plan["raw_directive"] = m_start.group(0)
+        except (ValueError, TypeError):
+            pass
+
+    # 3. Trim end: e.g. "قص آخر 5 ثواني" or "cut the last 5s"
+    m_end = re.search(
+        rf"(?:قص|احذف|ازل|أزل|اقتطع|cut|trim)\s*(?:the\s+)?(?:آخر|اخر|نهاية|end|last)\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        norm,
+    )
+    if m_end:
+        try:
+            val = parse_time_directive(m_end.group(1))
+            plan["requested"] = True
+            plan["trim_end_offset"] = val
+            if plan["mode"] == "none":
+                plan["mode"] = "trim_end"
+                plan["raw_directive"] = m_end.group(0)
+        except (ValueError, TypeError):
+            pass
+
+    # 4. Target duration: e.g. "مدة الفيديو 15 ثانية" or "اجعل مدة الفيديو 15 ثانية" or "keep 12s"
+    m_dur = re.search(
+        rf"(?:مدة|المدة|طول|احتفظ بـ|خليه|اجعل|اجعله|duration|target duration|keep)(?:\s+(?:الفيديو|المقطع|مدة|طول|video))*\s*(?:تكون|هي|:|=)?\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        norm,
+    )
+    if m_dur:
+        try:
+            val = parse_time_directive(m_dur.group(1))
+            if val >= 2.0:
+                plan["requested"] = True
+                plan["target_duration"] = val
+                if plan["mode"] == "none":
+                    plan["mode"] = "target_duration"
+                    plan["raw_directive"] = m_dur.group(0)
+        except (ValueError, TypeError):
+            pass
+
+    # 5. Smart montage / highlight extraction: e.g. "مونتاج ذكي لأفضل اللقطات"
+    if any(k in norm for k in ["مونتاج", "اقتطاع اللقطات", "قص اللقطات", "أفضل اللقطات", "افضل المشاهد", "أفضل المشاهد", "smart montage", "highlight montage", "montage"]):
+        plan["requested"] = True
+        plan["smart_montage"] = True
+        if plan["mode"] == "none":
+            plan["mode"] = "smart_montage"
+
+    return plan
+
+
 def is_meta_prompt(text: Optional[str]) -> bool:
     """
     Determine whether input represents meta-directions (instructions, phone overlay,
-    Darja narration request) rather than a literal voiceover script to read word-for-word.
+    Darja narration request, trimming/montage commands) rather than a literal voiceover script.
     """
     if not text:
         return False
@@ -255,17 +367,22 @@ def is_meta_prompt(text: Optional[str]) -> bool:
     if re.search(r"(?:0|\+?213)[567]\d{8}", cleaned_digits):
         if any(w in norm for w in ["رقم", "هاتف", "اتصال", "اتصل", "نص", "فيديو", "اسفل", "أسفل", "طول", "شغال"]):
             return True
+    # Check if montage directive is present
+    m_plan = parse_montage_directives(norm)
+    if m_plan.get("requested"):
+        return True
     return False
 
 
 def extract_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     Parse freeform creative user instructions, extracting meta-intent flags,
-    phone number, persistent bottom overlay text, and styling preferences.
+    phone number, persistent bottom overlay text, styling preferences, and montage/trimming plans.
     """
     raw = str(text or "").strip()
     is_meta = is_meta_prompt(raw)
     phone = extract_algerian_phone(raw)
+    montage_plan = parse_montage_directives(raw)
 
     bottom_text: Optional[str] = None
     if phone:
@@ -294,6 +411,7 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "darja_requested": darja_requested,
         "voiceover_requested": voiceover_requested,
         "persistent_overlay": persistent_overlay,
+        "montage_plan": montage_plan,
         "raw_text": raw,
     }
 
@@ -885,6 +1003,128 @@ def process_mobile_video(
         target_h,
     )
 
+    # 1.5. Autonomous AI Video Montage & Shot Trimming Execution
+    montage_plan = parsed_dirs.get("montage_plan", {})
+    montage_applied = False
+    montage_details: Dict[str, Any] = {}
+    original_source_duration = src_duration
+
+    if montage_plan.get("requested"):
+        _notify(
+            step=1,
+            percent=22,
+            message="وكيل الذكاء الاصطناعي يقوم بالمونتاج واقتطاع المشاهد المطلوبة...",
+            log=f"[مونتاج ذكي] ✂️ بدء تنفيذ المونتاج والاقتطاع: النمط ({montage_plan.get('mode')})...",
+        )
+        try:
+            from web.video_editor import trim_video_clip, auto_smart_montage, assemble_shot_segments
+            montaged_output_file = out_cuts_dir / f"montaged_{job_id}.mp4"
+
+            mode = montage_plan.get("mode", "interval")
+            t_start = montage_plan.get("trim_start")
+            t_end = montage_plan.get("trim_end")
+            t_offset = montage_plan.get("trim_end_offset")
+            target_dur = montage_plan.get("target_duration")
+            is_smart = montage_plan.get("smart_montage", False)
+
+            if mode == "interval" or (t_start is not None and t_end is not None):
+                st = max(0.0, float(t_start or 0.0))
+                en = min(float(t_end if t_end is not None else src_duration), src_duration)
+                m_res = trim_video_clip(
+                    input_path=input_path,
+                    output_path=montaged_output_file,
+                    start_sec=st,
+                    end_sec=en,
+                    target_w=target_w,
+                    target_h=target_h,
+                )
+                montage_applied = True
+                montage_details = {
+                    "mode": "interval_trim",
+                    "start_sec": st,
+                    "end_sec": en,
+                    "duration": m_res["duration"],
+                    "original_duration": src_duration,
+                    "segments": [(st, en)],
+                }
+            elif mode == "trim_start" or (t_start is not None and t_end is None and not is_smart and not target_dur):
+                st = max(0.0, min(float(t_start), max(0.0, src_duration - 1.0)))
+                m_res = trim_video_clip(
+                    input_path=input_path,
+                    output_path=montaged_output_file,
+                    start_sec=st,
+                    end_sec=src_duration,
+                    target_w=target_w,
+                    target_h=target_h,
+                )
+                montage_applied = True
+                montage_details = {
+                    "mode": "trim_start",
+                    "trimmed_lead_sec": st,
+                    "duration": m_res["duration"],
+                    "original_duration": src_duration,
+                    "segments": [(st, src_duration)],
+                }
+            elif mode == "trim_end" or (t_offset is not None and t_start is None and not is_smart and not target_dur):
+                en = max(1.0, src_duration - float(t_offset))
+                m_res = trim_video_clip(
+                    input_path=input_path,
+                    output_path=montaged_output_file,
+                    start_sec=0.0,
+                    end_sec=en,
+                    target_w=target_w,
+                    target_h=target_h,
+                )
+                montage_applied = True
+                montage_details = {
+                    "mode": "trim_end",
+                    "trimmed_tail_sec": float(t_offset),
+                    "duration": m_res["duration"],
+                    "original_duration": src_duration,
+                    "segments": [(0.0, en)],
+                }
+            elif is_smart or target_dur is not None:
+                eff_dur = float(target_dur if target_dur else min(15.0, src_duration))
+                m_res = auto_smart_montage(
+                    input_path=input_path,
+                    output_path=montaged_output_file,
+                    target_duration=eff_dur,
+                    target_w=target_w,
+                    target_h=target_h,
+                )
+                montage_applied = True
+                montage_details = {
+                    "mode": "smart_ai_montage",
+                    "target_duration": eff_dur,
+                    "segments": m_res.get("segments", []),
+                    "duration": m_res["duration"],
+                    "original_duration": src_duration,
+                }
+
+            if montage_applied and montaged_output_file.is_file() and montaged_output_file.stat().st_size > 0:
+                input_path = montaged_output_file
+                meta = frame_extractor.get_video_metadata(input_path)
+                src_width = int(meta.get("width", target_w))
+                src_height = int(meta.get("height", target_h))
+                src_duration = float(meta.get("total_duration", m_res["duration"]))
+                logger.info(
+                    "Job %s: Montage applied successfully (%s). New input duration: %.2fs (was %.2fs)",
+                    job_id,
+                    montage_details.get("mode"),
+                    src_duration,
+                    original_source_duration,
+                )
+                _notify(
+                    step=1,
+                    percent=25,
+                    message=f"اكتمل المونتاج الذكي: تم اقتطاع المشاهد (المدة الجديدة: {src_duration:.1f}ث).",
+                    log=f"[مونتاج ذكي] ✅ اكتمل المونتاج بنجاح ({montage_details.get('mode')}). المدة: {src_duration:.1f}s (تم اختصار {original_source_duration - src_duration:.1f}s).",
+                    extra={"montage_details": montage_details},
+                )
+        except Exception as m_err:
+            logger.warning("Job %s: Montage step encountered non-fatal error: %s. Continuing with original footage.", job_id, m_err)
+            montage_applied = False
+
     # 2. Extract visual keyframes
     _notify(
         step=2,
@@ -1319,6 +1559,8 @@ def process_mobile_video(
         "synthesizer": narration_info["synthesizer"],
         "narration_audio_url": f"/outputs/mobile_cuts/narration_{job_id}.wav",
         "annotations_applied": applied_annotations_count,
+        "montage_applied": montage_applied,
+        "montage_details": montage_details if montage_applied else None,
         "music_track": {
             "id": music_meta["id"],
             "title": music_meta["title"],
@@ -1338,6 +1580,13 @@ def process_mobile_video(
             "narration_duration": narration_duration,
             "render_seconds": round(render_seconds, 2),
             "annotations_count": applied_annotations_count,
+            "montage": {
+                "applied": montage_applied,
+                "original_duration": original_source_duration,
+                "post_montage_duration": src_duration,
+                "reduction_seconds": round(original_source_duration - src_duration, 2) if montage_applied else 0.0,
+                "details": montage_details,
+            },
             "sidechain_compression": {
                 "music_track": music_meta["title"],
                 "duck_threshold": duck_threshold,

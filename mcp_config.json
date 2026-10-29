@@ -6,6 +6,20 @@
       "env": {
         "PYTHONPATH": "."
       }
+    },
+    "video-annotator": {
+      "command": "python3",
+      "args": ["-m", "web.video_annotator_mcp", "--mcp"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    },
+    "video-montage": {
+      "command": "python3",
+      "args": ["-m", "web.video_montage_mcp", "--mcp"],
+      "env": {
+        "PYTHONPATH": "."
+      }
     }
   }
 }
