@@ -212,7 +212,9 @@
     btnReplaceVideo: document.getElementById("btnReplaceVideo"),
 
     // Detailed Prompt Section
-    promptTextarea: document.getElementById("promptTextarea"),
+    promptTextarea: document.getElementById("promptTextarea") || document.getElementById("promptInput"),
+    promptInput: document.getElementById("promptTextarea") || document.getElementById("promptInput"),
+    promptInputHint: document.getElementById("promptInputHint"),
     promptCharCount: document.getElementById("promptCharCount"),
     attachedRecIndicator: document.getElementById("attachedRecIndicator"),
     attachedRecText: document.getElementById("attachedRecText"),
@@ -231,11 +233,19 @@
     stepAnnotations: document.getElementById("stepAnnotations"),
 
     // Result Card
+    resultCard: document.getElementById("resultCard"),
     resultContainer: document.getElementById("resultContainer"),
     resultVideo: document.getElementById("resultVideo"),
     btnDownloadVideo: document.getElementById("btnDownloadVideo"),
     btnShareVideo: document.getElementById("btnShareVideo"),
     btnStartNewProduction: document.getElementById("btnStartNewProduction"),
+
+    // Generated Narration Script & Overlay Elements
+    generatedScriptCard: document.getElementById("generatedScriptCard"),
+    generatedScriptText: document.getElementById("generatedScriptText"),
+    btnCopyScript: document.getElementById("btnCopyScript"),
+    resultOverlayPill: document.getElementById("resultOverlayPill"),
+    resultOverlayText: document.getElementById("resultOverlayText"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1049,6 +1059,39 @@
     if (dom.btnStartNewProduction) {
       dom.btnStartNewProduction.addEventListener("click", resetToNewProduction);
     }
+
+    if (dom.btnCopyScript) {
+      dom.btnCopyScript.addEventListener("click", handleCopyScript);
+    }
+  }
+
+  async function handleCopyScript() {
+    const text = (dom.generatedScriptText?.textContent || "").trim();
+    if (!text) {
+      showToast("لا يوجد نص سيناريو لنسخه حالياً.");
+      return;
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      showToast("تم نسخ نص السيناريو بنجاح! 📋");
+      const labelEl = dom.btnCopyScript.querySelector(".copy-label");
+      if (labelEl) {
+        const orig = labelEl.textContent;
+        labelEl.textContent = "تم النسخ ✓";
+        setTimeout(() => { labelEl.textContent = orig; }, 2000);
+      }
+    } catch (e) {
+      showToast("تعذر نسخ النص تلقائياً.");
+    }
   }
 
   async function handleProduceProduction() {
@@ -1081,6 +1124,14 @@
       formData.append("prompt", promptText);
       formData.append("speech_description", promptText);
       formData.append("visual_description", promptText);
+
+      // Support persistent bottom text / phone number overlay if instructed
+      const phoneMatch = promptText.match(/(?:0|\+?213)[567][0-9]{8}/);
+      if (phoneMatch) {
+        formData.append("fixed_text", phoneMatch[0]);
+        formData.append("bottom_text", phoneMatch[0]);
+        formData.append("phone_number", phoneMatch[0]);
+      }
     }
 
     if (activeToken) {
@@ -1315,6 +1366,40 @@
       if (dom.btnShareVideo) {
         dom.btnShareVideo.href = dynamicVideoSrc;
       }
+
+      // 1. Display Generated Narration Script
+      const generatedScript = (data && (
+        data.script ||
+        data.inferred_script ||
+        (data.result && (data.result.script || data.result.inferred_script))
+      )) || "";
+
+      if (dom.generatedScriptCard && dom.generatedScriptText) {
+        if (generatedScript && String(generatedScript).trim()) {
+          dom.generatedScriptText.textContent = String(generatedScript).trim();
+          dom.generatedScriptCard.style.display = "block";
+        } else {
+          dom.generatedScriptCard.style.display = "none";
+        }
+      }
+
+      // 2. Display Persistent Bottom Text or Phone Number Overlay Badge
+      const overlayText = (data && (
+        data.bottom_text ||
+        data.phone_number ||
+        data.fixed_text ||
+        (data.result && (data.result.bottom_text || data.result.phone_number || data.result.fixed_text))
+      )) || "";
+
+      if (dom.resultOverlayPill && dom.resultOverlayText) {
+        if (overlayText && String(overlayText).trim()) {
+          dom.resultOverlayText.textContent = String(overlayText).trim();
+          dom.resultOverlayPill.style.display = "inline-flex";
+        } else {
+          dom.resultOverlayPill.style.display = "none";
+        }
+      }
+
       if (dom.resultContainer) {
         dom.resultContainer.style.display = "block";
         dom.resultContainer.scrollIntoView({ behavior: "smooth" });
@@ -1322,6 +1407,8 @@
       showToast("تم إنجاز الفيديو التسويقي بنجاح! 🎉");
     } else {
       if (dom.resultContainer) dom.resultContainer.style.display = "none";
+      if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
+      if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
     }
   }
@@ -1336,6 +1423,10 @@
       dom.resultVideo.removeAttribute("src");
       dom.resultVideo.load();
     }
+    if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
+    if (dom.generatedScriptText) dom.generatedScriptText.textContent = "";
+    if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
+    if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";

@@ -149,6 +149,44 @@ class TestMinimalLokClientUi:
         assert 'status === "completed"' in js
         assert "isComplete" in js
 
+    def test_generated_script_card_and_persistent_overlay_display(self):
+        """Verify presence and structure of script card, copy button, and persistent overlay feedback."""
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        css = (STATIC_DIR / "style.css").read_text(encoding="utf-8")
+
+        # 1. HTML structure for generated script card and 1-click copy button
+        assert 'id="resultCard"' in html
+        assert 'id="generatedScriptCard"' in html
+        assert "السيناريو والتعليق الصوتي المولّد" in html
+        assert 'id="btnCopyScript"' in html
+        assert "نسخ السيناريو" in html
+        assert 'id="generatedScriptText"' in html
+
+        # 2. HTML structure for persistent overlay info / pill
+        assert 'id="resultOverlayPill"' in html
+        assert 'id="resultOverlayText"' in html
+        assert "الشريط السفلي" in html
+
+        # 3. Prompt placeholder & guidance enhancement
+        assert "مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو" in html
+        assert 'id="promptInputHint"' in html
+
+        # 4. App.js display and copy logic
+        assert "generatedScriptCard" in js
+        assert "generatedScriptText" in js
+        assert "btnCopyScript" in js
+        assert "handleCopyScript" in js
+        assert "resultOverlayPill" in js
+        assert "resultOverlayText" in js
+        assert "data.script" in js or "generatedScript" in js
+        assert "data.bottom_text" in js or "data.phone_number" in js
+
+        # 5. CSS styling
+        assert ".generated-script-card" in css
+        assert ".result-overlay-pill" in css
+        assert ".prompt-guidance-hint" in css
+
 
     def test_minimalist_studio_essential_controls_only(self):
         """Verify Studio UI keeps ONLY upload dropzone, detailed prompt, settings button, and produce button."""

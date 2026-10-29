@@ -176,13 +176,17 @@
                 id="promptTextarea" 
                 class="lok-prompt-textarea" 
                 rows="6"
-                placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو:
+                placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو بحرية تامة:
+• مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو
 • سرعة الإلقاء (Speech Speed): مثلاً وتيرة سريعة وحماسية، أو هادئة ومتزنة.
 • المشاهد المرئية (Visuals): مثلاً التركيز على الإضاءة الطبيعية، الواجهات العصرية، الغرف الواسعة.
 • نبرة الصوت (Tone): مثلاً نبرة ترويجية فخمة ومقنعة، أو ودودة ودافئة.
 • اللهجة (Dialect): بالدارجة الجزائرية العاصمية، أو الوهرانية، أو بالعربية الفصحى."
               ></textarea>
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
+            </div>
+            <div class="prompt-guidance-hint" id="promptInputHint">
+              💡 يمكنك كتابة أي تعليمات خاصة بحرية: نبرة الصوت، تفاصيل العرض، وإظهار رقم الهاتف أو العنوان في الشريط السفلي (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
             </div>
           </div>
 
@@ -214,23 +218,51 @@
 
           <!-- Final Result Card -->
           <div class="result-container" id="resultContainer" style="display: none;">
-            <div class="result-header">
-              <h3 class="result-title">🎉 تم إنتاج الفيديو التسويقي بنجاح!</h3>
-              <p class="result-subtitle">الفيديو جاهز للعرض والمشاركة بجودة عالية وصوت نقي</p>
-            </div>
-            <div class="result-video-wrapper">
-              <video id="resultVideo" controls playsinline class="lok-result-video"></video>
-            </div>
-            <div class="result-actions">
-              <a href="#" download="lok_production.mp4" class="btn-bw-primary btn-download" id="btnDownloadVideo">
-                <span>⬇️ تحميل الفيديو النهائي (MP4)</span>
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" class="btn-bw-secondary btn-share" id="btnShareVideo">
-                <span>🔗 فتح رابط الفيديو المباشر</span>
-              </a>
-              <button type="button" class="btn-bw-secondary btn-new-video" id="btnStartNewProduction">
-                <span>🔄 إنتاج فيديو جديد</span>
-              </button>
+            <div id="resultCard" class="result-card">
+              <div class="result-header">
+                <h3 class="result-title">🎉 تم إنتاج الفيديو التسويقي بنجاح!</h3>
+                <p class="result-subtitle">الفيديو جاهز للعرض والمشاركة بجودة عالية وصوت نقي</p>
+              </div>
+
+              <!-- Persistent Overlay Feedback Pill -->
+              <div class="result-overlay-pill" id="resultOverlayPill" style="display: none;">
+                <span class="overlay-icon">📞</span>
+                <span class="overlay-label">الشريط السفلي:</span>
+                <span class="overlay-text" id="resultOverlayText"></span>
+              </div>
+
+              <div class="result-video-wrapper">
+                <video id="resultVideo" controls playsinline class="lok-result-video"></video>
+              </div>
+
+              <!-- Generated Narration Script Inspection Card -->
+              <div class="generated-script-card" id="generatedScriptCard" style="display: none;">
+                <div class="script-card-header">
+                  <div class="script-card-title-group">
+                    <span class="script-card-icon">🎙️</span>
+                    <h4 class="script-card-title">السيناريو والتعليق الصوتي المولّد</h4>
+                  </div>
+                  <button type="button" class="btn-bw-secondary btn-copy-script" id="btnCopyScript" title="نسخ نص السيناريو">
+                    <span class="copy-icon">📋</span>
+                    <span class="copy-label">نسخ السيناريو</span>
+                  </button>
+                </div>
+                <div class="script-card-body">
+                  <p class="script-content-text" id="generatedScriptText"></p>
+                </div>
+              </div>
+
+              <div class="result-actions">
+                <a href="#" download="lok_production.mp4" class="btn-bw-primary btn-download" id="btnDownloadVideo">
+                  <span>⬇️ تحميل الفيديو النهائي (MP4)</span>
+                </a>
+                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-bw-secondary btn-share" id="btnShareVideo">
+                  <span>🔗 فتح رابط الفيديو المباشر</span>
+                </a>
+                <button type="button" class="btn-bw-secondary btn-new-video" id="btnStartNewProduction">
+                  <span>🔄 إنتاج فيديو جديد</span>
+                </button>
+              </div>
             </div>
           </div>
 
