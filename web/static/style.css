@@ -579,6 +579,17 @@ body {
   color: var(--lok-text-dim);
 }
 
+.prompt-guidance-hint {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--lok-text-muted);
+  line-height: 1.5;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--lok-border);
+  border-radius: var(--lok-radius-sm);
+  padding: 8px 14px;
+}
+
 /* CONTROL 4: Produce Button */
 .btn-produce-main {
   width: 100%;
@@ -680,6 +691,35 @@ body {
   margin-bottom: 18px;
 }
 
+/* Persistent Overlay Badge / Pill */
+.result-overlay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--lok-card);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-pill);
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  color: var(--lok-white);
+  margin-bottom: 18px;
+}
+
+.result-overlay-pill .overlay-icon {
+  font-size: 1rem;
+}
+
+.result-overlay-pill .overlay-label {
+  color: var(--lok-text-muted);
+}
+
+.result-overlay-pill .overlay-text {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--lok-white);
+  font-family: var(--lok-font-latin);
+}
+
 .result-video-wrapper {
   max-width: 480px;
   margin: 0 auto 20px;
@@ -693,6 +733,64 @@ body {
   max-height: 480px;
   display: block;
   background-color: var(--lok-black);
+}
+
+/* Generated Narration Script Card */
+.generated-script-card {
+  max-width: 500px;
+  margin: 0 auto 20px;
+  background-color: var(--lok-card);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-md);
+  padding: 16px 18px;
+  text-align: right;
+}
+
+.script-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--lok-border);
+}
+
+.script-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.script-card-icon {
+  font-size: 1.1rem;
+}
+
+.script-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--lok-white);
+  margin: 0;
+}
+
+.btn-copy-script {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.script-card-body {
+  margin: 0;
+}
+
+.script-content-text {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--lok-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
 }
 
 .result-actions {
