@@ -246,6 +246,7 @@
     btnCopyScript: document.getElementById("btnCopyScript"),
     resultOverlayPill: document.getElementById("resultOverlayPill"),
     resultOverlayText: document.getElementById("resultOverlayText"),
+    bottomTextBadge: document.getElementById("bottomTextBadge"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1391,9 +1392,11 @@
         (data.result && (data.result.bottom_text || data.result.phone_number || data.result.fixed_text))
       )) || "";
 
-      if (dom.resultOverlayPill && dom.resultOverlayText) {
+      if (dom.resultOverlayPill && (dom.resultOverlayText || dom.bottomTextBadge)) {
         if (overlayText && String(overlayText).trim()) {
-          dom.resultOverlayText.textContent = String(overlayText).trim();
+          const cleanOverlay = String(overlayText).trim();
+          if (dom.resultOverlayText) dom.resultOverlayText.textContent = cleanOverlay;
+          if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = cleanOverlay;
           dom.resultOverlayPill.style.display = "inline-flex";
         } else {
           dom.resultOverlayPill.style.display = "none";
@@ -1427,6 +1430,7 @@
     if (dom.generatedScriptText) dom.generatedScriptText.textContent = "";
     if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
     if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
+    if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";

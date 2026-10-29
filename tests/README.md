@@ -271,10 +271,28 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Mobile cut streaming verification: `video/mp4` MIME type, HTTP 200 full content, HTTP 206 byte-range streaming, and 404 error handling.
   - Repository-wide character mapping compliance confirming 0 occurrences of forbidden Arabic character U+0669.
 
+- [`test_prompt_intent_and_overlays.py`](test_prompt_intent_and_overlays.py): Backend prompt intent disentanglement and persistent bottom overlay verification suite authored by `agy11`:
+  - Extraction and normalization of Algerian phone numbers (05/06/07, +213, 00213, spaced and hyphenated formats).
+  - Differentiating creative user meta-instructions from verbatim narration scripts (`is_meta_prompt`, `extract_directives`).
+  - Ensuring Gemini TTS voiceover engine never receives meta-prompt instructions directly (`sanitize_script_against_meta_prompts`).
+  - FFmpeg `drawtext` filter generation for persistent bottom text overlays with semi-transparent background box (`black@0.6`, `boxborderw=8`, `fontsize=28`, `fontcolor=white`, centered at `y=h-text_h-40`).
+  - Asynchronous and synchronous job endpoints exposing `phone_number`, `bottom_text`, and `script` in job status telemetry.
+
+- [`test_gatekeeper_prompt_intent_and_overlays.py`](test_gatekeeper_prompt_intent_and_overlays.py): Pragmatic end-to-end integration gatekeeper test suite authored by Quality Gatekeeper `agy100`:
+  - E2E prompt intent parsing and phone number extraction from user prompt (`0558815453`).
+  - Disentanglement of user meta-prompt instructions from spoken narration, guaranteeing TTS synthesizes authentic marketing Darja script.
+  - FFmpeg drawtext filter generation with `style="persistent_bottom"` spanning full video duration.
+  - Frontend DOM and JavaScript contracts in `index.html` and `app.js` for `#generatedScriptCard`, `#generatedScriptText`, `#btnCopyScript`, `#bottomTextBadge`, and `#resultOverlayPill`.
+  - Script copy functionality and toast feedback in `app.js`.
+  - Server endpoints `/api/jobs/create` and `/api/status/{job_id}` validation.
+  - Repository-wide zero U+0669 verification.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Prompt Intent Disentanglement & Persistent Overlays gatekeeper suite:
+pytest tests/test_gatekeeper_prompt_intent_and_overlays.py tests/test_prompt_intent_and_overlays.py tests/test_minimal_lok_and_admin_ui.py tests/test_dynamic_video_delivery.py tests/test_dynamic_video_pipeline.py tests/test_e2e_auth_and_video_pipeline.py -v
 # Targeted Dynamic Video Delivery & Vision Models gatekeeper verification suite:
 pytest tests/test_dynamic_video_delivery.py tests/test_dynamic_video_pipeline.py tests/test_minimal_lok_and_admin_ui.py tests/test_e2e_auth_and_video_pipeline.py -v
 # Targeted E2E Auth, Visual Login UX, and Production Pipeline gatekeeper suite:
