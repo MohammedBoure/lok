@@ -299,8 +299,11 @@ class TestVideoProductionPipelineE2E:
         assert res_login.status_code == 200
         token = res_login.json()["session_token"]
         user_id = res_login.json()["user"]["id"]
-        initial_quota = res_login.json()["quota"]
-        initial_remaining = initial_quota["daily_remaining"]
+
+        # Ensure account has available quota for test runs
+        auth_db.update_user(user_id, daily_quota=100, weekly_quota=500)
+        _, _, refreshed_quota = auth_db.check_quota(user_id)
+        initial_remaining = refreshed_quota["daily_remaining"]
 
         # 2. POST /api/jobs/create with Authorization header
         dummy_video = io.BytesIO(b"fake_mp4_bytes_for_testing")
@@ -341,6 +344,9 @@ class TestVideoProductionPipelineE2E:
         assert res_login.status_code == 200
         token = res_login.json()["session_token"]
         user_id = res_login.json()["user"]["id"]
+
+        # Ensure test account has available quota for test execution
+        auth_db.update_user(user_id, daily_quota=50, weekly_quota=200)
 
         dummy_video = io.BytesIO(b"fake_mp4_bytes_couture")
         mock_pipeline_output = {
