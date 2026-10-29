@@ -101,6 +101,54 @@ class TestMinimalLokClientUi:
         assert "stepperStatusText" in js
         assert "stepperFill" in js
 
+    def test_dynamic_video_playback_and_cache_buster(self):
+        """Verify video player dynamically resolves video URL, applies cache-buster, and updates download links."""
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+        # 1. Dynamic video URL extraction (not hardcoded sole source)
+        assert "data.video_url" in js
+        assert "data.output_video_url" in js or "output_video" in js
+        assert "buildDynamicVideoUrl" in js
+
+        # 2. Timestamp cache-busting parameter (?v=Date.now())
+        assert "Date.now()" in js
+        assert "buildDynamicVideoUrl" in js
+        assert "dynamicVideoSrc" in js
+
+        # 3. Dynamic video element loading
+        assert "dom.resultVideo.src = dynamicVideoSrc" in js
+        assert "dom.resultVideo.load()" in js
+
+        # 4. Download and share link updates
+        assert "dom.btnDownloadVideo.href = dynamicVideoSrc" in js
+        assert 'id="btnDownloadVideo"' in html
+        assert 'id="btnShareVideo"' in html
+
+    def test_stepper_reflects_processing_states_and_completion_gate(self):
+        """Verify progress stepper reflects backend stages (frames, vision, voice, render, annotations) and completion gate."""
+        js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+        # 1. Stepper chips in HTML
+        assert 'id="stepFrames"' in html
+        assert 'id="stepAnalyze"' in html
+        assert 'id="stepVoice"' in html
+        assert 'id="stepRender"' in html
+        assert 'id="stepAnnotations"' in html
+
+        # 2. Stepper logic and stages in app.js
+        assert "resolveStepFromTelemetry" in js
+        assert "stepFrames" in js
+        assert "stepAnalyze" in js
+        assert "stepVoice" in js
+        assert "stepRender" in js
+        assert "stepAnnotations" in js
+
+        # 3. Polling completion gate: video not revealed until status is completed / 100%
+        assert 'status === "completed"' in js
+        assert "isComplete" in js
+
 
     def test_minimalist_studio_essential_controls_only(self):
         """Verify Studio UI keeps ONLY upload dropzone, detailed prompt, settings button, and produce button."""
