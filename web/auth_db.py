@@ -101,6 +101,13 @@ MASTER_ADMIN_PASSWORD = "plutosw4"
 DEFAULT_ADMIN_PASSWORD = "admin123"
 DEFAULT_MERCHANT_PASSWORD = "merchant123"
 
+# Common UI alias mappings to pre-seeded merchant accounts
+USERNAME_ALIASES: Dict[str, str] = {
+    "merchant_realestate": "algiers_luxury_re",
+    "dar_al_nokhba": "setif_home_decor",
+    "auto_algerie": "batna_auto_showroom",
+}
+
 PRESEEDED_ACCOUNTS: List[Dict[str, Any]] = [
     {
         "username": MASTER_ADMIN_USERNAME,
@@ -700,6 +707,13 @@ def authenticate_credentials(
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(?) LIMIT 1;", (clean_username,))
         row = cursor.fetchone()
+        if not row:
+            # Check user alias mapping (e.g. merchant_realestate -> algiers_luxury_re)
+            alias_target = USERNAME_ALIASES.get(clean_username.lower())
+            if alias_target:
+                cursor.execute("SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(?) LIMIT 1;", (alias_target,))
+                row = cursor.fetchone()
+
         if not row:
             # Fallback: check if clean_username matches an auth_token
             cursor.execute("SELECT * FROM users WHERE TRIM(auth_token) = ? LIMIT 1;", (clean_username,))

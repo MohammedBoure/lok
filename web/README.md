@@ -769,9 +769,10 @@ The platform provides a unified authentication subsystem where master administra
    - Accounts created via the Admin Portal (`POST /api/admin/accounts`) and pre-seeded merchant accounts authenticate seamlessly via `/api/auth/login`.
    - Password hashing and verification are fully harmonized using PBKDF2-HMAC-SHA256 with 100,000 iterations and 16-byte cryptographically secure salts.
 
-### Case-Insensitive Matching & Whitespace Normalization
-To prevent accidental 401 rejections from mobile keyboards and input autofills:
+### Case-Insensitive Matching, Whitespace Normalization & Aliases
+To prevent accidental 401 rejections from mobile keyboards, input autofills, and demo quick-login buttons:
 - **Username Resolution**: Evaluated using case-insensitive SQL matching with leading and trailing whitespace trimming: `WHERE LOWER(TRIM(username)) = LOWER(?)`.
+- **Demo Quick-Login Aliases**: Maps common demo identifiers transparently (e.g., `merchant_realestate` -> `algiers_luxury_re`, `dar_al_nokhba` -> `setif_home_decor`, `auto_algerie` -> `batna_auto_showroom`) without requiring changes to existing database records.
 - **Password Tolerant Verification**: Hashes and verifies passwords after stripping accidental whitespace while retaining constant-time comparison (`hmac.compare_digest`) against timing side-channel attacks.
 
 ### Token Extraction & Candidate Resolution Priority
