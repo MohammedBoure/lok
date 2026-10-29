@@ -3,9 +3,9 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Unified Authentication, Plutosw4 Studio Access & E2E Pipeline Quotas",
-      "branch": "backend/agy11-unified-auth-and-pipeline-fixes",
-      "scope": "Investigate why POST /api/auth/login returns 401 Unauthorized for accounts created via admin portal and for master admin pluto. Ensure: 1) Master admin pluto (with password plutosw4) can log into both /api/auth/login (client studio) and /api/admin/login (admin portal). 2) All merchant accounts created via /api/admin/accounts can log into /api/auth/login with their configured password (PBKDF2 verification and password hashing consistency). 3) Support whitespace trimming and case-insensitive username lookup. 4) Ensure GET /api/auth/session and GET /api/auth/me recognize session tokens from both endpoints and return valid quotas. 5) Ensure pluto has unlimited quota (role='admin') and merchants have valid quotas. 6) Verify /api/jobs/create and /api/upload-and-process accept session tokens via Bearer header or cookie and successfully process video cuts without 401/403 errors. 7) Verify zero U+0669 characters. Update web/README.md; commit as MohammedBoure on branch backend/agy11-unified-auth-and-pipeline-fixes; notify coordinator.",
+      "role": "Backend Dynamic Video Pipeline, Vision Models & Atomic Job Result Exposure",
+      "branch": "backend/agy11-dynamic-video-pipeline-and-vision-models",
+      "scope": "1) Gemini Vision Model Updates: In vision_analyzer.py, replace retired models returning 404 (gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-pro) with active models (gemini-3.8-flash, gemini-2.5-flash, gemini-3.1-pro-preview), increase read timeout if needed, and ensure uploaded video keyframes are successfully analyzed by Gemini Vision without premature fallback. 2) Atomic Job Result Exposure & Video Dynamic URL: In web/server.py and web/pipeline_bridge.py, ensure /api/status/{job_id} reports 'completed' only AFTER the final cut and video annotations are 100% finished and flushed to disk. Return the dynamic output video URL for the specific job (e.g. data['video_url'] / data['output_video_url']) and atomically update /outputs/final_cut.mp4. Support serving the specific job cut. 3) Author tests in tests/test_dynamic_video_pipeline.py. 4) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
       "state": "COMPLETED"
     },
