@@ -254,10 +254,29 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Video production pipeline execution: authenticated `/api/jobs/create` (202 processing, job status tracking at `/api/status/{job_id}`, quota decrementing) and `/api/upload-and-process` (200 success with cookie auth), with 401 rejection for unauthenticated requests.
   - Repository-wide character mapping compliance verifying zero occurrences of forbidden character U+0669.
 
+- [`test_dynamic_video_pipeline.py`](test_dynamic_video_pipeline.py): Dynamic video pipeline, active vision models, and atomic job result exposure test suite authored by Lead Backend Engineer `agy11`:
+  - Active Gemini Multimodal Vision model hierarchy (`gemini-3.8-flash`, `gemini-2.5-flash`, `gemini-3.1-pro-preview`) and elimination of deprecated 404 models.
+  - Failover resiliency when primary model returns 404 or encounters read timeouts (45s read timeout configuration).
+  - Atomic job result exposure: `/api/status/{job_id}` holding at processing (98%) until final MP4 cut file is completely written and non-empty on disk.
+  - Dynamic `video_url` and `output_video_url` pointing to specific job cuts (`/outputs/mobile_cuts/cut_{job_id}.mp4`).
+  - Atomic mirror to legacy `/outputs/final_cut.mp4` via temporary atomic replacement.
+  - Custom cut endpoint `/outputs/mobile_cuts/{filename}` serving with `video/mp4` MIME type and HTTP 206 Partial Content byte-range streaming.
+  - Strict typography compliance prohibiting forbidden Arabic character U+0669.
+
+- [`test_dynamic_video_delivery.py`](test_dynamic_video_delivery.py): Dynamic video delivery and vision model resilience gatekeeper integration suite authored by Quality Gatekeeper `agy100`:
+  - Vision model fallback list verification (`gemini-3.8-flash`, `gemini-2.5-flash`, `gemini-3.1-pro-preview`) and 404 fallback handling.
+  - Prevention of premature completion: `/api/status/{job_id}` verified to report processing if MP4 cut file is absent or 0 bytes, and completed once file exists.
+  - Dynamic `video_url` and `output_video_url` generation pointing strictly to `cut_{job_id}.mp4`.
+  - Frontend DOM and JavaScript contracts: `buildDynamicVideoUrl` timestamp cache-busting (`?v=Date.now()`), video element dynamic assignment and load, and multi-stage stepper tracking (`#stepFrames`, `#stepAnalyze`, `#stepVoice`, `#stepRender`, `#stepAnnotations`).
+  - Mobile cut streaming verification: `video/mp4` MIME type, HTTP 200 full content, HTTP 206 byte-range streaming, and 404 error handling.
+  - Repository-wide character mapping compliance confirming 0 occurrences of forbidden Arabic character U+0669.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Dynamic Video Delivery & Vision Models gatekeeper verification suite:
+pytest tests/test_dynamic_video_delivery.py tests/test_dynamic_video_pipeline.py tests/test_minimal_lok_and_admin_ui.py tests/test_e2e_auth_and_video_pipeline.py -v
 # Targeted E2E Auth, Visual Login UX, and Production Pipeline gatekeeper suite:
 pytest tests/test_e2e_auth_and_video_pipeline.py tests/test_unified_auth_and_pipeline.py tests/test_minimal_lok_and_admin_ui.py tests/test_admin_portal_and_security.py -v
 # Targeted Admin Portal, Prompt Security Guardrail, and Minimalist 'lok' Studio sprint verification suite:
