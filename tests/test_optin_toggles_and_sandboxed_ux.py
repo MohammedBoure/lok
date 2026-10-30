@@ -1,7 +1,7 @@
 """
 Frontend UI/UX Test Suite for Opt-In Feature Toggles and Sandboxed Asset UX
 File: tests/test_optin_toggles_and_sandboxed_ux.py
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Frontend UI/UX Auditor (agy51)
 Branch: frontend/agy51-optin-toggles-and-sandboxed-ux
 """
