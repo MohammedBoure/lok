@@ -179,6 +179,8 @@
                 placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو بحرية تامة:
 • مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو
 • مثال عقاري: أريد تعليقاً لشقة F5 مطلة على البحر بخط كبير وبدون موسيقى
+• ترجمة الكلام المتزامنة: تفعيل الترجمة التلقائية المتزامنة بدقة كلمة بكلمة مع المشاهد.
+• فهم وتطابق المشاهد (Shot Grounding): يربط المعلق الصوتي كل جملة باللقطة الحقيقية الظاهرة في الفيديو.
 • التحكم بالموسيقى والمكساج: مثلاً 'بدون موسيقى' (للحصول على صوت نقي 100% وإلغاء موسيقى الخلفية بالكامل)، أو 'موسيقى بيانو هادئة بمستوى صوت 15%'.
 • حجم الخط والنصوص: مثلاً 'بخط كبير وواضح' أو 'بخط عريض وبارز'.
 • مواصفات العقار والمشاهد: مثلاً 'شقة F5'، 'مطل على البحر'، أو التركيز على الصالون.
@@ -191,7 +193,7 @@
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 يمكنك كتابة أي تعليمات خاصة بحرية: كتم الموسيقى ('بدون موسيقى' لصوت نقي 100%)، ضبط مستوى الصوت، إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+              💡 يمكنك كتابة أي تعليمات خاصة بحرية: ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق، كتم الموسيقى ('بدون موسيقى' لصوت نقي 100%)، ضبط مستوى الصوت، إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وفهم المشاهد واللقطات، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
             </div>
           </div>
 
@@ -249,6 +251,14 @@
                   <span class="music-badge" id="resultMusicBadge" style="display: none;"></span>
                 </div>
 
+                <!-- Synchronized Captions Feedback Pill -->
+                <div class="result-captions-pill" id="resultCaptionsPill" style="display: none;">
+                  <span class="captions-icon" id="resultCaptionsIcon">💬</span>
+                  <span class="captions-label">ترجمة الكلام المتزامنة:</span>
+                  <span class="captions-text" id="resultCaptionsText"></span>
+                  <span class="captions-badge" id="resultCaptionsBadge" style="display: none;"></span>
+                </div>
+
                 <!-- Montage Feedback Pill -->
                 <div class="result-montage-pill" id="resultMontagePill" style="display: none;">
                   <span class="montage-icon">✂️</span>
@@ -275,6 +285,18 @@
                 </div>
                 <div class="script-card-body">
                   <p class="script-content-text" id="generatedScriptText"></p>
+                </div>
+
+                <!-- Shot-by-Shot Synchronized Timeline -->
+                <div class="shots-timeline-section" id="shotsTimelineSection" style="display: none;">
+                  <div class="timeline-header">
+                    <div class="timeline-title-group">
+                      <span class="timeline-icon">⏱️</span>
+                      <h5 class="timeline-title">التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</h5>
+                    </div>
+                    <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
+                  </div>
+                  <div class="shots-timeline-list" id="shotsTimelineList"></div>
                 </div>
               </div>
 

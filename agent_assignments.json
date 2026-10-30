@@ -7,7 +7,7 @@
       "branch": "backend/agy11-synchronized-captions-and-shot-grounding",
       "scope": "1) Shot-by-Shot Visual Grounding & Anti-Hallucination: In web/vision_analyzer.py, associate extracted keyframes with exact timestamps. Provide Gemini Vision with timestamp-anchored visual scenes (Scene [start_sec-end_sec]) and strict anti-hallucination instructions forbidding mention of any room, amenity, or feature not physically visible in those frames. In web/pipeline_bridge.py, check/transcribe source video audio to incorporate videographer live speech if present. 2) Synchronized Subtitles/Captions Pipeline: Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching narration phrasing. In web/video_annotator.py and web/pipeline_bridge.py, render synchronized captions via drawtext filters (enable='between(t, start, end)') with safe elevated margins, while preserving persistent phone/contact badge. 3) Strict Prompt Adherence: Ensure all customer prompt instructions, numbers, and features are strictly followed. 4) Author tests in tests/test_synchronized_captions_and_shot_grounding.py. 5) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
