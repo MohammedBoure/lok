@@ -173,8 +173,8 @@ python3 -m web.run_server
 ## Directory Structure
 - [`app.py`](app.py): 1-command platform runner with LAN IP detection, QR code generation, and Uvicorn server launcher.
 - [`.agent/`](.agent/): Operational directives and agent principles (`agy1.md`, `agy11.md`, `agy51.md`).
-- [`inputs/`](inputs/): Raw incoming video footage (`source_fox_cub.mp4`, `source_squirrel.mp4`), mobile uploads, and production requests.
-- [`outputs/`](outputs/): Rendered assets, keyframes, mobile cuts, TTS audio, and final cut exports.
+- [`inputs/`](inputs/): Raw incoming video footage (`source_fox_cub.mp4`, `source_squirrel.mp4`), mobile uploads, and production requests (local runtime directory, ignored by Git).
+- [`outputs/`](outputs/): Rendered assets, keyframes, mobile cuts, TTS audio, and final cut exports (local runtime directory, ignored by Git).
   - [`outputs/keyframes/`](outputs/keyframes/): Extracted keyframe images and `frame_index.json`.
   - [`outputs/mobile_cuts/`](outputs/mobile_cuts/): Rendered mobile promo cuts (`cut_<job_id>.mp4`) and summaries.
   - [`outputs/narration.wav`](outputs/narration.wav): High-quality Gemini TTS voiceover track.

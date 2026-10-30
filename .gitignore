@@ -7,14 +7,9 @@ __pycache__/
 **/.env
 **/.env*
 
-# Mobile test uploads and cuts
-inputs/mobile_uploads/*
-!inputs/mobile_uploads/.gitkeep
-outputs/mobile_cuts/*
-!outputs/mobile_cuts/.gitkeep
-outputs/keyframes/mobile_*
-outputs/voice_samples/*
-!outputs/voice_samples/.gitkeep
-*.db
-outputs/*.db
+# Local inputs and outputs
+inputs/
+outputs/
 
+*.db
+*.mp4
