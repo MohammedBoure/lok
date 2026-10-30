@@ -28,7 +28,7 @@
         "backend/agy11-synchronized-captions-and-shot-grounding",
         "frontend/agy51-caption-sync-and-shot-timeline-ui"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }

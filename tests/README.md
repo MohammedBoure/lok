@@ -317,10 +317,37 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Server job creation and status endpoints returning rich audio and overlay metadata.
   - Repository-wide verification of zero occurrences of forbidden Arabic character U+0669.
 
+- [`test_synchronized_captions_and_shot_grounding.py`](test_synchronized_captions_and_shot_grounding.py): Synchronized captions, shot-by-shot visual grounding, and anti-hallucination verification suite authored by `agy11`:
+  - Normalization of keyframe records with precise timestamps (`timestamp_sec`).
+  - Construction of contiguous chronological shot timeline scenes (`Scene 1 [start - end]`).
+  - Strict anti-hallucination constraints embedded in Gemini Vision prompt forbidding mention of unseen rooms or features.
+  - Dynamic timestamp-synchronized subtitle segmentation (`generate_synchronized_subtitles`) aligned with narration pacing.
+  - FFmpeg drawtext subtitle styling with `enable='between(t, start, end)'` and elevated safe margin (`>= 185px`).
+  - Subtitle and persistent contact badge non-collision verification.
+  - Source video live videographer speech analysis and integration into narration prompt.
+
+- [`test_captions_and_timeline_ui.py`](test_captions_and_timeline_ui.py): Frontend synchronized captions pill, shot timeline inspection, and prompt guidance suite authored by `agy51`:
+  - DOM structure in `index.html` for `#resultCaptionsPill`, `#resultCaptionsIcon`, `#resultCaptionsText`, `#resultCaptionsBadge`.
+  - DOM structure for `#shotsTimelineSection`, `#timelineBadge`, `#shotsTimelineList`.
+  - Dynamic JavaScript logic in `app.js` for captions pill and `renderShotTimeline` with formatted timestamps (`formatTimestampRange`).
+  - CSS layout and typography styling rules in `style.css`.
+
+- [`test_gatekeeper_captions_and_shot_grounding.py`](test_gatekeeper_captions_and_shot_grounding.py): Comprehensive end-to-end gatekeeper verification suite authored by Quality Gatekeeper `agy100`:
+  - Verification of timestamp-synchronized subtitle filters and non-overlapping interval progression.
+  - Elevated safe margin verification preventing collisions between subtitles and persistent contact overlay badges.
+  - Keyframe timestamp association and contiguous shot timeline construction.
+  - Gemini Vision prompt anti-hallucination mandate and videographer field speech integration.
+  - Strict customer prompt specifications adherence (`F5`, `مطل على البحر`, `شقة`, `بدون موسيقى`, `بخط كبير`, `0558815453`).
+  - Execution summary and `/api/status/{job_id}` verification exposing `subtitles`, `subtitles_count`, `shot_timeline`, and `customer_specifications`.
+  - Frontend DOM and JavaScript contracts verification for `#resultCaptionsPill` and `#shotsTimelineSection`.
+  - Repository-wide verification of zero occurrences of forbidden Arabic character U+0669.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Synchronized Captions, Shot Grounding, and Strict Compliance gatekeeper suite:
+pytest tests/test_gatekeeper_captions_and_shot_grounding.py tests/test_synchronized_captions_and_shot_grounding.py tests/test_captions_and_timeline_ui.py -v
 # Targeted Dynamic Narration, Audio Mixing, and Overlays gatekeeper suite:
 pytest tests/test_gatekeeper_dynamic_narration_and_audio.py tests/test_prompt_customizations_and_dynamism.py tests/test_music_and_overlay_ui.py tests/test_gatekeeper_prompt_intent_and_overlays.py -v
 # Targeted Prompt Intent Disentanglement & Persistent Overlays gatekeeper suite:

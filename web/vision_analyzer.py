@@ -402,6 +402,21 @@ def _get_smart_fallback(
         visual_lead_in=visual_lead_in,
     )
 
+    if not shot_timeline and keyframe_count > 0:
+        synth_timeline = []
+        seg_dur = duration / max(1, keyframe_count)
+        for i in range(keyframe_count):
+            st = round(i * seg_dur, 2)
+            et = round(duration if i == keyframe_count - 1 else (i + 1) * seg_dur, 2)
+            synth_timeline.append({
+                "scene_index": i + 1,
+                "start_sec": st,
+                "end_sec": et,
+                "duration": round(et - st, 2),
+                "title": f"Scene {i + 1} [{st:.1f}s - {et:.1f}s]",
+            })
+        shot_timeline = synth_timeline
+
     fb_result = {
         "script": script,
         "subtitles": subtitles,
