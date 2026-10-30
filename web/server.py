@@ -1081,6 +1081,10 @@ async def get_job_status(request: Request) -> JSONResponse:
             res_dict.setdefault("bottom_text", p_data.get("bottom_text"))
             res_dict.setdefault("phone_number", p_data.get("phone_number"))
             res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
+            res_dict.setdefault("subtitles", p_data.get("subtitles") or [])
+            res_dict.setdefault("shot_timeline", p_data.get("shot_timeline") or [])
+            res_dict.setdefault("videographer_speech", p_data.get("videographer_speech"))
+            res_dict.setdefault("customer_specifications", p_data.get("customer_specifications") or {})
             res_dict["video_url"] = video_web_url
             res_dict["output_video_url"] = video_web_url
             res_dict["output_video"] = video_web_url

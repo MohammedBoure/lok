@@ -66,8 +66,23 @@ def _build_drawtext_filter(
     is_persistent = bool(annotation.get("persistent") or annotation.get("is_persistent") or style == "persistent_bottom")
     is_large = bool(annotation.get("large_font"))
 
-    # Color themes
-    if style in ("persistent_bottom", "bottom_box", "phone_overlay"):
+    # Color themes and positioning
+    if position in ("subtitle", "captions") or style in ("subtitle", "caption", "synchronized_caption"):
+        font_color = "white"
+        box_color = annotation.get("box_color", "black@0.72")
+        boxborderw = int(annotation.get("boxborderw", 8))
+        if is_large:
+            default_fs = max(40, min(54, int(video_height * 0.035)))
+        elif "font_size" in annotation:
+            default_fs = int(annotation["font_size"])
+        else:
+            default_fs = max(30, min(42, int(video_height * 0.026)))
+        font_size = default_fs
+        coord_x = "(w-text_w)/2"
+        # Subtitles sit cleanly elevated above the persistent bottom badge
+        safe_margin = int(annotation.get("safe_margin", max(185, int(video_height * 0.145))))
+        coord_y = f"h-text_h-{safe_margin}"
+    elif position in ("bottom_banner", "persistent_bottom", "bottom") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
         font_color = "white"
         box_color = annotation.get("box_color", "black@0.78")
         boxborderw = int(annotation.get("boxborderw", 16 if is_large else 14))
@@ -78,29 +93,38 @@ def _build_drawtext_filter(
         else:
             default_fs = max(38, min(50, int(video_height * 0.034)))
         font_size = default_fs
-    elif style == "emerald_badge":
-        font_color = "0x10B981"
-        box_color = "0x064E3B@0.85"
-    elif style == "price_tag":
-        font_color = "0xF59E0B"
-        box_color = "0x1E1B4B@0.88"
-    elif style == "modern_white":
-        font_color = "0xFFFFFF"
-        box_color = "0x0F172A@0.80"
-    elif style == "commercial_red":
-        font_color = "0xFFFFFF"
-        box_color = "0xDC2626@0.90"
-    else:  # luxury_gold
-        font_color = "0xFBBF24"
-        box_color = "0x18181B@0.85"
-
-    # Positioning coordinates
-    if position in ("bottom_banner", "persistent_bottom", "bottom") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
         coord_x = "(w-text_w)/2"
         # Safe margin to keep text clearly elevated above player controls, timeline, and mobile UI bars
         safe_margin = int(annotation.get("safe_margin", max(110, int(video_height * 0.085))))
         coord_y = f"h-text_h-{safe_margin}"
-    elif position == "top_banner":
+    elif style == "emerald_badge":
+        font_color = "0x10B981"
+        box_color = "0x064E3B@0.85"
+        coord_x = "(w-text_w)/2"
+        coord_y = "h*0.75"
+    elif style == "price_tag":
+        font_color = "0xF59E0B"
+        box_color = "0x1E1B4B@0.88"
+        coord_x = "(w-text_w)/2"
+        coord_y = "h*0.75"
+    elif style == "modern_white":
+        font_color = "0xFFFFFF"
+        box_color = "0x0F172A@0.80"
+        coord_x = "(w-text_w)/2"
+        coord_y = "h*0.75"
+    elif style == "commercial_red":
+        font_color = "0xFFFFFF"
+        box_color = "0xDC2626@0.90"
+        coord_x = "(w-text_w)/2"
+        coord_y = "h*0.75"
+    else:  # luxury_gold
+        font_color = "0xFBBF24"
+        box_color = "0x18181B@0.85"
+        coord_x = "(w-text_w)/2"
+        coord_y = "h*0.75"
+
+    # Explicit position override if not handled in theme
+    if position == "top_banner":
         coord_x = "(w-text_w)/2"
         coord_y = "60"
     elif position == "badge":
@@ -109,9 +133,6 @@ def _build_drawtext_filter(
     elif position == "center":
         coord_x = "(w-text_w)/2"
         coord_y = "(h-text_h)/2"
-    else:  # lower_third (default)
-        coord_x = "(w-text_w)/2"
-        coord_y = "h*0.75"
 
     filter_parts = [
         f"text='{escaped_text}'",
@@ -139,6 +160,8 @@ def annotate_video(
     input_video_path: str | Path | None = None,
     output_video_path: str | Path | None = None,
     annotations: Optional[List[Dict[str, Any]]] = None,
+    video_width: Optional[int] = None,
+    video_height: Optional[int] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -168,9 +191,30 @@ def annotate_video(
             "message": "No annotations provided; stream copied directly."
         }
 
+    vw = int(video_width or kwargs.get("width") or 0)
+    vh = int(video_height or kwargs.get("height") or 0)
+    if vw <= 0 or vh <= 0:
+        try:
+            probe_cmd = [
+                "ffprobe", "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=width,height",
+                "-of", "csv=s=x:p=0",
+                str(input_path),
+            ]
+            res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            parts = res.stdout.strip().split("x")
+            if len(parts) == 2:
+                vw = int(parts[0])
+                vh = int(parts[1])
+        except Exception:
+            vw = 1080
+            vh = 1920
+
     font_file = find_system_font()
     filter_chain = ",".join(
-        _build_drawtext_filter(a, font_file=font_file) for a in valid_annotations
+        _build_drawtext_filter(a, font_file=font_file, video_width=vw, video_height=vh)
+        for a in valid_annotations
     )
 
     cmd = [

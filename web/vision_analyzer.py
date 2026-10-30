@@ -16,8 +16,11 @@ import json
 import logging
 import os
 import re
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+import requests
 
 from config.production_principles_manager import (
     build_vision_prompt_principles,
@@ -69,6 +72,166 @@ def _ensure_env_loaded() -> None:
                 pass
 
 _ensure_env_loaded()
+
+
+# ---------------------------------------------------------------------------
+# Keyframe Records, Shot Timeline & Subtitles Pipeline
+# ---------------------------------------------------------------------------
+
+def extract_keyframe_records(
+    keyframe_paths: List[Union[str, Path, Dict[str, Any]]],
+    keyframes_metadata: Optional[List[Dict[str, Any]]] = None,
+    video_duration: float = 10.0,
+) -> List[Dict[str, Any]]:
+    """
+    Normalize keyframe inputs into structured records with precise timestamp_sec.
+    Extracts timestamps from metadata dicts, embedded timestamp fields, or filenames.
+    """
+    records: List[Dict[str, Any]] = []
+    for idx, item in enumerate(keyframe_paths):
+        if isinstance(item, dict):
+            p_val = item.get("file_path") or item.get("path") or item.get("absolute_file_path", "")
+            p = Path(p_val).resolve()
+            raw_t = item.get("timestamp_sec") if item.get("timestamp_sec") is not None else item.get("timestamp", 0.0)
+            try:
+                t = float(raw_t)
+            except (ValueError, TypeError):
+                t = 0.0
+            records.append({
+                "path": p,
+                "timestamp_sec": round(max(0.0, t), 2),
+                "frame_index": item.get("frame_index", idx),
+            })
+        else:
+            p = Path(item).resolve()
+            t = 0.0
+            if keyframes_metadata and idx < len(keyframes_metadata):
+                meta = keyframes_metadata[idx]
+                raw_t = meta.get("timestamp_sec") if meta.get("timestamp_sec") is not None else meta.get("timestamp", 0.0)
+                try:
+                    t = float(raw_t)
+                except (ValueError, TypeError):
+                    t = 0.0
+            else:
+                m = re.search(r"_(\d+(?:\.\d+)?)s\.(?:jpg|png|jpeg)", p.name, re.IGNORECASE)
+                if m:
+                    t = float(m.group(1))
+                elif len(keyframe_paths) > 1:
+                    t = round((idx / max(1, len(keyframe_paths) - 1)) * video_duration, 2)
+            records.append({
+                "path": p,
+                "timestamp_sec": round(max(0.0, t), 2),
+                "frame_index": idx,
+            })
+
+    # Sort strictly by timestamp
+    valid_records = [r for r in records if r["path"].is_file() and r["path"].stat().st_size > 0]
+    valid_records.sort(key=lambda r: r["timestamp_sec"])
+    return valid_records
+
+
+def build_shot_timeline(
+    keyframe_records: List[Dict[str, Any]],
+    video_duration: float = 10.0,
+) -> List[Dict[str, Any]]:
+    """
+    Construct an explicit shot-by-shot timeline interval for every keyframe.
+    E.g. Scene 1 [0.0s - 3.5s], Scene 2 [3.5s - 7.0s], etc.
+    Provides chronological visual grounding preventing hallucinated spaces.
+    """
+    if not keyframe_records:
+        return []
+
+    timeline: List[Dict[str, Any]] = []
+    n = len(keyframe_records)
+    for i in range(n):
+        curr_t = keyframe_records[i]["timestamp_sec"]
+        start_sec = max(0.0, round(curr_t, 2))
+        if i + 1 < n:
+            next_t = keyframe_records[i + 1]["timestamp_sec"]
+            end_sec = round(max(start_sec + 0.5, next_t), 2)
+        else:
+            end_sec = round(max(start_sec + 0.5, video_duration), 2)
+
+        timeline.append({
+            "scene_index": i + 1,
+            "start_sec": start_sec,
+            "end_sec": end_sec,
+            "duration": round(end_sec - start_sec, 2),
+            "keyframe_timestamp": curr_t,
+            "keyframe_path": str(keyframe_records[i]["path"]),
+            "title": f"Scene {i + 1} [{start_sec:.1f}s - {end_sec:.1f}s]",
+        })
+    return timeline
+
+
+def generate_synchronized_subtitles(
+    script: str,
+    narration_duration: float,
+    visual_lead_in: float = 1.2,
+    min_segment_duration: float = 1.2,
+    max_words_per_segment: int = 7,
+) -> List[Dict[str, Any]]:
+    """
+    Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text)
+    matching the natural spoken phrasing of the narration script across the audio duration.
+    """
+    raw_script = str(script or "").strip()
+    if not raw_script:
+        return []
+
+    # Split script into natural phrasing clauses by punctuation
+    raw_clauses = re.split(r"[.،!؟\n;:]+", raw_script)
+    clauses = [c.strip() for c in raw_clauses if c.strip()]
+    if not clauses:
+        clauses = [raw_script]
+
+    # Break long clauses into manageable reading chunks (4 to 7 words)
+    segments_text: List[str] = []
+    for clause in clauses:
+        words = clause.split()
+        if len(words) <= max_words_per_segment:
+            segments_text.append(clause)
+        else:
+            for chunk_idx in range(0, len(words), max_words_per_segment):
+                chunk = " ".join(words[chunk_idx : chunk_idx + max_words_per_segment])
+                if chunk:
+                    segments_text.append(chunk)
+
+    if not segments_text:
+        segments_text = [raw_script]
+
+    total_words = sum(max(1, len(seg.split())) for seg in segments_text)
+    effective_speech_dur = max(2.0, float(narration_duration))
+
+    subtitles: List[Dict[str, Any]] = []
+    curr_t = round(float(visual_lead_in), 2)
+
+    for idx, seg in enumerate(segments_text):
+        seg_words = max(1, len(seg.split()))
+        seg_ratio = seg_words / float(total_words)
+        seg_dur = max(min_segment_duration, round(seg_ratio * effective_speech_dur, 2))
+
+        start_t = curr_t
+        end_t = round(start_t + seg_dur, 2)
+
+        subtitles.append({
+            "segment_index": idx + 1,
+            "start_sec": start_t,
+            "end_sec": end_t,
+            "text": seg,
+        })
+        curr_t = round(end_t + 0.05, 2)
+
+    # Normalize final segment end time so it aligns cleanly with audio duration
+    max_allowed = round(visual_lead_in + effective_speech_dur, 2)
+    if subtitles and subtitles[-1]["end_sec"] > max_allowed:
+        scale = effective_speech_dur / max(0.1, (subtitles[-1]["end_sec"] - visual_lead_in))
+        for sub in subtitles:
+            sub["start_sec"] = round(visual_lead_in + (sub["start_sec"] - visual_lead_in) * scale, 2)
+            sub["end_sec"] = round(visual_lead_in + (sub["end_sec"] - visual_lead_in) * scale, 2)
+
+    return subtitles
 
 
 # ---------------------------------------------------------------------------
@@ -156,6 +319,8 @@ def _get_smart_fallback(
     visual_lead_in: float = 1.2,
     outro_buffer: float = 1.2,
     keyframe_count: int = 0,
+    shot_timeline: Optional[List[Dict[str, Any]]] = None,
+    videographer_speech: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Provide intelligent fallback when Gemini Vision API is offline or unreachable."""
     principles = load_principles()
@@ -174,7 +339,7 @@ def _get_smart_fallback(
     speech_duration = max(2.0, round(duration - visual_lead_in - outro_buffer, 2))
 
     # Base profile selection from hint or visual/speech description keywords
-    desc_for_mood = f"{visual_description or ''} {speech_description or ''}".lower()
+    desc_for_mood = f"{visual_description or ''} {speech_description or ''} {videographer_speech or ''}".lower()
     prop_feats = extract_property_features(speech_description or "")
     has_sea_features = prop_feats.get("sea_view", False) or preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"])
 
@@ -211,6 +376,12 @@ def _get_smart_fallback(
     else:
         script = profile["script"]
 
+    # Incorporate videographer speech context into narration if available
+    if videographer_speech and str(videographer_speech).strip():
+        v_clean = str(videographer_speech).strip().rstrip(".،")
+        if v_clean and v_clean not in script:
+            script = f"{script} وكما يلاحظ المصور: {v_clean}."
+
     # Synthesize badges / highlights incorporating visual_description if provided
     highlights = list(profile.get("highlights", []))
     if visual_description and visual_description.strip():
@@ -224,8 +395,18 @@ def _get_smart_fallback(
         if custom_badges:
             highlights = custom_badges[:3]
 
+    # Generate synchronized subtitles
+    subtitles = generate_synchronized_subtitles(
+        script=script,
+        narration_duration=speech_duration,
+        visual_lead_in=visual_lead_in,
+    )
+
     fb_result = {
         "script": script,
+        "subtitles": subtitles,
+        "shot_timeline": shot_timeline or [],
+        "videographer_speech": videographer_speech,
         "emotional_tone": profile["emotional_tone"],
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
@@ -252,42 +433,54 @@ def _get_smart_fallback(
 # ---------------------------------------------------------------------------
 
 def infer_video_script_and_mood(
-    keyframe_paths: List[Union[str, Path]],
+    keyframe_paths: List[Union[str, Path, Dict[str, Any]]],
     video_duration: float = 10.0,
     preset_hint: Optional[str] = None,
     speech_description: Optional[str] = None,
     visual_description: Optional[str] = None,
     visual_lead_in: float = 1.2,
     outro_buffer: float = 1.2,
+    keyframes_metadata: Optional[List[Dict[str, Any]]] = None,
+    videographer_speech: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Analyze extracted video keyframes via Gemini Multimodal Vision API to infer:
       1. An engaging Arabic real estate voiceover script matched to video length.
-      2. An emotional atmosphere / mood (الحالة الشعورية - e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق').
-      3. The best matching background music from assets/music/ ('luxury_piano', 'acoustic_guitar', 'ambient_meditation').
+      2. Timestamp-anchored shot-by-shot timeline and anti-hallucination grounded narration.
+      3. Synchronized subtitle segments aligned with speech timing.
+      4. An emotional atmosphere / mood (الحالة الشعورية - e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق').
+      5. The best matching background music from assets/music/ ('luxury_piano', 'acoustic_guitar', 'ambient_meditation').
 
     Args:
-        keyframe_paths: List of file paths to extracted keyframe JPEG images.
+        keyframe_paths: List of file paths or keyframe dicts with timestamp metadata.
         video_duration: Duration of the video in seconds to pace narrative word count.
         preset_hint: Optional preset ID hint to guide architectural context if available.
         speech_description: Optional linguistic speech intent guidance ("وصف لغوي لما تريده أن يقال وليس نصاً حرفياً").
         visual_description: Optional linguistic visual intent description ("وصف ما يظهر في الفيديو وتوجيه التركيز البصري").
         visual_lead_in: Visual establishing lead-in delay in seconds (default 1.2s).
         outro_buffer: Outro ambient swell buffer in seconds (default 1.2s).
+        keyframes_metadata: Optional list of frame metadata dictionaries with timestamps.
+        videographer_speech: Optional transcribed live speech from the videographer.
 
     Returns:
-        Dict with keys 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'engine',
-        'analyzed_frames_count', 'visual_lead_in_seconds', 'speech_duration'.
+        Dict with keys 'script', 'subtitles', 'shot_timeline', 'emotional_tone', 'emotional_prompt',
+        'recommended_music', 'highlights', 'engine', 'analyzed_frames_count', 'visual_lead_in_seconds', 'speech_duration'.
     """
     _ensure_env_loaded()
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
 
+    keyframe_records = extract_keyframe_records(
+        keyframe_paths=keyframe_paths,
+        keyframes_metadata=keyframes_metadata,
+        video_duration=video_duration,
+    )
+    shot_timeline = build_shot_timeline(keyframe_records, video_duration=video_duration)
+
     # If no keyframe provided or API key absent, use smart fallback immediately
-    valid_keyframe_files = [Path(p).resolve() for p in keyframe_paths if Path(p).is_file() and Path(p).stat().st_size > 0]
-    if not valid_keyframe_files or not api_key:
+    if not keyframe_records or not api_key:
         logger.warning(
             "Vision analysis using fallback (keyframe_count=%d, has_api_key=%s)",
-            len(valid_keyframe_files),
+            len(keyframe_records),
             bool(api_key),
         )
         return _get_smart_fallback(
@@ -297,16 +490,20 @@ def infer_video_script_and_mood(
             visual_description=visual_description,
             visual_lead_in=visual_lead_in,
             outro_buffer=outro_buffer,
-            keyframe_count=min(16, len(valid_keyframe_files)),
+            keyframe_count=min(16, len(keyframe_records)),
+            shot_timeline=shot_timeline,
+            videographer_speech=videographer_speech,
         )
 
     # Dense keyframe sampling: pass up to 16 representative frames evenly
-    selected_frames: List[Path] = []
-    if len(valid_keyframe_files) <= 16:
-        selected_frames = valid_keyframe_files
+    selected_records: List[Dict[str, Any]] = []
+    if len(keyframe_records) <= 16:
+        selected_records = keyframe_records
     else:
-        step = len(valid_keyframe_files) / 16.0
-        selected_frames = [valid_keyframe_files[int(i * step)] for i in range(16)]
+        step = len(keyframe_records) / 16.0
+        selected_records = [keyframe_records[int(i * step)] for i in range(16)]
+
+    selected_frames = [r["path"] for r in selected_records]
 
     # Compute target word count strictly from net speaking window (speech_duration)
     # allowing visual_lead_in for establishing visuals and outro_buffer for music swell
@@ -321,6 +518,28 @@ def infer_video_script_and_mood(
     intent_guidance = ""
     directives = extract_directives(speech_description or "")
     prop_feats = extract_property_features(speech_description or "")
+
+    # 1. Shot-by-Shot Timeline & Anti-Hallucination Mandate
+    timeline_lines = [
+        f"- {item['title']}: Keyframe at timestamp {item['keyframe_timestamp']:.2f}s"
+        for item in shot_timeline
+    ]
+    shot_grounding_section = (
+        f"\n--- SHOT-BY-SHOT TIMELINE & VISUAL GROUNDING (جدول زمني صريح للمشاهد ومنع الهلوسة) ---\n"
+        f"The video footage unfolds across these exact chronological visual scenes:\n"
+        + "\n".join(timeline_lines) + "\n\n"
+        f"CRITICAL SHOT-BY-SHOT VISUAL GROUNDING & ANTI-HALLUCINATION MANDATE:\n"
+        f"1. Chronological Grounding: Every sentence in the narration script MUST correspond strictly to the physical space and features shown at that scene's timestamp.\n"
+        f"2. ABSOLUTE PROHIBITION OF HALLUCINATIONS: You are STRICTLY FORBIDDEN from mentioning, claiming, or praising any room, facility, or amenity (e.g. second salon, extra bathroom, swimming pool, garden, balcony, garage, elevator) UNLESS it is physically, unmistakably visible in the keyframe for that specific scene.\n"
+        f"3. Authenticity Mandate: If a space or feature is not visually present in these frames, DO NOT fabricate or assume its existence. Narrate only verified architectural details, natural light, flooring, and room proportions.\n"
+    )
+    if videographer_speech and str(videographer_speech).strip():
+        shot_grounding_section += (
+            f"\n--- VIDEOGRAPHER FIELD SPEECH & INTENT (تحليل صوت المصور الميداني) ---\n"
+            f"The person recording the video said: \"{str(videographer_speech).strip()}\".\n"
+            f"Incorporate these authentic field remarks into your room walkthrough guidance while respecting visual evidence.\n"
+        )
+    intent_guidance += shot_grounding_section
 
     if prop_feats.get("keywords"):
         specs_bullets = []
@@ -392,18 +611,19 @@ def infer_video_script_and_mood(
         f"CRITICAL: NEVER speak or repeat user meta-instructions, directions, or overlay requests (e.g. 'أريد', 'رقم الهاتف', 'يظهر أسفل الفيديو') in the script. The script is strictly voiceover narration of the visual tour. "
         f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
         f"The script duration MUST strictly match the net speaking window: approximately {target_words} words (around {speech_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
-        f"2. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
-        f"3. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
-        f"4. 'recommended_music': The single best matching music track ID from this exact list:\n"
+        f"2. 'subtitles': Array of synchronized subtitle segment objects (e.g. [{{'start_sec': {visual_lead_in:.1f}, 'end_sec': {visual_lead_in + 3.0:.1f}, 'text': '...'}}]) matching the spoken phrasing.\n"
+        f"3. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
+        f"4. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
+        f"5. 'recommended_music': The single best matching music track ID from this exact list:\n"
         f"   - 'luxury_piano' (best for luxury apartments, penthouses, high-end architecture, elegant finishes)\n"
         f"   - 'acoustic_guitar' (best for cozy family homes, bright apartments, cheerful or modern spaces)\n"
         f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
-        f"5. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
+        f"6. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
         f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n"
-        f"6. 'recommended_cuts': Optional array of highlight video shots to keep if montage or trimming is desired (e.g. [{{'start_sec': 0.0, 'end_sec': 5.0, 'title': 'المدخل'}}]) or null.\n"
-        f"7. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
-        f"8. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
-        f"Return strictly valid JSON with keys: 'script', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text'."
+        f"7. 'recommended_cuts': Optional array of highlight video shots to keep if montage or trimming is desired (e.g. [{{'start_sec': 0.0, 'end_sec': 5.0, 'title': 'المدخل'}}]) or null.\n"
+        f"8. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
+        f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
+        f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text'."
     )
     parts.append({"text": prompt})
 
@@ -509,8 +729,35 @@ def infer_video_script_and_mood(
                                 emotional_tone,
                                 recommended_music,
                             )
+                            # Parse or generate timestamp-synchronized subtitles
+                            raw_subs = parsed.get("subtitles")
+                            valid_subs = []
+                            if isinstance(raw_subs, list) and raw_subs:
+                                for idx, s_item in enumerate(raw_subs):
+                                    if isinstance(s_item, dict) and s_item.get("text"):
+                                        try:
+                                            s_start = max(0.0, float(s_item.get("start_sec", 0.0)))
+                                            s_end = max(s_start + 0.5, float(s_item.get("end_sec", s_start + 2.0)))
+                                            valid_subs.append({
+                                                "segment_index": idx + 1,
+                                                "start_sec": round(s_start, 2),
+                                                "end_sec": round(s_end, 2),
+                                                "text": str(s_item["text"]).strip(),
+                                            })
+                                        except (ValueError, TypeError):
+                                            pass
+                            if not valid_subs:
+                                valid_subs = generate_synchronized_subtitles(
+                                    script=inferred_script,
+                                    narration_duration=speech_duration,
+                                    visual_lead_in=visual_lead_in,
+                                )
+
                             return {
                                 "script": inferred_script,
+                                "subtitles": valid_subs,
+                                "shot_timeline": shot_timeline,
+                                "videographer_speech": videographer_speech,
                                 "emotional_tone": emotional_tone,
                                 "emotional_prompt": emotional_prompt,
                                 "recommended_music": recommended_music,
@@ -589,4 +836,6 @@ def infer_video_script_and_mood(
         visual_lead_in=visual_lead_in,
         outro_buffer=outro_buffer,
         keyframe_count=len(selected_frames),
+        shot_timeline=shot_timeline,
+        videographer_speech=videographer_speech,
     )
