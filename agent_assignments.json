@@ -3,9 +3,9 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Prompt Intent Disentanglement, AI Script Composition & Persistent Text Overlays",
-      "branch": "backend/agy11-prompt-intent-parser-and-persistent-overlays",
-      "scope": "1) Prompt Intent & Instruction Disentanglement: In web/vision_analyzer.py and web/pipeline_bridge.py, differentiate between user meta-prompt instructions (e.g. 'أريد أن يظهر نص أسفل الفيديو به الرقم التالي 0558815453... وأريد تعليق صوتي بالدارجة...') versus literal voiceover text. When instructions are detected, use Gemini Vision / LLM to compose a natural marketing script in Algerian Darja describing the actual video content, and extract persistent visual overlay directives (e.g. bottom text/phone number). NEVER send meta-prompt instructions directly to TTS! 2) Persistent Bottom Text Overlays: In web/pipeline_bridge.py, apply persistent bottom text / phone number overlays throughout video duration using FFmpeg drawtext with background box, and return composed script and overlay details in job status summary. 3) Author tests in tests/test_prompt_intent_and_overlays.py. 4) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Backend Dynamic Audio Mixing, Large Safe Overlays & Adaptive Script Pacing",
+      "branch": "backend/agy11-dynamic-audio-and-large-overlay-control",
+      "scope": "1) Audio mixing controls (mute_music, custom volume, contextual tracks, duck_threshold=0.015, duck_ratio=12.0, ambient_volume=0.16). 2) Large font overlays (boxborderw=16, boxcolor=black@0.78) and safe_margin=max(110, int(video_height * 0.085)). 3) extract_property_features and dynamic Algerian Darja pacing without word limit clamps or phone digit TTS recitation. 4) Author tests in tests/test_prompt_customizations_and_dynamism.py. 5) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
       "state": "COMPLETED"
     },

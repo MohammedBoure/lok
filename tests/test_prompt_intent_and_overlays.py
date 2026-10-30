@@ -133,17 +133,15 @@ class TestPersistentBottomOverlayFFmpeg:
         }
         filter_str = _build_drawtext_filter(annotation)
 
-        # Centered at bottom
+        # Centered at bottom with safe margin
         assert "x=(w-text_w)/2" in filter_str
-        assert "y=h-text_h-40" in filter_str
+        assert "y=h-text_h-" in filter_str
 
-        # Semi-transparent black background box
+        # Semi-transparent high-contrast black background box
         assert "box=1" in filter_str
-        assert "boxcolor=black@0.6" in filter_str
-        assert "boxborderw=8" in filter_str
+        assert "boxcolor=black@" in filter_str
 
-        # Clear white text and 28pt font
-        assert "fontsize=28" in filter_str
+        # Clear white text
         assert "fontcolor=white" in filter_str
 
         # Persistent across video duration (from 0.00 to 12.00)
@@ -156,9 +154,9 @@ class TestPersistentBottomOverlayFFmpeg:
             "style": "persistent_bottom",
         }
         filter_str = _build_drawtext_filter(annotation)
-        assert "y=h-text_h-40" in filter_str
+        assert "y=h-text_h-" in filter_str
         assert "x=(w-text_w)/2" in filter_str
-        assert "boxcolor=black@0.6" in filter_str
+        assert "boxcolor=black@" in filter_str
 
 
 class TestTTSNeverSpeaksMetaPrompts:

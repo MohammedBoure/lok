@@ -28,6 +28,7 @@ from web.pipeline_bridge import (
     is_meta_prompt,
     extract_directives,
     sanitize_script_against_meta_prompts,
+    extract_property_features,
 )
 
 logger = logging.getLogger("vision_analyzer")
@@ -106,6 +107,47 @@ FALLBACK_PROFILES = [
 ]
 
 
+def _generate_dynamic_darja_script(
+    speech_duration: float,
+    prop_feats: Dict[str, Any],
+    directives: Dict[str, Any],
+    preset_hint: Optional[str] = None,
+) -> str:
+    """
+    Generate an engaging, continuous Algerian Darja real estate script
+    scaled dynamically to cover the net speaking window without abrupt silence.
+    Incorporates property features (F1..F6, sea views, property type) and CTA.
+    """
+    unit = prop_feats.get("unit")
+    has_sea_view = prop_feats.get("sea_view", False)
+    prop_type = prop_feats.get("property_type") or ("فيلا" if has_sea_view else "شقة")
+
+    unit_str = f" {unit}" if unit else ""
+    if has_sea_view:
+        view_str = "مطلة مباشرة على البحر وبإطلالة بانورامية ساحرة" if prop_type in ("فيلا", "شقة", "دار") else "مطل مباشرة على البحر وبإطلالة بانورامية ساحرة"
+    else:
+        view_str = "في موقع استراتيجي راقي وهادئ وقريب من كامل المرافق الحيوية"
+
+    # Phase 1: Hook / Introduction
+    hook = f"شوفو معايا هاد الـ{prop_type}{unit_str}، {view_str}."
+
+    # Phase 2: Walkthrough progression scaled dynamically to available duration
+    tour_segments = []
+    tour_segments.append("رانا هنا ندخلو للصالون الواسع والمضيء، تشطيبات عصرية وفينيسيون متقونة توفر أقصى درجات الراحة.")
+
+    if speech_duration >= 18.0:
+        tour_segments.append("توزيع الغرف مدروس ومريح بزاف مع تهوية طبيعية ممتازة ومساحات واسعة تناسب كامل تطلعات العائلة.")
+    if speech_duration >= 28.0:
+        tour_segments.append("المطبخ عصري ومجهز بالكامل بأحدث التجهيزات، وكل زاوية في هاد العقار مخدومة بإتقان واهتمام بأدق التفاصيل.")
+    if speech_duration >= 40.0:
+        tour_segments.append("الموقع هادئ وآمن ومثالي، مع إمكانية الوصول السريع لكافة الخدمات الأساسية والمحاور الرئيسية.")
+
+    # Phase 3: Closing Call to Action (CTA)
+    cta = "فرصة استثنائية ونادرة للسكن أو الاستثمار، اتصلو بنا على الرقم الظاهر أسفل الشاشة لحجز موعد الزيارة والاستفسار."
+
+    return f"{hook} {' '.join(tour_segments)} {cta}"
+
+
 def _get_smart_fallback(
     duration: float = 10.0,
     preset_hint: Optional[str] = None,
@@ -133,7 +175,10 @@ def _get_smart_fallback(
 
     # Base profile selection from hint or visual/speech description keywords
     desc_for_mood = f"{visual_description or ''} {speech_description or ''}".lower()
-    if preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"]):
+    prop_feats = extract_property_features(speech_description or "")
+    has_sea_features = prop_feats.get("sea_view", False) or preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"])
+
+    if has_sea_features:
         profile = FALLBACK_PROFILES[1]
     elif preset_hint == "constantine_commercial" or any(w in desc_for_mood for w in ["محل", "تجاري", "استثمار", "شارع", "commercial"]):
         profile = FALLBACK_PROFILES[2]
@@ -142,33 +187,29 @@ def _get_smart_fallback(
     else:
         profile = FALLBACK_PROFILES[0]
 
-    # Synthesize fallback script incorporating speech_description intent if provided
     directives = extract_directives(speech_description or "")
+
+    # Synthesize fallback script dynamically based on duration and directives
     if speech_description and speech_description.strip():
-        if directives.get("is_meta_prompt"):
-            # Do NOT speak meta-prompt words! Formulate authentic real estate marketing script in Algerian Darja
-            if preset_hint == "oran_seaview_villa" or any(w in desc_for_mood for w in ["بحر", "فيلا", "مسبح", "حديقة", "seaview"]):
-                script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة."
-            elif preset_hint == "constantine_commercial" or any(w in desc_for_mood for w in ["محل", "تجاري", "استثمار", "شارع", "commercial"]):
-                script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة."
-            elif preset_hint == "rental_apartment" or any(w in desc_for_mood for w in ["كراء", "إيجار", "مؤثثة", "rental"]):
-                script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك."
-            else:
-                script = "شوفو معايا هاد العقار الاستثنائي بتصميم راقي وتشطيبات عصرية، موقع هادئ وقريب من كل المرافق الحيوية في قلب المدينة."
+        if directives.get("is_meta_prompt") or is_darja_or_walkthrough:
+            script = _generate_dynamic_darja_script(
+                speech_duration=speech_duration,
+                prop_feats=prop_feats,
+                directives=directives,
+                preset_hint=preset_hint,
+            )
         else:
             intent = speech_description.strip().rstrip(".،")
-            if is_darja_or_walkthrough:
-                script = f"شوفو معايا هاد العقار الاستثنائي، {intent}. موقع استراتيجي وتصميم راقي يلبي كل تطلعاتكم للراحة والفخامة."
-            else:
-                script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
-    elif preset_hint == "oran_seaview_villa":
-        script = "رانا هنا في فيلا عصرية بواجهة بحرية ساحرة في وهران، حديقة ومسبح خاص وتصميم راقي يوفر كل معايير الراحة والفخامة." if is_darja_or_walkthrough else profile["script"]
-    elif preset_hint == "constantine_commercial":
-        script = "محل تجاري في موقع استراتيجي حيوي في قسنطينة، واجهة واسعة وحركة ممتازة توالم كامل المشاريع الناجحة." if is_darja_or_walkthrough else profile["script"]
-    elif preset_hint == "rental_apartment":
-        script = "شقة مجهزة ومفرشة بالكامل للكراء في موقع ممتاز، راحة وأمان لعائلتك." if is_darja_or_walkthrough else profile["script"]
+            script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+    elif preset_hint or is_darja_or_walkthrough:
+        script = _generate_dynamic_darja_script(
+            speech_duration=speech_duration,
+            prop_feats=prop_feats,
+            directives=directives,
+            preset_hint=preset_hint,
+        )
     else:
-        script = "شوفو معايا هاد الشقة الفاخرة F4 في قلب العاصمة، فينيسيون متقونة وإطلالة شابة بزاف، موقع هادئ وقريب من كل المرافق الحيوية." if is_darja_or_walkthrough else profile["script"]
+        script = profile["script"]
 
     # Synthesize badges / highlights incorporating visual_description if provided
     highlights = list(profile.get("highlights", []))
@@ -270,7 +311,7 @@ def infer_video_script_and_mood(
     # Compute target word count strictly from net speaking window (speech_duration)
     # allowing visual_lead_in for establishing visuals and outro_buffer for music swell
     speech_duration = max(2.0, round(video_duration - visual_lead_in - outro_buffer, 2))
-    target_words = max(6, min(65, int(speech_duration * 2.2)))
+    target_words = max(18, min(160, int(speech_duration * 2.1)))
 
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
@@ -279,6 +320,37 @@ def infer_video_script_and_mood(
 
     intent_guidance = ""
     directives = extract_directives(speech_description or "")
+    prop_feats = extract_property_features(speech_description or "")
+
+    if prop_feats.get("keywords"):
+        specs_bullets = []
+        if prop_feats.get("property_type"):
+            specs_bullets.append(f"- Property Type: {prop_feats['property_type']}")
+        if prop_feats.get("unit"):
+            specs_bullets.append(f"- Unit Layout / Rooms: {prop_feats['unit']}")
+        if prop_feats.get("sea_view"):
+            specs_bullets.append("- Prime View / Setting: مطل على البحر (Breathtaking Mediterranean panoramic sea view)")
+        intent_guidance += (
+            f"\n--- MANDATORY ARCHITECTURAL SPECIFICATIONS (مواصفات إلزامية يجب ذكرها بوضوح في النص) ---\n"
+            f"The user requires the following features to be explicitly woven into the spoken narration:\n"
+            + "\n".join(specs_bullets) + "\n"
+            f"CRITICAL: The voiceover must dynamically mention these specifications in natural Algerian Darja.\n"
+        )
+
+    p_type_label = prop_feats.get("property_type") or "عقار"
+    p_unit_label = f" {prop_feats['unit']}" if prop_feats.get("unit") else ""
+    p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "موقع استراتيجي راقي"
+    dynamic_pacing_guidance = (
+        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بدون انقطاع مبكر) ---\n"
+        f"CRITICAL PACING MANDATE: The video duration is {video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
+        f"You MUST generate an expansive, engaging narration of approximately {target_words} words (around {speech_duration:.1f}s at ~2.1 words/sec). "
+        f"Do NOT stop early or write a short 1-line script! Structure the narration dynamically across 3 continuous phases:\n"
+        f"  1. Opening Hook (~20%): Introduce the {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
+        f"  2. Visual Guided Walkthrough (~60%): Detail the interior spaces shown in keyframes (salon, natural light, high-end finishes, room layout, modern kitchen) in first-person live walkthrough style.\n"
+        f"  3. Concluding CTA (~20%): Value proposition recap and call to action prompting viewers to contact via the number displayed on screen.\n"
+    )
+    intent_guidance += dynamic_pacing_guidance
+
     if speech_description and speech_description.strip():
         if directives.get("is_meta_prompt"):
             intent_guidance += (
@@ -408,6 +480,26 @@ def infer_video_script_and_mood(
 
                         if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
                             recommended_music = "luxury_piano"
+
+                        # If user requested sea view, align music recommendation with coastal meditation
+                        if prop_feats.get("sea_view") and recommended_music == "luxury_piano":
+                            recommended_music = "ambient_meditation"
+
+                        # Ensure the script length covers the video duration without dying out after a few seconds
+                        word_count = len(inferred_script.split())
+                        if word_count < 16 and speech_duration >= 20.0:
+                            logger.info(
+                                "Inferred script too brief (%d words) for duration (%.1fs); supplementing with dynamic walkthrough...",
+                                word_count,
+                                speech_duration,
+                            )
+                            supplement = _generate_dynamic_darja_script(
+                                speech_duration=speech_duration,
+                                prop_feats=prop_feats,
+                                directives=directives,
+                                preset_hint=preset_hint,
+                            )
+                            inferred_script = f"{inferred_script} {supplement}"
 
                         if inferred_script:
                             logger.info(

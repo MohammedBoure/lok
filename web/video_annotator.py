@@ -64,13 +64,20 @@ def _build_drawtext_filter(
     font_size = int(annotation.get("font_size", 36))
     boxborderw = int(annotation.get("boxborderw", 12))
     is_persistent = bool(annotation.get("persistent") or annotation.get("is_persistent") or style == "persistent_bottom")
+    is_large = bool(annotation.get("large_font"))
 
     # Color themes
     if style in ("persistent_bottom", "bottom_box", "phone_overlay"):
         font_color = "white"
-        box_color = "black@0.6"
-        boxborderw = int(annotation.get("boxborderw", 8))
-        font_size = int(annotation.get("font_size", 28))
+        box_color = annotation.get("box_color", "black@0.78")
+        boxborderw = int(annotation.get("boxborderw", 16 if is_large else 14))
+        if is_large:
+            default_fs = max(48, min(64, int(video_height * 0.042)))
+        elif "font_size" in annotation:
+            default_fs = int(annotation["font_size"])
+        else:
+            default_fs = max(38, min(50, int(video_height * 0.034)))
+        font_size = default_fs
     elif style == "emerald_badge":
         font_color = "0x10B981"
         box_color = "0x064E3B@0.85"
@@ -90,7 +97,9 @@ def _build_drawtext_filter(
     # Positioning coordinates
     if position in ("bottom_banner", "persistent_bottom", "bottom") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
         coord_x = "(w-text_w)/2"
-        coord_y = "h-text_h-40"
+        # Safe margin to keep text clearly elevated above player controls, timeline, and mobile UI bars
+        safe_margin = int(annotation.get("safe_margin", max(110, int(video_height * 0.085))))
+        coord_y = f"h-text_h-{safe_margin}"
     elif position == "top_banner":
         coord_x = "(w-text_w)/2"
         coord_y = "60"
