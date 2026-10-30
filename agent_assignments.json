@@ -3,32 +3,34 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Pipeline Latency Optimization, Fast Telemetry & Error Propagation",
-      "branch": "backend/agy11-pipeline-latency-and-status-telemetry",
-      "scope": "1) Pipeline Latency & Status Architecture: In web/server.py and web/pipeline_bridge.py, inspect background job execution and /api/status/{job_id}. Ensure progress stages and percentages are updated promptly without stalling. 2) Real-time Error Propagation: If an exception occurs in background processing, immediately update job status to failed with actionable error details so the client never hangs waiting in processing. 3) Performance Optimizations: Streamline dense vision calls and FFmpeg assembly passes to prevent job timeouts. 4) Author tests in tests/test_pipeline_latency_and_telemetry.py. 5) Zero U+0669, update web/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
+      "role": "Ingestion, Ambiguity & Linguistic Disentanglement Agent",
+      "branch": "backend/agy11-linguistic-ingestion-and-ambiguity-parser",
+      "scope": "1) Ingestion & Linguistic Disentanglement: Separate technical editing directives (duration, ratio, music, captions) from narrative content. 2) Audio Grounding: Probe and transcribe existing source video dialogue to prevent voiceover collisions. 3) Clarification Mode Protocol: When clarification_mode is enabled and critical parameters are missing, output concise numbered questions; when disabled, apply production defaults. 4) Phonetic Normalization: Pre-process loanwords, numbers, and dialectal phrasing for TTS. 5) Author tests in tests/test_linguistic_ingestion.py, ensure 0 U+0669, update web/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Resilient Polling, Adaptive Timeouts & Dynamic Stepper UX",
-      "branch": "frontend/agy51-polling-resilience-and-progress-telemetry",
-      "scope": "1) Root Cause Fix for Polling Timeout: In web/static/app.js (around line 1547), investigate and resolve the timeout exception (استغرقت معالجة الفيديو وقتاً طويلاً. يرجى التحقق من لوحة التحكم أو إعادة المحاولة). 2) Adaptive Polling & Extended Grace Periods: Increase poll timeout ceiling, use adaptive backoff, and synchronize the UI stepper with real backend progress percentages. 3) Graceful Error & Retry Handling: Display clear, actionable failure states if the backend actually fails, and provide a 1-click retry without losing uploaded video or prompt state. 4) Author tests in tests/test_polling_resilience_and_progress_ux.py. 5) Zero U+0669, update web/static/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
-      "dependencies": [],
-      "state": "COMPLETED"
+      "role": "Editorial & Timeline Director (SSOT)",
+      "branch": "frontend/agy51-ssot-editorial-director-and-edl",
+      "scope": "1) SSOT Narrative Architecture: Ensure 100% of factual statements stem strictly from the user's linguistic prompt; vision models must never hallucinate facts. 2) Chronological Pacing Clock: Use visual keyframes strictly to detect scene transitions, cut points, and room/subject timestamps. 3) Edit Decision List (EDL): Generate structured, human-readable JSON EDL containing timed segments, voiceover scripts, caption styling, and audio balance. 4) Author tests in tests/test_ssot_editorial_edl.py, ensure 0 U+0669, update web/static/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
+      "dependencies": [
+        "backend/agy11-linguistic-ingestion-and-ambiguity-parser"
+      ],
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "E2E Polling Resilience & Pipeline Telemetry Gatekeeper",
-      "branch": "test/agy100-timeout-resilience-gatekeeper",
-      "scope": "Comprehensive gatekeeper verification of pipeline execution latency, resilient polling ceilings, real-time error propagation, full regression tests, zero U+0669 check, merge into develop, update tests/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
+      "role": "Audio Post-Production & Deterministic 2-Stage FFmpeg Gatekeeper",
+      "branch": "test/agy100-deterministic-2stage-ffmpeg-and-qa",
+      "scope": "1) Deterministic 2-Stage FFmpeg Assembly: Stage 1 = Video cuts, scaling, transitions; Stage 2 = TTS audio synthesis, dynamic sidechain ducking filtergraph, and synchronized kinetic typography burn-in. 2) High-Performance Rendering: CPU multi-threading with libx264 veryfast preset. 3) Comprehensive QA & Verification: Verify audio ducking levels, subtitle sync, API contracts, zero U+0669 check, and exclusive merge gatekeeping into develop. 4) Commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [
-        "backend/agy11-pipeline-latency-and-status-telemetry",
-        "frontend/agy51-polling-resilience-and-progress-telemetry"
+        "backend/agy11-linguistic-ingestion-and-ambiguity-parser",
+        "frontend/agy51-ssot-editorial-director-and-edl"
       ],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     }
   ]
 }
