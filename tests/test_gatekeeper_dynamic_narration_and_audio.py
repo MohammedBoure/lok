@@ -165,7 +165,9 @@ class TestGatekeeperMusicAndSoundtrackDirectives:
         assert summary["music_track"]["muted"] is True
         assert len(executed_cmds) > 0
 
-        assembly_cmd = executed_cmds[0]
+        render_cmds = [c for c in executed_cmds if "-filter_complex" in c]
+        assert len(render_cmds) > 0, "Expected an FFmpeg render command with -filter_complex"
+        assembly_cmd = render_cmds[0]
         # Must have exactly 2 input flags (-i source_video -i narration_wav)
         input_args = [assembly_cmd[i + 1] for i, a in enumerate(assembly_cmd) if a == "-i"]
         assert len(input_args) == 2, f"Expected 2 inputs in muted mode, got: {input_args}"

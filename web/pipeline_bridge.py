@@ -57,6 +57,7 @@ def _ensure_env_loaded():
 _ensure_env_loaded()
 
 import frame_extractor
+from web.video_annotator import annotate_video
 
 logger = logging.getLogger("mobile_pipeline_bridge")
 if not logger.handlers:
@@ -453,6 +454,109 @@ def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
     return res
 
 
+def analyze_source_audio_for_speech(video_path: Union[str, Path], max_duration: float = 30.0) -> Optional[str]:
+    """
+    Inspect source video audio stream for speech or spoken remarks by the videographer.
+    If speech is detected, transcribes and summarizes remarks using Gemini API.
+    """
+    v_path = Path(video_path).resolve()
+    if not v_path.is_file():
+        return None
+
+    # 1. Check if audio stream exists via ffprobe
+    try:
+        probe_cmd = [
+            "ffprobe", "-v", "error",
+            "-select_streams", "a:0",
+            "-show_entries", "stream=codec_type",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(v_path),
+        ]
+        probe_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+        if "audio" not in probe_res.stdout.lower():
+            return None
+    except Exception:
+        return None
+
+    # 2. Extract mono audio slice
+    temp_wav = v_path.parent / f"_probe_audio_{v_path.stem}.wav"
+    try:
+        extract_cmd = [
+            "ffmpeg", "-y",
+            "-i", str(v_path),
+            "-vn",
+            "-ar", "16000",
+            "-ac", "1",
+            "-t", str(max_duration),
+            str(temp_wav),
+        ]
+        subprocess.run(extract_cmd, capture_output=True, text=True, check=True)
+        if not temp_wav.is_file() or temp_wav.stat().st_size < 1000:
+            return None
+
+        # 3. Check audio volume level to avoid silent audio
+        vol_cmd = [
+            "ffmpeg", "-i", str(temp_wav),
+            "-filter:a", "volumedetect",
+            "-f", "null", "/dev/null",
+        ]
+        vol_res = subprocess.run(vol_cmd, capture_output=True, text=True)
+        vol_out = vol_res.stderr.lower()
+        if "max_volume: -inf" in vol_out or "mean_volume: -inf" in vol_out:
+            return None
+
+        # 4. Transcribe via Gemini if API key is present
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
+        if not api_key:
+            return None
+
+        import base64
+        import requests
+
+        with open(temp_wav, "rb") as af:
+            audio_b64 = base64.b64encode(af.read()).decode("utf-8")
+
+        prompt_text = (
+            "Listen to this audio recorded by the videographer during a real estate walkthrough. "
+            "If the person filming speaks in Arabic or Algerian Darja about the property or rooms, "
+            "transcribe or summarize their spoken remarks in 1-2 concise Arabic sentences. "
+            "If there is no clear human speech (only silence, background steps, or ambient noise), "
+            "return an empty string \"\"."
+        )
+
+        body = {
+            "contents": [{
+                "parts": [
+                    {"text": prompt_text},
+                    {"inlineData": {"mimeType": "audio/wav", "data": audio_b64}},
+                ]
+            }],
+            "generationConfig": {
+                "temperature": 0.2,
+            }
+        }
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        resp = requests.post(url, json=body, timeout=(5.0, 20.0))
+        if resp.status_code == 200:
+            cands = resp.json().get("candidates", [])
+            if cands:
+                speech_text = cands[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                clean_speech = speech_text.replace("```", "").strip()
+                if clean_speech and len(clean_speech) > 3 and not any(kw in clean_speech.lower() for kw in ["no speech", "empty", "silent", "لا يوجد كلام"]):
+                    return clean_speech
+    except Exception as exc:
+        logger.debug("Source audio speech detection skipped: %s", exc)
+    finally:
+        try:
+            if temp_wav.is_file():
+                temp_wav.unlink()
+        except OSError:
+            pass
+
+    return None
+
+
 def is_meta_prompt(text: Optional[str]) -> bool:
     """
     Determine whether input represents meta-directions (instructions, phone overlay,
@@ -545,6 +649,7 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "persistent_overlay": persistent_overlay,
         "montage_plan": montage_plan,
         "music_directives": music_directives,
+        "music": music_directives,
         "property_features": property_features,
         "large_font": large_font,
         "overlay_position": overlay_position,
@@ -1060,7 +1165,6 @@ def process_mobile_video(
 
     # Load customizable production principles
     from config.production_principles_manager import load_principles
-    from web.video_annotator import annotate_video
 
     active_principles = load_principles()
     principles_voice = active_principles.get("voice_principles", {})
@@ -1296,6 +1400,11 @@ def process_mobile_video(
         })
 
     # 3. Autonomous Vision Analysis & Script Determination
+    # Check original video audio for live videographer remarks
+    videographer_speech = analyze_source_audio_for_speech(input_path)
+    if videographer_speech:
+        logger.info("Job %s: Extracted videographer field speech: %s", job_id, videographer_speech)
+
     # If speech_description or visual_description is provided, treat as linguistic intent guidance
     # and invoke the multimodal agent to generate the full natural spoken script and focus.
     is_auto_mode = bool(auto_mode or speech_description or (not script and not preset_id))
@@ -1320,6 +1429,8 @@ def process_mobile_video(
                 visual_description=visual_description,
                 visual_lead_in=visual_lead_in,
                 outro_buffer=outro_buffer,
+                keyframes_metadata=formatted_keyframes,
+                videographer_speech=videographer_speech,
             )
             inferred_script = sanitize_script_against_meta_prompts(vision_result.get("script"))
             selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
@@ -1333,7 +1444,7 @@ def process_mobile_video(
                 bottom_text = vision_result.get("bottom_text")
         except Exception as exc:
             logger.warning("Vision analysis error: %s. Using fallback.", exc)
-            from web.vision_analyzer import _get_smart_fallback
+            from web.vision_analyzer import _get_smart_fallback, build_shot_timeline, extract_keyframe_records
             fb_res = _get_smart_fallback(
                 duration=src_duration,
                 preset_hint=preset_id,
@@ -1342,6 +1453,11 @@ def process_mobile_video(
                 visual_lead_in=visual_lead_in,
                 outro_buffer=outro_buffer,
                 keyframe_count=len(keyframe_files),
+                shot_timeline=build_shot_timeline(
+                    extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=src_duration),
+                    video_duration=src_duration,
+                ),
+                videographer_speech=videographer_speech,
             )
             selected_script = sanitize_script_against_meta_prompts(fb_res.get("script")) or DEFAULT_PROMO_SCRIPT
             inferred_script = selected_script
@@ -1668,6 +1784,37 @@ def process_mobile_video(
                         "style": "emerald_badge",
                     })
 
+    # Generate synchronized captions matching spoken narration phrasing
+    subtitles_list: List[Dict[str, Any]] = []
+    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
+        subtitles_list = list(vision_result["subtitles"])
+    elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
+        subtitles_list = list(fb_res["subtitles"])
+    else:
+        from web.vision_analyzer import generate_synchronized_subtitles
+        subtitles_list = generate_synchronized_subtitles(
+            script=selected_script,
+            narration_duration=narration_duration,
+            visual_lead_in=visual_lead_in,
+        )
+
+    # Append synchronized captions to video annotations list
+    for sub in subtitles_list:
+        sub_txt = str(sub.get("text", "")).strip()
+        if sub_txt:
+            sub_st = max(0.0, float(sub.get("start_sec", visual_lead_in)))
+            sub_et = min(total_duration, float(sub.get("end_sec", sub_st + 2.0)))
+            if sub_et > sub_st:
+                annotations_list.append({
+                    "text": sub_txt,
+                    "start_sec": round(sub_st, 2),
+                    "end_sec": round(sub_et, 2),
+                    "position": "subtitle",
+                    "style": "subtitle",
+                    "safe_margin": max(185, int(target_h * 0.145)),
+                    "font_size": max(30, min(42, int(target_h * 0.026))),
+                })
+
     if annotations_list:
         annotated_tmp = out_cuts_dir / f"annotated_{job_id}.mp4"
         try:
@@ -1675,6 +1822,8 @@ def process_mobile_video(
                 input_video_path=final_cut_path,
                 output_video_path=annotated_tmp,
                 annotations=annotations_list,
+                video_width=target_w,
+                video_height=target_h,
             )
             ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
             if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
@@ -1684,8 +1833,8 @@ def process_mobile_video(
                 _notify(
                     step=5,
                     percent=95,
-                    message="تمت إضافة الملصقات والنصوص التوضيحية على الفيديو بنجاح.",
-                    log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات توضيحية ذكية على المشاهد.",
+                    message="تمت إضافة الملصقات والترجمة المتزامنة على الفيديو بنجاح.",
+                    log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات وترجمات متزامنة على المشاهد.",
                 )
         except Exception as annot_err:
             logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
@@ -1705,6 +1854,19 @@ def process_mobile_video(
         logger.info("Job %s: Atomically updated legacy cut -> %s (%d bytes)", job_id, legacy_cut_path, legacy_cut_path.stat().st_size)
     except Exception as copy_err:
         logger.warning("Job %s: Failed to copy to legacy final_cut.mp4: %s", job_id, copy_err)
+
+    # Compile shot timeline for summary
+    shot_timeline_data: List[Dict[str, Any]] = []
+    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("shot_timeline"):
+        shot_timeline_data = vision_result["shot_timeline"]
+    elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("shot_timeline"):
+        shot_timeline_data = fb_res["shot_timeline"]
+    else:
+        from web.vision_analyzer import build_shot_timeline, extract_keyframe_records
+        shot_timeline_data = build_shot_timeline(
+            extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=src_duration),
+            video_duration=src_duration,
+        )
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
@@ -1727,6 +1889,18 @@ def process_mobile_video(
         "fixed_text": fixed_text,
         "bottom_text": effective_bottom,
         "phone_number": phone_number,
+        "subtitles": subtitles_list,
+        "subtitles_count": len(subtitles_list),
+        "shot_timeline": shot_timeline_data,
+        "videographer_speech": videographer_speech,
+        "customer_specifications": {
+            "phone_number": phone_number,
+            "property_type": parsed_dirs.get("property_features", {}).get("property_type"),
+            "unit": parsed_dirs.get("property_features", {}).get("unit"),
+            "sea_view": parsed_dirs.get("property_features", {}).get("sea_view", False),
+            "mute_music": mute_music,
+            "large_font": bool(parsed_dirs.get("large_font", False)),
+        },
         "text_position": text_position,
         "text_style": text_style,
         "auto_mode": is_auto_mode,
@@ -1774,6 +1948,12 @@ def process_mobile_video(
             "narration_duration": narration_duration,
             "render_seconds": round(render_seconds, 2),
             "annotations_count": applied_annotations_count,
+            "subtitles": {
+                "count": len(subtitles_list),
+                "items": subtitles_list,
+            },
+            "shot_timeline": shot_timeline_data,
+            "videographer_speech": videographer_speech,
             "montage": {
                 "applied": montage_applied,
                 "original_duration": original_source_duration,

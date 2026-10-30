@@ -933,6 +933,51 @@ Ensures narration remains engaging throughout the entire video duration without 
   - **Phase 2 (Walkthrough)**: Highlights sea views, spacious interiors, natural lighting, and refined finishes.
   - **Phase 3 (Call-to-Action)**: Prompts viewers to call via the persistent on-screen banner (`اتصلو بنا على الرقم الظاهر أسفل الشاشة`) without reciting raw numeric phone digits aloud.
 
+---
+
+## 15. Synchronized Captions, Shot-by-Shot Visual Grounding & Strict Prompt Adherence
+
+The platform provides fine-grained shot-by-shot visual grounding, strict anti-hallucination verification, videographer live speech extraction, and timestamp-synchronized subtitle overlays.
+
+### 1. Shot-by-Shot Visual Grounding & Anti-Hallucination Mandate
+To ensure voiceover narrations match what is physically on-screen without fabricating unseen features:
+- **Timestamp Anchoring (`extract_keyframe_records` & `build_shot_timeline`)**:
+  - Normalizes keyframe metadata into structured records with precise `timestamp_sec` timestamps.
+  - Constructs explicit chronological shot intervals: e.g. `Scene 1 [0.0s - 3.5s]`, `Scene 2 [3.5s - 7.0s]`, etc., covering the total video duration.
+- **Strict Anti-Hallucination Mandate**:
+  - The Gemini Vision prompt explicitly enforces:
+    > *"Ground every sentence of your voiceover strictly in the exact room and visual scene shown at that timestamp. STRICT PROHIBITION AGAINST HALLUCINATIONS: You are strictly forbidden from mentioning any room, facility, or amenity (such as an extra salon, second bathroom, swimming pool, garden, balcony, garage) UNLESS it is physically, unmistakably visible in the keyframe for that specific time interval."*
+  - Smart heuristic fallback similarly confines script generation to physically verified property features.
+- **Videographer Live Speech Extraction (`analyze_source_audio_for_speech`)**:
+  - Automatically probes source video audio tracks via `ffprobe` and extracts mono 16kHz audio slices.
+  - Inspects volume energy with `volumedetect` to filter out silent audio, and utilizes Gemini API to transcribe authentic on-site remarks spoken by the person recording the footage.
+  - Injects videographer observations into the vision prompt and fallback script generator to accurately identify spaces without picking up background ambient noise.
+
+### 2. Synchronized Captions / Subtitles Pipeline
+Generates dynamic on-screen subtitles that match the spoken narration rhythm word-for-word:
+- **Phased Clause Segmentation (`generate_synchronized_subtitles`)**:
+  - Splits spoken scripts by punctuation (`.`, `،`, `!`, `؟`) and natural phrasing boundaries into readable chunks (4 to 7 words per segment).
+  - Calculates proportional duration (`seg_ratio = seg_words / total_words`) anchored to `[visual_lead_in, visual_lead_in + narration_duration]`, producing monotonic `start_sec` and `end_sec` timestamps.
+- **Dual Overlay Harmony (Captions + Persistent Contact Badge)**:
+  - Subtitles are rendered via FFmpeg drawtext with `style="subtitle"` (`fontcolor=white`, `boxcolor=black@0.72`, `enable='between(t, start, end)'`).
+  - Elevated safe margin: Subtitles are positioned at `safe_margin = max(185, int(target_h * 0.145))` (`y=h-text_h-{safe_margin}`).
+  - Meanwhile, persistent contact/phone banners remain anchored at lower margin `safe_margin = max(110, int(target_h * 0.085))` with `start_sec=0.0, end_sec=total_duration`.
+  - Both visual layers coexist independently on screen without collision or clipping.
+
+### 3. Strict Customer Prompt Adherence & Telemetry Contracts
+Guarantees that all customer directives are executed faithfully:
+- **Comprehensive Directive Extraction (`extract_directives`)**:
+  - Captures phone numbers (`05...`, `06...`, `07...`), property units (`F1`..`F6`), sea views, property types (`منزل`, `فيلا`, `شقة`), music muting, and large font styling.
+  - Preserves extracted specs in `summary["customer_specifications"]`.
+- **Exposed Telemetry Fields**:
+  - Completed job results and `/api/status/{job_id}` dynamically return:
+    - `"subtitles"`: Array of timed subtitle segment objects (`start_sec`, `end_sec`, `text`).
+    - `"subtitles_count"`: Total number of timed subtitle lines.
+    - `"shot_timeline"`: Itemized list of chronological scene intervals.
+    - `"videographer_speech"`: Extracted field speech transcribed from source video audio.
+    - `"customer_specifications"`: Validated dictionary of customer-requested features.
+
+
 
 
 

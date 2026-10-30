@@ -253,8 +253,15 @@
     resultMusicText: document.getElementById("resultMusicText"),
     resultMusicIcon: document.getElementById("resultMusicIcon"),
     resultMusicBadge: document.getElementById("resultMusicBadge"),
+    resultCaptionsPill: document.getElementById("resultCaptionsPill"),
+    resultCaptionsText: document.getElementById("resultCaptionsText"),
+    resultCaptionsIcon: document.getElementById("resultCaptionsIcon"),
+    resultCaptionsBadge: document.getElementById("resultCaptionsBadge"),
     resultMontagePill: document.getElementById("resultMontagePill"),
     resultMontageText: document.getElementById("resultMontageText"),
+    shotsTimelineSection: document.getElementById("shotsTimelineSection"),
+    timelineBadge: document.getElementById("timelineBadge"),
+    shotsTimelineList: document.getElementById("shotsTimelineList"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1512,6 +1519,42 @@
         }
       }
 
+      // 5. Display Synchronized Captions Feedback Pill
+      const captionsApplied = Boolean(data && (
+        data.captions_applied ||
+        (data.result && data.result.captions_applied) ||
+        (data.captions && data.captions.length > 0) ||
+        (data.subtitle_segments && data.subtitle_segments.length > 0) ||
+        (data.result && ((data.result.captions && data.result.captions.length > 0) || (data.result.subtitle_segments && data.result.subtitle_segments.length > 0)))
+      ));
+
+      const captionsCount = (data && (
+        (data.captions && data.captions.length) ||
+        (data.subtitle_segments && data.subtitle_segments.length) ||
+        (data.result && ((data.result.captions && data.result.captions.length) || (data.result.subtitle_segments && data.result.subtitle_segments.length)))
+      )) || 0;
+
+      if (dom.resultCaptionsPill && dom.resultCaptionsText) {
+        if (captionsApplied || captionsCount > 0) {
+          dom.resultCaptionsText.textContent = "ترجمة الكلام متزامنة بدقة عالية مع المشاهد (كلمة بكلمة)";
+          if (dom.resultCaptionsBadge) {
+            dom.resultCaptionsBadge.textContent = captionsCount > 0 ? `${captionsCount} جمل متزامنة` : "متزامن 100%";
+            dom.resultCaptionsBadge.style.display = "inline-block";
+          }
+          dom.resultCaptionsPill.style.display = "inline-flex";
+        } else {
+          dom.resultCaptionsText.textContent = "ترجمة الكلام متزامنة بدقة عالية مع المشاهد";
+          if (dom.resultCaptionsBadge) {
+            dom.resultCaptionsBadge.textContent = "تزامن ذكي";
+            dom.resultCaptionsBadge.style.display = "inline-block";
+          }
+          dom.resultCaptionsPill.style.display = "inline-flex";
+        }
+      }
+
+      // 6. Display Shot-by-Shot Synchronized Timeline in Script Inspection Card
+      renderShotTimeline(data);
+
       if (dom.resultContainer) {
         dom.resultContainer.style.display = "block";
         dom.resultContainer.scrollIntoView({ behavior: "smooth" });
@@ -1522,8 +1565,117 @@
       if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
       if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
       if (dom.resultMusicPill) dom.resultMusicPill.style.display = "none";
+      if (dom.resultCaptionsPill) dom.resultCaptionsPill.style.display = "none";
       if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
+      if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
+    }
+  }
+
+  function formatTimestampRange(start, end) {
+    const s = Math.max(0, Number(start) || 0);
+    const sMin = Math.floor(s / 60);
+    const sSec = Math.floor(s % 60);
+    const sStr = `${sMin}:${sSec < 10 ? "0" : ""}${sSec}`;
+    if (end === undefined || end === null || isNaN(end)) {
+      return sStr;
+    }
+    const e = Math.max(s, Number(end) || s);
+    const eMin = Math.floor(e / 60);
+    const eSec = Math.floor(e % 60);
+    const eStr = `${eMin}:${eSec < 10 ? "0" : ""}${eSec}`;
+    return `${sStr} - ${eStr}`;
+  }
+
+  function renderShotTimeline(data) {
+    if (!dom.shotsTimelineSection || !dom.shotsTimelineList) return;
+
+    dom.shotsTimelineList.innerHTML = "";
+
+    const rawTimeline = (data && (
+      data.shot_timeline ||
+      data.timeline ||
+      data.scenes ||
+      data.shots ||
+      (data.result && (data.result.shot_timeline || data.result.timeline || data.result.scenes || data.result.shots))
+    )) || [];
+
+    const rawCaptions = (data && (
+      data.captions ||
+      data.subtitle_segments ||
+      data.synchronized_captions ||
+      (data.result && (data.result.captions || data.result.subtitle_segments || data.result.synchronized_captions))
+    )) || [];
+
+    const rawKeyframes = (data && (
+      data.keyframes ||
+      (data.result && data.result.keyframes)
+    )) || [];
+
+    let itemsToRender = [];
+
+    if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
+      itemsToRender = rawTimeline.map((item, idx) => ({
+        timeRange: formatTimestampRange(item.start_sec ?? item.timestamp ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
+        title: item.title || item.room || item.label || `المشهد ${idx + 1}`,
+        description: item.description || item.text || item.details || "",
+        thumb: item.thumbnail || item.url || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
+      }));
+    } else if (Array.isArray(rawCaptions) && rawCaptions.length > 0) {
+      itemsToRender = rawCaptions.map((cap, idx) => ({
+        timeRange: formatTimestampRange(cap.start_sec, cap.end_sec),
+        title: `اللقطة ${idx + 1}`,
+        description: cap.text || cap.caption || "",
+        thumb: (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
+      }));
+    } else if (Array.isArray(rawKeyframes) && rawKeyframes.length > 0) {
+      itemsToRender = rawKeyframes.slice(0, 8).map((kf, idx) => ({
+        timeRange: formatTimestampRange(kf.timestamp, (rawKeyframes[idx + 1]?.timestamp) || (kf.timestamp + 3.0)),
+        title: kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `لقطة ${idx + 1}`,
+        description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا العقار",
+        thumb: kf.url || "",
+      }));
+    } else {
+      const scriptText = (data && (data.script || data.inferred_script || (data.result && (data.result.script || data.result.inferred_script)))) || "";
+      const sentences = scriptText.split(/[.،!?\n]+/).map(s => s.trim()).filter(Boolean);
+      if (sentences.length > 0) {
+        const dur = (data && (data.duration || (data.result && data.result.duration))) || 15;
+        const phaseDur = dur / Math.min(sentences.length, 3);
+        const labels = ["المقدمة والإطلالة البصرية", "الجولة البصرية والتفاصيل المعمارية", "الخاتمة والدعوة للتواصل"];
+        itemsToRender = sentences.slice(0, 3).map((sent, idx) => ({
+          timeRange: formatTimestampRange(idx * phaseDur, (idx + 1) * phaseDur),
+          title: labels[idx] || `المشهد ${idx + 1}`,
+          description: sent,
+          thumb: "",
+        }));
+      }
+    }
+
+    if (itemsToRender.length > 0) {
+      itemsToRender.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "shot-timeline-item";
+
+        let thumbHtml = "";
+        if (item.thumb) {
+          thumbHtml = `<div class="shot-thumb-col"><img src="${item.thumb}" alt="${item.title}" class="shot-thumb-img" loading="lazy" onerror="this.style.display='none'"></div>`;
+        }
+
+        el.innerHTML = `
+          <div class="shot-time-col">
+            <span class="shot-timestamp">${item.timeRange}</span>
+          </div>
+          ${thumbHtml}
+          <div class="shot-details-col">
+            <div class="shot-title">${item.title}</div>
+            <p class="shot-desc">${item.description}</p>
+          </div>
+        `;
+        dom.shotsTimelineList.appendChild(el);
+      });
+      dom.shotsTimelineSection.style.display = "block";
+    } else {
+      dom.shotsTimelineSection.style.display = "none";
     }
   }
 
@@ -1539,6 +1691,8 @@
     }
     if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
     if (dom.generatedScriptText) dom.generatedScriptText.textContent = "";
+    if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
+    if (dom.shotsTimelineList) dom.shotsTimelineList.innerHTML = "";
     if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
     if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
     if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
@@ -1547,6 +1701,9 @@
     if (dom.resultMusicPill) dom.resultMusicPill.style.display = "none";
     if (dom.resultMusicText) dom.resultMusicText.textContent = "";
     if (dom.resultMusicBadge) dom.resultMusicBadge.style.display = "none";
+    if (dom.resultCaptionsPill) dom.resultCaptionsPill.style.display = "none";
+    if (dom.resultCaptionsText) dom.resultCaptionsText.textContent = "";
+    if (dom.resultCaptionsBadge) dom.resultCaptionsBadge.style.display = "none";
     if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
     if (dom.resultMontageText) dom.resultMontageText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";

@@ -202,7 +202,7 @@ class TestGatekeeperTtsScriptIsolationE2E:
         assert fallback.get("phone_number") == "0558815453"
         assert fallback.get("bottom_text") == "0558815453"
 
-    @patch("web.video_annotator.annotate_video")
+    @patch("web.pipeline_bridge.annotate_video")
     @patch("web.pipeline_bridge.synthesize_narration")
     @patch("subprocess.run")
     @patch("frame_extractor.extract_keyframes")

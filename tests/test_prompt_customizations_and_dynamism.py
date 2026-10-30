@@ -128,7 +128,9 @@ class TestMusicAndAudioMixingControls:
         assert len(captured_cmds) > 0
 
         # Inspect the primary assembly command
-        render_cmd = captured_cmds[0]
+        render_cmds = [c for c in captured_cmds if "-filter_complex" in c]
+        assert len(render_cmds) > 0, "Expected an FFmpeg render command with -filter_complex"
+        render_cmd = render_cmds[0]
         # In mute mode, only 2 inputs: -i source_video and -i narration_wav (no 3rd music input)
         input_flags = [render_cmd[i+1] for i, arg in enumerate(render_cmd) if arg == "-i"]
         assert len(input_flags) == 2, f"Expected exactly 2 inputs in muted mode, got: {input_flags}"
