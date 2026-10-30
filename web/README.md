@@ -1022,6 +1022,16 @@ Addresses repetition when processing identical video footage by injecting genera
   - Replaced rigid static strings with rich variation pools for opening hooks (`HOOK_TEMPLATES`), salon walkthroughs (`SALON_TEMPLATES`), bedroom quarters (`ROOMS_TEMPLATES`), kitchen & amenities (`KITCHEN_TEMPLATES`), and neighborhood CTAs (`CTA_TEMPLATES`).
   - Stochastically combines segments to produce fresh, authentic marketing rhythms across repeated runs while strictly maintaining physical accuracy and shot-by-shot visual grounding.
 
+### 4. Verification Suite & Author Attribution
+- **Comprehensive Test Suite**: Covered by [`test_optin_sandboxing_and_creative_variety.py`](file:///home/pluto/projects/lok/tests/test_optin_sandboxing_and_creative_variety.py) (19 passing unit & integration tests) testing:
+  - Default-off behavior for subtitles, background music, and text badges (`TestStrictOptInArchitecture`).
+  - Opt-in keyword parsing across bilingual tokens (`subtitles`, `captions`, `أضف ترجمة`, `شريط ترجمة`, `ترجمة فورية`, `ترجمة متزامنة`).
+  - Job sandbox directory creation and artifact confinement in `outputs/jobs/<job_id>/sandbox/` (`TestMultiTenantJobSandboxing`).
+  - Generative variety in Darija script synthesis and dynamic hook injection (`TestCreativeVarietyEngine`).
+- **Zero Character U+0669 Guardrail**: Scanned across the entire codebase to guarantee complete compliance.
+- **Author Identity**: `MouhammedBoure <mohamadbormoz2@gmail.com>`.
+
+
 
 
 

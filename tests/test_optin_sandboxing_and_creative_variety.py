@@ -1,5 +1,6 @@
 """
 Tests for Strict Opt-In Architecture, Multi-Tenant Job Sandboxing, and Creative Variety Engine.
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Agent: agy11 (Backend Logic & Systems Engineer)
 Branch: backend/agy11-optin-sandboxing-and-creative-variety
 """
