@@ -270,6 +270,55 @@ FALLBACK_PROFILES = [
 ]
 
 
+MARKETING_ANGLES = [
+    "Architectural Elegance & Luxury Finishes (الفخامة والتشطيبات المعمارية الراقية)",
+    "Family Sanctuary & Peaceful Living (السكينة والراحة العائلية الفائقة)",
+    "Prime Investment & Strategic Opportunity (الاستثمار الاستراتيجي والعائد المتميز)",
+    "Modern Mediterranean Flow & Panoramic Horizons (الحياة العصرية المشرقة والإطلالات البانورامية)",
+    "Warm Welcoming Living & Contemporary Prestige (الدفء والتميز المعاصر)",
+]
+
+HOOK_TEMPLATES = [
+    "شوفو معايا هاد الـ{prop_type}{unit_str}، {view_str}.",
+    "شوفو معايا هاد الجولة الحصرية لهاد الـ{prop_type}{unit_str}، {view_str}.",
+    "شوفو معايا هاد العقار الاستثنائي: {prop_type}{unit_str} {view_str} يلبي كل التطلعات.",
+    "شوفو معايا لعشاق التميز والراحة، هاد الـ{prop_type}{unit_str} {view_str} بمواصفات نادرة.",
+    "شوفو معايا هاد العرض الاستثنائي: {prop_type}{unit_str} فاخر ومتميز، {view_str}.",
+]
+
+SALON_TEMPLATES = [
+    "رانا هنا ندخلو للصالون الواسع والمضيء، تشطيبات عصرية وفينيسيون متقونة توفر أقصى درجات الراحة.",
+    "أول ما يلفت انتباهنا هو الصالون الفسيح بإنارة طبيعية مبهجة وديكور راقي ومريح للغاية.",
+    "شوفو رحابة الصالون والمساحة المفتوحة، هندسة داخلية مدروسة بعناية لتمنح عائلتكم أجواء دافئة.",
+    "صالون استقبال ملكي بمساحة ممتازة وتنسيق أنيق، يجمع بين الفخامة والبساطة المعاصرة.",
+]
+
+ROOMS_TEMPLATES = [
+    "توزيع الغرف مدروس ومريح بزاف مع تهوية طبيعية ممتازة ومساحات واسعة تناسب كامل تطلعات العائلة.",
+    "غرف النوم مستقلة وهادئة بتصميم يوفر الخصوصية والسكينة التامة لجميع أفراد الأسرة.",
+    "المساحات المخصصة للنوم والاسترخاء رحبة ومخدومة بذكاء، مع إطلالات شرحة ومداخل إنارة طبيعية رائعة.",
+]
+
+KITCHEN_TEMPLATES = [
+    "المطبخ عصري ومجهز بالكامل بأحدث التجهيزات، وكل زاوية في هاد العقار مخدومة بإتقان واهتمام بأدق التفاصيل.",
+    "مطبخ أمريكي راقي مفتوح وعملي للغاية، مجهز بأجود المواد لتجربة طهي واستقبال عائلية ممتعة.",
+    "وفينيسيون المطبخ والحمامات على أعلى مستوى من الإتقان، جودة تدوم وتلبي أرقى الأذواق.",
+]
+
+LOCATION_TEMPLATES = [
+    "الموقع هادئ وآمن ومثالي، مع إمكانية الوصول السريع لكافة الخدمات الأساسية والمحاور الرئيسية.",
+    "حي راقي ومجاور لكافة المرافق الضرورية من مدارس ونقل وتجارة، يضمن لكم حياة يومية مريحة.",
+    "موقع متميز يجمع بين السكينة وسهولة التنقل، موقع لا يعوض في قلب المنطقة.",
+]
+
+CTA_TEMPLATES = [
+    "فرصة استثنائية ونادرة للسكن أو الاستثمار، اتصلو بنا على الرقم الظاهر أسفل الشاشة لحجز موعد الزيارة والاستفسار.",
+    "ما تفوتوش هاد الفرصة الذهبية، للمزيد من التفاصيل والزيارة تواصلو معنا مباشرة عبر الرقم الظاهر أسفل الشاشة.",
+    "للمهتمين بهاد العقار الفاخر، فريقنا في خدمتكم، سارعو بالاتصال على الرقم الظاهر أسفل الشاشة للحجز.",
+    "عقار يضمن لكم قيمة عقارية ممتازة وراحة دائمة، لا تترددوا في الاتصال بالرقم الظاهر أسفل الشاشة.",
+]
+
+
 def _generate_dynamic_darja_script(
     speech_duration: float,
     prop_feats: Dict[str, Any],
@@ -279,8 +328,11 @@ def _generate_dynamic_darja_script(
     """
     Generate an engaging, continuous Algerian Darja real estate script
     scaled dynamically to cover the net speaking window without abrupt silence.
-    Incorporates property features (F1..F6, sea views, property type) and CTA.
+    Incorporates property features (F1..F6, sea views, property type) and CTA,
+    utilizing rich variation pools to ensure narrative diversity across runs.
     """
+    import random
+
     unit = prop_feats.get("unit")
     has_sea_view = prop_feats.get("sea_view", False)
     prop_type = prop_feats.get("property_type") or ("فيلا" if has_sea_view else "شقة")
@@ -291,22 +343,22 @@ def _generate_dynamic_darja_script(
     else:
         view_str = "في موقع استراتيجي راقي وهادئ وقريب من كامل المرافق الحيوية"
 
-    # Phase 1: Hook / Introduction
-    hook = f"شوفو معايا هاد الـ{prop_type}{unit_str}، {view_str}."
+    # Phase 1: Dynamic Hook / Introduction
+    hook_tpl = random.choice(HOOK_TEMPLATES)
+    hook = hook_tpl.format(prop_type=prop_type, unit_str=unit_str, view_str=view_str)
 
     # Phase 2: Walkthrough progression scaled dynamically to available duration
-    tour_segments = []
-    tour_segments.append("رانا هنا ندخلو للصالون الواسع والمضيء، تشطيبات عصرية وفينيسيون متقونة توفر أقصى درجات الراحة.")
+    tour_segments = [random.choice(SALON_TEMPLATES)]
 
     if speech_duration >= 18.0:
-        tour_segments.append("توزيع الغرف مدروس ومريح بزاف مع تهوية طبيعية ممتازة ومساحات واسعة تناسب كامل تطلعات العائلة.")
+        tour_segments.append(random.choice(ROOMS_TEMPLATES))
     if speech_duration >= 28.0:
-        tour_segments.append("المطبخ عصري ومجهز بالكامل بأحدث التجهيزات، وكل زاوية في هاد العقار مخدومة بإتقان واهتمام بأدق التفاصيل.")
+        tour_segments.append(random.choice(KITCHEN_TEMPLATES))
     if speech_duration >= 40.0:
-        tour_segments.append("الموقع هادئ وآمن ومثالي، مع إمكانية الوصول السريع لكافة الخدمات الأساسية والمحاور الرئيسية.")
+        tour_segments.append(random.choice(LOCATION_TEMPLATES))
 
     # Phase 3: Closing Call to Action (CTA)
-    cta = "فرصة استثنائية ونادرة للسكن أو الاستثمار، اتصلو بنا على الرقم الظاهر أسفل الشاشة لحجز موعد الزيارة والاستفسار."
+    cta = random.choice(CTA_TEMPLATES)
 
     return f"{hook} {' '.join(tour_segments)} {cta}"
 
@@ -613,6 +665,15 @@ def infer_video_script_and_mood(
             f"and lower-third highlight badges to prioritize and showcase the specific property areas and details described here.\n"
         )
 
+    # Dynamic marketing hook & variety angle
+    import random
+    chosen_angle = random.choice(MARKETING_ANGLES)
+    intent_guidance += (
+        f"\n--- CREATIVE MARKETING ANGLE & NARRATIVE LENS (زاوية التناول والتنوع الإبداعي) ---\n"
+        f"Creative Narrative Framing Angle: {chosen_angle}\n"
+        f"CRITICAL: Infuse the Algerian Darja voiceover with this authentic creative lens so every generated cut has a distinct personality and fresh marketing momentum.\n"
+    )
+
     prompt = (
         f"You are an expert Algerian real estate marketing director and creative videographer.\n"
         f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the entire walkthrough from a real estate smartphone video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
@@ -671,12 +732,15 @@ def infer_video_script_and_mood(
     import requests
     import time
 
+    vision_temperature = float(os.getenv("GEMINI_VISION_TEMPERATURE", "0.80"))
+
     for model_name in candidate_models:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         request_body = {
             "contents": [{"parts": parts}],
             "generationConfig": {
-                "temperature": 0.35,
+                "temperature": vision_temperature,
+                "topP": 0.95,
                 "responseMimeType": "application/json",
             },
         }

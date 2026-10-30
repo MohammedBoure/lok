@@ -977,6 +977,52 @@ Guarantees that all customer directives are executed faithfully:
     - `"videographer_speech"`: Extracted field speech transcribed from source video audio.
     - `"customer_specifications"`: Validated dictionary of customer-requested features.
 
+---
+
+## 16. Strict Explicit Opt-In Architecture, Multi-Tenant Job Sandboxing & Creative Variety Engine
+
+Sprint 3 implements foundational architectural guardrails ensuring a minimalist clean default output, robust multi-tenant job isolation, and non-repetitive narrative synthesis.
+
+### 1. Strict Explicit Opt-In Architecture (Default: Clean & Pure)
+Secondary overlays, synchronized captions, and background music are strictly disabled by default to deliver maximum performance, clean visual aesthetic, and 100% pure voiceover intelligibility unless explicitly requested:
+- **Synchronized Captions (`subtitles_requested`)**:
+  - Default: **OFF**.
+  - Activated ONLY when the customer prompt explicitly contains opt-in keywords (e.g. `أضف ترجمة`, `شريط ترجمة`, `ترجمة فورية`, `ترجمة متزامنة`, `كتابة متزامنة`, `مع ترجمة`, `subtitles`, `captions`) or passes `enable_subtitles=True`.
+  - When disabled, `subtitles_list` is empty (`[]`) and zero subtitle drawtext filters are injected into the video rendering pipeline.
+- **Persistent Lower-Third & Contact Banners**:
+  - Default: **OFF**.
+  - Rendered ONLY when a valid Algerian phone number (`05...`, `06...`, `07...`) or explicit custom promotional banner text is supplied.
+  - Generic decorative banners and badges are suppressed in clean runs, eliminating visual clutter.
+- **Background Music & Ducking (`mute_music`)**:
+  - Default: **OFF** (`mute_music=True`).
+  - Activated ONLY when the customer explicitly asks for background music, acoustic styling, or provides an explicit `music_track` argument.
+  - Pure voiceover mode runs FFmpeg with only 2 inputs (video + speech narration), entirely omitting music files and audio mixing overhead.
+
+### 2. Multi-Tenant Job Sandboxing (`outputs/jobs/<job_id>/sandbox/`)
+To eliminate race conditions, file collisions, and cache pollution across concurrent renders:
+- **Isolated Workspace**:
+  - Every job allocates a dedicated isolated directory: `outputs/jobs/<job_id>/sandbox/`.
+  - All temporary artifacts, extracted keyframe JPEGs (`sandbox/keyframes/`), audio probe WAV slices, neural narration speech files (`narration_<job_id>.wav`), and intermediate MP4 video cuts (`montaged_<job_id>.mp4`, `cut_<job_id>.mp4`) reside strictly within this sandbox.
+- **Dual Mirroring & Backward Compatibility**:
+  - Sandboxed video URL is exposed via `"sandboxed_video_url": f"/outputs/jobs/{job_id}/sandbox/cut_{job_id}.mp4"`.
+  - Final rendered cuts, narration tracks, and execution summary JSONs are atomically mirrored to legacy locations (`outputs/mobile_cuts/cut_<job_id>.mp4` and `outputs/final_cut.mp4`), guaranteeing zero disruption to legacy consumers and static file routes.
+
+### 3. Creative Variety Engine (Stochastic LLM Pacing & Narrative Diversification)
+Addresses repetition when processing identical video footage by injecting generative variance across multiple layers:
+- **Elevated Generative Temperature**:
+  - Gemini Multimodal Vision API sampling configuration raised to `temperature=0.80`, `topP=0.95` (configurable via `GEMINI_VISION_TEMPERATURE`).
+- **Dynamic Marketing Hooks & Angles**:
+  - Injects varied commercial angles into the vision prompt:
+    - *Architectural Elegance & Luxury Finishes*
+    - *Family Sanctuary & Peaceful Living*
+    - *Prime Investment & Strategic Opportunity*
+    - *Modern Mediterranean Flow & Panoramic Horizons*
+    - *Warm Welcoming Living & Contemporary Prestige*
+- **Rich Algerian Darja Phrasing Pools (`_generate_dynamic_darja_script`)**:
+  - Replaced rigid static strings with rich variation pools for opening hooks (`HOOK_TEMPLATES`), salon walkthroughs (`SALON_TEMPLATES`), bedroom quarters (`ROOMS_TEMPLATES`), kitchen & amenities (`KITCHEN_TEMPLATES`), and neighborhood CTAs (`CTA_TEMPLATES`).
+  - Stochastically combines segments to produce fresh, authentic marketing rhythms across repeated runs while strictly maintaining physical accuracy and shot-by-shot visual grounding.
+
+
 
 
 
