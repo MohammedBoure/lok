@@ -2,7 +2,7 @@
   "version": "1.1.0",
   "master_directive": {
     "title": "المبدأ العام والتوجيه المخصص للذكاء الاصطناعي (Master Custom Directive)",
-    "custom_instructions": "إستخدم اللهجة الجزائرية الدارجة العفوية في الوصف والتعليق، الصوت يجب أن يكون وصفياً مع المشهد ومتصلاً تماماً كأن الشخص الذي يصور هو من يتكلم بنفسه أثناء الجولة، التعليق الصوتي وصفي ومتصل بكل مشهد يظهر في الفيديو لحظة بلحظة",
+    "custom_instructions": "",
     "dialect": "algerian_darja",
     "dialect_label": "اللهجة الجزائرية (الدارجة الجزائرية العفوية الحية)",
     "perspective": "videographer_walkthrough",
@@ -15,7 +15,7 @@
     "guidelines": "تحدث بنبرة عربية فصيحة، مع إبراز الفخامة والأناقة في وصف العقارات الراقية، والحماس والحيوية في العروض الترويجية والأسعار التنافسية. اجعل مخارج الحروف واضحة ومريحة وموزونة مع المشاهد.",
     "pacing": "معتدل (حوالي 120 إلى 140 كلمة في الدقيقة مع فترات صمت هادفة مدتها 0.5 إلى 1.0 ثانية بين الفقرات لتنفس الموسيقى)",
     "pronunciation": "نطق أسماء المدن والأحياء والمصطلحات العقارية (F3, F4, دوبلكس, فيلا, صالون ملكي) بفصاحة ودقة تامة.",
-    "active_tone_bias": "عصري وجريء"
+    "active_tone_bias": "فاخر وهادئ"
   },
   "narrative_principles": {
     "title": "مبادئ الوصف المعماري والترويج العقاري",
@@ -26,13 +26,13 @@
   "visual_principles": {
     "title": "مبادئ الإخراج الصوتي والموسيقي",
     "smart_ducking_volume": 0.15,
-    "selected_music_theme": "acoustic_guitar",
+    "selected_music_theme": "luxury_piano",
     "auto_music_matching": true
   },
   "annotation_principles": {
     "title": "مبادئ الكتابات والملصقات التوضيحية على الفيديو",
     "enable_auto_annotations": true,
-    "font_style": "modern_white",
+    "font_style": "bold_gold_badge",
     "position": "lower_third",
     "banner_opacity": 0.85
   }

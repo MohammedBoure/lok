@@ -894,6 +894,46 @@ Exposes standardized Model Context Protocol tools via JSON-RPC stdio for autonom
 - **`detect_video_scenes`**: Scene change detection and candidate cut timestamp calculation.
 - Configured in [`mcp_config.json`](file:///home/pluto/projects/lok/mcp_config.json) under the `video-montage` service identifier.
 
+---
+
+## 14. Dynamic Audio Mixing, Prominent Safe Overlays & Adaptive Script Pacing
+
+The platform features comprehensive dynamic audio mixing, prominent safe text overlay positioning, and duration-adaptive Algerian Darja marketing voiceovers.
+
+### 1. Dynamic Audio Mixing & Music Directives (`parse_music_directives`)
+Natural language audio instructions in user prompts are automatically parsed and translated into FFmpeg audio filtergraphs:
+- **Mute Music Directive (`mute_music`)**:
+  - Detects keywords: `بدون موسيقى`, `صوت فقط`, `كتم الموسيقى`, `بلا موسيقى`, `نحي الموسيقى`, `من غير موسيقى`, `mute music`, `no music`, `sans musique`.
+  - When active, the FFmpeg filtergraph bypasses background music entirely, executing without `-i music` to render 100% pure voiceover audio.
+- **Contextual Track Selection & Custom Volume**:
+  - Matches track preferences using contextual keywords (e.g. `موسيقى بيانو`, `موسيقى قيثارة`, `موسيقى تأملية`) to prevent false positives with descriptive property adjectives (e.g. `شقة فاخرة`).
+  - Supports custom volume specifications (`خفف الموسيقى`, `music volume 10%`, etc.).
+- **Acoustic Ducking Calibration**:
+  - Default ambient music volume lowered to `0.16` for optimal speech intelligibility.
+  - Sidechain ducking parameters calibrated to `threshold=0.015` and `ratio=12.0` (`sidechaincompress=threshold=0.015:ratio=12.0:attack=15:release=350`), creating smooth, professional transitions under speech.
+
+### 2. Prominent Large Safe Overlays & Player Control Clearance
+To ensure high-visibility commercial branding and avoid mobile player timeline scrubbers:
+- **Large Font Detection (`large_font`)**:
+  - Triggered by phrases like `خط كبير`, `تكبير الخط`, `كتابة واضحة`, `large font`, `big text`.
+  - Dynamically calculates font size: `font_size = max(48, min(64, int(target_h * 0.042)))`.
+  - High-contrast background banner: `boxborderw=16`, `boxcolor=black@0.78` guaranteeing crisp legibility over bright floors, windows, and reflections.
+- **Safe Margin Elevation**:
+  - Persistent bottom text is elevated with a dynamic safety margin: `safe_margin = max(110, int(video_height * 0.085))` (`y=h-text_h-{safe_margin}`).
+  - Prevents platform progress bars, playheads, and navigation bars from obscuring contact phone numbers and branding banners.
+
+### 3. Property Feature Extraction & Dynamic Algerian Darja Pacing
+Ensures narration remains engaging throughout the entire video duration without premature silence or raw digit recitation:
+- **Feature Extraction (`extract_property_features`)**:
+  - Detects unit configurations (`F1` through `F6`), sea views (`مطل على البحر`, `vue sur mer`, `واجهة بحرية`), and property types (`منزل`, `فيلا`, `شقة`, `دوبلكس`, `استوديو`).
+- **Unclamped Word Count Scaling**:
+  - Scales target word count continuously across duration: `target_words = max(18, min(160, int(speech_duration * 2.1)))`, removing previous 65-word limits.
+- **3-Phase Narrative Arc (`_generate_dynamic_darja_script`)**:
+  - **Phase 1 (Hook)**: Engaging opening mentioning the property type, unit configuration, and neighborhood prestige.
+  - **Phase 2 (Walkthrough)**: Highlights sea views, spacious interiors, natural lighting, and refined finishes.
+  - **Phase 3 (Call-to-Action)**: Prompts viewers to call via the persistent on-screen banner (`اتصلو بنا على الرقم الظاهر أسفل الشاشة`) without reciting raw numeric phone digits aloud.
+
+
 
 
 

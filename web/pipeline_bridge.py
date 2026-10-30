@@ -350,10 +350,114 @@ def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
     return plan
 
 
+def extract_property_features(text: Optional[str]) -> Dict[str, Any]:
+    """
+    Extract property specifications and selling points from user prompt.
+    Captures:
+      - unit: e.g. F1, F2, F3, F4, F5, F6, duplex, studio
+      - sea_view: True if mentions overlooking sea / coastal view
+      - property_type: 'منزل', 'شقة', 'فيلا', 'عقار', 'محل'
+      - keywords: list of matched architectural selling points
+    """
+    if not text:
+        return {"unit": None, "sea_view": False, "property_type": None, "keywords": []}
+
+    clean = str(text).lower()
+    keywords = []
+
+    # Unit type: F1..F6 or S+1..S+4
+    m_unit = re.search(r"\b(f[1-6]|s\+[1-4])\b", clean, re.IGNORECASE)
+    unit_val = m_unit.group(1).upper() if m_unit else None
+    if unit_val:
+        keywords.append(unit_val)
+
+    # Sea view patterns
+    sea_patterns = [
+        r"(?:مطل|مطلة|تطل|يطل)(?:\s+مباشرة)?\s+على\s+البحر",
+        r"إطلالة(?:\s+على|\s+بحرية|\s+بانورامية)?\s+على\s+البحر",
+        r"واجهة\s+بحرية",
+        r"بحرية",
+        r"vue\s+sur\s+mer",
+        r"sea\s+view",
+    ]
+    has_sea_view = any(re.search(pat, clean) for pat in sea_patterns)
+    if has_sea_view:
+        keywords.append("مطل على البحر")
+
+    # Property type
+    property_type = None
+    for pt in ["فيلا", "منزل", "شقة", "دار", "دوبلكس", "استوديو", "محل تجاري", "محل", "عقار", "villa", "appartement", "maison"]:
+        if pt in clean:
+            property_type = pt
+            keywords.append(pt)
+            break
+
+    return {
+        "unit": unit_val,
+        "sea_view": has_sea_view,
+        "property_type": property_type,
+        "keywords": keywords,
+    }
+
+
+def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
+    """
+    Parse soundtrack directives from user prompt:
+      - mute_music: complete removal of background music
+      - music_track: explicit selection of music theme ('luxury_piano', 'acoustic_guitar', 'ambient_meditation')
+      - music_volume: target ambient music volume (e.g. 0.08 for quiet music)
+    """
+    res: Dict[str, Any] = {
+        "mute_music": False,
+        "music_track": None,
+        "music_volume": None,
+    }
+    if not text:
+        return res
+
+    text_l = str(text).lower()
+
+    # 1. Mute / Remove music
+    mute_keywords = [
+        "بدون موسيقى", "بلا موسيقى", "من غير موسيقى", "ازالة الموسيقى",
+        "إزالة الموسيقى", "حذف الموسيقى", "كتم الموسيقى", "بدون صوت خلفية",
+        "بدون صوت الموسيقى", "بدون أغاني", "بدون اغاني", "no music",
+        "mute music", "without music", "remove music", "sans musique",
+    ]
+    if any(k in text_l for k in mute_keywords):
+        res["mute_music"] = True
+        return res
+
+    # 2. Track selection
+    if any(k in text_l for k in ["موسيقى بيانو", "صوت بيانو", "بيانو", "piano", "موسيقى فاخرة"]):
+        res["music_track"] = "luxury_piano"
+    elif any(k in text_l for k in ["موسيقى جيتار", "صوت جيتار", "جيتار", "guitar", "موسيقى حيوية"]):
+        res["music_track"] = "acoustic_guitar"
+    elif any(k in text_l for k in ["موسيقى تأمل", "موسيقى هادئة", "موسيقى بحر", "موسيقى هادئه", "meditation", "ambient"]):
+        res["music_track"] = "ambient_meditation"
+
+    # 3. Volume
+    m_vol = re.search(r"(?:صوت\s+الموسيقى|مستوى\s+الموسيقى|حجم\s+الموسيقى|music\s+volume)\s*(?:يكون|تكون|:|=)?\s*(\d+(?:\.\d+)?)\s*(%|بالمئة)?", text_l)
+    if m_vol:
+        try:
+            val = float(m_vol.group(1))
+            if m_vol.group(2) or val > 1.0:
+                res["music_volume"] = max(0.02, min(0.60, val / 100.0))
+            else:
+                res["music_volume"] = max(0.02, min(0.60, val))
+        except (ValueError, TypeError):
+            pass
+    elif any(k in text_l for k in ["موسيقى هادئة جدا", "موسيقى خفيفة جدا", "موسيقى خفيفة", "خفض الموسيقى", "صوت الموسيقى منخفض", "موسيقى واطية", "low music", "soft music"]):
+        res["music_volume"] = 0.08
+
+    return res
+
+
 def is_meta_prompt(text: Optional[str]) -> bool:
     """
     Determine whether input represents meta-directions (instructions, phone overlay,
-    Darja narration request, trimming/montage commands) rather than a literal voiceover script.
+    Darja narration request, trimming/montage commands, music preferences, font styling)
+    rather than a literal voiceover script to be read word-for-word.
     """
     if not text:
         return False
@@ -365,11 +469,25 @@ def is_meta_prompt(text: Optional[str]) -> bool:
         return True
     cleaned_digits = re.sub(r"[\s.-]", "", norm)
     if re.search(r"(?:0|\+?213)[567]\d{8}", cleaned_digits):
-        if any(w in norm for w in ["رقم", "هاتف", "اتصال", "اتصل", "نص", "فيديو", "اسفل", "أسفل", "طول", "شغال"]):
+        if any(w in norm for w in ["رقم", "هاتف", "اتصال", "اتصل", "نص", "فيديو", "اسفل", "أسفل", "طول", "شغال", "خط"]):
             return True
     # Check if montage directive is present
     m_plan = parse_montage_directives(norm)
     if m_plan.get("requested"):
+        return True
+    # Check if music directive is present
+    mus_dir = parse_music_directives(norm)
+    if mus_dir.get("mute_music") or mus_dir.get("music_volume") is not None:
+        return True
+    if any(k in norm for k in ["موسيقى", "music", "بيانو", "جيتار", "piano", "guitar"]):
+        if mus_dir.get("music_track"):
+            return True
+    # Check if font styling directive is present
+    if any(w in norm for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض"]):
+        return True
+    # Check if property talking points are requested
+    p_feats = extract_property_features(norm)
+    if p_feats.get("keywords") and re.search(r"\b(?:يتكلم|تكلم|احكي|قول|يقول|صف|نوصف|المعلق|المعلقة)\b", norm):
         return True
     return False
 
@@ -377,12 +495,15 @@ def is_meta_prompt(text: Optional[str]) -> bool:
 def extract_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     Parse freeform creative user instructions, extracting meta-intent flags,
-    phone number, persistent bottom overlay text, styling preferences, and montage/trimming plans.
+    phone number, persistent bottom overlay text, styling preferences, music controls,
+    and montage/trimming plans.
     """
     raw = str(text or "").strip()
     is_meta = is_meta_prompt(raw)
     phone = extract_algerian_phone(raw)
     montage_plan = parse_montage_directives(raw)
+    music_directives = parse_music_directives(raw)
+    property_features = extract_property_features(raw)
 
     bottom_text: Optional[str] = None
     if phone:
@@ -404,6 +525,17 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
     voiceover_requested = any(w in raw.lower() for w in ["تعليق صوتي", "صوت", "فويس اوفر", "voiceover", "نص يتناسب"])
     persistent_overlay = any(w in raw.lower() for w in ["طول ما الفيديو", "طوال الفيديو", "كامل الفيديو", "دائم", "طول الفيديو", "شغال"])
 
+    # Font sizing & prominence
+    large_font = any(w in raw.lower() for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض", "large font", "big font", "bold"])
+
+    # Overlay positioning
+    if any(w in raw.lower() for w in ["في الوسط", "في منتصف الفيديو", "منتصف", "center"]):
+        overlay_position = "center"
+    elif any(w in raw.lower() for w in ["في الأعلى", "أعلى الفيديو", "top"]):
+        overlay_position = "top_banner"
+    else:
+        overlay_position = "bottom_banner"
+
     return {
         "is_meta_prompt": is_meta,
         "phone_number": phone,
@@ -412,6 +544,10 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "voiceover_requested": voiceover_requested,
         "persistent_overlay": persistent_overlay,
         "montage_plan": montage_plan,
+        "music_directives": music_directives,
+        "property_features": property_features,
+        "large_font": large_font,
+        "overlay_position": overlay_position,
         "raw_text": raw,
     }
 
@@ -1253,14 +1389,22 @@ def process_mobile_video(
         resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", principles_voice.get("active_tone_bias", "فاخر وهادئ"))
         resolved_style_prompt = style_prompt or f"Warm and prestigious real estate presentation in {resolved_tone}"
 
-    # Resolve background music track
+    # Resolve background music track and user music directives
+    music_directives = parsed_dirs.get("music_directives", {})
+    mute_music = bool(music_directives.get("mute_music", False))
     resolved_music_key = principles_visual.get("selected_music_theme", "luxury_piano")
-    if music_track and music_track in MUSIC_LIBRARY:
+
+    if music_directives.get("music_track") and music_directives["music_track"] in MUSIC_LIBRARY:
+        resolved_music_key = music_directives["music_track"]
+    elif music_track and music_track in MUSIC_LIBRARY:
         resolved_music_key = music_track
     elif is_auto_mode and inferred_music and inferred_music in MUSIC_LIBRARY:
         resolved_music_key = inferred_music
     elif selected_preset and "recommended_music" in ALGERIAN_REAL_ESTATE_PRESETS.get(selected_preset, {}):
         resolved_music_key = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["recommended_music"]
+    elif parsed_dirs.get("property_features", {}).get("sea_view"):
+        resolved_music_key = "ambient_meditation"
+
     music_meta = MUSIC_LIBRARY.get(resolved_music_key, MUSIC_LIBRARY["luxury_piano"])
     music_audio_file = music_meta["file"]
 
@@ -1315,18 +1459,32 @@ def process_mobile_video(
     # 6. Sidechain Compression & Dynamic Ducking Settings
     target_duck = principles_visual.get("smart_ducking_volume", duck_level) if duck_level == 0.25 else duck_level
     effective_duck_level = max(0.05, min(0.60, float(target_duck)))
-    duck_threshold = 0.030
-    duck_ratio = max(4.0, min(24.0, round(1.0 / effective_duck_level, 1)))
-    duck_attack = 80
-    duck_release = 450
-    ambient_volume = 0.38
+    duck_threshold = 0.015
+    duck_ratio = 12.0
+    duck_attack = 60
+    duck_release = 350
+    # Balanced default background bed: 0.16 (subtle, non-intrusive)
+    ambient_volume = float(music_directives.get("music_volume") or principles_visual.get("ambient_music_volume") or 0.16)
 
-    _notify(
-        step=4,
-        percent=85,
-        message=f"دمج الموسيقى التصويرية ({music_meta['title']}) وتطبيق خفض الصوت التلقائي (Sidechain Ducking)...",
-        log=f"[مكساج صوتي] تم إنتاج الصوت ({narration_duration:.1f}s - {narration_info['synthesizer']}). دمج الموسيقى وتطبيق الخفض الذكي ({effective_duck_level:.2f}).",
-    )
+    if mute_music:
+        music_meta = {
+            "id": "none",
+            "title": "بدون موسيقى (صوت نقي)",
+            "license": "None",
+        }
+        _notify(
+            step=4,
+            percent=85,
+            message="كتم الموسيقى التصويرية وتصدير الصوت النقي بناءً على رغبة المستخدم...",
+            log=f"[مكساج صوتي] 🔇 تم إلغاء الموسيقى الخلفية بنجاح بناءً على التوجيهات المدخلة. الصوت الصافي نشط.",
+        )
+    else:
+        _notify(
+            step=4,
+            percent=85,
+            message=f"دمج الموسيقى التصويرية ({music_meta['title']}) وتطبيق خفض الصوت التلقائي (Sidechain Ducking)...",
+            log=f"[مكساج صوتي] تم إنتاج الصوت ({narration_duration:.1f}s - {narration_info['synthesizer']}). دمج الموسيقى بمستوى متوازن ({ambient_volume:.2f}) وخفض ذكي ({effective_duck_level:.2f}).",
+        )
 
     # 7. Construct FFmpeg Filter Graph
     video_filters: List[str] = [
@@ -1341,12 +1499,32 @@ def process_mobile_video(
     video_filters.append("format=yuv420p")
     v_graph = ",".join(video_filters) + "[vout]"
 
-    # Audio pipeline: Use real open-source music file if available, with mathematical fallback
-    use_real_music = music_audio_file.is_file()
+    # Audio pipeline: Handle mute_music or mix open-source royalty-free music
     ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
     final_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
 
-    if use_real_music:
+    if mute_music:
+        filter_complex = f"""
+        [0:v]{v_graph};
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},volume=1.0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-crf", "20",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(final_cut_path),
+        ]
+    elif music_audio_file.is_file():
         filter_complex = f"""
         [0:v]{v_graph};
         [2:a]aloop=loop=-1:size=2e+09,atrim=0:{total_duration},afade=t=in:ss=0:d=1.0,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
@@ -1377,14 +1555,12 @@ def process_mobile_video(
         # Fallback harmonic synth pad
         filter_complex = f"""
         [0:v]{v_graph};
-        sine=f=146.83:d={total_duration},volume=0.22[d3];
-        sine=f=174.61:d={total_duration},volume=0.18[f3];
-        sine=f=220.00:d={total_duration},volume=0.16[a3];
-        sine=f=261.63:d={total_duration},volume=0.12[c4];
-        sine=f=293.66:d={total_duration},volume=0.14[d4];
-        sine=f=349.23:d={total_duration},volume=0.10[f4];
-        anoisesrc=d={total_duration}:c=pink:r=48000:a=0.005,lowpass=f=900[warm_air];
-        [d3][f3][a3][c4][d4][f4][warm_air]amix=inputs=7:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
+        sine=f=146.83:d={total_duration},volume=0.14[d3];
+        sine=f=174.61:d={total_duration},volume=0.12[f3];
+        sine=f=220.00:d={total_duration},volume=0.10[a3];
+        sine=f=261.63:d={total_duration},volume=0.08[c4];
+        anoisesrc=d={total_duration}:c=pink:r=48000:a=0.003,lowpass=f=900[warm_air];
+        [d3][f3][a3][c4][warm_air]amix=inputs=5:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
         [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
         [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
         [v_mix]volume=1.0[v_clean];
@@ -1426,14 +1602,26 @@ def process_mobile_video(
     # Insert persistent bottom text / phone number overlay
     effective_bottom = bottom_text or (phone_number if phone_number else None)
     if effective_bottom and str(effective_bottom).strip():
+        is_large_font = bool(parsed_dirs.get("large_font", False))
+        target_overlay_pos = parsed_dirs.get("overlay_position") or "bottom_banner"
+
+        # Responsive prominent font sizing:
+        # Default is already clear and legible; when large_font is requested, boost to bold high-impact size
+        if is_large_font:
+            calculated_fs = max(48, min(64, int(target_h * 0.042)))
+            calculated_boxborder = 16
+        else:
+            calculated_fs = max(38, min(50, int(target_h * 0.034)))
+            calculated_boxborder = 12
+
         annotations_list.append({
             "text": str(effective_bottom).strip(),
             "start_sec": 0.0,
             "end_sec": total_duration,
-            "position": "bottom_banner",
+            "position": target_overlay_pos,
             "style": "persistent_bottom",
-            "font_size": 28,
-            "boxborderw": 8,
+            "font_size": calculated_fs,
+            "boxborderw": calculated_boxborder,
             "persistent": True,
         })
 
@@ -1561,10 +1749,16 @@ def process_mobile_video(
         "annotations_applied": applied_annotations_count,
         "montage_applied": montage_applied,
         "montage_details": montage_details if montage_applied else None,
+        "music_muted": mute_music,
+        "music_volume": ambient_volume,
+        "large_font_applied": bool(parsed_dirs.get("large_font", False)),
+        "property_features": parsed_dirs.get("property_features", {}),
         "music_track": {
             "id": music_meta["id"],
             "title": music_meta["title"],
             "license": music_meta["license"],
+            "muted": mute_music,
+            "volume": ambient_volume,
         },
         "keyframes": formatted_keyframes,
         "total_keyframes": len(formatted_keyframes),

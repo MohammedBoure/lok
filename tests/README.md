@@ -293,10 +293,36 @@ This directory contains automated unit, integration, and end-to-end pipeline ver
   - Server endpoints `/api/jobs/create` and `/api/status/{job_id}` validation.
   - Repository-wide zero U+0669 verification.
 
+- [`test_prompt_customizations_and_dynamism.py`](test_prompt_customizations_and_dynamism.py): Dynamic audio mixing, safe bottom overlays, and adaptive script pacing verification suite authored by `agy11`:
+  - Music & sound mix directives (`parse_music_directives`): mute music (`mute_music=True`), contextual track mapping, custom volume scaling (`music_volume`).
+  - FFmpeg clean voiceover filtergraph with zero music inputs when `mute_music` is active.
+  - Prominent safe text overlays: `large_font` detection, dynamic font size scaling (`max(48, min(64, int(target_h * 0.042)))`), high-contrast box (`black@0.78`, `boxborderw=16`), and safe margin elevation (`safe_margin = max(110, int(video_height * 0.085))`).
+  - Property specifications extraction (`extract_property_features`): unit (`F5`), sea view, property type (`منزل`).
+  - Adaptive script pacing removing 65-word clamps (`target_words = max(18, min(160, int(speech_duration * 2.1)))`) and 3-phase dynamic narration.
+
+- [`test_music_and_overlay_ui.py`](test_music_and_overlay_ui.py): Frontend music status feedback pill, prominent overlay badges, and prompt guidance verification suite authored by `agy51`:
+  - DOM structure in `index.html` for `#resultMusicPill`, `#resultMusicIcon`, `#resultMusicText`, `#resultMusicBadge`.
+  - DOM structure for `#resultOverlayPill`, `#overlayFontBadge`, `#propertySpecsBadge`.
+  - Dynamic formatting in `app.js` for muted clean voiceover (`🔇`) vs active background tracks (`🎵`) with volume percentages.
+  - CSS tokens and layout rules in `style.css`.
+
+- [`test_gatekeeper_dynamic_narration_and_audio.py`](test_gatekeeper_dynamic_narration_and_audio.py): Comprehensive end-to-end gatekeeper verification suite authored by Quality Gatekeeper `agy100`:
+  - Verification of soundtrack directives across Algerian, Standard Arabic, and international keywords.
+  - Clean FFmpeg filtergraph verification for muted soundtrack vs sidechain-ducked mixed audio.
+  - Architectural property specifications extraction (`F5`, `مطل على البحر`, `منزل`) and mandatory Gemini Vision prompt injection.
+  - Prominent safe bottom text overlay sizing and player control clearance across aspect ratios and screen resolutions.
+  - Continuous dynamic Darja script scaling covering 10s, 25s, and 45s+ durations without early dropouts.
+  - Verification that phone digits are strictly preserved for screen overlay and omitted from TTS recitation.
+  - Verification of frontend contracts (`resultMusicPill`, `resultOverlayPill`, `promptTextarea`, `promptInputHint`).
+  - Server job creation and status endpoints returning rich audio and overlay metadata.
+  - Repository-wide verification of zero occurrences of forbidden Arabic character U+0669.
+
 ## Running Tests Locally
 Run all test suites via pytest from the workspace root:
 ```bash
 pytest tests/ -v
+# Targeted Dynamic Narration, Audio Mixing, and Overlays gatekeeper suite:
+pytest tests/test_gatekeeper_dynamic_narration_and_audio.py tests/test_prompt_customizations_and_dynamism.py tests/test_music_and_overlay_ui.py tests/test_gatekeeper_prompt_intent_and_overlays.py -v
 # Targeted Prompt Intent Disentanglement & Persistent Overlays gatekeeper suite:
 pytest tests/test_gatekeeper_prompt_intent_and_overlays.py tests/test_prompt_intent_and_overlays.py tests/test_minimal_lok_and_admin_ui.py tests/test_dynamic_video_delivery.py tests/test_dynamic_video_pipeline.py tests/test_e2e_auth_and_video_pipeline.py -v
 # Targeted Dynamic Video Delivery & Vision Models gatekeeper verification suite:
