@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Synchronized Captions, Shot-by-Shot Visual Grounding & Strict Prompt Adherence",
-      "branch": "backend/agy11-synchronized-captions-and-shot-grounding",
-      "scope": "1) Shot-by-Shot Visual Grounding & Anti-Hallucination: In web/vision_analyzer.py, associate extracted keyframes with exact timestamps. Provide Gemini Vision with timestamp-anchored visual scenes (Scene [start_sec-end_sec]) and strict anti-hallucination instructions forbidding mention of any room, amenity, or feature not physically visible in those frames. In web/pipeline_bridge.py, check/transcribe source video audio to incorporate videographer live speech if present. 2) Synchronized Subtitles/Captions Pipeline: Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching narration phrasing. In web/video_annotator.py and web/pipeline_bridge.py, render synchronized captions via drawtext filters (enable='between(t, start, end)') with safe elevated margins, while preserving persistent phone/contact badge. 3) Strict Prompt Adherence: Ensure all customer prompt instructions, numbers, and features are strictly followed. 4) Author tests in tests/test_synchronized_captions_and_shot_grounding.py. 5) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Backend Strict Opt-In, Job Sandboxing & Creative Variety Engine",
+      "branch": "backend/agy11-optin-sandboxing-and-creative-variety",
+      "scope": "1) Strict Opt-In Architecture: All secondary features (subtitles, phone overlays, music) disabled by default unless explicitly requested in prompt. 2) Job Sandbox Isolation: Confine all intermediate artifacts, keyframes, audio slices, and renders to per-job isolated directory outputs/jobs/<job_id>/. 3) Creative Variety Engine: Stochastic LLM sampling and dynamic narrative hooks in web/vision_analyzer.py to avoid repetitive outputs on identical videos. 4) Author tests in tests/test_optin_sandboxing_and_creative_variety.py. 5) Zero U+0669, update web/README.md, commit as MohammedBoure, and signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Synchronized Captions Pill, Shot Timeline Inspection & Strict Prompt UX",
-      "branch": "frontend/agy51-caption-sync-and-shot-timeline-ui",
-      "scope": "1) In web/static/index.html, web/static/app.js, and web/static/style.css: Display a dedicated synchronized captions indicator (resultCaptionsPill) and visual shot-by-shot timeline breakdown in the generated script inspection card showing timestamps for each room/scene. 2) Update prompt guidance explaining synchronized subtitles and shot-grounded narration. 3) Author tests in tests/test_captions_and_timeline_ui.py. 4) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Frontend Opt-In Toggles, Sandboxed Telemetry & Script Inspection UX",
+      "branch": "frontend/agy51-optin-toggles-and-sandboxed-ux",
+      "scope": "1) Opt-in UI & Settings: Ensure clean minimalist studio reflects opt-in defaults, displaying subtitles/timeline pills only when activated in job payload. 2) Sandboxed Asset URL binding for independent concurrent jobs. 3) Author tests in tests/test_optin_toggles_and_sandboxed_ux.py. 4) Zero U+0669, update web/static/README.md, commit as MohammedBoure, and signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "E2E Synchronized Captions, Shot Grounding & Strict Compliance Gatekeeper",
-      "branch": "test/agy100-captions-and-shot-grounding-gatekeeper",
-      "scope": "Comprehensive Gatekeeper Verification: 1) Verify timestamp-synchronized caption drawtext filter generation. 2) Verify shot-by-shot keyframe timestamp grounding and anti-hallucination prompt constraints. 3) Verify strict prompt adherence for custom customer specifications. 4) Verify frontend caption pills and timeline DOM contracts. 5) Run full test suite, verify zero U+0669 across repository, merge backend and frontend branches into develop, update tests/README.md, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
+      "role": "E2E Strict Opt-In, Sandboxing & Variety Gatekeeper",
+      "branch": "test/agy100-optin-and-sandboxing-gatekeeper",
+      "scope": "Comprehensive gatekeeper verification of opt-in defaults, job sandbox isolation, creative variety, full regression suite, merge to develop, tests/README.md update, zero U+0669 verification, and commit as MohammedBoure.",
       "dependencies": [
-        "backend/agy11-synchronized-captions-and-shot-grounding",
-        "frontend/agy51-caption-sync-and-shot-timeline-ui"
+        "backend/agy11-optin-sandboxing-and-creative-variety",
+        "frontend/agy51-optin-toggles-and-sandboxed-ux"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
