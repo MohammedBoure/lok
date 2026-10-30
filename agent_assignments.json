@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Audio Mix Controls, Prominent Safe Text Overlays & Dynamic Script Pacing",
-      "branch": "backend/agy11-dynamic-audio-and-large-overlay-control",
-      "scope": "1) Music & Sound Mix Controls: In web/pipeline_bridge.py, implement parse_music_directives(text) to extract mute_music ('بدون موسيقى', 'كتم الموسيقى'), music_track ('luxury_piano', 'acoustic_guitar', 'ambient_meditation'), and music_volume ('صوت الموسيقى 10%'). When mute_music is True, build FFmpeg filtergraph omitting background music completely for 100% clean voiceover. Lower default ambient volume to 0.16 and tune ducking (threshold=0.015, ratio=12.0). 2) Prominent Safe Text Overlays: In web/video_annotator.py and pipeline_bridge.py, support large_font detection ('بخط كبير', 'واضح'), boosting font size to max(48, min(64, int(target_h * 0.042))) with high-contrast box (black@0.78, boxborderw=16). Elevate bottom position to safe_margin = max(110, int(video_height * 0.085)) avoiding player controls. 3) Property Features & Dynamic Script Pacing: In web/pipeline_bridge.py and web/vision_analyzer.py, implement extract_property_features(text) capturing unit ('F5'), sea_view ('مطل على البحر'), and property_type ('منزل'). Expand target_words to max(18, min(160, int(speech_duration * 2.1))) removing the 65-word clamp. Inject mandatory architectural specs and 3-phase dynamic continuity instructions into Gemini Vision prompt. In _get_smart_fallback and _generate_dynamic_darja_script, dynamically scale narration length across duration so speech remains engaging without abrupt silence. 4) Author tests in tests/test_prompt_customizations_and_dynamism.py. 5) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Backend Synchronized Captions, Shot-by-Shot Visual Grounding & Strict Prompt Adherence",
+      "branch": "backend/agy11-synchronized-captions-and-shot-grounding",
+      "scope": "1) Shot-by-Shot Visual Grounding & Anti-Hallucination: In web/vision_analyzer.py, associate extracted keyframes with exact timestamps. Provide Gemini Vision with timestamp-anchored visual scenes (Scene [start_sec-end_sec]) and strict anti-hallucination instructions forbidding mention of any room, amenity, or feature not physically visible in those frames. In web/pipeline_bridge.py, check/transcribe source video audio to incorporate videographer live speech if present. 2) Synchronized Subtitles/Captions Pipeline: Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching narration phrasing. In web/video_annotator.py and web/pipeline_bridge.py, render synchronized captions via drawtext filters (enable='between(t, start, end)') with safe elevated margins, while preserving persistent phone/contact badge. 3) Strict Prompt Adherence: Ensure all customer prompt instructions, numbers, and features are strictly followed. 4) Author tests in tests/test_synchronized_captions_and_shot_grounding.py. 5) Zero U+0669. Update web/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Music Feedback Pill, Dynamic Overlay Display & Prompt Hint Clarifications",
-      "branch": "frontend/agy51-music-pills-and-overlay-ux",
-      "scope": "1) In web/static/index.html, web/static/app.js, and web/static/style.css: Implement a dedicated resultMusicPill showing active background music status ('صوت نقي 100% بدون موسيقى خلفية' when muted, or track title and volume percentage when active). 2) Ensure persistent overlay pill and badges cleanly reflect large font status and property details. 3) Update studio prompt examples and placeholders to guide users on music controls (e.g. 'بدون موسيقى' or 'موسيقى بيانو') and large text (e.g. 'بخط كبير وواضح'). 4) Author tests in tests/test_music_and_overlay_ui.py. 5) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Frontend Synchronized Captions Pill, Shot Timeline Inspection & Strict Prompt UX",
+      "branch": "frontend/agy51-caption-sync-and-shot-timeline-ui",
+      "scope": "1) In web/static/index.html, web/static/app.js, and web/static/style.css: Display a dedicated synchronized captions indicator (resultCaptionsPill) and visual shot-by-shot timeline breakdown in the generated script inspection card showing timestamps for each room/scene. 2) Update prompt guidance explaining synchronized subtitles and shot-grounded narration. 3) Author tests in tests/test_captions_and_timeline_ui.py. 4) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "End-to-End Dynamic Narration, Audio Mix & Text Overlay Gatekeeper",
-      "branch": "test/agy100-dynamic-narration-and-audio-gatekeeper",
-      "scope": "Comprehensive Gatekeeper Verification: 1) Verify prompt parsing of music directives (mute, volume, track selection), property features (F5, sea view, منزل), and font size instructions. 2) Verify FFmpeg audio filtergraph generation for muted music vs mixed music. 3) Verify overlay coordinate safe margins and font sizing. 4) Verify dynamic script generation covering 10s, 25s, 40s+ durations without early stopping. 5) Run all unit, integration, and UI test suites. 6) Strict scan for zero occurrences of forbidden Arabic character U+0669 across entire codebase. 7) Merge backend and frontend branches into develop, update tests/README.md, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
+      "role": "E2E Synchronized Captions, Shot Grounding & Strict Compliance Gatekeeper",
+      "branch": "test/agy100-captions-and-shot-grounding-gatekeeper",
+      "scope": "Comprehensive Gatekeeper Verification: 1) Verify timestamp-synchronized caption drawtext filter generation. 2) Verify shot-by-shot keyframe timestamp grounding and anti-hallucination prompt constraints. 3) Verify strict prompt adherence for custom customer specifications. 4) Verify frontend caption pills and timeline DOM contracts. 5) Run full test suite, verify zero U+0669 across repository, merge backend and frontend branches into develop, update tests/README.md, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
       "dependencies": [
-        "backend/agy11-dynamic-audio-and-large-overlay-control",
-        "frontend/agy51-music-pills-and-overlay-ux"
+        "backend/agy11-synchronized-captions-and-shot-grounding",
+        "frontend/agy51-caption-sync-and-shot-timeline-ui"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
