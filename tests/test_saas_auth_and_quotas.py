@@ -4,7 +4,7 @@ Integration & Unit Test Suite for SaaS Multi-Tenant Authentication,
 Quota Limits, Admin Management, Voice Preview, and Video Generation Audit
 (tests/test_saas_auth_and_quotas.py).
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & SaaS Systems Engineer (agy11)
 Branch: backend/agy11-saas-auth-quotas-and-dashboard
 """

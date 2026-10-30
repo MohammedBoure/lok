@@ -10,7 +10,7 @@ Verifies:
 5. Job status API and upload endpoints exposing script, bottom_text, and phone_number.
 6. Zero occurrences of forbidden character U+0669.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Branch: backend/agy11-prompt-intent-parser-and-persistent-overlays
 """
 

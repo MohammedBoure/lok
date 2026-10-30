@@ -171,6 +171,26 @@
               </div>
             </div>
 
+            <!-- Opt-In Feature Quick Toggles Bar -->
+            <div class="optin-toggles-bar" id="optInQuickBar">
+              <span class="optin-bar-label">⚡ ميزات اختيارية (Opt-In):</span>
+              <button type="button" class="btn-optin-toggle" id="btnToggleCaptionsOptIn" data-feature="captions" aria-pressed="false" title="تفعيل أو تعطيل الترجمة المتزامنة">
+                <span class="optin-icon">💬</span>
+                <span class="optin-text">ترجمة متزامنة</span>
+                <span class="optin-status" id="statusCaptionsOptIn">معطل</span>
+              </button>
+              <button type="button" class="btn-optin-toggle" id="btnToggleMusicOptIn" data-feature="music" aria-pressed="false" title="تفعيل أو تعطيل الموسيقى التصويرية">
+                <span class="optin-icon">🎵</span>
+                <span class="optin-text">موسيقى خلفية</span>
+                <span class="optin-status" id="statusMusicOptIn">معطل</span>
+              </button>
+              <button type="button" class="btn-optin-toggle" id="btnToggleTimelineOptIn" data-feature="timeline" aria-pressed="false" title="تفعيل أو تعطيل تفكيك اللقطات والخط الزمني">
+                <span class="optin-icon">⏱️</span>
+                <span class="optin-text">مخطط المشاهد</span>
+                <span class="optin-status" id="statusTimelineOptIn">معطل</span>
+              </button>
+            </div>
+
             <div class="prompt-textarea-wrapper">
               <textarea 
                 id="promptTextarea" 
@@ -179,6 +199,7 @@
                 placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو بحرية تامة:
 • مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو
 • مثال عقاري: أريد تعليقاً لشقة F5 مطلة على البحر بخط كبير وبدون موسيقى
+• بنية التعطيل الافتراضي (Opt-In): الترجمة والموسيقى والمخطط معطلة افتراضياً لمنحك صوتاً نقياً وسرعة فائقة، ويمكنك تفعيلها بنقرة زر أعلاه.
 • ترجمة الكلام المتزامنة: تفعيل الترجمة التلقائية المتزامنة بدقة كلمة بكلمة مع المشاهد.
 • فهم وتطابق المشاهد (Shot Grounding): يربط المعلق الصوتي كل جملة باللقطة الحقيقية الظاهرة في الفيديو.
 • التحكم بالموسيقى والمكساج: مثلاً 'بدون موسيقى' (للحصول على صوت نقي 100% وإلغاء موسيقى الخلفية بالكامل)، أو 'موسيقى بيانو هادئة بمستوى صوت 15%'.
@@ -193,7 +214,7 @@
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 يمكنك كتابة أي تعليمات خاصة بحرية: ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق، كتم الموسيقى ('بدون موسيقى' لصوت نقي 100%)، ضبط مستوى الصوت، إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وفهم المشاهد واللقطات، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+              💡 بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً لتوفير صوت نقي 100% وفيديو سريع. يمكنك تفعيل ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق كلمة بكلمة، أو تشغيل الموسيقى الخلفية (الافتراضي: 'بدون موسيقى' لصوت نقي 100% وكتم الموسيقى)، أو ضبط مستوى الصوت، أو إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، أو تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وفهم المشاهد واللقطات، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
             </div>
           </div>
 
@@ -486,7 +507,53 @@
               </div>
             </section>
 
-            <!-- SETTINGS COMPONENT 4: Logout Button -->
+            <!-- SETTINGS COMPONENT 4: Opt-In Feature Preferences -->
+            <section class="settings-card mb-4" id="sectionOptInPreferences">
+              <div class="settings-card-header">
+                <div class="header-icon">🎛️</div>
+                <div>
+                  <h3 class="settings-card-title">تفضيلات الميزات الإضافية (Opt-In Features)</h3>
+                  <p class="settings-card-subtitle">الوضع الافتراضي معطل لضمان السرعة والصوت النقي 100% — فعّل ما يناسبك بلمسة واحدة</p>
+                </div>
+              </div>
+
+              <div class="optin-switches-list">
+                <div class="optin-switch-item">
+                  <div class="optin-switch-info">
+                    <div class="optin-switch-title">💬 ترجمة الكلام المتزامنة (Synchronized Captions)</div>
+                    <div class="optin-switch-desc">إظهار شريط ترجمة متحرك أسفل الفيديو متزامن بدقة كلمة بكلمة مع صوت المعلق</div>
+                  </div>
+                  <label class="lok-switch">
+                    <input type="checkbox" id="settingToggleCaptions">
+                    <span class="lok-slider"></span>
+                  </label>
+                </div>
+
+                <div class="optin-switch-item">
+                  <div class="optin-switch-info">
+                    <div class="optin-switch-title">🎵 الموسيقى التصويرية والمكساج (Background Music)</div>
+                    <div class="optin-switch-desc">إضافة موسيقى خلفية متناسقة مع طبيعة النشاط (الافتراضي: صوت نقي 100% بدون موسيقى)</div>
+                  </div>
+                  <label class="lok-switch">
+                    <input type="checkbox" id="settingToggleMusic">
+                    <span class="lok-slider"></span>
+                  </label>
+                </div>
+
+                <div class="optin-switch-item">
+                  <div class="optin-switch-info">
+                    <div class="optin-switch-title">⏱️ المخطط الزمني للمشاهد (Shot-by-Shot Timeline)</div>
+                    <div class="optin-switch-desc">تفكيك اللقطات وعرض تسلسل زمني تفصيلي للمشاهد والربط البصري المعماري</div>
+                  </div>
+                  <label class="lok-switch">
+                    <input type="checkbox" id="settingToggleTimeline">
+                    <span class="lok-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <!-- SETTINGS COMPONENT 5: Logout Button -->
             <section class="settings-card logout-card">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>

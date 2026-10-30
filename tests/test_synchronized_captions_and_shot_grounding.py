@@ -3,7 +3,7 @@
 Tests for Synchronized Captions, Shot-by-Shot Visual Grounding & Strict Prompt Adherence.
 Location: tests/test_synchronized_captions_and_shot_grounding.py
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Branch: backend/agy11-synchronized-captions-and-shot-grounding
 """
 
@@ -323,7 +323,7 @@ class TestPipelineBridgeAndApiEndToEnd:
 
         summary = process_mobile_video(
             video_path=test_video,
-            speech_description="أريد تعليق بالدارجة لشقة F4 مع إظهار رقم 0770123456 أسفل الفيديو",
+            speech_description="أريد تعليق بالدارجة لشقة F4 مع إظهار رقم 0770123456 أسفل الفيديو مع ترجمة متزامنة للكلام",
             auto_mode=True,
         )
 

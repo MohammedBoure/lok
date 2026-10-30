@@ -1,7 +1,7 @@
 """
 Tests for Production Principles & Dynamic Governance (tests/test_production_principles.py)
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Testing, Verification & Gatekeepers (agy101)
 Branch: test/agy101-production-principles-verification
 """

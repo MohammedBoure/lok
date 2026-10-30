@@ -4,7 +4,7 @@ Video Annotator Fast MCP Server & CLI.
 Exposes 'annotate_video_cut' MCP tool for rapid visual overlays, badges,
 lower-third titles, and price stamps on video cuts.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 from __future__ import annotations

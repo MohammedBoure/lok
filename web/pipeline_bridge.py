@@ -3,7 +3,7 @@
 Mobile Post-Production Bridge & Assembly Engine (web/pipeline_bridge.py)
 Part of the Video Post-Production & Mobile API Server Pipeline.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """
@@ -404,12 +404,15 @@ def extract_property_features(text: Optional[str]) -> Dict[str, Any]:
 def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     Parse soundtrack directives from user prompt:
-      - mute_music: complete removal of background music
+      - Strict Opt-In Architecture: Music is OFF / muted by default.
+      - mute_music: True by default; False ONLY if music is explicitly requested.
+      - music_requested: True if user explicitly opted in to background music.
       - music_track: explicit selection of music theme ('luxury_piano', 'acoustic_guitar', 'ambient_meditation')
       - music_volume: target ambient music volume (e.g. 0.08 for quiet music)
     """
     res: Dict[str, Any] = {
-        "mute_music": False,
+        "mute_music": True,
+        "music_requested": False,
         "music_track": None,
         "music_volume": None,
     }
@@ -418,15 +421,17 @@ def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
 
     text_l = str(text).lower()
 
-    # 1. Mute / Remove music
+    # 1. Check for explicit mute / removal requests
     mute_keywords = [
         "بدون موسيقى", "بلا موسيقى", "من غير موسيقى", "ازالة الموسيقى",
         "إزالة الموسيقى", "حذف الموسيقى", "كتم الموسيقى", "بدون صوت خلفية",
         "بدون صوت الموسيقى", "بدون أغاني", "بدون اغاني", "no music",
         "mute music", "without music", "remove music", "sans musique",
     ]
-    if any(k in text_l for k in mute_keywords):
+    is_explicitly_muted = any(k in text_l for k in mute_keywords)
+    if is_explicitly_muted:
         res["mute_music"] = True
+        res["music_requested"] = False
         return res
 
     # 2. Track selection
@@ -450,6 +455,16 @@ def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
             pass
     elif any(k in text_l for k in ["موسيقى هادئة جدا", "موسيقى خفيفة جدا", "موسيقى خفيفة", "خفض الموسيقى", "صوت الموسيقى منخفض", "موسيقى واطية", "low music", "soft music"]):
         res["music_volume"] = 0.08
+
+    # 4. Opt-In validation: Check if user explicitly asked for music
+    music_optin_keywords = [
+        "موسيقى", "music", "بيانو", "جيتار", "piano", "guitar", "لحن",
+        "خلفية موسيقية", "نغمة", "soundtrack", "instrumental", "مع موسيقى",
+        "أضف موسيقى", "اضف موسيقى", "تشغيل الموسيقى", "موسيقى خلفية"
+    ]
+    if any(k in text_l for k in music_optin_keywords) or res["music_track"] or res["music_volume"] is not None:
+        res["music_requested"] = True
+        res["mute_music"] = False
 
     return res
 
@@ -579,13 +594,12 @@ def is_meta_prompt(text: Optional[str]) -> bool:
     m_plan = parse_montage_directives(norm)
     if m_plan.get("requested"):
         return True
-    # Check if music directive is present
-    mus_dir = parse_music_directives(norm)
-    if mus_dir.get("mute_music") or mus_dir.get("music_volume") is not None:
+    # Check if music directive is explicitly present
+    if any(k in norm for k in ["بدون موسيقى", "بلا موسيقى", "من غير موسيقى", "no music", "mute music", "كتم الموسيقى", "حذف الموسيقى"]):
         return True
-    if any(k in norm for k in ["موسيقى", "music", "بيانو", "جيتار", "piano", "guitar"]):
-        if mus_dir.get("music_track"):
-            return True
+    mus_dir = parse_music_directives(norm)
+    if mus_dir.get("music_requested") or mus_dir.get("music_volume") is not None or mus_dir.get("music_track"):
+        return True
     # Check if font styling directive is present
     if any(w in norm for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض"]):
         return True
@@ -632,6 +646,14 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
     # Font sizing & prominence
     large_font = any(w in raw.lower() for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض", "large font", "big font", "bold"])
 
+    # Opt-In Subtitles / Synchronized Captions directive detection
+    subtitles_requested = any(w in raw.lower() for w in [
+        "أضف ترجمة", "اضف ترجمة", "شريط ترجمة", "ترجمة فورية", "ترجمة متزامنة",
+        "كتابة متزامنة", "مع ترجمة", "اكتب الكلام في الأسفل", "اكتب الكلام في الاسفل",
+        "اكتب الكلام", "ترجمة الكلام", "ترجمة الفيديو", "إظهار الترجمة", "اظهار الترجمة",
+        "مع الكلمات", "كلمات متزامنة", "subtitles", "captions", "subtitle"
+    ])
+
     # Overlay positioning
     if any(w in raw.lower() for w in ["في الوسط", "في منتصف الفيديو", "منتصف", "center"]):
         overlay_position = "center"
@@ -647,6 +669,7 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "darja_requested": darja_requested,
         "voiceover_requested": voiceover_requested,
         "persistent_overlay": persistent_overlay,
+        "subtitles_requested": subtitles_requested,
         "montage_plan": montage_plan,
         "music_directives": music_directives,
         "music": music_directives,
@@ -1099,17 +1122,19 @@ def process_mobile_video(
     video_orientation: Optional[str] = None,
     bottom_text: Optional[str] = None,
     phone_number: Optional[str] = None,
+    enable_subtitles: Optional[bool] = None,
+    enable_music: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
 
     Workflow:
       1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9).
-      2. Extract visual keyframes using frame_extractor into outputs/keyframes/mobile_<job_id>/
+      2. Extract visual keyframes into per-job isolated sandbox directory outputs/jobs/<job_id>/sandbox/keyframes.
       3. Perform Autonomous Multimodal Vision Analysis (if auto_mode or no script/preset provided)
          to infer engaging Arabic real estate voiceover, emotional tone, and recommended music.
       4. Synthesize expressive neural narration voiceover with Gemini TTS API modulated by emotional tone.
-      5. Assemble final video in FFmpeg with selected open-source royalty-free music and sidechain ducking.
+      5. Assemble final video in FFmpeg with clean voiceover (or optional background music and ducking).
       6. Return comprehensive execution summary dictionary.
     """
     input_path = Path(video_path).resolve()
@@ -1160,8 +1185,16 @@ def process_mobile_video(
     out_cuts_dir = Path(output_dir).resolve()
     out_cuts_dir.mkdir(parents=True, exist_ok=True)
 
-    keyframes_dest_dir = Path("outputs/keyframes").resolve() / f"mobile_{job_id}"
+    # Multi-Tenant Job Sandbox: Isolate all temporary artifacts, keyframes, audio slices, and renders
+    job_sandbox_dir = (REPO_ROOT / "outputs" / "jobs" / job_id / "sandbox").resolve()
+    job_sandbox_dir.mkdir(parents=True, exist_ok=True)
+
+    keyframes_dest_dir = job_sandbox_dir / "keyframes"
     keyframes_dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Legacy keyframes directory for backwards compatibility with existing static routes
+    legacy_keyframes_dir = Path("outputs/keyframes").resolve() / f"mobile_{job_id}"
+    legacy_keyframes_dir.mkdir(parents=True, exist_ok=True)
 
     # Load customizable production principles
     from config.production_principles_manager import load_principles
@@ -1258,7 +1291,7 @@ def process_mobile_video(
         )
         try:
             from web.video_editor import trim_video_clip, auto_smart_montage, assemble_shot_segments
-            montaged_output_file = out_cuts_dir / f"montaged_{job_id}.mp4"
+            montaged_output_file = job_sandbox_dir / f"montaged_{job_id}.mp4"
 
             mode = montage_plan.get("mode", "interval")
             t_start = montage_plan.get("trim_start")
@@ -1389,11 +1422,20 @@ def process_mobile_video(
         file_path_obj = Path(f["file_path"])
         abs_path = Path(f.get("absolute_file_path", file_path_obj)).resolve()
         keyframe_files.append(abs_path)
+        # Mirror keyframe into legacy directory for backwards route compatibility
+        legacy_kf_path = legacy_keyframes_dir / file_path_obj.name
+        if abs_path.is_file() and not legacy_kf_path.is_file():
+            try:
+                shutil.copyfile(abs_path, legacy_kf_path)
+            except Exception:
+                pass
         web_url = f"/outputs/keyframes/mobile_{job_id}/{file_path_obj.name}"
+        sandboxed_kf_url = f"/outputs/jobs/{job_id}/sandbox/keyframes/{file_path_obj.name}"
         formatted_keyframes.append({
             "frame_index": f.get("frame_index"),
             "timestamp": f.get("timestamp"),
             "url": web_url,
+            "sandboxed_url": sandboxed_kf_url,
             "file_path": f.get("file_path"),
             "resolution": f.get("resolution"),
             "is_scene_transition": f.get("is_scene_transition", False),
@@ -1505,9 +1547,15 @@ def process_mobile_video(
         resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", principles_voice.get("active_tone_bias", "فاخر وهادئ"))
         resolved_style_prompt = style_prompt or f"Warm and prestigious real estate presentation in {resolved_tone}"
 
-    # Resolve background music track and user music directives
+    # Resolve background music track and user music directives (Strict Opt-In Architecture)
     music_directives = parsed_dirs.get("music_directives", {})
-    mute_music = bool(music_directives.get("mute_music", False))
+    user_requested_music = bool(
+        enable_music is True
+        or music_directives.get("music_requested", False)
+        or (music_track and str(music_track).strip().lower() not in ("none", "null", "false", ""))
+    )
+    explicitly_muted = bool(music_directives.get("mute_music", True) and not music_directives.get("music_requested", False))
+    mute_music = explicitly_muted or (not user_requested_music)
     resolved_music_key = principles_visual.get("selected_music_theme", "luxury_piano")
 
     if music_directives.get("music_track") and music_directives["music_track"] in MUSIC_LIBRARY:
@@ -1538,7 +1586,7 @@ def process_mobile_video(
     tts_principles_style = build_tts_style_principles(emotional_tone=resolved_tone)
     final_style_prompt = f"{resolved_style_prompt}. {tts_principles_style}" if resolved_style_prompt else tts_principles_style
 
-    narration_wav = out_cuts_dir / f"narration_{job_id}.wav"
+    narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
     narration_info = synthesize_narration(
         script_text=selected_script,
         output_path=narration_wav,
@@ -1617,7 +1665,7 @@ def process_mobile_video(
 
     # Audio pipeline: Handle mute_music or mix open-source royalty-free music
     ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
-    final_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
+    final_cut_path = job_sandbox_dir / f"cut_{job_id}.mp4"
 
     if mute_music:
         filter_complex = f"""
@@ -1711,18 +1759,16 @@ def process_mobile_video(
     render_seconds = (datetime.now(timezone.utc) - start_render).total_seconds()
     logger.info("Job %s: Final cut rendered in %.2fs (%d bytes)", job_id, render_seconds, final_cut_path.stat().st_size)
 
-    # 8. Apply Smart Video Annotations, Lower-Third Banners & Merchant Fixed Text Overlays
+    # 8. Apply Smart Video Annotations, Lower-Third Banners & Merchant Fixed Text Overlays (Strict Opt-In)
     applied_annotations_count = 0
     annotations_list: List[Dict[str, Any]] = []
 
-    # Insert persistent bottom text / phone number overlay
+    # Insert persistent bottom text / phone number overlay ONLY if genuinely provided
     effective_bottom = bottom_text or (phone_number if phone_number else None)
     if effective_bottom and str(effective_bottom).strip():
         is_large_font = bool(parsed_dirs.get("large_font", False))
         target_overlay_pos = parsed_dirs.get("overlay_position") or "bottom_banner"
 
-        # Responsive prominent font sizing:
-        # Default is already clear and legible; when large_font is requested, boost to bold high-impact size
         if is_large_font:
             calculated_fs = max(48, min(64, int(target_h * 0.042)))
             calculated_boxborder = 16
@@ -1752,15 +1798,9 @@ def process_mobile_video(
             "font_size": 34,
         })
 
-    if principles_annotation.get("enable_auto_annotations", True):
-        banner_title = ""
-        if selected_preset and selected_preset in ALGERIAN_REAL_ESTATE_PRESETS:
-            banner_title = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["title_ar"]
-        elif is_auto_mode and inferred_script:
-            banner_title = f"عقار استثنائي • {resolved_tone}"
-        elif not (fixed_text and str(fixed_text).strip()):
-            banner_title = "فرصة تجارية راقية"
-
+    # Preset title badge ONLY if preset is explicitly selected
+    if selected_preset and principles_annotation.get("enable_auto_annotations", True):
+        banner_title = ALGERIAN_REAL_ESTATE_PRESETS.get(selected_preset, {}).get("title_ar", "")
         if banner_title and not (fixed_text and str(fixed_text).strip()):
             annotations_list.append({
                 "text": banner_title,
@@ -1770,53 +1810,45 @@ def process_mobile_video(
                 "style": principles_annotation.get("font_style", "luxury_gold"),
             })
 
-        if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict):
-            hl_items = vision_result.get("highlights", [])
-            for idx, hl in enumerate(hl_items[:3]):
-                hl_text = hl if isinstance(hl, str) else hl.get("title", str(hl))
-                start_t = 4.5 + (idx * 3.0)
-                if start_t < total_duration - 1.0:
+    # Strict Opt-In for synchronized captions / subtitles: Default OFF
+    subtitles_opt_in = bool(
+        enable_subtitles if enable_subtitles is not None
+        else parsed_dirs.get("subtitles_requested", False)
+    )
+
+    subtitles_list: List[Dict[str, Any]] = []
+    if subtitles_opt_in:
+        if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
+            subtitles_list = list(vision_result["subtitles"])
+        elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
+            subtitles_list = list(fb_res["subtitles"])
+        else:
+            from web.vision_analyzer import generate_synchronized_subtitles
+            subtitles_list = generate_synchronized_subtitles(
+                script=selected_script,
+                narration_duration=narration_duration,
+                visual_lead_in=visual_lead_in,
+            )
+
+        # Append synchronized captions to video annotations list
+        for sub in subtitles_list:
+            sub_txt = str(sub.get("text", "")).strip()
+            if sub_txt:
+                sub_st = max(0.0, float(sub.get("start_sec", visual_lead_in)))
+                sub_et = min(total_duration, float(sub.get("end_sec", sub_st + 2.0)))
+                if sub_et > sub_st:
                     annotations_list.append({
-                        "text": hl_text,
-                        "start_sec": round(start_t, 1),
-                        "end_sec": round(min(start_t + 2.5, total_duration - 0.5), 1),
-                        "position": "lower_third",
-                        "style": "emerald_badge",
+                        "text": sub_txt,
+                        "start_sec": round(sub_st, 2),
+                        "end_sec": round(sub_et, 2),
+                        "position": "subtitle",
+                        "style": "subtitle",
+                        "safe_margin": max(185, int(target_h * 0.145)),
+                        "font_size": max(30, min(42, int(target_h * 0.026))),
                     })
 
-    # Generate synchronized captions matching spoken narration phrasing
-    subtitles_list: List[Dict[str, Any]] = []
-    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
-        subtitles_list = list(vision_result["subtitles"])
-    elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
-        subtitles_list = list(fb_res["subtitles"])
-    else:
-        from web.vision_analyzer import generate_synchronized_subtitles
-        subtitles_list = generate_synchronized_subtitles(
-            script=selected_script,
-            narration_duration=narration_duration,
-            visual_lead_in=visual_lead_in,
-        )
-
-    # Append synchronized captions to video annotations list
-    for sub in subtitles_list:
-        sub_txt = str(sub.get("text", "")).strip()
-        if sub_txt:
-            sub_st = max(0.0, float(sub.get("start_sec", visual_lead_in)))
-            sub_et = min(total_duration, float(sub.get("end_sec", sub_st + 2.0)))
-            if sub_et > sub_st:
-                annotations_list.append({
-                    "text": sub_txt,
-                    "start_sec": round(sub_st, 2),
-                    "end_sec": round(sub_et, 2),
-                    "position": "subtitle",
-                    "style": "subtitle",
-                    "safe_margin": max(185, int(target_h * 0.145)),
-                    "font_size": max(30, min(42, int(target_h * 0.026))),
-                })
-
     if annotations_list:
-        annotated_tmp = out_cuts_dir / f"annotated_{job_id}.mp4"
+        annotated_tmp = job_sandbox_dir / f"annotated_{job_id}.mp4"
         try:
             annot_res = annotate_video(
                 input_video_path=final_cut_path,
@@ -1842,6 +1874,15 @@ def process_mobile_video(
     # Verify final cut is completely written and non-empty
     if not final_cut_path.is_file() or final_cut_path.stat().st_size == 0:
         raise RuntimeError(f"Rendered video cut file was not found or is empty: {final_cut_path}")
+
+    # Mirror rendered cuts and narration to output_dir for backward compatibility
+    mirror_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
+    if str(final_cut_path.resolve()) != str(mirror_cut_path.resolve()):
+        shutil.copyfile(final_cut_path, mirror_cut_path)
+
+    mirror_narration_path = out_cuts_dir / f"narration_{job_id}.wav"
+    if narration_wav.is_file() and str(narration_wav.resolve()) != str(mirror_narration_path.resolve()):
+        shutil.copyfile(narration_wav, mirror_narration_path)
 
     # Atomically update legacy outputs/final_cut.mp4 so legacy endpoints work
     try:
@@ -1870,6 +1911,7 @@ def process_mobile_video(
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+    sandboxed_video_url = f"/outputs/jobs/{job_id}/sandbox/cut_{job_id}.mp4"
     summary: Dict[str, Any] = {
         "job_id": job_id,
         "status": "completed",
@@ -1878,8 +1920,10 @@ def process_mobile_video(
         "video_url": video_web_url,
         "output_video_url": video_web_url,
         "output_video": video_web_url,
-        "output_path": str(final_cut_path),
-        "absolute_output_path": str(final_cut_path.resolve()),
+        "sandboxed_video_url": sandboxed_video_url,
+        "sandbox_dir": str(job_sandbox_dir),
+        "output_path": str(mirror_cut_path),
+        "absolute_output_path": str(mirror_cut_path.resolve()),
         "file_size_bytes": final_cut_path.stat().st_size,
         "duration": total_duration,
         "orientation": orientation,
@@ -1891,6 +1935,8 @@ def process_mobile_video(
         "phone_number": phone_number,
         "subtitles": subtitles_list,
         "subtitles_count": len(subtitles_list),
+        "subtitles_enabled": subtitles_opt_in,
+        "subtitles_requested": subtitles_opt_in,
         "shot_timeline": shot_timeline_data,
         "videographer_speech": videographer_speech,
         "customer_specifications": {
@@ -1900,6 +1946,7 @@ def process_mobile_video(
             "sea_view": parsed_dirs.get("property_features", {}).get("sea_view", False),
             "mute_music": mute_music,
             "large_font": bool(parsed_dirs.get("large_font", False)),
+            "subtitles_requested": subtitles_opt_in,
         },
         "text_position": text_position,
         "text_style": text_style,
@@ -1924,6 +1971,7 @@ def process_mobile_video(
         "montage_applied": montage_applied,
         "montage_details": montage_details if montage_applied else None,
         "music_muted": mute_music,
+        "music_requested": user_requested_music,
         "music_volume": ambient_volume,
         "large_font_applied": bool(parsed_dirs.get("large_font", False)),
         "property_features": parsed_dirs.get("property_features", {}),
@@ -1951,6 +1999,11 @@ def process_mobile_video(
             "subtitles": {
                 "count": len(subtitles_list),
                 "items": subtitles_list,
+                "enabled": subtitles_opt_in,
+            },
+            "sandbox": {
+                "sandbox_dir": str(job_sandbox_dir),
+                "sandboxed_video_url": sandboxed_video_url,
             },
             "shot_timeline": shot_timeline_data,
             "videographer_speech": videographer_speech,
@@ -1972,10 +2025,15 @@ def process_mobile_video(
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    # Persist summary JSON
-    summary_path = out_cuts_dir / f"summary_{job_id}.json"
-    with open(summary_path, "w", encoding="utf-8") as f:
+    # Persist summary JSON in both job sandbox and output directory
+    summary_path_sandbox = job_sandbox_dir / f"summary_{job_id}.json"
+    with open(summary_path_sandbox, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
+
+    summary_path_legacy = out_cuts_dir / f"summary_{job_id}.json"
+    if str(summary_path_sandbox.resolve()) != str(summary_path_legacy.resolve()):
+        with open(summary_path_legacy, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
 
     _notify(
         step=5,

@@ -4,7 +4,7 @@ Production Principles & Voice Guidelines Manager.
 Persists and manages customizable rules for AI video vision analysis,
 Arabic real estate narration, emotional tone biasing, and visual overlay styles.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 from __future__ import annotations

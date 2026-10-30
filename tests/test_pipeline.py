@@ -6,7 +6,7 @@ Verifies the end-to-end video post-production and MCP orchestration pipeline:
 3. Assembled video (outputs/final_cut.mp4, streams, duration, aspect ratio, ducked audio).
 4. Execution summary (outputs/execution_summary.json, required fields, pacing, mixing).
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Agent: agy100 (Quality Control & Gatekeeper)
 """
 
@@ -298,4 +298,4 @@ class TestExecutionSummary:
 
         # Author attribution check
         ed_col = summary["editorial_collective"]
-        assert ed_col.get("git_author") == "MohammedBoure"
+        assert ed_col.get("git_author") == "MouhammedBoure"

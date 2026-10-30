@@ -4,7 +4,7 @@ Gatekeeper Integration Test Suite for Audio-Visual Sync, Dense Vision Sampling,
 Voice Profile Selection, and UI Declutter (tests/test_gatekeeper_audio_sync_and_voice.py).
 
 Quality Gatekeeper: agy100
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-audio-sync-and-voice-gatekeeper
 Scope:
   1. Audio-Visual Lead-In Sync (adelay filtergraph insertion, visual_lead_in parameter).

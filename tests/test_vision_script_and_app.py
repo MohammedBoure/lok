@@ -3,7 +3,7 @@
 Test Suite for Vision Script Inference, Emotional Tone Passing, and app.py Root Entrypoint.
 (tests/test_vision_script_and_app.py)
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-auto-vision-script-and-app-runner
 """

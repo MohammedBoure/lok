@@ -3,7 +3,7 @@
 Mobile API Server Runner (web/run_server.py)
 Detects host LAN IP, generates terminal ASCII QR code, and starts Uvicorn server.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """

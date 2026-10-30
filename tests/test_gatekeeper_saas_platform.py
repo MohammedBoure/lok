@@ -4,7 +4,7 @@ Gatekeeper Multi-Tenant SaaS Platform Integration Test Suite
 (tests/test_gatekeeper_saas_platform.py).
 
 Quality Gatekeeper: agy100
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-saas-platform-gatekeeper
 Scope:
   1. Multi-Tenant Account Lifecycle & Admin Provisioning (auth_db + REST API).

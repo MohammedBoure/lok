@@ -1,7 +1,7 @@
 """
 Frontend UI/UX Test Suite for Music Status Pill, Prominent Overlays, and Prompt Guidance
 File: tests/test_music_and_overlay_ui.py
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Frontend UI/UX Auditor (agy51)
 Branch: frontend/agy51-music-pills-and-overlay-ux
 """

@@ -4,7 +4,7 @@ Comprehensive Integration Test Suite for SQLite Prompt Descriptions & Mobile Pri
 (tests/test_gatekeeper_prompts_and_mobile_theme.py)
 
 Gatekeeper: agy100
-Author: MohammedBoure
+Author: MouhammedBoure
 Branch: test/agy100-prompts-sqlite-and-mobile-theme-gatekeeper
 Scope: SQLite CRUD operations, REST API endpoints, Multimodal linguistic intent conversion,
        automatic prompt recording during video job processing, and mobile frontend assets.

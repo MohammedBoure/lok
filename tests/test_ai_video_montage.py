@@ -4,7 +4,7 @@ Test Suite: AI Video Montage & Smart Editorial Assembly (tests/test_ai_video_mon
 Validates prompt intent parsing for video trimming and cutting, FFmpeg assembly,
 the dedicated Fast Video Montage MCP server, and pipeline integration.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 import json

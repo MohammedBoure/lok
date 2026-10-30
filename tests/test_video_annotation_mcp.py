@@ -1,7 +1,7 @@
 """
 Tests for Video Annotations & Fast MCP Tool (tests/test_video_annotation_mcp.py)
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Testing, Verification & Gatekeepers (agy101)
 Branch: test/agy101-video-annotation-mcp-verification
 """

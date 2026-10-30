@@ -1,7 +1,7 @@
 """
 Quality Gatekeeper Integration & Mobile Pipeline Verification Suite
 File: tests/test_mobile_verification.py
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Quality Gatekeeper & Integration Testing (agy100)
 Branch: develop
 """

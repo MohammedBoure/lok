@@ -4,7 +4,7 @@ Autonomous Video Montage & Editorial Decision Engine (web/video_editor.py)
 Provides high-performance FFmpeg video trimming, shot slicing, multi-segment assembly,
 and AI-directed montage generation.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 from __future__ import annotations

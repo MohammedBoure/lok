@@ -1,6 +1,6 @@
 """
 Unit & Integration Tests for Mobile Web Front-End Assets (tests/test_frontend_assets.py)
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Mobile Front-End & Real Estate UI/UX Lead (agy51)
 Branch: frontend/agy51-one-click-ux-and-session-persistence
 """

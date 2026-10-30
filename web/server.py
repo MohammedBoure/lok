@@ -3,7 +3,7 @@
 Mobile API Server (web/server.py)
 Starlette & Uvicorn REST API for smartphone video recording & post-production.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """
@@ -267,6 +267,8 @@ def _execute_processing_job(
     video_orientation: Optional[str] = None,
     bottom_text: Optional[str] = None,
     phone_number: Optional[str] = None,
+    enable_subtitles: Optional[bool] = None,
+    enable_music: Optional[bool] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -316,6 +318,8 @@ def _execute_processing_job(
             video_orientation=video_orientation,
             bottom_text=bottom_text,
             phone_number=phone_number,
+            enable_subtitles=enable_subtitles,
+            enable_music=enable_music,
         )
 
         # Record video generation in SaaS audit history
@@ -535,6 +539,22 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         phone_number = None
 
+    enable_subtitles_raw = form.get("enable_subtitles") or form.get("subtitles")
+    enable_subtitles = None
+    if enable_subtitles_raw is not None:
+        if isinstance(enable_subtitles_raw, str):
+            enable_subtitles = enable_subtitles_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_subtitles = bool(enable_subtitles_raw)
+
+    enable_music_raw = form.get("enable_music") or form.get("music_enabled")
+    enable_music = None
+    if enable_music_raw is not None:
+        if isinstance(enable_music_raw, str):
+            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_music = bool(enable_music_raw)
+
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
     try:
@@ -669,6 +689,8 @@ async def create_job_async(request: Request) -> JSONResponse:
             video_orientation,
             bottom_text,
             phone_number,
+            enable_subtitles,
+            enable_music,
         ),
         daemon=True,
     )
@@ -816,6 +838,22 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         phone_number = None
 
+    enable_subtitles_raw = form.get("enable_subtitles") or form.get("subtitles")
+    enable_subtitles = None
+    if enable_subtitles_raw is not None:
+        if isinstance(enable_subtitles_raw, str):
+            enable_subtitles = enable_subtitles_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_subtitles = bool(enable_subtitles_raw)
+
+    enable_music_raw = form.get("enable_music") or form.get("music_enabled")
+    enable_music = None
+    if enable_music_raw is not None:
+        if isinstance(enable_music_raw, str):
+            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_music = bool(enable_music_raw)
+
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
     try:
@@ -944,6 +982,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
             video_orientation=video_orientation,
             bottom_text=bottom_text,
             phone_number=phone_number,
+            enable_subtitles=enable_subtitles,
+            enable_music=enable_music,
         )
 
         # Record video generation in SaaS audit history

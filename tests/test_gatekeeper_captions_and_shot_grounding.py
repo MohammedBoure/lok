@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Integration Gatekeeper Test Suite: Synchronized Captions, Shot Grounding, and Strict Prompt Adherence
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-captions-and-shot-grounding-gatekeeper
 
 Comprehensive Gatekeeper Verification:

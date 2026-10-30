@@ -3,7 +3,7 @@
 Comprehensive End-to-End Integration, Visual/Experiential & Production Pipeline Test Suite.
 File: tests/test_e2e_auth_and_video_pipeline.py
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Visual, Experiential & E2E Integration Gatekeeper (agy101)
 Branch: test/agy101-e2e-auth-and-video-production-gatekeeper
 """

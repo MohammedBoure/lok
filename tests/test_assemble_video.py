@@ -2,7 +2,7 @@
 Integration & Unit Test Suite for assemble_video.py
 Part of the Video Post-Production & MCP Orchestration Pipeline.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Collective: Audio & Narration Specialist + Editorial Decision & Assembly Collective (agy51)
 Branch: frontend/agy51-video-assembly-pipeline
 """
@@ -119,7 +119,7 @@ def test_production_final_cut_deliverables():
 
     assert data["status"] == "SUCCESS"
     assert "editorial_collective" in data
-    assert data["editorial_collective"]["git_author"] == "MohammedBoure"
+    assert data["editorial_collective"]["git_author"] == "MouhammedBoure"
     assert "source_clips" in data
     assert len(data["source_clips"]) == 2
     assert "editorial_timeline" in data

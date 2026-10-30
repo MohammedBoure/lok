@@ -3,7 +3,7 @@
 Video Assembly & Editorial Decision Engine (assemble_video.py)
 Part of the Video Post-Production & MCP Orchestration Pipeline.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Collective: Audio & Narration Specialist + Editorial Decision & Assembly Collective (agy51)
 Branch: frontend/agy51-video-assembly-pipeline
 """
@@ -301,7 +301,7 @@ def assemble_video(
         "editorial_collective": {
             "agent_id": "agy51",
             "role": "Audio, Narration & Video Assembly Collective",
-            "git_author": "MohammedBoure",
+            "git_author": "MouhammedBoure",
             "branch": "frontend/agy51-video-assembly-pipeline",
         },
         "output_video": {

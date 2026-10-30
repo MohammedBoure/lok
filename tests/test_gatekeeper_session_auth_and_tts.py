@@ -5,7 +5,7 @@ Decluttered Studio UI, and Real TTS Voice Reference Samples.
 File: tests/test_gatekeeper_session_auth_and_tts.py
 
 Quality Gatekeeper: agy100
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-session-auth-and-tts-gatekeeper
 Scope:
   1. UI Decluttering & Multi-Sector Linguistic Guidance.
