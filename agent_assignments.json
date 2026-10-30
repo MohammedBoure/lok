@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-optin-toggles-and-sandboxed-ux",
       "scope": "1) Opt-in UI & Settings: Ensure clean minimalist studio reflects opt-in defaults, displaying subtitles/timeline pills only when activated in job payload. 2) Sandboxed Asset URL binding for independent concurrent jobs. 3) Author tests in tests/test_optin_toggles_and_sandboxed_ux.py. 4) Zero U+0669, update web/static/README.md, commit as MohammedBoure, and signal idle.",
       "dependencies": [],
-      "state": "ASSIGNED"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",

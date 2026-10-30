@@ -183,6 +183,24 @@ Accessible via `#btnOpenSettings` and dismissible via `#btnSettingsBack` (`"← 
   - **Large Font Badge (`#overlayFontBadge`)**: Highlights `"🔍 بخط كبير وواضح"` when large font styling is applied.
   - **Property Specs Badge (`#propertySpecsBadge`)**: Highlights extracted property specifications, e.g. `"🏡 F5 • مطل على البحر"`.
 
+### G. Strict Opt-In Architecture, Feature Toggles & Sandboxed Asset Isolation
+- **Default-Off Philosophy (Opt-In Architecture)**:
+  - All secondary processing features (synchronized subtitles, background music, shot-by-shot timeline breakdowns) are **disabled by default**.
+  - Provides a clean, ultra-fast generation baseline with 100% clean voiceover audio unless explicitly opted in.
+- **Quick Opt-In Bar (`#optInQuickBar`)**:
+  - Located directly above `#promptTextarea` for instant 1-tap activation:
+    1. **Captions (`#btnToggleCaptionsOptIn`)**: Toggles subtitle generation with live state indicator (`معطل` vs `مفعل ✓`).
+    2. **Music (`#btnToggleMusicOptIn`)**: Toggles background music (defaults to muted clean audio).
+    3. **Timeline (`#btnToggleTimelineOptIn`)**: Toggles scene breakdown and visual shot grounding.
+- **Settings Modal Preferences (`#sectionOptInPreferences`)**:
+  - Sleek Black & White switch toggles (`#settingToggleCaptions`, `#settingToggleMusic`, `#settingToggleTimeline`) synchronized bidirectionally with studio quick-toggles and persisted in `localStorage['lok_optin_settings']`.
+- **Strict Result Gating**:
+  - The Synchronized Captions Pill (`#resultCaptionsPill`) and Shot Timeline (`#shotsTimelineSection`) remain completely hidden unless the feature was explicitly requested or returned with positive counts (`subtitles_count > 0` or `timeline_applied === true`).
+- **Sandboxed Asset Isolation & Concurrency**:
+  - Video and media assets are resolved directly to isolated per-job directories (`/outputs/jobs/<job_id>/final_cut.mp4`).
+  - Player media URLs are stamped with `job_id` and timestamp cache-busters (`?job_id=<id>&v=<timestamp>`).
+  - Result elements tag DOM nodes with `data-job-id` and `data-sandboxed="true"`, preventing cross-tab or concurrent job collisions.
+
 ---
 
 ## 5. Bootstrap Admin Portal (`/admin` -> `admin.html`)
