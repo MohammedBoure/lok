@@ -4,6 +4,14 @@
 This directory contains automated unit, integration, and end-to-end pipeline verification tests for the video post-production system. It serves as the pragmatic quality gatekeeper validating visual frame extraction, MCP tool interfaces, neural TTS voiceover synthesis, synchronized video assembly, dynamic background music ducking, and metadata integrity.
 
 ## Itemized File Breakdown
+- [`test_optin_sandboxing_and_creative_variety.py`](test_optin_sandboxing_and_creative_variety.py): Backend test suite authored by `agy11` validating:
+  - Strict opt-in architecture: subtitles and background music ducking default to OFF unless explicitly requested in prompt.
+  - Multi-tenant job sandboxing: all intermediate artifacts, keyframes, audio slices, and renders confined to per-job isolated directory `outputs/jobs/<job_id>/sandbox/`.
+  - Creative narrative variety engine: dynamic LLM temperature scaling (0.7-0.85) and varied marketing hook generation preventing repetitive output on identical videos.
+- [`test_optin_toggles_and_sandboxed_ux.py`](test_optin_toggles_and_sandboxed_ux.py): Frontend test suite authored by `agy51` validating:
+  - Clean minimalist studio UI with opt-in feature toggles in settings modal and quick prompt recommendation chips.
+  - Subtitle pill and shot timeline result gating: only shown when explicitly opted-in and present in job result payload.
+  - Isolated sandboxed asset URL binding ensuring multi-tenant preview independence without collision.
 - [`conftest.py`](conftest.py): Pytest configuration script that adds the project repository root to `sys.path`, ensuring local module discovery across test runners.
 - [`test_pipeline.py`](test_pipeline.py): End-to-end pragmatic pipeline integration suite authored by Quality Gatekeeper `agy100`.
   - `TestMCPVisualExtractionTool`:

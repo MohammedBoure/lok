@@ -154,6 +154,16 @@
       id: "rec_4",
       title: "تقنية وهواتف",
       text: "هواتف وأجهزة ذكية بوتيرة سريعة وشبابية مع التركيز على الضمان المعتمد، السعر التنافسي، وخدمة التوصيل لكافة الولايات."
+    },
+    {
+      id: "rec_5",
+      title: "صوت نقي (بدون موسيقى)",
+      text: "صوت نقي 100% بدون موسيقى كتم كامل لموسيقى الخلفية مع إبراز التفاصيل ورقم الهاتف 0558815453."
+    },
+    {
+      id: "rec_6",
+      title: "ترجمة متزامنة لكلام المعلق",
+      text: "ترجمة متزامنة لكلام المعلق كلمة بكلمة مع المشاهد ونبرة حماسية بدون موسيقى."
     }
   ];
 
@@ -174,6 +184,11 @@
     activeJobId: null,
     isProcessing: false,
     pollTimer: null,
+    optIn: {
+      captions: false,
+      music: false,
+      timeline: false
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -262,6 +277,19 @@
     shotsTimelineSection: document.getElementById("shotsTimelineSection"),
     timelineBadge: document.getElementById("timelineBadge"),
     shotsTimelineList: document.getElementById("shotsTimelineList"),
+
+    // Opt-In Features Toggles
+    optInQuickBar: document.getElementById("optInQuickBar"),
+    btnToggleCaptionsOptIn: document.getElementById("btnToggleCaptionsOptIn"),
+    statusCaptionsOptIn: document.getElementById("statusCaptionsOptIn"),
+    btnToggleMusicOptIn: document.getElementById("btnToggleMusicOptIn"),
+    statusMusicOptIn: document.getElementById("statusMusicOptIn"),
+    btnToggleTimelineOptIn: document.getElementById("btnToggleTimelineOptIn"),
+    statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
+    sectionOptInPreferences: document.getElementById("sectionOptInPreferences"),
+    settingToggleCaptions: document.getElementById("settingToggleCaptions"),
+    settingToggleMusic: document.getElementById("settingToggleMusic"),
+    settingToggleTimeline: document.getElementById("settingToggleTimeline"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1030,6 +1058,125 @@
   }
 
   // ---------------------------------------------------------------------------
+  // 5.5. Opt-In Feature Toggles & Preferences (Zero-Clutter Minimalist Architecture)
+  // ---------------------------------------------------------------------------
+  const OPTIN_SETTINGS_KEY = "lok_optin_settings";
+
+  function loadOptInSettings() {
+    try {
+      const saved = localStorage.getItem(OPTIN_SETTINGS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        state.optIn.captions = Boolean(parsed.captions);
+        state.optIn.music = Boolean(parsed.music);
+        state.optIn.timeline = Boolean(parsed.timeline);
+      }
+    } catch (_) {
+      // Keep defaults: false
+    }
+    syncOptInUI();
+  }
+
+  function saveOptInSettings() {
+    try {
+      localStorage.setItem(OPTIN_SETTINGS_KEY, JSON.stringify(state.optIn));
+    } catch (_) {}
+  }
+
+  function setOptInFeature(feature, enabled, notify = true) {
+    if (feature in state.optIn) {
+      state.optIn[feature] = Boolean(enabled);
+      saveOptInSettings();
+      syncOptInUI();
+      if (notify) {
+        const names = {
+          captions: "ترجمة الكلام المتزامنة",
+          music: "الموسيقى التصويرية",
+          timeline: "مخطط المشاهد واللقطات"
+        };
+        const st = state.optIn[feature] ? "تم التفعيل بنجاح ✓" : "تم التعطيل (الافتراضي)";
+        showToast(`${names[feature] || feature}: ${st}`);
+      }
+    }
+  }
+
+  function syncOptInUI() {
+    // 1. Captions
+    if (dom.btnToggleCaptionsOptIn) {
+      dom.btnToggleCaptionsOptIn.classList.toggle("active", state.optIn.captions);
+      dom.btnToggleCaptionsOptIn.setAttribute("aria-pressed", state.optIn.captions ? "true" : "false");
+    }
+    if (dom.statusCaptionsOptIn) {
+      dom.statusCaptionsOptIn.textContent = state.optIn.captions ? "مفعل ✓" : "معطل";
+    }
+    if (dom.settingToggleCaptions) {
+      dom.settingToggleCaptions.checked = state.optIn.captions;
+    }
+
+    // 2. Music
+    if (dom.btnToggleMusicOptIn) {
+      dom.btnToggleMusicOptIn.classList.toggle("active", state.optIn.music);
+      dom.btnToggleMusicOptIn.setAttribute("aria-pressed", state.optIn.music ? "true" : "false");
+    }
+    if (dom.statusMusicOptIn) {
+      dom.statusMusicOptIn.textContent = state.optIn.music ? "مفعل ✓" : "معطل";
+    }
+    if (dom.settingToggleMusic) {
+      dom.settingToggleMusic.checked = state.optIn.music;
+    }
+
+    // 3. Timeline
+    if (dom.btnToggleTimelineOptIn) {
+      dom.btnToggleTimelineOptIn.classList.toggle("active", state.optIn.timeline);
+      dom.btnToggleTimelineOptIn.setAttribute("aria-pressed", state.optIn.timeline ? "true" : "false");
+    }
+    if (dom.statusTimelineOptIn) {
+      dom.statusTimelineOptIn.textContent = state.optIn.timeline ? "مفعل ✓" : "معطل";
+    }
+    if (dom.settingToggleTimeline) {
+      dom.settingToggleTimeline.checked = state.optIn.timeline;
+    }
+  }
+
+  function setupOptInToggles() {
+    loadOptInSettings();
+
+    // Quick Bar Toggles
+    if (dom.btnToggleCaptionsOptIn) {
+      dom.btnToggleCaptionsOptIn.addEventListener("click", () => {
+        setOptInFeature("captions", !state.optIn.captions);
+      });
+    }
+    if (dom.btnToggleMusicOptIn) {
+      dom.btnToggleMusicOptIn.addEventListener("click", () => {
+        setOptInFeature("music", !state.optIn.music);
+      });
+    }
+    if (dom.btnToggleTimelineOptIn) {
+      dom.btnToggleTimelineOptIn.addEventListener("click", () => {
+        setOptInFeature("timeline", !state.optIn.timeline);
+      });
+    }
+
+    // Settings Modal Switches
+    if (dom.settingToggleCaptions) {
+      dom.settingToggleCaptions.addEventListener("change", (e) => {
+        setOptInFeature("captions", e.target.checked);
+      });
+    }
+    if (dom.settingToggleMusic) {
+      dom.settingToggleMusic.addEventListener("change", (e) => {
+        setOptInFeature("music", e.target.checked);
+      });
+    }
+    if (dom.settingToggleTimeline) {
+      dom.settingToggleTimeline.addEventListener("change", (e) => {
+        setOptInFeature("timeline", e.target.checked);
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // 6. Settings Modal Navigation (Back Button "زر عودة")
   // ---------------------------------------------------------------------------
   function setupSettingsModal() {
@@ -1152,10 +1299,45 @@
       // Music and font control flags
       if (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى") || promptText.includes("بدون صوت موسيقى")) {
         formData.append("mute_music", "true");
+        formData.append("music_muted", "true");
       }
       if (promptText.includes("بخط كبير") || promptText.includes("خط كبير") || promptText.includes("كبير وواضح") || promptText.includes("كبير و بارز")) {
         formData.append("large_font", "true");
       }
+    }
+
+    // Explicit Opt-In Features Handling
+    const isCaptionsOpted = Boolean(
+      state.optIn.captions ||
+      (promptText && (promptText.includes("ترجمة") || promptText.includes("subtitles") || promptText.includes("captions")))
+    );
+    const isMusicOpted = Boolean(
+      state.optIn.music ||
+      (promptText && (promptText.includes("موسيقى") && !promptText.includes("بدون موسيقى") && !promptText.includes("كتم الموسيقى")))
+    );
+    const isTimelineOpted = Boolean(
+      state.optIn.timeline ||
+      (promptText && (promptText.includes("مخطط") || promptText.includes("لقطات") || promptText.includes("مشاهد") || promptText.includes("timeline")))
+    );
+
+    formData.append("optin_captions", isCaptionsOpted ? "true" : "false");
+    formData.append("optin_music", isMusicOpted ? "true" : "false");
+    formData.append("optin_timeline", isTimelineOpted ? "true" : "false");
+
+    if (isCaptionsOpted) {
+      formData.append("enable_captions", "true");
+      formData.append("enable_subtitles", "true");
+    }
+
+    if (!isMusicOpted || (promptText && (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى")))) {
+      formData.append("mute_music", "true");
+      formData.append("music_muted", "true");
+    } else {
+      formData.append("enable_music", "true");
+    }
+
+    if (isTimelineOpted) {
+      formData.append("enable_timeline", "true");
     }
 
     if (activeToken) {
@@ -1245,10 +1427,15 @@
     }
   }
 
-  function buildDynamicVideoUrl(rawUrl) {
+  function buildDynamicVideoUrl(rawUrl, jobId) {
     if (!rawUrl) return "";
     const buster = `v=${Date.now()}`;
-    return rawUrl.includes("?") ? `${rawUrl}&${buster}` : `${rawUrl}?${buster}`;
+    const jobParam = jobId ? `job_id=${encodeURIComponent(jobId)}` : "";
+    let sep = rawUrl.includes("?") ? "&" : "?";
+    if (jobParam && !rawUrl.includes("job_id=")) {
+      return `${rawUrl}${sep}${jobParam}&${buster}`;
+    }
+    return `${rawUrl}${sep}${buster}`;
   }
 
   function resolveStepFromTelemetry(stepNum, percent, message) {
@@ -1368,23 +1555,37 @@
     if (success) {
       // NEVER hardcode '/outputs/final_cut.mp4' as the sole video source!
       // Dynamically inspect data.video_url || data.output_video_url || ...
-      const rawVideoUrl = (data && (
-        data.video_url ||
-        data.output_video_url ||
-        data.output_video ||
-        (data.result && (data.result.video_url || data.result.output_video_url || data.result.output_video))
-      )) || "/outputs/final_cut.mp4";
+      const jobId = (data && (data.job_id || (data.result && data.result.job_id))) || state.activeJobId || "";
+      let rawVideoUrl = "";
+      if (data) {
+        rawVideoUrl = data.video_url ||
+          data.output_video_url ||
+          data.output_video ||
+          (data.result && (data.result.video_url || data.result.output_video_url || data.result.output_video)) ||
+          "";
+      }
 
-      // Append timestamp cache-busting query parameter (?v=Date.now()) to video src
-      const dynamicVideoSrc = buildDynamicVideoUrl(rawVideoUrl);
+      // Sandboxed Job Directory Isolation:
+      // If no explicit video URL but job_id is known, bind to isolated job sandbox directory
+      if (!rawVideoUrl && jobId) {
+        rawVideoUrl = `/outputs/jobs/${jobId}/final_cut.mp4`;
+      }
+      if (!rawVideoUrl) {
+        rawVideoUrl = "/outputs/final_cut.mp4";
+      }
+
+      // Append timestamp cache-busting query parameter (?v=Date.now() and job_id) to video src
+      const dynamicVideoSrc = buildDynamicVideoUrl(rawVideoUrl, jobId);
 
       if (dom.resultVideo) {
+        dom.resultVideo.dataset.jobId = jobId;
+        dom.resultVideo.dataset.sandboxed = jobId ? "true" : "false";
         dom.resultVideo.src = dynamicVideoSrc;
         dom.resultVideo.load();
       }
       if (dom.btnDownloadVideo) {
         dom.btnDownloadVideo.href = dynamicVideoSrc;
-        const jobSlug = (data && data.job_id) ? `lok_${data.job_id}.mp4` : "lok_production.mp4";
+        const jobSlug = jobId ? `lok_${jobId}.mp4` : "lok_production.mp4";
         dom.btnDownloadVideo.setAttribute("download", jobSlug);
       }
       if (dom.btnShareVideo) {
@@ -1519,19 +1720,39 @@
         }
       }
 
-      // 5. Display Synchronized Captions Feedback Pill
+      // 5. Display Synchronized Captions Feedback Pill (Opt-In Controlled)
       const captionsApplied = Boolean(data && (
-        data.captions_applied ||
-        (data.result && data.result.captions_applied) ||
-        (data.captions && data.captions.length > 0) ||
-        (data.subtitle_segments && data.subtitle_segments.length > 0) ||
-        (data.result && ((data.result.captions && data.result.captions.length > 0) || (data.result.subtitle_segments && data.result.subtitle_segments.length > 0)))
+        (data.subtitles_count !== undefined && data.subtitles_count > 0) ||
+        (data.captions_count !== undefined && data.captions_count > 0) ||
+        data.captions_applied === true ||
+        data.subtitles_applied === true ||
+        (Array.isArray(data.captions) && data.captions.length > 0) ||
+        (Array.isArray(data.subtitle_segments) && data.subtitle_segments.length > 0) ||
+        (Array.isArray(data.subtitles) && data.subtitles.length > 0) ||
+        (data.result && (
+          (data.result.subtitles_count !== undefined && data.result.subtitles_count > 0) ||
+          (data.result.captions_count !== undefined && data.result.captions_count > 0) ||
+          data.result.captions_applied === true ||
+          data.result.subtitles_applied === true ||
+          (Array.isArray(data.result.captions) && data.result.captions.length > 0) ||
+          (Array.isArray(data.result.subtitle_segments) && data.result.subtitle_segments.length > 0) ||
+          (Array.isArray(data.result.subtitles) && data.result.subtitles.length > 0)
+        ))
       ));
 
       const captionsCount = (data && (
+        data.subtitles_count ||
+        data.captions_count ||
         (data.captions && data.captions.length) ||
         (data.subtitle_segments && data.subtitle_segments.length) ||
-        (data.result && ((data.result.captions && data.result.captions.length) || (data.result.subtitle_segments && data.result.subtitle_segments.length)))
+        (data.subtitles && data.subtitles.length) ||
+        (data.result && (
+          data.result.subtitles_count ||
+          data.result.captions_count ||
+          (data.result.captions && data.result.captions.length) ||
+          (data.result.subtitle_segments && data.result.subtitle_segments.length) ||
+          (data.result.subtitles && data.result.subtitles.length)
+        ))
       )) || 0;
 
       if (dom.resultCaptionsPill && dom.resultCaptionsText) {
@@ -1543,12 +1764,9 @@
           }
           dom.resultCaptionsPill.style.display = "inline-flex";
         } else {
-          dom.resultCaptionsText.textContent = "ترجمة الكلام متزامنة بدقة عالية مع المشاهد";
-          if (dom.resultCaptionsBadge) {
-            dom.resultCaptionsBadge.textContent = "تزامن ذكي";
-            dom.resultCaptionsBadge.style.display = "inline-block";
-          }
-          dom.resultCaptionsPill.style.display = "inline-flex";
+          dom.resultCaptionsPill.style.display = "none";
+          if (dom.resultCaptionsText) dom.resultCaptionsText.textContent = "";
+          if (dom.resultCaptionsBadge) dom.resultCaptionsBadge.style.display = "none";
         }
       }
 
@@ -1611,6 +1829,28 @@
       data.keyframes ||
       (data.result && data.result.keyframes)
     )) || [];
+
+    const isTimelineOptedIn = Boolean(data && (
+      data.timeline_applied === true ||
+      data.timeline_enabled === true ||
+      data.shots_timeline_applied === true ||
+      (Array.isArray(rawTimeline) && rawTimeline.length > 0) ||
+      (data.result && (
+        data.result.timeline_applied === true ||
+        data.result.timeline_enabled === true ||
+        data.result.shots_timeline_applied === true ||
+        (Array.isArray(data.result.shot_timeline) && data.result.shot_timeline.length > 0) ||
+        (Array.isArray(data.result.timeline) && data.result.timeline.length > 0) ||
+        (Array.isArray(data.result.scenes) && data.result.scenes.length > 0) ||
+        (Array.isArray(data.result.shots) && data.result.shots.length > 0)
+      )) ||
+      ((data.captions_applied || (data.subtitles_count && data.subtitles_count > 0)) && Array.isArray(rawCaptions) && rawCaptions.length > 0)
+    ));
+
+    if (!isTimelineOptedIn) {
+      dom.shotsTimelineSection.style.display = "none";
+      return;
+    }
 
     let itemsToRender = [];
 
@@ -1720,6 +1960,7 @@
     setupSessionAuth();
     setupVideoUpload();
     setupPromptTextarea();
+    setupOptInToggles();
     setupRecommendationsManager();
     setupVoiceoverPicker();
     setupSettingsModal();
