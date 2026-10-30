@@ -178,7 +178,11 @@
                 rows="6"
                 placeholder="صف هنا بالتفصيل كل ما تريده في الفيديو بحرية تامة:
 • مثال: أريد تعليقاً بالدارجة يبرز أطباق السمك، مع إظهار رقم الهاتف 0558815453 أسفل الفيديو
-• المونتاج والاقتطاع: مثلاً 'قص أول 3 ثواني'، 'قص الفيديو من الثانية 2 إلى 15'، أو 'مونتاج ذكي لأفضل 15 ثانية'.
+• مثال عقاري: أريد تعليقاً لشقة F5 مطلة على البحر بخط كبير وبدون موسيقى
+• التحكم بالموسيقى والمكساج: مثلاً 'بدون موسيقى' (للحصول على صوت نقي 100% وإلغاء موسيقى الخلفية بالكامل)، أو 'موسيقى بيانو هادئة بمستوى صوت 15%'.
+• حجم الخط والنصوص: مثلاً 'بخط كبير وواضح' أو 'بخط عريض وبارز'.
+• مواصفات العقار والمشاهد: مثلاً 'شقة F5'، 'مطل على البحر'، أو التركيز على الصالون.
+• المونتاج والاقتطاع: مثلاً 'قص أول 3 ثواني'، 'قص الفيديو من 2 إلى 15 ثانية'، أو 'مونتاج ذكي لأفضل 15 ثانية'.
 • سرعة الإلقاء (Speech Speed): مثلاً وتيرة سريعة وحماسية، أو هادئة ومتزنة.
 • المشاهد المرئية (Visuals): مثلاً التركيز على الإضاءة الطبيعية، الواجهات العصرية، الغرف الواسعة.
 • نبرة الصوت (Tone): مثلاً نبرة ترويجية فخمة ومقنعة، أو ودودة ودافئة.
@@ -187,7 +191,7 @@
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 يمكنك كتابة أي تعليمات خاصة بحرية: قص واقتطاع لقطات معينة، مونتاج ذكي لأفضل المشاهد، نبرة الصوت، وإظهار رقم الهاتف في الشريط السفلي.
+              💡 يمكنك كتابة أي تعليمات خاصة بحرية: كتم الموسيقى ('بدون موسيقى' لصوت نقي 100%)، ضبط مستوى الصوت، إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
             </div>
           </div>
 
@@ -225,19 +229,32 @@
                 <p class="result-subtitle">الفيديو جاهز للعرض والمشاركة بجودة عالية وصوت نقي</p>
               </div>
 
-              <!-- Persistent Overlay Feedback Pill & Badge -->
-              <div class="result-overlay-pill" id="resultOverlayPill" style="display: none;">
-                <span class="overlay-icon">📞</span>
-                <span class="overlay-label">الشريط السفلي:</span>
-                <span class="overlay-text" id="resultOverlayText"></span>
-                <span class="bottom-text-badge" id="bottomTextBadge"></span>
-              </div>
+              <!-- Feedback Pills Section (Overlay, Large Font, Property Specs, Music, Montage) -->
+              <div class="result-pills-row" id="resultPillsRow">
+                <!-- Persistent Overlay Feedback Pill & Badges -->
+                <div class="result-overlay-pill" id="resultOverlayPill" style="display: none;">
+                  <span class="overlay-icon">📞</span>
+                  <span class="overlay-label">الشريط السفلي:</span>
+                  <span class="overlay-text" id="resultOverlayText"></span>
+                  <span class="bottom-text-badge" id="bottomTextBadge"></span>
+                  <span class="overlay-font-badge" id="overlayFontBadge" style="display: none;"></span>
+                  <span class="property-specs-badge" id="propertySpecsBadge" style="display: none;"></span>
+                </div>
 
-              <!-- Montage Feedback Pill -->
-              <div class="result-montage-pill" id="resultMontagePill" style="display: none;">
-                <span class="montage-icon">✂️</span>
-                <span class="montage-label">المونتاج واقتطاع المشاهد:</span>
-                <span class="montage-text" id="resultMontageText"></span>
+                <!-- Music & Audio Balance Feedback Pill -->
+                <div class="result-music-pill" id="resultMusicPill" style="display: none;">
+                  <span class="music-icon" id="resultMusicIcon">🎵</span>
+                  <span class="music-label">الموسيقى والمكساج:</span>
+                  <span class="music-text" id="resultMusicText"></span>
+                  <span class="music-badge" id="resultMusicBadge" style="display: none;"></span>
+                </div>
+
+                <!-- Montage Feedback Pill -->
+                <div class="result-montage-pill" id="resultMontagePill" style="display: none;">
+                  <span class="montage-icon">✂️</span>
+                  <span class="montage-label">المونتاج واقتطاع المشاهد:</span>
+                  <span class="montage-text" id="resultMontageText"></span>
+                </div>
               </div>
 
               <div class="result-video-wrapper">
