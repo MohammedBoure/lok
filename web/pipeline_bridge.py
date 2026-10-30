@@ -373,7 +373,7 @@ def extract_property_features(text: Optional[str]) -> Dict[str, Any]:
 
     # Sea view patterns
     sea_patterns = [
-        r"مطل(?:\s+مباشرة)?\s+على\s+البحر",
+        r"(?:مطل|مطلة|تطل|يطل)(?:\s+مباشرة)?\s+على\s+البحر",
         r"إطلالة(?:\s+على|\s+بحرية|\s+بانورامية)?\s+على\s+البحر",
         r"واجهة\s+بحرية",
         r"بحرية",
