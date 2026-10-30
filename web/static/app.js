@@ -1655,6 +1655,21 @@
       if (dom.resultVideo) {
         dom.resultVideo.dataset.jobId = jobId;
         dom.resultVideo.dataset.sandboxed = jobId ? "true" : "false";
+        dom.resultVideo.onerror = function() {
+          if (!this.dataset.retryAttempted) {
+            this.dataset.retryAttempted = "true";
+            setTimeout(() => {
+              this.src = `/outputs/mobile_cuts/cut_${jobId}.mp4?job_id=${jobId}&v=${Date.now()}`;
+              this.load();
+            }, 1000);
+          } else if (!this.dataset.fallbackAttempted) {
+            this.dataset.fallbackAttempted = "true";
+            this.src = `/outputs/final_cut.mp4?v=${Date.now()}`;
+            this.load();
+          }
+        };
+        delete dom.resultVideo.dataset.retryAttempted;
+        delete dom.resultVideo.dataset.fallbackAttempted;
         dom.resultVideo.src = dynamicVideoSrc;
         dom.resultVideo.load();
       }

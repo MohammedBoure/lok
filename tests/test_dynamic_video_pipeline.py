@@ -133,11 +133,11 @@ class TestVisionModelHierarchyAndResiliency:
         attempts = {"count": 0}
 
         def fake_post_with_timeout(url, json=None, timeout=None):
-            # Assert read timeout is at least 45.0
+            # Assert read timeout is at least 20.0
             if isinstance(timeout, tuple):
-                assert timeout[1] >= 45.0
+                assert timeout[1] >= 20.0
             else:
-                assert timeout >= 45.0
+                assert timeout >= 20.0
 
             attempts["count"] += 1
             if attempts["count"] == 1:

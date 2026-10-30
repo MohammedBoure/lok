@@ -1124,6 +1124,7 @@ def process_mobile_video(
     phone_number: Optional[str] = None,
     enable_subtitles: Optional[bool] = None,
     enable_music: Optional[bool] = None,
+    job_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -1177,10 +1178,13 @@ def process_mobile_video(
         script = None
         auto_mode = True
 
-    # Generate unique job identifier
-    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    unique_suffix = uuid.uuid4().hex[:6]
-    job_id = f"{timestamp_str}_{unique_suffix}"
+    # Resolve unique job identifier
+    if not job_id:
+        timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        unique_suffix = uuid.uuid4().hex[:6]
+        job_id = f"{timestamp_str}_{unique_suffix}"
+    else:
+        job_id = str(job_id).strip()
 
     out_cuts_dir = Path(output_dir).resolve()
     out_cuts_dir.mkdir(parents=True, exist_ok=True)
@@ -2046,11 +2050,22 @@ def process_mobile_video(
         with open(summary_path_legacy, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
 
+    summary_extra = {
+        "video_url": video_web_url,
+        "output_video_url": video_web_url,
+        "output_video": video_web_url,
+        "sandboxed_video_url": sandboxed_video_url,
+        "output_path": str(mirror_cut_path),
+        "absolute_output_path": str(mirror_cut_path.resolve()),
+        "result": summary,
+    }
+
     _notify(
         step=5,
         percent=100,
         message="اكتمل إنتاج الفيديو التسويقي بنجاح! جاهز للمعاينة والتحميل.",
         log=f"[إخراج نهائي] تم تصدير الفيديو النهائي ({summary['resolution']}, {total_duration:.1f}s) بنجاح. جاهز للمعاينة والتحميل.",
+        extra=summary_extra,
     )
 
     return summary

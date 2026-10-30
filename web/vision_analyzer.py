@@ -728,7 +728,7 @@ def infer_video_script_and_mood(
     # Configurable timeouts: 25s read timeout to prevent pipeline stalls and client polling timeouts
     read_timeout = float(os.getenv("GEMINI_VISION_READ_TIMEOUT", "25.0"))
     connect_timeout = float(os.getenv("GEMINI_VISION_CONNECT_TIMEOUT", "5.0"))
-    max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "1"))
+    max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "2"))
 
     import requests
     import time

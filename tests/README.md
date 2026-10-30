@@ -4,6 +4,10 @@
 This directory contains automated unit, integration, and end-to-end pipeline verification tests for the video post-production system. It serves as the pragmatic quality gatekeeper validating visual frame extraction, MCP tool interfaces, neural TTS voiceover synthesis, synchronized video assembly, dynamic background music ducking, and metadata integrity.
 
 ## Itemized File Breakdown
+- [`test_job_id_consistency_and_delivery.py`](test_job_id_consistency_and_delivery.py): Job identity consistency and 404 prevention test suite validating:
+  - Exact `job_id` propagation from server ingestion down to `process_mobile_video`, preventing divergence between client request URLs and pipeline file names.
+  - Multi-tenant sandbox fallback resolution in `get_mobile_cut_endpoint`, ensuring rendered cuts are always reachable and streamable without 404 errors.
+  - Strict premature completion guards ensuring `status: processing` at 98% until the MP4 video cut is written and non-empty on disk.
 - [`test_pipeline_latency_and_telemetry.py`](test_pipeline_latency_and_telemetry.py): Backend performance and telemetry test suite authored by `agy11` validating:
   - Real-time step progress tracking (`current_step`, `progress_percent`) via `/api/status/{job_id}`.
   - Pipeline latency optimizations: accelerated FFmpeg encoding (`faster` preset, `-threads 0`) and restricted dense vision frames (10 frames) to eliminate polling stalls.

@@ -314,8 +314,16 @@ def _execute_processing_job(
             payload["error_details"] = event["error_details"]
         if event.get("video_url"):
             payload["video_url"] = event["video_url"]
+        if event.get("output_video_url"):
+            payload["output_video_url"] = event["output_video_url"]
+        if event.get("output_video"):
+            payload["output_video"] = event["output_video"]
         if event.get("sandboxed_video_url"):
             payload["sandboxed_video_url"] = event["sandboxed_video_url"]
+        if event.get("output_path"):
+            payload["output_path"] = event["output_path"]
+        if event.get("result"):
+            payload["result"] = event["result"]
 
         PROGRESS_STORE[job_id] = payload
         if status_val == "failed":
@@ -344,6 +352,7 @@ def _execute_processing_job(
             phone_number=phone_number,
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
+            job_id=job_id,
         )
 
         # Record video generation in SaaS audit history
@@ -395,6 +404,14 @@ def _execute_processing_job(
 
         if cut_file:
             summary["file_size_bytes"] = cut_file.stat().st_size
+            # Ensure cut file is present at mobile_cuts/cut_{job_id}.mp4
+            try:
+                mirror_dest = OUTPUTS_DIR / "mobile_cuts" / f"cut_{job_id}.mp4"
+                if str(cut_file.resolve()) != str(mirror_dest.resolve()):
+                    shutil.copyfile(cut_file, mirror_dest)
+            except Exception as m_err:
+                logger.warning("Job %s: Failed to mirror to %s: %s", job_id, mirror_dest, m_err)
+
             # Atomically update legacy outputs/final_cut.mp4 for backward compatibility
             try:
                 legacy_final = OUTPUTS_DIR / "final_cut.mp4"
@@ -1019,8 +1036,16 @@ async def upload_and_process(request: Request) -> JSONResponse:
             payload["error_details"] = event["error_details"]
         if event.get("video_url"):
             payload["video_url"] = event["video_url"]
+        if event.get("output_video_url"):
+            payload["output_video_url"] = event["output_video_url"]
+        if event.get("output_video"):
+            payload["output_video"] = event["output_video"]
         if event.get("sandboxed_video_url"):
             payload["sandboxed_video_url"] = event["sandboxed_video_url"]
+        if event.get("output_path"):
+            payload["output_path"] = event["output_path"]
+        if event.get("result"):
+            payload["result"] = event["result"]
 
         PROGRESS_STORE[job_id] = payload
         if status_val == "failed":
@@ -1049,6 +1074,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             phone_number=phone_number,
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
+            job_id=job_id,
         )
 
         # Record video generation in SaaS audit history
@@ -1236,6 +1262,17 @@ async def get_job_status(request: Request) -> JSONResponse:
 
         if p_data.get("status") in ("completed", "done"):
             cut_file, video_web_url = _find_finalized_cut_file(job_id, p_data)
+            # Guard against premature completion if cut file is missing or zero bytes
+            if not cut_file or not cut_file.is_file() or cut_file.stat().st_size == 0:
+                resp = dict(p_data)
+                resp["status"] = "processing"
+                resp["step"] = 5
+                resp["current_step"] = 5
+                resp["progress"] = 98
+                resp["progress_percent"] = 98
+                resp["message"] = "جاري وضع اللمسات النهائية على الفيديو وإتمام التصدير..."
+                return JSONResponse(resp)
+
             res_dict = dict(p_data.get("result") or p_data)
             res_dict.setdefault("emotional_tone", p_data.get("emotional_tone"))
             res_dict.setdefault("inferred_script", p_data.get("inferred_script"))
@@ -1290,6 +1327,17 @@ async def get_job_status(request: Request) -> JSONResponse:
             })
 
         cut_file, video_web_url = _find_finalized_cut_file(job_id, j_data)
+        if not cut_file or not cut_file.is_file() or cut_file.stat().st_size == 0:
+            return JSONResponse({
+                "job_id": job_id,
+                "status": "processing",
+                "step": 5,
+                "current_step": 5,
+                "progress": 98,
+                "progress_percent": 98,
+                "message": "جاري وضع اللمسات النهائية على الفيديو وإتمام التصدير...",
+            })
+
         res = dict(j_data)
         res["job_id"] = job_id
         res["status"] = "completed"
@@ -1351,7 +1399,24 @@ async def get_mobile_cut_endpoint(request: Request) -> Response:
     filename = request.path_params.get("filename", "")
     safe_name = Path(filename).name
     cut_path = OUTPUTS_DIR / "mobile_cuts" / safe_name
-    if not cut_path.is_file():
+
+    # Resilient resolution if file is not directly in mobile_cuts
+    if not cut_path.is_file() or cut_path.stat().st_size == 0:
+        found_cand = None
+        if safe_name.startswith("cut_") and safe_name.endswith(".mp4"):
+            cand_job_id = safe_name[4:-4]
+            # Check job sandbox directory
+            sandbox_file = OUTPUTS_DIR / "jobs" / cand_job_id / "sandbox" / safe_name
+            if sandbox_file.is_file() and sandbox_file.stat().st_size > 0:
+                found_cand = sandbox_file
+
+        if found_cand and found_cand.is_file():
+            try:
+                shutil.copyfile(found_cand, cut_path)
+            except Exception:
+                cut_path = found_cand
+
+    if not cut_path.is_file() or cut_path.stat().st_size == 0:
         return JSONResponse(
             {"status": "error", "error": "file_not_found", "message": f"Video cut '{safe_name}' not found."},
             status_code=404,
