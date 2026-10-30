@@ -16,7 +16,7 @@
       "branch": "frontend/agy51-polling-resilience-and-progress-telemetry",
       "scope": "1) Root Cause Fix for Polling Timeout: In web/static/app.js (around line 1547), investigate and resolve the timeout exception (استغرقت معالجة الفيديو وقتاً طويلاً. يرجى التحقق من لوحة التحكم أو إعادة المحاولة). 2) Adaptive Polling & Extended Grace Periods: Increase poll timeout ceiling, use adaptive backoff, and synchronize the UI stepper with real backend progress percentages. 3) Graceful Error & Retry Handling: Display clear, actionable failure states if the backend actually fails, and provide a 1-click retry without losing uploaded video or prompt state. 4) Author tests in tests/test_polling_resilience_and_progress_ux.py. 5) Zero U+0669, update web/static/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [],
-      "state": "ASSIGNED"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",

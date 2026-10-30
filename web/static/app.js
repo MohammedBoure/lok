@@ -1,8 +1,8 @@
 /**
  * lok • Modern Minimalist Client Application Engine (web/static/app.js)
- * Author: MouhammedBoure
+ * Author: MouhammedBoure <mohamadbormoz2@gmail.com>
  * Role: Lead Frontend Engineer (agy51)
- * Branch: frontend/agy51-minimal-lok-and-admin-ui
+ * Branch: frontend/agy51-polling-resilience-and-progress-telemetry
  */
 
 (() => {
@@ -246,6 +246,9 @@
     stepVoice: document.getElementById("stepVoice"),
     stepRender: document.getElementById("stepRender"),
     stepAnnotations: document.getElementById("stepAnnotations"),
+    studioErrorBox: document.getElementById("studioErrorBox"),
+    studioErrorMessage: document.getElementById("studioErrorMessage"),
+    btnRetryProduction: document.getElementById("btnRetryProduction"),
 
     // Result Card
     resultCard: document.getElementById("resultCard"),
@@ -1219,6 +1222,13 @@
       dom.submitBtn.addEventListener("click", produceHandler);
     }
 
+    if (dom.btnRetryProduction) {
+      dom.btnRetryProduction.addEventListener("click", () => {
+        if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
+        handleProduceProduction();
+      });
+    }
+
     if (dom.btnStartNewProduction) {
       dom.btnStartNewProduction.addEventListener("click", resetToNewProduction);
     }
@@ -1438,21 +1448,22 @@
     return `${rawUrl}${sep}${buster}`;
   }
 
+  let currentDisplayPercent = 10;
+  let targetDisplayPercent = 10;
+  let stepperAnimationInterval = null;
+
   function resolveStepFromTelemetry(stepNum, percent, message) {
     const msg = (message || "").toLowerCase();
     if (msg.includes("ملصق") || msg.includes("نصوص") || msg.includes("كتاب") || stepNum >= 5 || percent >= 95) {
       return "stepAnnotations";
     }
-    if (msg.includes("رندرة") || msg.includes("مونتاج") || msg.includes("موسيقى") || stepNum === 4 || (percent >= 80 && percent < 95)) {
+    if (msg.includes("رندرة") || msg.includes("مونتاج") || msg.includes("موسيقى") || stepNum === 4 || (percent >= 75 && percent < 95)) {
       return "stepRender";
     }
-    if (msg.includes("صوت") || msg.includes("تعليق") || msg.includes("tts") || (percent >= 65 && percent < 80)) {
+    if (msg.includes("صوت") || msg.includes("تعليق") || msg.includes("tts") || stepNum === 3 || (percent >= 50 && percent < 75)) {
       return "stepVoice";
     }
-    if (msg.includes("سيناريو") || msg.includes("وصف") || (percent >= 45 && percent < 65)) {
-      return "stepScript";
-    }
-    if (msg.includes("vision") || msg.includes("تحليل") || msg.includes("مشاهد") || stepNum === 2 || (percent >= 25 && percent < 45)) {
+    if (msg.includes("vision") || msg.includes("تحليل") || msg.includes("مشاهد") || msg.includes("سيناريو") || stepNum === 2 || (percent >= 25 && percent < 50)) {
       return "stepAnalyze";
     }
     return "stepFrames";
@@ -1463,11 +1474,15 @@
       dom.stepperStatusText.textContent = statusText;
     }
     const percent = Math.max(5, Math.min(100, Math.round(progressPercent || 0)));
+    targetDisplayPercent = percent;
+    if (percent >= 100) {
+      currentDisplayPercent = 100;
+    }
     if (dom.stepperFill) {
-      dom.stepperFill.style.width = `${percent}%`;
+      dom.stepperFill.style.width = `${Math.max(currentDisplayPercent, percent)}%`;
     }
 
-    const steps = ["stepFrames", "stepAnalyze", "stepScript", "stepVoice", "stepRender", "stepAnnotations"];
+    const steps = ["stepFrames", "stepAnalyze", "stepVoice", "stepRender", "stepAnnotations"];
     const activeIdx = steps.indexOf(activeStepId);
     steps.forEach((stepId, idx) => {
       const el = document.getElementById(stepId);
@@ -1479,42 +1494,56 @@
 
   function startStepper() {
     state.isProcessing = true;
+    currentDisplayPercent = 10;
+    targetDisplayPercent = 10;
     if (dom.processingStepper) dom.processingStepper.style.display = "block";
     if (dom.resultContainer) dom.resultContainer.style.display = "none";
+    if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
     if (dom.resultVideo) {
       dom.resultVideo.removeAttribute("src");
       dom.resultVideo.load();
     }
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = true;
 
+    updateStepperStatus("1. جاري استخراج الإطارات وفحص خصائص الفيديو...", 10, "stepFrames");
     animateStepperProgress();
   }
 
   function animateStepperProgress() {
-    let p = 15;
-    const interval = setInterval(() => {
+    if (stepperAnimationInterval) clearInterval(stepperAnimationInterval);
+    stepperAnimationInterval = setInterval(() => {
       if (!state.isProcessing) {
-        clearInterval(interval);
+        clearInterval(stepperAnimationInterval);
+        stepperAnimationInterval = null;
         return;
       }
-      p = Math.min(92, p + Math.floor(Math.random() * 4) + 2);
-      if (dom.stepperFill) dom.stepperFill.style.width = `${p}%`;
-      const stepId = resolveStepFromTelemetry(0, p, "");
-      const steps = ["stepFrames", "stepAnalyze", "stepScript", "stepVoice", "stepRender", "stepAnnotations"];
-      const activeIdx = steps.indexOf(stepId);
-      steps.forEach((id, idx) => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle("active", idx <= activeIdx);
-      });
-    }, 1200);
+      // Smoothly advance display progress towards targetDisplayPercent, never exceeding target
+      if (currentDisplayPercent < targetDisplayPercent) {
+        currentDisplayPercent = Math.min(targetDisplayPercent, currentDisplayPercent + 1);
+        if (dom.stepperFill) dom.stepperFill.style.width = `${currentDisplayPercent}%`;
+      }
+    }, 150);
   }
 
   async function pollJobStatus(jobId) {
     let attempts = 0;
-    const maxAttempts = 120;
+    const maxAttempts = 160; // Extended timeout ceiling (~240-300 seconds total)
+    let consecutiveNetworkErrors = 0;
+    const maxNetworkErrors = 6;
+
     while (attempts < maxAttempts) {
       attempts++;
-      await new Promise(r => setTimeout(r, 1500));
+
+      // Adaptive polling delay: fast initial checks, then steady interval
+      let pollDelayMs = 1500;
+      if (attempts <= 5) {
+        pollDelayMs = 1000;
+      } else if (attempts > 30) {
+        pollDelayMs = 2000;
+      }
+
+      await new Promise(r => setTimeout(r, pollDelayMs));
+
       try {
         const token = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
         const headers = token ? { "Authorization": `Bearer ${token}` } : {};
@@ -1522,26 +1551,72 @@
           headers: headers,
           credentials: "include"
         });
+
+        // 404 grace period for just-spawned jobs
+        if (resp.status === 404 && attempts <= 3) {
+          continue;
+        }
+
         if (resp.ok) {
+          consecutiveNetworkErrors = 0;
           const d = await resp.json();
-          const percent = d.progress_percent !== undefined ? d.progress_percent : (d.progress !== undefined ? d.progress : 15);
-          const msg = d.message || d.step_description || "جاري معالجة الفيديو وإنتاج المحتوى الذكي...";
-          const stepId = resolveStepFromTelemetry(d.step, percent, msg);
 
-          // Real-time stage reflection (Extracting frames, Vision AI analysis, Speech generation, Video rendering, Annotations)
-          updateStepperStatus(msg, percent, stepId);
-
-          const isComplete = (d.status === "completed" || d.status === "done" || percent >= 100);
+          // 1. Immediate completion check: transition immediately without waiting or timeout
+          const isComplete = (d.status === "completed" || d.status === "done" || (d.progress_percent !== undefined && d.progress_percent >= 100));
           if (isComplete) {
-            // DO NOT load or reveal the video card or set video.src until status === 'completed' or progress === 100
+            updateStepperStatus("اكتمل إنتاج الفيديو التسويقي بنجاح!", 100, "stepAnnotations");
             return d;
           }
+
+          // 2. Immediate failure check: propagate actual backend error message
           if (d.status === "failed" || d.status === "error") {
-            throw new Error(d.error || d.message || "فشلت معالجة الفيديو.");
+            const backendError = d.error || d.message || d.detail || (d.result && (d.result.error || d.result.message)) || "فشلت معالجة الفيديو بالذكاء الاصطناعي.";
+            throw new Error(backendError);
+          }
+
+          // 3. Extract real backend progress percentage
+          let serverPercent = null;
+          if (d.progress_percent !== undefined && d.progress_percent !== null) {
+            serverPercent = Number(d.progress_percent);
+          } else if (d.progress !== undefined && d.progress !== null) {
+            serverPercent = Number(d.progress);
+          }
+
+          // Fallback to step mapping if numeric percentage is missing
+          const stepNum = Number(d.step || d.current_step || 0);
+          if (serverPercent === null || isNaN(serverPercent) || serverPercent <= 0) {
+            if (stepNum === 1) serverPercent = 15;
+            else if (stepNum === 2) serverPercent = 35;
+            else if (stepNum === 3) serverPercent = 60;
+            else if (stepNum === 4) serverPercent = 82;
+            else if (stepNum >= 5) serverPercent = 95;
+            else serverPercent = Math.min(20, Math.max(10, attempts * 2));
+          }
+
+          // Strict Cap: In-flight processing must never prematurely show 100%
+          serverPercent = Math.min(96, Math.max(8, serverPercent));
+
+          const msg = d.message || d.step_description || d.status_text || "جاري معالجة الفيديو وإنتاج المحتوى الذكي...";
+          const stepId = resolveStepFromTelemetry(stepNum, serverPercent, msg);
+
+          // Update Stepper with real progress
+          updateStepperStatus(msg, serverPercent, stepId);
+        } else {
+          // HTTP error response (e.g. 500, 502)
+          consecutiveNetworkErrors++;
+          if (consecutiveNetworkErrors >= maxNetworkErrors) {
+            throw new Error(`تعذر استلام حالة الفيديو من الخادم (رمز الاستجابة: ${resp.status}).`);
           }
         }
       } catch (e) {
-        if (attempts > 30) throw e;
+        // If it's a backend failure error, rethrow immediately
+        if (e.message && !e.message.includes("Failed to fetch") && !e.message.includes("NetworkError")) {
+          throw e;
+        }
+        consecutiveNetworkErrors++;
+        if (consecutiveNetworkErrors >= maxNetworkErrors) {
+          throw new Error("انقطع الاتصال بالخادم أثناء متابعة المعالجة. يرجى التحقق من الشبكة وإعادة المحاولة.");
+        }
       }
     }
     throw new Error("استغرقت معالجة الفيديو وقتاً طويلاً. يرجى التحقق من لوحة التحكم أو إعادة المحاولة.");
@@ -1786,6 +1861,16 @@
       if (dom.resultCaptionsPill) dom.resultCaptionsPill.style.display = "none";
       if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
       if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
+
+      // Show action-oriented failure alert with Retry button
+      if (dom.studioErrorBox) {
+        if (dom.studioErrorMessage) {
+          dom.studioErrorMessage.textContent = errorMsg || "تعذر إكمال إنتاج الفيديو. يرجى إعادة المحاولة.";
+        }
+        dom.studioErrorBox.style.display = "block";
+        dom.studioErrorBox.scrollIntoView({ behavior: "smooth" });
+      }
+
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
     }
   }
@@ -1924,6 +2009,8 @@
     if (dom.videoFileInput) dom.videoFileInput.value = "";
     if (dom.dropzoneIdleContent) dom.dropzoneIdleContent.style.display = "block";
     if (dom.dropzoneSelectedContent) dom.dropzoneSelectedContent.style.display = "none";
+    if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
+    if (dom.studioErrorMessage) dom.studioErrorMessage.textContent = "";
     if (dom.resultContainer) dom.resultContainer.style.display = "none";
     if (dom.resultVideo) {
       dom.resultVideo.removeAttribute("src");

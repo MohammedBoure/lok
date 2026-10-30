@@ -1,9 +1,9 @@
 /**
  * lok • Modern Black & White Minimalist Theme
  * File: web/static/style.css
- * Author: MouhammedBoure
+ * Author: MouhammedBoure <mohamadbormoz2@gmail.com>
  * Role: Lead Frontend Engineer (agy51)
- * Branch: frontend/agy51-minimal-lok-and-admin-ui
+ * Branch: frontend/agy51-polling-resilience-and-progress-telemetry
  */
 
 /* ==========================================================================
@@ -666,6 +666,60 @@ body {
   background-color: rgba(255, 255, 255, 0.1);
   color: var(--lok-white);
   border-color: var(--lok-white);
+}
+
+/* Studio Error / Failure Box with Quick Retry */
+.studio-error-box {
+  background-color: var(--lok-surface);
+  border: 1px solid #ef4444;
+  border-radius: var(--lok-radius-md);
+  padding: 20px;
+  margin-top: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.error-box-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.error-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.error-text-group {
+  flex: 1;
+}
+
+.error-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 4px;
+}
+
+.error-message {
+  font-size: 0.88rem;
+  color: var(--lok-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.error-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-retry-action {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--lok-radius-pill);
+  cursor: pointer;
 }
 
 /* Result Container */
