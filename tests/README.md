@@ -4,6 +4,14 @@
 This directory contains automated unit, integration, and end-to-end pipeline verification tests for the video post-production system. It serves as the pragmatic quality gatekeeper validating visual frame extraction, MCP tool interfaces, neural TTS voiceover synthesis, synchronized video assembly, dynamic background music ducking, and metadata integrity.
 
 ## Itemized File Breakdown
+- [`test_pipeline_latency_and_telemetry.py`](test_pipeline_latency_and_telemetry.py): Backend performance and telemetry test suite authored by `agy11` validating:
+  - Real-time step progress tracking (`current_step`, `progress_percent`) via `/api/status/{job_id}`.
+  - Pipeline latency optimizations: accelerated FFmpeg encoding (`faster` preset, `-threads 0`) and restricted dense vision frames (10 frames) to eliminate polling stalls.
+  - Immediate exception capture and real-time failure state propagation (`status: failed`, `error_details`) preventing jobs from hanging in processing state.
+- [`test_polling_resilience_and_progress_ux.py`](test_polling_resilience_and_progress_ux.py): Frontend polling resilience test suite authored by `agy51` validating:
+  - Extended adaptive polling ceiling (up to 300s) preventing premature timeout errors.
+  - Stepper synchronization with real server-reported progress percentages and steps.
+  - Non-destructive 1-click retry button preserving uploaded video file and prompt state upon failure.
 - [`test_optin_sandboxing_and_creative_variety.py`](test_optin_sandboxing_and_creative_variety.py): Backend test suite authored by `agy11` validating:
   - Strict opt-in architecture: subtitles and background music ducking default to OFF unless explicitly requested in prompt.
   - Multi-tenant job sandboxing: all intermediate artifacts, keyframes, audio slices, and renders confined to per-job isolated directory `outputs/jobs/<job_id>/sandbox/`.
