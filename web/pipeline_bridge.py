@@ -1208,10 +1208,13 @@ def process_mobile_video(
     def _notify(step: int, percent: int, message: str, log: str, extra: Optional[Dict[str, Any]] = None):
         if progress_callback:
             try:
+                status_label = "completed" if percent >= 100 else "processing"
                 payload = {
                     "job_id": job_id,
-                    "status": "processing",
+                    "status": status_label,
                     "step": step,
+                    "current_step": step,
+                    "progress": percent,
                     "progress_percent": percent,
                     "message": message,
                     "log": log,
@@ -1739,14 +1742,22 @@ def process_mobile_video(
             "-map", "[vout]",
             "-map", "[aout]",
             "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "20",
+            "-preset", "faster",
+            "-crf", "22",
+            "-threads", "0",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
             "-b:a", "192k",
             "-t", str(total_duration),
             str(final_cut_path),
         ]
+
+    _notify(
+        step=5,
+        percent=90,
+        message="ريندر وتجميع مشاهد الفيديو والصوت عبر FFmpeg...",
+        log=f"[ريندر الفيديو] 🎬 بدء تصدير الفيديو النهائي بدقة {target_w}x{target_h} ودمج الصوت والمشاهد...",
+    )
 
     logger.info("Job %s: Rendering final cut with FFmpeg -> %s", job_id, final_cut_path)
     start_render = datetime.now(timezone.utc)

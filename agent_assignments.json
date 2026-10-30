@@ -7,7 +7,7 @@
       "branch": "backend/agy11-pipeline-latency-and-status-telemetry",
       "scope": "1) Pipeline Latency & Status Architecture: In web/server.py and web/pipeline_bridge.py, inspect background job execution and /api/status/{job_id}. Ensure progress stages and percentages are updated promptly without stalling. 2) Real-time Error Propagation: If an exception occurs in background processing, immediately update job status to failed with actionable error details so the client never hangs waiting in processing. 3) Performance Optimizations: Streamline dense vision calls and FFmpeg assembly passes to prevent job timeouts. 4) Author tests in tests/test_pipeline_latency_and_telemetry.py. 5) Zero U+0669, update web/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [],
-      "state": "ASSIGNED"
+      "state": "COMPLETED"
     },
     {
       "agent_id": "agy51",

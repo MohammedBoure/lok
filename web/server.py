@@ -276,12 +276,25 @@ def _execute_processing_job(
         agent_logs = curr.get("agent_logs", [])
         if event.get("log") and event["log"] not in agent_logs:
             agent_logs.append(event["log"])
-        PROGRESS_STORE[job_id] = {
+
+        pct = event.get("percent") if event.get("percent") is not None else event.get("progress_percent", 15)
+        step = event.get("step", 1)
+
+        evt_status = event.get("status")
+        if evt_status in ("failed", "error"):
+            status_val = "failed"
+        elif evt_status in ("completed", "done") or (isinstance(pct, (int, float)) and pct >= 100):
+            status_val = "completed"
+        else:
+            status_val = "processing"
+
+        payload = {
             "job_id": job_id,
-            "status": "processing",
-            "step": event.get("step", 1),
-            "progress": event.get("percent") or event.get("progress_percent", 15),
-            "progress_percent": event.get("percent") or event.get("progress_percent", 15),
+            "status": status_val,
+            "step": step,
+            "current_step": step,
+            "progress": pct,
+            "progress_percent": pct,
             "message": event.get("message", "جاري المعالجة..."),
             "agent_logs": agent_logs,
             "auto_mode": auto_mode,
@@ -294,8 +307,19 @@ def _execute_processing_job(
             "bottom_text": event.get("bottom_text") or curr.get("bottom_text") or bottom_text,
             "phone_number": event.get("phone_number") or curr.get("phone_number") or phone_number,
             "script": event.get("script") or curr.get("script") or script,
+            "error": event.get("error") or curr.get("error"),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
+        if event.get("error_details"):
+            payload["error_details"] = event["error_details"]
+        if event.get("video_url"):
+            payload["video_url"] = event["video_url"]
+        if event.get("sandboxed_video_url"):
+            payload["sandboxed_video_url"] = event["sandboxed_video_url"]
+
+        PROGRESS_STORE[job_id] = payload
+        if status_val == "failed":
+            JOBS_STORE[job_id] = dict(payload)
 
     try:
         summary = process_mobile_video(
@@ -386,6 +410,7 @@ def _execute_processing_job(
             "job_id": job_id,
             "status": "completed",
             "step": 5,
+            "current_step": 5,
             "progress": 100,
             "progress_percent": 100,
             "video_url": video_web_url,
@@ -412,15 +437,28 @@ def _execute_processing_job(
         }
     except Exception as exc:
         logger.exception("Error processing job %s: %s", job_id, exc)
-        PROGRESS_STORE[job_id] = {
+        failed_payload = {
             "job_id": job_id,
             "status": "failed",
             "step": 0,
+            "current_step": 0,
+            "progress": 0,
             "progress_percent": 0,
             "message": f"حدث خطأ أثناء المعالجة: {exc}",
             "error": str(exc),
+            "error_details": {
+                "type": type(exc).__name__,
+                "message": str(exc),
+            },
+            "agent_logs": PROGRESS_STORE.get(job_id, {}).get("agent_logs", []) + [f"خطأ في المعالجة: {exc}"],
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
+        PROGRESS_STORE[job_id] = failed_payload
+        JOBS_STORE[job_id] = failed_payload
+
+
+# Public alias for downstream modules and tests
+execute_video_job = _execute_processing_job
 
 
 async def create_job_async(request: Request) -> JSONResponse:
@@ -929,6 +967,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
         "job_id": job_id,
         "status": "processing",
         "step": 1,
+        "current_step": 1,
+        "progress": 15,
         "progress_percent": 15,
         "message": "جاري بدء معالجة الفيديو...",
         "agent_logs": [f"تم رفع الفيديو '{original_filename}'."],
@@ -944,11 +984,25 @@ async def upload_and_process(request: Request) -> JSONResponse:
         logs = curr.get("agent_logs", [])
         if event.get("log") and event["log"] not in logs:
             logs.append(event["log"])
-        PROGRESS_STORE[job_id] = {
+
+        pct = event.get("percent") if event.get("percent") is not None else event.get("progress_percent", 15)
+        step = event.get("step", 1)
+
+        evt_status = event.get("status")
+        if evt_status in ("failed", "error"):
+            status_val = "failed"
+        elif evt_status in ("completed", "done") or (isinstance(pct, (int, float)) and pct >= 100):
+            status_val = "completed"
+        else:
+            status_val = "processing"
+
+        payload = {
             "job_id": job_id,
-            "status": "processing",
-            "step": event.get("step", 1),
-            "progress_percent": event.get("progress_percent", 15),
+            "status": status_val,
+            "step": step,
+            "current_step": step,
+            "progress": pct,
+            "progress_percent": pct,
             "message": event.get("message", "جاري المعالجة..."),
             "agent_logs": logs,
             "auto_mode": auto_mode,
@@ -959,7 +1013,18 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "bottom_text": event.get("bottom_text") or curr.get("bottom_text") or bottom_text,
             "phone_number": event.get("phone_number") or curr.get("phone_number") or phone_number,
             "script": event.get("script") or curr.get("script") or script,
+            "error": event.get("error") or curr.get("error"),
         }
+        if event.get("error_details"):
+            payload["error_details"] = event["error_details"]
+        if event.get("video_url"):
+            payload["video_url"] = event["video_url"]
+        if event.get("sandboxed_video_url"):
+            payload["sandboxed_video_url"] = event["sandboxed_video_url"]
+
+        PROGRESS_STORE[job_id] = payload
+        if status_val == "failed":
+            JOBS_STORE[job_id] = dict(payload)
 
     try:
         summary = process_mobile_video(
@@ -1055,6 +1120,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             "job_id": assigned_job_id,
             "status": "completed",
             "step": 5,
+            "current_step": 5,
             "progress": 100,
             "progress_percent": 100,
             "video_url": video_web_url,
@@ -1078,14 +1144,67 @@ async def upload_and_process(request: Request) -> JSONResponse:
 
     except Exception as exc:
         logger.exception("Error during video processing: %s", exc)
-        return JSONResponse(
-            {
-                "status": "failed",
-                "error": str(exc),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+        failed_payload = {
+            "job_id": job_id,
+            "status": "failed",
+            "step": 0,
+            "current_step": 0,
+            "progress": 0,
+            "progress_percent": 0,
+            "message": f"حدث خطأ أثناء المعالجة: {exc}",
+            "error": str(exc),
+            "error_details": {
+                "type": type(exc).__name__,
+                "message": str(exc),
             },
-            status_code=500,
-        )
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        PROGRESS_STORE[job_id] = failed_payload
+        JOBS_STORE[job_id] = failed_payload
+        return JSONResponse(failed_payload, status_code=500)
+
+
+def _find_finalized_cut_file(job_id: str, data: Optional[Dict[str, Any]] = None) -> Tuple[Optional[Path], str]:
+    """
+    Check candidate paths on disk to verify if the output video cut is finalized and non-empty.
+    Returns (Path or None, web_url).
+    """
+    data = data or {}
+    candidates = []
+
+    # Check explicit paths from payload / result
+    for key in ("output_path", "absolute_output_path", "video_path"):
+        val = data.get(key)
+        if val:
+            candidates.append(Path(val))
+    if isinstance(data.get("result"), dict):
+        for key in ("output_path", "absolute_output_path", "video_path"):
+            val = data["result"].get(key)
+            if val:
+                candidates.append(Path(val))
+
+    # Check sandboxed job directory
+    candidates.append(OUTPUTS_DIR / "jobs" / job_id / "sandbox" / f"cut_{job_id}.mp4")
+    # Check mobile_cuts directory
+    candidates.append(OUTPUTS_DIR / "mobile_cuts" / f"cut_{job_id}.mp4")
+    if job_id in ("final_cut", "default"):
+        candidates.append(OUTPUTS_DIR / "final_cut.mp4")
+
+    for cand in candidates:
+        try:
+            if cand.is_file() and cand.stat().st_size > 0:
+                if f"jobs/{job_id}/sandbox" in str(cand):
+                    url = f"/outputs/jobs/{job_id}/sandbox/cut_{job_id}.mp4"
+                elif "mobile_cuts" in str(cand):
+                    url = f"/outputs/mobile_cuts/{cand.name}"
+                else:
+                    url = data.get("video_url") or f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+                return (cand, url)
+        except OSError:
+            pass
+
+    default_url = data.get("video_url") or f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+    return (None, default_url)
 
 
 async def get_job_status(request: Request) -> JSONResponse:
@@ -1094,27 +1213,30 @@ async def get_job_status(request: Request) -> JSONResponse:
     if not job_id:
         return JSONResponse({"error": "Missing job_id parameter."}, status_code=400)
 
-    output_cut_file = OUTPUTS_DIR / "mobile_cuts" / f"cut_{job_id}.mp4"
-    video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
-
     # 1. Check in-flight progress telemetry
     if job_id in PROGRESS_STORE:
         p_data = PROGRESS_STORE[job_id]
-        if p_data.get("status") == "completed" and "result" in p_data:
-            # Strictly verify that output MP4 file is completely written and non-empty on disk
-            if not output_cut_file.is_file() or output_cut_file.stat().st_size == 0:
-                logger.info("Job %s: Cut file not yet finalized on disk. Returning processing 98%%.", job_id)
-                return JSONResponse({
-                    "job_id": job_id,
-                    "status": "processing",
-                    "step": 5,
-                    "progress": 98,
-                    "progress_percent": 98,
-                    "message": "جاري الانتهاء من كتابة وتصدير ملف الفيديو...",
-                    "agent_logs": p_data.get("agent_logs", []),
-                })
 
-            res_dict = dict(p_data["result"])
+        # Immediate error propagation
+        if p_data.get("status") in ("failed", "error"):
+            err_msg = p_data.get("error") or p_data.get("message") or "فشلت معالجة الفيديو."
+            return JSONResponse({
+                "job_id": job_id,
+                "status": "failed",
+                "step": 0,
+                "current_step": 0,
+                "progress": 0,
+                "progress_percent": 0,
+                "message": p_data.get("message", "حدث خطأ أثناء المعالجة."),
+                "error": err_msg,
+                "error_details": p_data.get("error_details") or {"message": err_msg},
+                "agent_logs": p_data.get("agent_logs", []),
+                "updated_at": p_data.get("updated_at"),
+            })
+
+        if p_data.get("status") in ("completed", "done"):
+            cut_file, video_web_url = _find_finalized_cut_file(job_id, p_data)
+            res_dict = dict(p_data.get("result") or p_data)
             res_dict.setdefault("emotional_tone", p_data.get("emotional_tone"))
             res_dict.setdefault("inferred_script", p_data.get("inferred_script"))
             res_dict.setdefault("script", p_data.get("script") or p_data.get("inferred_script"))
@@ -1125,62 +1247,97 @@ async def get_job_status(request: Request) -> JSONResponse:
             res_dict.setdefault("shot_timeline", p_data.get("shot_timeline") or [])
             res_dict.setdefault("videographer_speech", p_data.get("videographer_speech"))
             res_dict.setdefault("customer_specifications", p_data.get("customer_specifications") or {})
+            res_dict["job_id"] = job_id
+            res_dict["status"] = "completed"
+            res_dict["step"] = 5
+            res_dict["current_step"] = 5
+            res_dict["progress"] = 100
+            res_dict["progress_percent"] = 100
             res_dict["video_url"] = video_web_url
             res_dict["output_video_url"] = video_web_url
             res_dict["output_video"] = video_web_url
-            res_dict["status"] = "completed"
-            res_dict["progress"] = 100
-            res_dict["progress_percent"] = 100
-            res_dict["file_size_bytes"] = output_cut_file.stat().st_size
+            if cut_file:
+                res_dict["file_size_bytes"] = cut_file.stat().st_size
             return JSONResponse(res_dict)
 
+        # In-flight processing state
         resp = dict(p_data)
-        if "progress_percent" in resp and "progress" not in resp:
-            resp["progress"] = resp["progress_percent"]
+        step = resp.get("step") or resp.get("current_step") or 1
+        resp["step"] = step
+        resp["current_step"] = step
+        pct = resp.get("progress_percent") if resp.get("progress_percent") is not None else resp.get("progress", 15)
+        resp["progress"] = pct
+        resp["progress_percent"] = pct
         return JSONResponse(resp)
 
     # 2. Check in-memory completed store
     if job_id in JOBS_STORE:
-        if not output_cut_file.is_file() or output_cut_file.stat().st_size == 0:
+        j_data = JOBS_STORE[job_id]
+        if j_data.get("status") in ("failed", "error"):
+            err_msg = j_data.get("error") or j_data.get("message") or "فشلت معالجة الفيديو."
             return JSONResponse({
                 "job_id": job_id,
-                "status": "processing",
-                "step": 5,
-                "progress": 98,
-                "progress_percent": 98,
-                "message": "جاري الانتهاء من كتابة وتصدير ملف الفيديو...",
+                "status": "failed",
+                "step": 0,
+                "current_step": 0,
+                "progress": 0,
+                "progress_percent": 0,
+                "message": j_data.get("message", "حدث خطأ أثناء المعالجة."),
+                "error": err_msg,
+                "error_details": j_data.get("error_details") or {"message": err_msg},
+                "agent_logs": j_data.get("agent_logs", []),
+                "updated_at": j_data.get("updated_at"),
             })
-        res = dict(JOBS_STORE[job_id])
+
+        cut_file, video_web_url = _find_finalized_cut_file(job_id, j_data)
+        res = dict(j_data)
+        res["job_id"] = job_id
+        res["status"] = "completed"
+        res["step"] = 5
+        res["current_step"] = 5
+        res["progress"] = 100
+        res["progress_percent"] = 100
         res["video_url"] = video_web_url
         res["output_video_url"] = video_web_url
         res["output_video"] = video_web_url
-        res["status"] = "completed"
-        res["progress"] = 100
-        res["progress_percent"] = 100
-        res["file_size_bytes"] = output_cut_file.stat().st_size
+        if cut_file:
+            res["file_size_bytes"] = cut_file.stat().st_size
         return JSONResponse(res)
 
-    # 3. Check disk for summary_<job_id>.json
-    summary_file = OUTPUTS_DIR / "mobile_cuts" / f"summary_{job_id}.json"
-    if summary_file.is_file():
-        try:
-            with open(summary_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if output_cut_file.is_file() and output_cut_file.stat().st_size > 0:
+    # 3. Check disk for summary_<job_id>.json in sandbox or mobile_cuts
+    summary_candidates = [
+        OUTPUTS_DIR / "jobs" / job_id / "sandbox" / f"summary_{job_id}.json",
+        OUTPUTS_DIR / "mobile_cuts" / f"summary_{job_id}.json",
+    ]
+    for summary_file in summary_candidates:
+        if summary_file.is_file():
+            try:
+                with open(summary_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                cut_file, video_web_url = _find_finalized_cut_file(job_id, data)
+                data["job_id"] = job_id
                 data["video_url"] = video_web_url
                 data["output_video_url"] = video_web_url
                 data["output_video"] = video_web_url
                 data["status"] = "completed"
+                data["step"] = 5
+                data["current_step"] = 5
                 data["progress"] = 100
                 data["progress_percent"] = 100
-                data["file_size_bytes"] = output_cut_file.stat().st_size
+                if cut_file:
+                    data["file_size_bytes"] = cut_file.stat().st_size
                 JOBS_STORE[job_id] = data
                 return JSONResponse(data)
-        except Exception as exc:
-            logger.warning("Failed to read summary file %s: %s", summary_file, exc)
+            except Exception as exc:
+                logger.warning("Failed to read summary file %s: %s", summary_file, exc)
 
     return JSONResponse(
-        {"error": f"Job '{job_id}' not found.", "status": "not_found"},
+        {
+            "job_id": job_id,
+            "status": "not_found",
+            "error": f"Job '{job_id}' not found.",
+            "message": f"لم يتم العثور على المهمة '{job_id}'.",
+        },
         status_code=404,
     )
 

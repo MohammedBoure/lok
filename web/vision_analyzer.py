@@ -562,13 +562,14 @@ def infer_video_script_and_mood(
             videographer_speech=videographer_speech,
         )
 
-    # Dense keyframe sampling: pass up to 16 representative frames evenly
+    # Dense keyframe sampling: pass up to 10 representative frames evenly (latency optimized)
     selected_records: List[Dict[str, Any]] = []
-    if len(keyframe_records) <= 16:
+    max_vision_frames = int(os.getenv("GEMINI_VISION_MAX_FRAMES", "10"))
+    if len(keyframe_records) <= max_vision_frames:
         selected_records = keyframe_records
     else:
-        step = len(keyframe_records) / 16.0
-        selected_records = [keyframe_records[int(i * step)] for i in range(16)]
+        step = len(keyframe_records) / float(max_vision_frames)
+        selected_records = [keyframe_records[int(i * step)] for i in range(max_vision_frames)]
 
     selected_frames = [r["path"] for r in selected_records]
 
@@ -724,10 +725,10 @@ def infer_video_script_and_mood(
     else:
         candidate_models = list(ACTIVE_VISION_MODELS)
 
-    # Configurable timeouts: 45s read timeout to accommodate large multi-keyframe payloads
-    read_timeout = float(os.getenv("GEMINI_VISION_READ_TIMEOUT", "45.0"))
-    connect_timeout = float(os.getenv("GEMINI_VISION_CONNECT_TIMEOUT", "10.0"))
-    max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "2"))
+    # Configurable timeouts: 25s read timeout to prevent pipeline stalls and client polling timeouts
+    read_timeout = float(os.getenv("GEMINI_VISION_READ_TIMEOUT", "25.0"))
+    connect_timeout = float(os.getenv("GEMINI_VISION_CONNECT_TIMEOUT", "5.0"))
+    max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "1"))
 
     import requests
     import time
