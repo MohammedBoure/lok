@@ -3,7 +3,7 @@
 Test Suite for Audio-Visual Lead-In Synchronization, Dense Vision Sampling,
 and Algerian Real Estate Voice Profile Routing (tests/test_audio_sync_and_dense_vision.py).
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Logic & Systems Engineer (agy11)
 Branch: backend/agy11-audio-sync-and-dense-vision-sampling
 """

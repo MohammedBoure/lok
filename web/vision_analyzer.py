@@ -4,7 +4,7 @@ Multimodal Vision Analyzer for Real Estate Video (web/vision_analyzer.py)
 Infers engaging Arabic voiceover script, emotional atmosphere/mood, and background music
 from extracted video keyframes using Gemini Multimodal Vision API.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-auto-vision-script-and-app-runner
 """

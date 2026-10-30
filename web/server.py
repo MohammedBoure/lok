@@ -3,7 +3,7 @@
 Mobile API Server (web/server.py)
 Starlette & Uvicorn REST API for smartphone video recording & post-production.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """

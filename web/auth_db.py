@@ -4,7 +4,7 @@ SaaS Multi-Tenant Authentication, Sessions & Quotas Database Module (web/auth_db
 Manages commercial merchant accounts, password hashing, session tokens, expiration,
 daily/weekly quotas, and video generation audit history in SQLite (outputs/saas_platform.db).
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Backend Architecture & Systems Specialist (agy11)
 Branch: backend/agy11-session-auth-tts-voice-samples
 """

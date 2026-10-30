@@ -4,7 +4,7 @@ Video Annotator & Visual Overlay Engine.
 Applies lower-third banners, price tags, and architectural highlight captions
 onto video cuts using fast hardware-accelerated FFmpeg filtergraphs.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 from __future__ import annotations

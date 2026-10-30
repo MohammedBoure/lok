@@ -1,6 +1,6 @@
 /**
  * lok • Modern Minimalist Client Application Engine (web/static/app.js)
- * Author: MohammedBoure
+ * Author: MouhammedBoure
  * Role: Lead Frontend Engineer (agy51)
  * Branch: frontend/agy51-minimal-lok-and-admin-ui
  */

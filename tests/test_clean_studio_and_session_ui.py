@@ -1,7 +1,7 @@
 """
 Unit and Integration Tests for Decluttered Studio UI and Session Login Gateway
 File: tests/test_clean_studio_and_session_ui.py
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Frontend & Interface Auditor (agy51)
 Branch: frontend/agy51-clean-studio-session-login-ui
 """

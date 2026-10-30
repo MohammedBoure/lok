@@ -1,7 +1,7 @@
 """
 Unit & Integration Tests for SaaS Dashboard, Merchant Studio, and Multi-Tenant Personas
 File: tests/test_saas_dashboard_ui.py
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Frontend SaaS Lead & UI Auditor (agy51)
 Branch: frontend/agy51-saas-dashboard-and-merchant-studio
 """

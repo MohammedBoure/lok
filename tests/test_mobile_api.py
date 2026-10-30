@@ -1,7 +1,7 @@
 """
 Tests for Mobile API Server & Video Post-Production Bridge (tests/test_mobile_api.py)
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """

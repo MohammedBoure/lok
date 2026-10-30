@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Integration Gatekeeper Test Suite: Dynamic Audio Mixing, Prominent Safe Overlays, and Adaptive Script Pacing
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-dynamic-narration-and-audio-gatekeeper
 
 Comprehensive Gatekeeper Verification:

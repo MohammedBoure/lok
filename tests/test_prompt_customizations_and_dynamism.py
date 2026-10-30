@@ -16,7 +16,7 @@ Verifies:
    - Continuous 3-phase dynamic narration without premature cutoffs
 4. Strict compliance with 0 occurrences of character U+0669.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Branch: backend/agy11-dynamic-audio-and-large-overlay-control
 """
 

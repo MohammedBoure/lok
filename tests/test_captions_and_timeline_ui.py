@@ -1,7 +1,7 @@
 """
 Frontend UI/UX Test Suite for Synchronized Captions Pill and Shot Timeline Inspection
 File: tests/test_captions_and_timeline_ui.py
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Frontend UI/UX Auditor (agy51)
 Branch: frontend/agy51-caption-sync-and-shot-timeline-ui
 """

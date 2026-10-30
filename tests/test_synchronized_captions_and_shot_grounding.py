@@ -3,7 +3,7 @@
 Tests for Synchronized Captions, Shot-by-Shot Visual Grounding & Strict Prompt Adherence.
 Location: tests/test_synchronized_captions_and_shot_grounding.py
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Branch: backend/agy11-synchronized-captions-and-shot-grounding
 """
 

@@ -4,7 +4,7 @@ Comprehensive Test Suite for Session-Based Authentication, Default Admin Credent
 Gated Service Execution, and Real TTS Voice Sample Generation
 (tests/test_session_auth_and_tts_samples.py).
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Backend Architecture & Systems Specialist (agy11)
 Branch: backend/agy11-session-auth-tts-voice-samples
 """

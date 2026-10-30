@@ -3,7 +3,7 @@
 Autonomous Video Montage & Editorial Decision MCP Server & CLI (web/video_montage_mcp.py)
 Exposes tools for AI video editing, trimming, shot slicing, and prompt-directed montage.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 """
 
 from __future__ import annotations

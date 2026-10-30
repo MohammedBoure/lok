@@ -3,7 +3,7 @@
 Integration and Gatekeeper Test Suite for Dynamic Video Delivery & Vision Model Resilience.
 File: tests/test_dynamic_video_delivery.py
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Quality Gatekeeper (agy100)
 Branch: test/agy100-dynamic-video-delivery-gatekeeper
 """

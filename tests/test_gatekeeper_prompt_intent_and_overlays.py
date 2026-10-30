@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Integration Gatekeeper Test Suite: Prompt Intent Disentanglement, Script Inspection Card, and Persistent Bottom Overlays.
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: test/agy100-prompt-intent-and-overlays-gatekeeper
 
 Comprehensive Gatekeeper Verification:

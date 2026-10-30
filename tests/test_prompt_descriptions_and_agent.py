@@ -3,7 +3,7 @@
 Test Suite for SQLite Prompt Descriptions Persistence & Linguistic Agent Integration
 (tests/test_prompt_descriptions_and_agent.py)
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Systems Engineer (agy11)
 Branch: backend/agy11-sqlite-prompt-descriptions-and-agent
 """

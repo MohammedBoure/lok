@@ -3,7 +3,7 @@
 Prompt Descriptions Database Module (web/prompt_db.py)
 SQLite persistence layer for visual and speech prompt descriptions history.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Systems Engineer (agy11)
 Branch: backend/agy11-sqlite-prompt-descriptions-and-agent
 """

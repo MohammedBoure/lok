@@ -3,7 +3,7 @@
 Root Platform Runner & 1-Command Entrypoint (app.py)
 Autonomous Video Production, Gemini Vision Inference, and Mobile Studio Server.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-auto-vision-script-and-app-runner
 """

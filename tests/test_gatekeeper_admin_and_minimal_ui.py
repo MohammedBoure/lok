@@ -3,7 +3,7 @@
 Comprehensive Integration Gatekeeper Test Suite: Admin Portal, Account Quotas & Management,
 Prompt Security Guardrail, Minimalist 'lok' Studio UI, and Character Mapping Compliance.
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Quality Gatekeeper & Integration Verification (agy100)
 Branch: test/agy100-admin-and-minimal-ui-gatekeeper
 File: tests/test_gatekeeper_admin_and_minimal_ui.py

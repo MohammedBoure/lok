@@ -3,7 +3,7 @@
 Integration & Unit Test Suite: Admin Portal & Prompt Security Guardrails
 Tests for web/auth_db.py, web/pipeline_bridge.py, and web/server.py.
 
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Branch: backend/agy11-admin-portal-and-prompt-security
 """
 

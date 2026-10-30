@@ -1,7 +1,7 @@
 """
 Comprehensive Test Suite for Minimalist 'lok' Studio UI & Bootstrap Admin Portal
 File: tests/test_minimal_lok_and_admin_ui.py
-Author: MohammedBoure <datasupabase@gmail.com>
+Author: MouhammedBoure <mohamadbormoz2@gmail.com>
 Role: Lead Frontend Engineer (agy51)
 Branch: frontend/agy51-minimal-lok-and-admin-ui
 """

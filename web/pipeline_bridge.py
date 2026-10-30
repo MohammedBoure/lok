@@ -3,7 +3,7 @@
 Mobile Post-Production Bridge & Assembly Engine (web/pipeline_bridge.py)
 Part of the Video Post-Production & Mobile API Server Pipeline.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Role: Backend Architecture & Processing Bridge (agy11)
 Branch: backend/agy11-mobile-api-server
 """

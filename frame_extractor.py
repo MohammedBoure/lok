@@ -3,7 +3,7 @@
 Visual Frame Extraction Tool & MCP Server (mcp_get_image_from_video)
 Part of the Video Post-Production & MCP Orchestration Pipeline.
 
-Author: MohammedBoure
+Author: MouhammedBoure
 Squad: Tool Development & Visual Extraction Squad (agy11)
 Branch: backend/agy11-frame-extraction-mcp
 """
