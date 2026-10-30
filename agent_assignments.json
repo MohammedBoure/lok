@@ -28,7 +28,7 @@
         "backend/agy11-pipeline-latency-and-status-telemetry",
         "frontend/agy51-polling-resilience-and-progress-telemetry"
       ],
-      "state": "PENDING"
+      "state": "COMPLETED"
     }
   ]
 }
