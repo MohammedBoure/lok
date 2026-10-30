@@ -244,6 +244,22 @@
             </div>
           </div>
 
+          <!-- Studio Error / Failure Alert Box with Quick Retry -->
+          <div class="studio-error-box" id="studioErrorBox" style="display: none;">
+            <div class="error-box-header">
+              <span class="error-icon">⚠️</span>
+              <div class="error-text-group">
+                <h4 class="error-title">تعذر إكمال إنتاج الفيديو</h4>
+                <p class="error-message" id="studioErrorMessage">حدث خطأ أثناء معالجة الفيديو.</p>
+              </div>
+            </div>
+            <div class="error-actions">
+              <button type="button" class="btn-bw-primary btn-retry-action" id="btnRetryProduction">
+                <span>🔄 إعادة المحاولة</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Final Result Card -->
           <div class="result-container" id="resultContainer" style="display: none;">
             <div id="resultCard" class="result-card">

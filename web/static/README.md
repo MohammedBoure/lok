@@ -197,9 +197,26 @@ Accessible via `#btnOpenSettings` and dismissible via `#btnSettingsBack` (`"← 
 - **Strict Result Gating**:
   - The Synchronized Captions Pill (`#resultCaptionsPill`) and Shot Timeline (`#shotsTimelineSection`) remain completely hidden unless the feature was explicitly requested or returned with positive counts (`subtitles_count > 0` or `timeline_applied === true`).
 - **Sandboxed Asset Isolation & Concurrency**:
-  - Video and media assets are resolved directly to isolated per-job directories (`/outputs/jobs/<job_id>/final_cut.mp4`).
+  - Video and media assets are resolved directly to isolated per-job directories (`data.sandboxed_video_url` -> `/outputs/jobs/<job_id>/sandbox/cut_<job_id>.mp4` and `/outputs/jobs/<job_id>/final_cut.mp4`).
   - Player media URLs are stamped with `job_id` and timestamp cache-busters (`?job_id=<id>&v=<timestamp>`).
   - Result elements tag DOM nodes with `data-job-id` and `data-sandboxed="true"`, preventing cross-tab or concurrent job collisions.
+
+### H. Adaptive Polling Resilience, Real-Time Progress Telemetry & Error Recovery
+Sprint 4 implements an adaptive polling architecture and robust failure recovery system:
+- **Extended Polling Ceiling & Adaptive Backoff**:
+  - Polling attempts increased to `160` iterations spanning up to **240–300 seconds**, allowing thorough multimodal AI vision analysis and multi-layer FFmpeg audio ducking without prematurely timing out.
+  - Employs an adaptive backoff cadence: `1000ms` for initial responsive handshakes (polls 1–5), `1500ms` for intermediate execution (polls 6–30), and `2000ms` for intensive rendering passes (polls 31–160).
+  - Transient network resilience: tolerates up to 6 consecutive network/HTTP hiccups before declaring a connection failure.
+- **Authoritative Server Progress Telemetry & Anti-Rush Pacing**:
+  - Eliminates detached synthetic countdowns; the progress bar (`#stepperFill`) is strictly bound to backend telemetry (`d.progress_percent` / `d.progress` / `d.step`).
+  - In-flight operations are capped at 96% until the backend explicitly signals `status === 'completed'`.
+  - Micro-interpolation smoothly tracks toward authoritative server targets without jumping or stalling at 92%.
+- **Actionable Failure State & 1-Click Non-Destructive Retry**:
+  - Dedicated high-contrast failure alert card (`#studioErrorBox`) and detail element (`#studioErrorMessage`) displaying the exact error message reported by the backend.
+  - Fast 1-click Retry action (`#btnRetryProduction`): dispatches re-production immediately while **100% preserving the selected video file (`state.selectedFile`) and prompt text (`#promptTextarea`)**, eliminating tedious re-upload friction.
+- **Instant Completion Transition**:
+  - Immediate handoff on `status === 'completed'`: immediately sets progress to 100%, reveals the video player, and scrolls to results without lingering delays.
+- Maintained by Lead Frontend Engineer: **`MouhammedBoure <mohamadbormoz2@gmail.com>`** (`agy51`).
 
 ---
 
