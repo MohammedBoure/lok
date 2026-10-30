@@ -247,6 +247,12 @@
     resultOverlayPill: document.getElementById("resultOverlayPill"),
     resultOverlayText: document.getElementById("resultOverlayText"),
     bottomTextBadge: document.getElementById("bottomTextBadge"),
+    overlayFontBadge: document.getElementById("overlayFontBadge"),
+    propertySpecsBadge: document.getElementById("propertySpecsBadge"),
+    resultMusicPill: document.getElementById("resultMusicPill"),
+    resultMusicText: document.getElementById("resultMusicText"),
+    resultMusicIcon: document.getElementById("resultMusicIcon"),
+    resultMusicBadge: document.getElementById("resultMusicBadge"),
     resultMontagePill: document.getElementById("resultMontagePill"),
     resultMontageText: document.getElementById("resultMontageText"),
 
@@ -1135,6 +1141,14 @@
         formData.append("bottom_text", phoneMatch[0]);
         formData.append("phone_number", phoneMatch[0]);
       }
+
+      // Music and font control flags
+      if (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى") || promptText.includes("بدون صوت موسيقى")) {
+        formData.append("mute_music", "true");
+      }
+      if (promptText.includes("بخط كبير") || promptText.includes("خط كبير") || promptText.includes("كبير وواضح") || promptText.includes("كبير و بارز")) {
+        formData.append("large_font", "true");
+      }
     }
 
     if (activeToken) {
@@ -1386,7 +1400,7 @@
         }
       }
 
-      // 2. Display Persistent Bottom Text or Phone Number Overlay Badge
+      // 2. Display Persistent Bottom Text, Large Font, and Property Specs
       const overlayText = (data && (
         data.bottom_text ||
         data.phone_number ||
@@ -1394,18 +1408,97 @@
         (data.result && (data.result.bottom_text || data.result.phone_number || data.result.fixed_text))
       )) || "";
 
-      if (dom.resultOverlayPill && (dom.resultOverlayText || dom.bottomTextBadge)) {
+      const largeFontApplied = Boolean(data && (
+        data.large_font_applied ||
+        (data.result && data.result.large_font_applied)
+      ));
+
+      const propFeatures = (data && (
+        data.property_features ||
+        (data.result && data.result.property_features)
+      )) || {};
+
+      let hasOverlayInfo = false;
+      if (dom.resultOverlayPill) {
         if (overlayText && String(overlayText).trim()) {
           const cleanOverlay = String(overlayText).trim();
           if (dom.resultOverlayText) dom.resultOverlayText.textContent = cleanOverlay;
           if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = cleanOverlay;
-          dom.resultOverlayPill.style.display = "inline-flex";
+          hasOverlayInfo = true;
         } else {
-          dom.resultOverlayPill.style.display = "none";
+          if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
+          if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
+        }
+
+        // Large Font badge
+        if (dom.overlayFontBadge) {
+          if (largeFontApplied) {
+            dom.overlayFontBadge.textContent = "🔍 بخط كبير وواضح";
+            dom.overlayFontBadge.style.display = "inline-flex";
+            hasOverlayInfo = true;
+          } else {
+            dom.overlayFontBadge.style.display = "none";
+          }
+        }
+
+        // Property Specs badge
+        if (dom.propertySpecsBadge) {
+          const specsParts = [];
+          if (propFeatures.unit) specsParts.push(propFeatures.unit);
+          if (propFeatures.property_type && propFeatures.property_type !== "عقار") specsParts.push(propFeatures.property_type);
+          if (propFeatures.sea_view) specsParts.push("مطل على البحر");
+          if (specsParts.length > 0) {
+            dom.propertySpecsBadge.textContent = `🏡 ${specsParts.join(" • ")}`;
+            dom.propertySpecsBadge.style.display = "inline-flex";
+            hasOverlayInfo = true;
+          } else {
+            dom.propertySpecsBadge.style.display = "none";
+          }
+        }
+
+        dom.resultOverlayPill.style.display = hasOverlayInfo ? "inline-flex" : "none";
+      }
+
+      // 3. Display Music & Audio Balance Feedback Pill
+      const isMusicMuted = Boolean(data && (
+        data.music_muted === true ||
+        (data.result && data.result.music_muted === true) ||
+        (data.music_track && data.music_track.muted === true) ||
+        (data.result && data.result.music_track && data.result.music_track.muted === true)
+      ));
+
+      const musicTrackObj = (data && (data.music_track || (data.result && data.result.music_track))) || {};
+      const musicVolume = (data && (data.music_volume !== undefined ? data.music_volume : (data.result && data.result.music_volume))) ?? musicTrackObj.volume;
+
+      if (dom.resultMusicPill && dom.resultMusicText) {
+        if (isMusicMuted || musicVolume === 0) {
+          dom.resultMusicPill.classList.add("muted");
+          if (dom.resultMusicIcon) dom.resultMusicIcon.textContent = "🔇";
+          dom.resultMusicText.textContent = "صوت نقي 100% (تم كتم وإلغاء موسيقى الخلفية بالكامل)";
+          if (dom.resultMusicBadge) {
+            dom.resultMusicBadge.textContent = "كتم كامل";
+            dom.resultMusicBadge.style.display = "inline-block";
+          }
+          dom.resultMusicPill.style.display = "inline-flex";
+        } else {
+          dom.resultMusicPill.classList.remove("muted");
+          if (dom.resultMusicIcon) dom.resultMusicIcon.textContent = "🎵";
+
+          let trackTitle = musicTrackObj.title || "بيانو فاخر";
+          let volPercent = 16;
+          if (typeof musicVolume === "number") {
+            volPercent = Math.round(musicVolume * 100);
+          }
+          dom.resultMusicText.textContent = `${trackTitle} (مستوى الصوت: ${volPercent}%)`;
+          if (dom.resultMusicBadge) {
+            dom.resultMusicBadge.textContent = `${volPercent}%`;
+            dom.resultMusicBadge.style.display = "inline-block";
+          }
+          dom.resultMusicPill.style.display = "inline-flex";
         }
       }
 
-      // 3. Display Video Montage Feedback Pill
+      // 4. Display Video Montage Feedback Pill
       const isMontageApplied = Boolean(data && (data.montage_applied || (data.result && data.result.montage_applied)));
       const montageInfo = (data && (data.montage_details || (data.result && data.result.montage_details))) || {};
       if (dom.resultMontagePill && dom.resultMontageText) {
@@ -1428,6 +1521,7 @@
       if (dom.resultContainer) dom.resultContainer.style.display = "none";
       if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
       if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
+      if (dom.resultMusicPill) dom.resultMusicPill.style.display = "none";
       if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
       showToast(errorMsg || "حدث خطأ غير متوقع أثناء المعالجة.");
     }
@@ -1448,6 +1542,13 @@
     if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
     if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
     if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
+    if (dom.overlayFontBadge) dom.overlayFontBadge.style.display = "none";
+    if (dom.propertySpecsBadge) dom.propertySpecsBadge.style.display = "none";
+    if (dom.resultMusicPill) dom.resultMusicPill.style.display = "none";
+    if (dom.resultMusicText) dom.resultMusicText.textContent = "";
+    if (dom.resultMusicBadge) dom.resultMusicBadge.style.display = "none";
+    if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
+    if (dom.resultMontageText) dom.resultMontageText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
