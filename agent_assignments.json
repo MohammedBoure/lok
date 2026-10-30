@@ -3,32 +3,32 @@
     {
       "agent_id": "agy11",
       "worker_id": "worker-1",
-      "role": "Backend Strict Opt-In, Job Sandboxing & Creative Variety Engine",
-      "branch": "backend/agy11-optin-sandboxing-and-creative-variety",
-      "scope": "1) Strict Opt-In Architecture: All secondary features (subtitles, phone overlays, music) disabled by default unless explicitly requested in prompt. 2) Job Sandbox Isolation: Confine all intermediate artifacts, keyframes, audio slices, and renders to per-job isolated directory outputs/jobs/<job_id>/. 3) Creative Variety Engine: Stochastic LLM sampling and dynamic narrative hooks in web/vision_analyzer.py to avoid repetitive outputs on identical videos. 4) Author tests in tests/test_optin_sandboxing_and_creative_variety.py. 5) Zero U+0669, update web/README.md, commit as MouhammedBoure, and signal idle.",
+      "role": "Backend Pipeline Latency Optimization, Fast Telemetry & Error Propagation",
+      "branch": "backend/agy11-pipeline-latency-and-status-telemetry",
+      "scope": "1) Pipeline Latency & Status Architecture: In web/server.py and web/pipeline_bridge.py, inspect background job execution and /api/status/{job_id}. Ensure progress stages and percentages are updated promptly without stalling. 2) Real-time Error Propagation: If an exception occurs in background processing, immediately update job status to failed with actionable error details so the client never hangs waiting in processing. 3) Performance Optimizations: Streamline dense vision calls and FFmpeg assembly passes to prevent job timeouts. 4) Author tests in tests/test_pipeline_latency_and_telemetry.py. 5) Zero U+0669, update web/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Opt-In Toggles, Sandboxed Telemetry & Script Inspection UX",
-      "branch": "frontend/agy51-optin-toggles-and-sandboxed-ux",
-      "scope": "1) Opt-in UI & Settings: Ensure clean minimalist studio reflects opt-in defaults, displaying subtitles/timeline pills only when activated in job payload. 2) Sandboxed Asset URL binding for independent concurrent jobs. 3) Author tests in tests/test_optin_toggles_and_sandboxed_ux.py. 4) Zero U+0669, update web/static/README.md, commit as MouhammedBoure, and signal idle.",
+      "role": "Frontend Resilient Polling, Adaptive Timeouts & Dynamic Stepper UX",
+      "branch": "frontend/agy51-polling-resilience-and-progress-telemetry",
+      "scope": "1) Root Cause Fix for Polling Timeout: In web/static/app.js (around line 1547), investigate and resolve the timeout exception (استغرقت معالجة الفيديو وقتاً طويلاً. يرجى التحقق من لوحة التحكم أو إعادة المحاولة). 2) Adaptive Polling & Extended Grace Periods: Increase poll timeout ceiling, use adaptive backoff, and synchronize the UI stepper with real backend progress percentages. 3) Graceful Error & Retry Handling: Display clear, actionable failure states if the backend actually fails, and provide a 1-click retry without losing uploaded video or prompt state. 4) Author tests in tests/test_polling_resilience_and_progress_ux.py. 5) Zero U+0669, update web/static/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "E2E Strict Opt-In, Sandboxing & Variety Gatekeeper",
-      "branch": "test/agy100-optin-and-sandboxing-gatekeeper",
-      "scope": "Comprehensive gatekeeper verification of opt-in defaults, job sandbox isolation, creative variety, full regression suite, merge to develop, tests/README.md update, zero U+0669 verification, and commit as MouhammedBoure.",
+      "role": "E2E Polling Resilience & Pipeline Telemetry Gatekeeper",
+      "branch": "test/agy100-timeout-resilience-gatekeeper",
+      "scope": "Comprehensive gatekeeper verification of pipeline execution latency, resilient polling ceilings, real-time error propagation, full regression tests, zero U+0669 check, merge into develop, update tests/README.md, commit as MouhammedBoure <mohamadbormoz2@gmail.com>, and signal idle.",
       "dependencies": [
-        "backend/agy11-optin-sandboxing-and-creative-variety",
-        "frontend/agy51-optin-toggles-and-sandboxed-ux"
+        "backend/agy11-pipeline-latency-and-status-telemetry",
+        "frontend/agy51-polling-resilience-and-progress-telemetry"
       ],
-      "state": "COMPLETED"
+      "state": "PENDING"
     }
   ]
 }
