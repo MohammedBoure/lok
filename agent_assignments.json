@@ -12,23 +12,23 @@
     {
       "agent_id": "agy51",
       "worker_id": "worker-2",
-      "role": "Frontend Studio Script Inspection, Dynamic Overlay Presentation & Intent Guidance",
-      "branch": "frontend/agy51-script-inspection-and-overlay-display",
-      "scope": "1) In web/static/index.html and web/static/app.js: Display a dedicated 'السيناريو والتعليق الصوتي المولّد' (Generated Script) card and persistent overlay badge/info in the studio upon job completion, showing the exact script synthesized and the active overlays/phone numbers. 2) Update prompt input guidance to clarify that users can write natural creative instructions (e.g. 'أريد تعليق بالدارجة ورقم الهاتف في الأسفل'). 3) Author/expand tests in tests/test_minimal_lok_and_admin_ui.py. 4) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
+      "role": "Frontend Studio Music Feedback Pill, Dynamic Overlay Display & Prompt Hint Clarifications",
+      "branch": "frontend/agy51-music-pills-and-overlay-ux",
+      "scope": "1) In web/static/index.html, web/static/app.js, and web/static/style.css: Implement dedicated resultMusicPill showing active background music status or clean voiceover when muted. 2) Ensure persistent overlay pill and badges reflect large font status and property details. 3) Update studio prompt examples and placeholders. 4) Author tests in tests/test_music_and_overlay_ui.py. 5) Zero U+0669. Update web/static/README.md. Commit as MohammedBoure. Signal idle via notify_coordinator_worker_idle.",
       "dependencies": [],
       "state": "COMPLETED"
     },
     {
       "agent_id": "agy100",
       "worker_id": "worker-3",
-      "role": "Integration Gatekeeper & E2E Prompt Intent and Video Overlay Verification",
-      "branch": "test/agy100-prompt-intent-and-overlays-gatekeeper",
-      "scope": "Author comprehensive gatekeeper tests in tests/test_gatekeeper_prompt_intent_and_overlays.py: 1) Verify that meta-prompt instructions containing phone numbers and requests are parsed, phone number is extracted for persistent bottom overlay, and TTS only synthesizes the creative Darja script. 2) Verify FFmpeg overlay filter generation for persistent bottom text. 3) Verify frontend script card and overlay display contracts. 4) Run full test suites, verify zero U+0669 across repo, merge backend and frontend into develop, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
+      "role": "Gatekeeper Verification, E2E Dynamic Audio & Text Overlay Integration and Develop Merge",
+      "branch": "test/agy100-dynamic-narration-and-audio-gatekeeper",
+      "scope": "Comprehensive Gatekeeper Verification: 1) Verify prompt parsing of music directives (mute, volume, track selection), property features (F5, sea view, منزل), and font size instructions. 2) Verify FFmpeg audio filtergraph generation for muted music vs mixed music. 3) Verify overlay coordinate safe margins and font sizing. 4) Verify dynamic script generation covering 10s, 25s, 40s+ durations without early stopping. 5) Run all unit, integration, and UI test suites. 6) Strict scan for zero occurrences of forbidden Arabic character U+0669 across entire codebase. 7) Merge backend and frontend branches into develop, update tests/README.md, commit as MohammedBoure, update agent_assignments.json to COMPLETED, and signal idle via notify_coordinator_worker_idle.",
       "dependencies": [
-        "backend/agy11-prompt-intent-parser-and-persistent-overlays",
-        "frontend/agy51-script-inspection-and-overlay-display"
+        "backend/agy11-dynamic-audio-and-large-overlay-control",
+        "frontend/agy51-music-pills-and-overlay-ux"
       ],
-      "state": "COMPLETED"
+      "state": "ASSIGNED"
     }
   ]
 }
