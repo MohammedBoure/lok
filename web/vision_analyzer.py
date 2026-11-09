@@ -171,10 +171,12 @@ def generate_synchronized_subtitles(
     visual_lead_in: float = 1.2,
     min_segment_duration: float = 1.2,
     max_words_per_segment: int = 7,
+    shot_timeline: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text)
-    matching the natural spoken phrasing of the narration script across the audio duration.
+    matching the natural spoken phrasing of the narration script across the audio duration,
+    with character-weighted phonetic duration and optional shot_timeline scene anchoring.
     """
     raw_script = str(script or "").strip()
     if not raw_script:
@@ -201,35 +203,79 @@ def generate_synchronized_subtitles(
     if not segments_text:
         segments_text = [raw_script]
 
-    total_words = sum(max(1, len(seg.split())) for seg in segments_text)
     effective_speech_dur = max(2.0, float(narration_duration))
+    lead_in_f = round(max(0.0, float(visual_lead_in)), 2)
+
+    # Phonetic weight: combine character length and word count for accurate Arabic speech timing
+    weights: List[float] = []
+    for seg in segments_text:
+        w_cnt = max(1, len(seg.split()))
+        c_cnt = max(2, len(re.sub(r"\s+", "", seg)))
+        weights.append(w_cnt * 1.4 + c_cnt * 0.25)
+
+    total_weight = sum(weights) or 1.0
+    n_segs = len(segments_text)
+    inter_gap = 0.04
+    total_gaps = max(0.0, (n_segs - 1) * inter_gap)
+    allocatable_dur = max(1.0, effective_speech_dur - total_gaps)
 
     subtitles: List[Dict[str, Any]] = []
-    curr_t = round(float(visual_lead_in), 2)
+    curr_t = lead_in_f
 
     for idx, seg in enumerate(segments_text):
-        seg_words = max(1, len(seg.split()))
-        seg_ratio = seg_words / float(total_words)
-        seg_dur = max(min_segment_duration, round(seg_ratio * effective_speech_dur, 2))
+        seg_ratio = weights[idx] / total_weight
+        seg_dur = max(0.6, round(seg_ratio * allocatable_dur, 2))
 
-        start_t = curr_t
+        start_t = round(curr_t, 2)
         end_t = round(start_t + seg_dur, 2)
 
-        subtitles.append({
+        sub_entry: Dict[str, Any] = {
             "segment_index": idx + 1,
             "start_sec": start_t,
             "end_sec": end_t,
             "text": seg,
-        })
-        curr_t = round(end_t + 0.05, 2)
+        }
 
-    # Normalize final segment end time so it aligns cleanly with audio duration
-    max_allowed = round(visual_lead_in + effective_speech_dur, 2)
-    if subtitles and subtitles[-1]["end_sec"] > max_allowed:
-        scale = effective_speech_dur / max(0.1, (subtitles[-1]["end_sec"] - visual_lead_in))
-        for sub in subtitles:
-            sub["start_sec"] = round(visual_lead_in + (sub["start_sec"] - visual_lead_in) * scale, 2)
-            sub["end_sec"] = round(visual_lead_in + (sub["end_sec"] - visual_lead_in) * scale, 2)
+        # Associate with corresponding visual scene if shot_timeline is available
+        if shot_timeline and isinstance(shot_timeline, list):
+            mid_t = (start_t + end_t) / 2.0
+            matched_scene = None
+            for sc in shot_timeline:
+                sc_st = float(sc.get("start_sec", 0.0))
+                sc_et = float(sc.get("end_sec", 0.0))
+                if sc_st <= mid_t <= sc_et:
+                    matched_scene = sc.get("scene_index")
+                    break
+            if matched_scene is None and shot_timeline:
+                # Bind to nearest scene in timeline
+                nearest = min(
+                    shot_timeline,
+                    key=lambda sc: min(
+                        abs(mid_t - float(sc.get("start_sec", 0.0))),
+                        abs(mid_t - float(sc.get("end_sec", 0.0))),
+                    ),
+                )
+                matched_scene = nearest.get("scene_index")
+            if matched_scene is not None:
+                sub_entry["scene_index"] = matched_scene
+
+        subtitles.append(sub_entry)
+        curr_t = round(end_t + inter_gap, 2)
+
+    # Normalize segment boundaries so they span the exact narration duration cleanly
+    target_end = round(lead_in_f + effective_speech_dur, 2)
+    if subtitles:
+        actual_span = subtitles[-1]["end_sec"] - lead_in_f
+        if actual_span > 0.1 and abs(subtitles[-1]["end_sec"] - target_end) > 0.01:
+            scale = effective_speech_dur / actual_span
+            for sub in subtitles:
+                sub["start_sec"] = round(lead_in_f + (sub["start_sec"] - lead_in_f) * scale, 2)
+                sub["end_sec"] = round(max(sub["start_sec"] + 0.35, lead_in_f + (sub["end_sec"] - lead_in_f) * scale), 2)
+            # Ensure monotonic non-overlapping continuity
+            for i in range(len(subtitles) - 1):
+                if subtitles[i]["end_sec"] > subtitles[i + 1]["start_sec"]:
+                    subtitles[i]["end_sec"] = subtitles[i + 1]["start_sec"]
+            subtitles[-1]["end_sec"] = target_end
 
     return subtitles
 
@@ -319,19 +365,108 @@ CTA_TEMPLATES = [
 ]
 
 
+GENERAL_HOOK_TEMPLATES = [
+    "شوفو معايا هاد العرض المميز: {subject}، بتفاصيل احترافية وجودة عالية تلبي كل تطلعاتكم.",
+    "مرحبا بيكم في هاد الجولة الحصرية باش تكتشفو {subject} عن قرب وبأدق التفاصيل.",
+    "شوفو معايا روعة وإتقان {subject}، تجربة استثنائية تجمع بين الجودة والتميز.",
+    "لعشاق الجودة والإتقان، جيبنالكم اليوم {subject} بمواصفات رائعة ومميزة بزاف.",
+]
+
+GENERAL_SHOWCASE_TEMPLATES = [
+    "كل تفصيل هنا مخدوم بعناية فائقة واهتمام كبير بالجودة باش يضمن لكم أفضل تجربة ممكنة.",
+    "شوفو معايا الدقة والإتقان في كل زاوية، خدمة نظيفة واحترافية على أعلى مستوى.",
+    "تصميم عصري ولمسة متميزة تخلي هاد العرض فريد من نوعه ومناسب لكامل احتياجاتكم.",
+    "الجودة والأصالة تبان في كل لقطة، مع التزام تام بأعلى المعايير الي تبحثو عليها.",
+]
+
+GENERAL_CTA_TEMPLATES = [
+    "ما تفوتوش هاد الفرصة المميزة، تواصلو معنا مباشرة عبر الرقم الظاهر أسفل الشاشة للاستفسار والطلب.",
+    "للطلب أو الاستفسار والحجز، فريقنا في خدمتكم، اتصلو بنا على الرقم الظاهر أسفل الشاشة.",
+    "فرصة رائعة تستحق التجربة، سارعو بالتواصل معنا عبر الرقم الظاهر أسفل الشاشة.",
+]
+
+
+def _extract_clean_user_topic(
+    speech_description: Optional[str],
+    visual_description: Optional[str] = None,
+) -> str:
+    """
+    Strip meta-directive instructions (phone numbers, overlay commands, trimming commands, music commands)
+    from user descriptions, returning the core subject/topic that the customer actually wants spoken about.
+    """
+    raw = " ".join(p for p in [speech_description, visual_description] if p and str(p).strip()).strip()
+    if not raw:
+        return ""
+
+    cleaned = raw
+    # Strip phone numbers
+    cleaned = re.sub(r"(?:\+213|00213|213|0)[567][\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}", "", cleaned)
+    # Strip common meta command clauses
+    meta_patterns = [
+        r"(?:مع\s+)?(?:إظهار|اظهار|وضع|كتابة|إضافة|اضافة)\s+(?:رقم\s+الهاتف|الرقم|نص|شريط)[^.،\n]*",
+        r"أريد\s+أن\s+يظهر\s+نص[^.،\n]*",
+        r"طول\s+ما\s+الفيديو\s+شغال",
+        r"بخط\s+(?:كبير|عريض|بارز)(?:\s+و\s*واضح|\s+وواضح)?",
+        r"(?:بدون|بلا|من غير|كتم|إزالة|ازالة|حذف)\s+(?:صوت\s+)?(?:الموسيقى|موسيقى|أغاني|اغاني)",
+        r"(?:مع\s+)?(?:ترجمة\s+متزامنة|ترجمة\s+فورية|شريط\s+ترجمة|أضف\s+ترجمة|اضف\s+ترجمة)(?:\s+لكلام\s+المعلق)?",
+        r"(?:قص|احذف|اقتطع|تجاوز)\s+(?:الفيديو\s+)?(?:من|أول|اول|آخر|اخر)[^.،\n]*",
+        r"(?:اجعل|خليه)\s+مدة\s+الفيديو[^.،\n]*",
+        r"أريد\s+(?:فيديو|تعليق\s+صوتي|تعليقاً|تعليقا)\s*(?:يتناسب\s+مع\s+الفيديو(?:\s+و\s*محتواه)?)?",
+        r"بالدارجة(?:\s+الجزائرية)?",
+    ]
+    for pat in meta_patterns:
+        cleaned = re.sub(pat, " ", cleaned, flags=re.IGNORECASE)
+
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" .،:;-و")
+    return cleaned
+
+
+def _is_real_estate_context(
+    prop_feats: Dict[str, Any],
+    preset_hint: Optional[str] = None,
+    text_context: str = "",
+) -> bool:
+    """Determine if the user's request or preset is explicitly about real estate."""
+    if preset_hint or prop_feats.get("keywords") or prop_feats.get("property_type") or prop_feats.get("unit") or prop_feats.get("sea_view"):
+        return True
+    re_terms = ["عقار", "شقة", "فيلا", "منزل", "دار", "صالون", "غرف", "غرفة", "مطبخ", "سكن", "كراء", "تمليك", "طابق", "بناية", "أرض", "محل تجاري"]
+    text_l = (text_context or "").lower()
+    return any(t in text_l for t in re_terms)
+
+
 def _generate_dynamic_darja_script(
     speech_duration: float,
     prop_feats: Dict[str, Any],
     directives: Dict[str, Any],
     preset_hint: Optional[str] = None,
+    user_topic: Optional[str] = None,
 ) -> str:
     """
-    Generate an engaging, continuous Algerian Darja real estate script
-    scaled dynamically to cover the net speaking window without abrupt silence.
-    Incorporates property features (F1..F6, sea views, property type) and CTA,
-    utilizing rich variation pools to ensure narrative diversity across runs.
+    Generate an engaging, continuous Algerian Darja script scaled dynamically to cover
+    the net speaking window without abrupt silence.
+    Adapts to general customer topics (restaurants, cars, fashion, tech, services) as well
+    as real estate specifications (F1..F6, sea views, property type) when applicable.
     """
     import random
+
+    clean_topic = _extract_clean_user_topic(user_topic or directives.get("raw_text", ""))
+    is_re = _is_real_estate_context(prop_feats, preset_hint, clean_topic)
+
+    # If non-real-estate topic was explicitly requested by customer, generate general-purpose script around their topic!
+    if clean_topic and not is_re:
+        hook_tpl = random.choice(GENERAL_HOOK_TEMPLATES)
+        hook = hook_tpl.format(subject=clean_topic)
+        pool = list(GENERAL_SHOWCASE_TEMPLATES)
+        random.shuffle(pool)
+        tour_segments = [pool[0]]
+        if speech_duration >= 18.0 and len(pool) > 1:
+            tour_segments.append(pool[1])
+        if speech_duration >= 28.0 and len(pool) > 2:
+            tour_segments.append(pool[2])
+        if speech_duration >= 40.0 and len(pool) > 3:
+            tour_segments.append(pool[3])
+        cta = random.choice(GENERAL_CTA_TEMPLATES)
+        return f"{hook} {' '.join(tour_segments)} {cta}"
 
     unit = prop_feats.get("unit")
     has_sea_view = prop_feats.get("sea_view", False)
@@ -346,6 +481,8 @@ def _generate_dynamic_darja_script(
     # Phase 1: Dynamic Hook / Introduction
     hook_tpl = random.choice(HOOK_TEMPLATES)
     hook = hook_tpl.format(prop_type=prop_type, unit_str=unit_str, view_str=view_str)
+    if clean_topic and clean_topic not in hook and len(clean_topic.split()) >= 2:
+        hook = f"{hook} {clean_topic}."
 
     # Phase 2: Walkthrough progression scaled dynamically to available duration
     tour_segments = [random.choice(SALON_TEMPLATES)]
@@ -405,8 +542,10 @@ def _get_smart_fallback(
         profile = FALLBACK_PROFILES[0]
 
     directives = extract_directives(speech_description or "")
+    clean_user_topic = _extract_clean_user_topic(speech_description, visual_description)
+    is_re = _is_real_estate_context(prop_feats, preset_hint, f"{speech_description or ''} {visual_description or ''}")
 
-    # Synthesize fallback script dynamically based on duration and directives
+    # Synthesize fallback script dynamically based on duration, customer topic, and directives
     if speech_description and speech_description.strip():
         if directives.get("is_meta_prompt") or is_darja_or_walkthrough:
             script = _generate_dynamic_darja_script(
@@ -414,16 +553,21 @@ def _get_smart_fallback(
                 prop_feats=prop_feats,
                 directives=directives,
                 preset_hint=preset_hint,
+                user_topic=clean_user_topic,
             )
         else:
-            intent = speech_description.strip().rstrip(".،")
-            script = f"عقار استثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+            intent = (clean_user_topic or speech_description).strip().rstrip(".،")
+            if is_re:
+                script = f"شوفو معايا هاد العقار الاستثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+            else:
+                script = f"شوفو معايا هاد العرض المميز، {intent}، جودة عالية وإتقان يلبي كل تطلعاتكم."
     elif preset_hint or is_darja_or_walkthrough:
         script = _generate_dynamic_darja_script(
             speech_duration=speech_duration,
             prop_feats=prop_feats,
             directives=directives,
             preset_hint=preset_hint,
+            user_topic=clean_user_topic,
         )
     else:
         script = profile["script"]
@@ -624,16 +768,18 @@ def infer_video_script_and_mood(
             f"CRITICAL: The voiceover must dynamically mention these specifications in natural Algerian Darja.\n"
         )
 
-    p_type_label = prop_feats.get("property_type") or "عقار"
+    clean_user_topic = _extract_clean_user_topic(speech_description, visual_description)
+    is_re_prompt = _is_real_estate_context(prop_feats, preset_hint, f"{speech_description or ''} {visual_description or ''}")
+    p_type_label = prop_feats.get("property_type") or (clean_user_topic if (clean_user_topic and not is_re_prompt) else "المحتوى المعروض في الفيديو (أو العقار)")
     p_unit_label = f" {prop_feats['unit']}" if prop_feats.get("unit") else ""
-    p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "موقع استراتيجي راقي"
+    p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "أبرز المزايا ونقاط القوة الحقيقية الظاهرة"
     dynamic_pacing_guidance = (
         f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بدون انقطاع مبكر) ---\n"
         f"CRITICAL PACING MANDATE: The video duration is {video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
         f"You MUST generate an expansive, engaging narration of approximately {target_words} words (around {speech_duration:.1f}s at ~2.1 words/sec). "
         f"Do NOT stop early or write a short 1-line script! Structure the narration dynamically across 3 continuous phases:\n"
-        f"  1. Opening Hook (~20%): Introduce the {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
-        f"  2. Visual Guided Walkthrough (~60%): Detail the interior spaces shown in keyframes (salon, natural light, high-end finishes, room layout, modern kitchen) in first-person live walkthrough style.\n"
+        f"  1. Opening Hook (~20%): Introduce {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
+        f"  2. Visual Guided Walkthrough (~60%): Detail the exact visual scenes, items, products, dishes, features, or interior spaces shown in keyframes in first-person live walkthrough style.\n"
         f"  3. Concluding CTA (~20%): Value proposition recap and call to action prompting viewers to contact via the number displayed on screen.\n"
     )
     intent_guidance += dynamic_pacing_guidance
@@ -643,18 +789,19 @@ def infer_video_script_and_mood(
             intent_guidance += (
                 f"\n--- USER CREATIVE & PRODUCTION DIRECTIVES (توجيهات وتعليمات إنتاجية) ---\n"
                 f"The user provided instructions: \"{speech_description.strip()}\".\n"
-                f"CRITICAL DISENTANGLEMENT MANDATE:\n"
-                f"Do NOT speak these instructions literally or echo phrases like 'أريد أن يظهر نص' or phone numbers in the voiceover!\n"
-                f"Instead, compose an authentic, vivid marketing voiceover script in Algerian Darja tailored to the actual visual video frames.\n"
+                + (f"Core Customer Topic / Subject to Speak About: \"{clean_user_topic}\"\n" if clean_user_topic else "")
+                + f"CRITICAL DISENTANGLEMENT MANDATE:\n"
+                f"Do NOT speak meta-instructions literally or echo phrases like 'أريد أن يظهر نص' or phone numbers in the voiceover!\n"
+                f"Instead, compose an authentic, vivid marketing voiceover script in Algerian Darja tailored to the customer's requested topic AND the actual visual video frames.\n"
                 f"Additionally, extract any visual overlay directives (such as persistent bottom text, phone numbers, contact info, discounts).\n"
             )
         else:
             intent_guidance += (
                 f"\n--- LINGUISTIC SPEECH INTENT GUIDANCE (وصف لغوي لما تريده أن يقال وليس نصاً حرفياً) ---\n"
                 f"User Linguistic Speech Guidance: \"{speech_description.strip()}\"\n"
-                f"CRITICAL INSTRUCTION: Treat this description strictly as linguistic intent and thematic guidance, NOT literal text. "
+                f"CRITICAL INSTRUCTION: Prioritize the customer's exact topic and intent above! "
                 f"Orchestrate and expand this intent into a complete, natural spoken marketing script that coordinates with the visual "
-                f"camera movement across the net speaking duration ({speech_duration:.1f}s net speaking window out of {video_duration:.1f}s total video), strictly conforming to the Algerian Darja dialect and "
+                f"camera movement across the net speaking duration ({speech_duration:.1f}s net speaking window out of {video_duration:.1f}s total video), conforming to the dialect and "
                 f"walkthrough perspective rules set in the Production Principles below.\n"
             )
 
@@ -662,26 +809,28 @@ def infer_video_script_and_mood(
         intent_guidance += (
             f"\n--- LINGUISTIC VISUAL INTENT GUIDANCE (وصف ما يظهر في الفيديو وتوجيه التركيز البصري) ---\n"
             f"User Visual Description: \"{visual_description.strip()}\"\n"
-            f"CRITICAL INSTRUCTION: Use this visual description to steer your visual focus, architectural interpretation, "
-            f"and lower-third highlight badges to prioritize and showcase the specific property areas and details described here.\n"
+            f"CRITICAL INSTRUCTION: Use this visual description to steer your visual focus, scene interpretation, "
+            f"and lower-third highlight badges to prioritize and showcase the specific items, scenes, or details described here.\n"
         )
 
-    # Dynamic marketing hook & variety angle
+    # Dynamic marketing hook & variety angle + unique variation seed so repeated runs on the same video produce fresh scripts
     import random
+    import uuid
     chosen_angle = random.choice(MARKETING_ANGLES)
+    variation_seed = uuid.uuid4().hex[:8]
     intent_guidance += (
-        f"\n--- CREATIVE MARKETING ANGLE & NARRATIVE LENS (زاوية التناول والتنوع الإبداعي) ---\n"
+        f"\n--- CREATIVE MARKETING ANGLE & NARRATIVE LENS (زاوية التناول والتنوع الإبداعي - Seed: {variation_seed}) ---\n"
         f"Creative Narrative Framing Angle: {chosen_angle}\n"
-        f"CRITICAL: Infuse the Algerian Darja voiceover with this authentic creative lens so every generated cut has a distinct personality and fresh marketing momentum.\n"
+        f"CRITICAL: Infuse the voiceover with this fresh creative lens (variation seed {variation_seed}) so every generated cut has a distinct phrasing, fresh vocabulary, and unique marketing momentum.\n"
     )
 
     prompt = (
-        f"You are an expert Algerian real estate marketing director and creative videographer.\n"
-        f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the entire walkthrough from a real estate smartphone video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
+        f"You are an expert Algerian commercial marketing director, creative videographer, and multi-sector copywriter (adapting to whatever the customer's video and prompt are about: restaurants, automotive, fashion, tech, services, events, or real estate).\n"
+        f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
         f"{intent_guidance}\n"
         f"{principles_section}\n\n"
-        f"Based on what you visually see across all rooms, architecture, interior, lighting, finishes, and the user's instructions above, return a JSON response with:\n"
-        f"1. 'script': The marketing voiceover script describing this specific property in chronological visual order as the camera moves through the space.\n"
+        f"Based on what you visually see across the frames AND the customer's specific topic/instructions above (never force real estate if the video or prompt is about another subject!), return a JSON response with:\n"
+        f"1. 'script': The marketing voiceover script describing this specific video subject and scenes in chronological visual order as the camera moves.\n"
         f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
         f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "

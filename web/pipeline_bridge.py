@@ -256,7 +256,7 @@ def parse_time_directive(s: str) -> float:
 def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     Parse video montage, trimming, and shot selection directives from user prompt.
-    Supports Arabic, English, and French natural language formats.
+    Supports Arabic, Algerian Darja, English, and French natural language formats.
     """
     plan: Dict[str, Any] = {
         "requested": False,
@@ -274,9 +274,9 @@ def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
     norm = str(text).strip().lower()
     time_rx = r"(\d+:\d+(?::\d+)?|\d+(?:\.\d+)?)"
 
-    # 1. Range / Interval: e.g. "قص من 2 إلى 8 ثواني" or "trim from 0:02 to 0:15"
+    # 1. Range / Interval: e.g. "قص من 2 إلى 8 ثواني" or "احتفظ من 3 لـ 12" or "trim from 0:02 to 0:15"
     m_range = re.search(
-        rf"(?:من|from|between|entre)\s*(?:الثانية|second|sec)?\s*{time_rx}\s*(?:إلى|الى|حتى|to|et|-)\s*(?:الثانية|second|sec)?\s*{time_rx}",
+        rf"(?:من|from|between|entre)\s*(?:الثانية|ثانية|الدقيقة|second|sec)?\s*{time_rx}\s*(?:ثانية|ثواني|s|sec)?\s*(?:إلى|الى|حتى|لـ|لغاية|to|until|et|-)\s*(?:الثانية|ثانية|second|sec)?\s*{time_rx}",
         norm,
     )
     if m_range:
@@ -292,25 +292,27 @@ def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
         except (ValueError, TypeError):
             pass
 
-    # 2. Trim start: e.g. "قص أول 3 ثواني" or "cut the first 4s"
+    # 2. Trim start: e.g. "قص أول 3 ثواني" or "احذف البداية 4 ثواني" or "cut the first 4s"
     m_start = re.search(
-        rf"(?:قص|احذف|ازل|أزل|اقتطع|تجاوز|cut|trim)\s*(?:the\s+)?(?:أول|اول|بداية|start|first)\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        rf"(?:قص|احذف|ازل|أزل|اقتطع|تجاوز|تخطى|نحي|بدون|cut|trim|remove|skip)\s*(?:the\s+)?(?:أول|اول|بداية|الـ|first|start)?\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)(?:\s*(?:الأولى|الاولى|من البداية|في البداية))?",
         norm,
     )
-    if m_start:
-        try:
-            val = parse_time_directive(m_start.group(1))
-            plan["requested"] = True
-            plan["trim_start"] = val
-            if plan["mode"] == "none":
-                plan["mode"] = "trim_start"
-                plan["raw_directive"] = m_start.group(0)
-        except (ValueError, TypeError):
-            pass
+    if m_start and plan["mode"] != "interval":
+        # Ensure it's not actually a trim_end match
+        if not any(w in m_start.group(0) for w in ["آخر", "اخر", "نهاية", "last", "end"]):
+            try:
+                val = parse_time_directive(m_start.group(1))
+                plan["requested"] = True
+                plan["trim_start"] = val
+                if plan["mode"] == "none":
+                    plan["mode"] = "trim_start"
+                    plan["raw_directive"] = m_start.group(0)
+            except (ValueError, TypeError):
+                pass
 
-    # 3. Trim end: e.g. "قص آخر 5 ثواني" or "cut the last 5s"
+    # 3. Trim end: e.g. "قص آخر 5 ثواني" or "احذف النهاية 4 ثواني" or "cut the last 5s"
     m_end = re.search(
-        rf"(?:قص|احذف|ازل|أزل|اقتطع|cut|trim)\s*(?:the\s+)?(?:آخر|اخر|نهاية|end|last)\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        rf"(?:قص|احذف|ازل|أزل|اقتطع|نحي|بدون|cut|trim|remove)\s*(?:the\s+)?(?:آخر|اخر|نهاية|end|last)\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
         norm,
     )
     if m_end:
@@ -324,9 +326,9 @@ def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
         except (ValueError, TypeError):
             pass
 
-    # 4. Target duration: e.g. "مدة الفيديو 15 ثانية" or "اجعل مدة الفيديو 15 ثانية" or "keep 12s"
+    # 4. Target duration: e.g. "مدة الفيديو 15 ثانية" or "لا يتجاوز 12 ثانية" or "اختصر الفيديو إلى 10 ثواني"
     m_dur = re.search(
-        rf"(?:مدة|المدة|طول|احتفظ بـ|خليه|اجعل|اجعله|duration|target duration|keep)(?:\s+(?:الفيديو|المقطع|مدة|طول|video))*\s*(?:تكون|هي|:|=)?\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
+        rf"(?:مدة|المدة|طول|احتفظ بـ|خليه|اجعل|اجعله|اختصر(?:ه| الفيديو)?(?:\s+إلى|\s+الى|\s+في)?|لا يتجاوز|لا تتجاوز|أقل من|اقل من|في حدود|duration|target duration|keep|shorten to)(?:\s+(?:الفيديو|المقطع|مدة|طول|video))*\s*(?:تكون|هي|:|=)?\s*{time_rx}\s*(?:ثانية|ثواني|ثوانٍ|s|sec|seconds)?",
         norm,
     )
     if m_dur:
@@ -342,7 +344,13 @@ def parse_montage_directives(text: Optional[str]) -> Dict[str, Any]:
             pass
 
     # 5. Smart montage / highlight extraction: e.g. "مونتاج ذكي لأفضل اللقطات"
-    if any(k in norm for k in ["مونتاج", "اقتطاع اللقطات", "قص اللقطات", "أفضل اللقطات", "افضل المشاهد", "أفضل المشاهد", "smart montage", "highlight montage", "montage"]):
+    smart_montage_keywords = [
+        "مونتاج", "اقتطاع اللقطات", "قص اللقطات", "أفضل اللقطات", "افضل اللقطات",
+        "افضل المشاهد", "أفضل المشاهد", "أهم اللقطات", "اهم اللقطات", "أهم المشاهد",
+        "اختصر الفيديو", "تلخيص الفيديو", "ملخص الفيديو", "حذف اللقطات المملة",
+        "تشذيب تلقائي", "تقطيع ذكي", "دمج اللقطات", "smart montage", "highlight montage", "montage",
+    ]
+    if any(k in norm for k in smart_montage_keywords):
         plan["requested"] = True
         plan["smart_montage"] = True
         if plan["mode"] == "none":
@@ -614,9 +622,10 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     Parse freeform creative user instructions, extracting meta-intent flags,
     phone number, persistent bottom overlay text, styling preferences, music controls,
-    and montage/trimming plans.
+    voice preferences, highlight badge opt-in, orientation, and montage/trimming plans.
     """
     raw = str(text or "").strip()
+    raw_lower = raw.lower()
     is_meta = is_meta_prompt(raw)
     phone = extract_algerian_phone(raw)
     montage_plan = parse_montage_directives(raw)
@@ -632,32 +641,62 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         if m_quoted:
             bottom_text = m_quoted.group(1).strip()
         elif not phone:
-            m_custom = re.search(r"(?:نص(?:اً)? أسفل الفيديو|الشريط السفلي|اكتب في الأسفل|ضع في الأسفل)(?:\s*به|\s*فيه|\s*:)?\s*([^\n.،]+)", raw)
+            m_custom = re.search(
+                r"(?:نص(?:اً)? أسفل الفيديو|الشريط السفلي|اكتب في الأسفل|ضع في الأسفل|اكتب على الفيديو|ضع نص|أضف كتابة)(?:\s*به|\s*فيه|\s*:)?\s*([^\n.،]+)",
+                raw,
+            )
             if m_custom:
                 extracted_phrase = m_custom.group(1).strip()
                 cleaned_phrase = re.sub(r"^(?:الرقم التالي|رقم|به الرقم التالي)\s*", "", extracted_phrase).strip()
                 if cleaned_phrase:
                     bottom_text = cleaned_phrase
 
-    darja_requested = any(w in raw.lower() for w in ["دارجة", "بالدارجة", "لهجة جزائرية", "جزائرية"])
-    voiceover_requested = any(w in raw.lower() for w in ["تعليق صوتي", "صوت", "فويس اوفر", "voiceover", "نص يتناسب"])
-    persistent_overlay = any(w in raw.lower() for w in ["طول ما الفيديو", "طوال الفيديو", "كامل الفيديو", "دائم", "طول الفيديو", "شغال"])
+    darja_requested = any(w in raw_lower for w in ["دارجة", "بالدارجة", "لهجة جزائرية", "جزائرية"])
+    voiceover_requested = any(w in raw_lower for w in ["تعليق صوتي", "صوت", "فويس اوفر", "voiceover", "نص يتناسب"])
+    persistent_overlay = any(w in raw_lower for w in ["طول ما الفيديو", "طوال الفيديو", "كامل الفيديو", "دائم", "طول الفيديو", "شغال"])
 
     # Font sizing & prominence
-    large_font = any(w in raw.lower() for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض", "large font", "big font", "bold"])
+    large_font = any(w in raw_lower for w in ["بخط كبير", "خط كبير", "كبير وواضح", "كبير و واضح", "واضح وكبير", "كبير", "بارز", "عريض", "large font", "big font", "bold"])
 
     # Opt-In Subtitles / Synchronized Captions directive detection
-    subtitles_requested = any(w in raw.lower() for w in [
+    subtitles_requested = any(w in raw_lower for w in [
         "أضف ترجمة", "اضف ترجمة", "شريط ترجمة", "ترجمة فورية", "ترجمة متزامنة",
         "كتابة متزامنة", "مع ترجمة", "اكتب الكلام في الأسفل", "اكتب الكلام في الاسفل",
         "اكتب الكلام", "ترجمة الكلام", "ترجمة الفيديو", "إظهار الترجمة", "اظهار الترجمة",
-        "مع الكلمات", "كلمات متزامنة", "subtitles", "captions", "subtitle"
+        "مع الكلمات", "كلمات متزامنة", "نص مع الصوت", "النص مع الصوت", "كتابة النص مع الصوت",
+        "subtitles", "captions", "subtitle",
     ])
 
+    # Opt-In Highlight Badges detection
+    highlights_requested = any(w in raw_lower for w in [
+        "شارات", "عناوين فرعية", "إظهار المميزات", "اظهار المميزات", "كتابة المميزات",
+        "ملصقات المميزات", "نقاط القوة على الفيديو", "أبرز المميزات على الشاشة", "highlights", "badges",
+    ])
+
+    # Voice persona / gender directive detection
+    requested_voice: Optional[str] = None
+    if any(w in raw_lower for w in ["صوت شاب", "بصوت شاب", "صوت حيوي", "صوت حماسي", "fenrir"]):
+        requested_voice = "ar-XA-Standard-C"
+    elif any(w in raw_lower for w in ["صوت رجل", "بصوت رجل", "صوت ذكوري", "بصوت ذكوري", "صوت فخم", "صوت وقور", "charon", "male voice"]):
+        requested_voice = "ar-XA-Standard-B"
+    elif any(w in raw_lower for w in ["صوت هادئ", "أنثى هادئة", "صوت أنثوي هادئ", "kore"]):
+        requested_voice = "ar-XA-Standard-D"
+    elif any(w in raw_lower for w in ["صوت امرأة", "بصوت امرأة", "صوت أنثوي", "بصوت أنثوي", "صوت بنت", "صوت فتاة", "aoede", "female voice"]):
+        requested_voice = "ar-XA-Standard-A"
+
+    # Video orientation directive detection
+    orientation_requested: Optional[str] = None
+    if any(w in raw_lower for w in ["عمودي", "طولي", "ريلز", "تيك توك", "ستوري", "9:16", "portrait", "vertical"]):
+        orientation_requested = "portrait"
+    elif any(w in raw_lower for w in ["أفقي", "افقي", "عرضي", "يوتيوب", "16:9", "landscape", "horizontal"]):
+        orientation_requested = "landscape"
+    elif any(w in raw_lower for w in ["مربع", "1:1", "square"]):
+        orientation_requested = "square"
+
     # Overlay positioning
-    if any(w in raw.lower() for w in ["في الوسط", "في منتصف الفيديو", "منتصف", "center"]):
+    if any(w in raw_lower for w in ["في الوسط", "في منتصف الفيديو", "منتصف", "center"]):
         overlay_position = "center"
-    elif any(w in raw.lower() for w in ["في الأعلى", "أعلى الفيديو", "top"]):
+    elif any(w in raw_lower for w in ["في الأعلى", "أعلى الفيديو", "top"]):
         overlay_position = "top_banner"
     else:
         overlay_position = "bottom_banner"
@@ -670,6 +709,9 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "voiceover_requested": voiceover_requested,
         "persistent_overlay": persistent_overlay,
         "subtitles_requested": subtitles_requested,
+        "highlights_requested": highlights_requested,
+        "requested_voice": requested_voice,
+        "orientation_requested": orientation_requested,
         "montage_plan": montage_plan,
         "music_directives": music_directives,
         "music": music_directives,
@@ -687,7 +729,8 @@ def sanitize_script_against_meta_prompts(
     """
     Ensure the synthesized script does not leak user instructions, meta-prompts,
     or LLM labeling prefixes (e.g. 'السيناريو:', 'التعليق الصوتي:').
-    If the script itself is a meta-prompt, returns a clean marketing narration in Algerian Darja.
+    If the script itself is a meta-prompt, returns a clean marketing narration in Algerian Darja
+    tailored to the customer's topic or default presentation.
     """
     default_darja = "شوفو معايا هاد العقار الاستثنائي بتصميم راقي وتشطيبات عصرية، موقع هادئ وقريب من كل المرافق الحيوية في قلب المدينة."
     if not script or not str(script).strip():
@@ -701,6 +744,13 @@ def sanitize_script_against_meta_prompts(
     clean = clean.strip(' "“\'')
 
     if is_meta_prompt(clean) and any(w in clean for w in ["أريد أن يظهر", "طول ما الفيديو شغال", "به الرقم التالي", "يظهر النص التالي"]):
+        try:
+            from web.vision_analyzer import _extract_clean_user_topic, _is_real_estate_context
+            topic = _extract_clean_user_topic(fallback_hint or clean)
+            if topic and not _is_real_estate_context(fallback_hint or clean):
+                return f"شوفو معايا {topic} بجودة استثنائية وتفاصيل متقنة تلبي كل تطلعاتكم، تواصلوا معنا الآن للحجز والاستفسار."
+        except Exception:
+            pass
         return default_darja
 
     return clean
@@ -946,15 +996,20 @@ def generate_synthetic_voice(
     text: str,
     output_path: Union[str, Path],
     sample_rate: int = 24000,
+    voice: str = "ar-XA-Standard-A",
+    emotional_tone: Optional[str] = None,
 ) -> float:
     """
     Generate harmonic formant-based voiceover audio when external TTS is unavailable.
-    Produces spoken-word syllabic envelope with formant resonance and natural pacing.
+    Produces spoken-word syllabic envelope with persona-specific fundamental frequency (F0),
+    formant resonance, emotional cadence, and natural pacing.
 
     Args:
         text: Script text.
         output_path: Destination WAV file path.
         sample_rate: Output audio sample rate in Hz.
+        voice: Voice profile identifier or Gemini persona name.
+        emotional_tone: Optional emotional tone descriptor for cadence/pitch modulation.
 
     Returns:
         Duration of generated audio in seconds.
@@ -965,22 +1020,51 @@ def generate_synthetic_voice(
     words = [w for w in text.strip().split() if w]
     word_count = max(1, len(words))
 
-    # Syllabic acoustic timing: ~2.4 Arabic words per second
-    duration = max(3.5, round(word_count / 2.3, 2))
-    num_samples = int(duration * sample_rate)
+    _, persona = resolve_voice_profile(voice)
+    persona_l = persona.lower()
 
-    f0_base = 140.0
-    formants = [(650.0, 0.45), (1700.0, 0.35), (2600.0, 0.20)]
+    # Persona-specific acoustic profiles (F0 Hz, Formant tuples, words-per-second rate)
+    persona_acoustics = {
+        "aoede": (212.0, [(780.0, 0.45), (1950.0, 0.35), (2850.0, 0.20)], 2.30),
+        "charon": (122.0, [(580.0, 0.48), (1520.0, 0.34), (2420.0, 0.18)], 2.18),
+        "fenrir": (152.0, [(660.0, 0.44), (1740.0, 0.36), (2650.0, 0.22)], 2.52),
+        "kore": (228.0, [(820.0, 0.46), (2050.0, 0.33), (2950.0, 0.21)], 2.15),
+    }
+    f0_base, formants, wps_rate = persona_acoustics.get(
+        persona_l,
+        (140.0, [(650.0, 0.45), (1700.0, 0.35), (2600.0, 0.20)], 2.30),
+    )
+
+    # Emotional tone modulation
+    tone_str = str(emotional_tone or "").lower()
+    syllable_freq = 3.8
+    if any(k in tone_str for k in ["متحمس", "حيوي", "سريع", "enthusiastic", "energetic"]):
+        f0_base *= 1.06
+        wps_rate *= 1.08
+        syllable_freq = 4.3
+    elif any(k in tone_str for k in ["هادئ", "تأمل", "سكينة", "calm", "relaxed"]):
+        f0_base *= 0.96
+        wps_rate *= 0.94
+        syllable_freq = 3.3
+
+    # Subtle deterministic text-prosody offset so different scripts produce distinct acoustic contours
+    text_seed = sum((idx + 1) * ord(ch) for idx, ch in enumerate(text[:120])) % 97
+    f0_base += (text_seed % 11) - 5.0
+    phase_offset = (text_seed % 31) * 0.1
+
+    # Syllabic acoustic timing
+    duration = max(3.5, round(word_count / wps_rate, 2))
+    num_samples = int(duration * sample_rate)
 
     audio_samples = []
     for i in range(num_samples):
         t = i / sample_rate
-        syllable_env = 0.55 + 0.45 * math.sin(2.0 * math.pi * 3.8 * t)
-        breath_pause = 0.2 + 0.8 * abs(math.sin(2.0 * math.pi * 0.45 * t))
+        syllable_env = 0.55 + 0.45 * math.sin(2.0 * math.pi * syllable_freq * t + phase_offset)
+        breath_pause = 0.2 + 0.8 * abs(math.sin(2.0 * math.pi * 0.45 * t + phase_offset * 0.5))
         mod_env = syllable_env * breath_pause
 
         sample_val = 0.0
-        pitch_drift = 1.0 + 0.04 * math.sin(2.0 * math.pi * 0.6 * t)
+        pitch_drift = 1.0 + 0.04 * math.sin(2.0 * math.pi * 0.6 * t + phase_offset)
         current_f0 = f0_base * pitch_drift
 
         sample_val += 0.40 * math.sin(2.0 * math.pi * current_f0 * t)
@@ -1058,8 +1142,13 @@ def synthesize_narration(
             success = False
 
     if not success:
-        logger.info("Generating synthetic voiceover narration fallback at %s...", out_file)
-        generate_synthetic_voice(script_text, out_file)
+        logger.info("Generating synthetic voiceover narration fallback at %s (voice=%s)...", out_file, resolved_voice_id)
+        generate_synthetic_voice(
+            script_text,
+            out_file,
+            voice=resolved_voice_id,
+            emotional_tone=emotional_tone,
+        )
         synthesizer_engine = "synthetic_speech_engine"
 
     # Probe duration
@@ -1166,6 +1255,10 @@ def process_mobile_video(
         phone_number = parsed_dirs.get("phone_number")
     if not bottom_text:
         bottom_text = parsed_dirs.get("bottom_text") or (phone_number if phone_number else None)
+    if parsed_dirs.get("requested_voice") and (not voice or voice == "ar-XA-Standard-A"):
+        voice = parsed_dirs["requested_voice"]
+    if parsed_dirs.get("orientation_requested") and not video_orientation:
+        video_orientation = parsed_dirs["orientation_requested"]
 
     # Disentangle script: if script was provided as a meta-instruction (e.g. asking for video text or phone overlay),
     # do NOT speak it! Redirect to speech_description and activate auto_mode.
@@ -1774,6 +1867,19 @@ def process_mobile_video(
     render_seconds = (datetime.now(timezone.utc) - start_render).total_seconds()
     logger.info("Job %s: Final cut rendered in %.2fs (%d bytes)", job_id, render_seconds, final_cut_path.stat().st_size)
 
+    # Compile shot timeline prior to annotations & subtitle synchronization
+    shot_timeline_data: List[Dict[str, Any]] = []
+    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("shot_timeline"):
+        shot_timeline_data = vision_result["shot_timeline"]
+    elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("shot_timeline"):
+        shot_timeline_data = fb_res["shot_timeline"]
+    else:
+        from web.vision_analyzer import build_shot_timeline, extract_keyframe_records
+        shot_timeline_data = build_shot_timeline(
+            extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=src_duration),
+            video_duration=src_duration,
+        )
+
     # 8. Apply Smart Video Annotations, Lower-Third Banners & Merchant Fixed Text Overlays (Strict Opt-In)
     applied_annotations_count = 0
     annotations_list: List[Dict[str, Any]] = []
@@ -1825,6 +1931,29 @@ def process_mobile_video(
                 "style": principles_annotation.get("font_style", "luxury_gold"),
             })
 
+    # Opt-In Highlight Badges if requested by user
+    if parsed_dirs.get("highlights_requested"):
+        raw_highlights: List[str] = []
+        if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("highlights"):
+            raw_highlights = [str(h).strip() for h in vision_result["highlights"] if str(h).strip()]
+        elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("highlights"):
+            raw_highlights = [str(h).strip() for h in fb_res["highlights"] if str(h).strip()]
+        if raw_highlights:
+            top_highlights = raw_highlights[:3]
+            usable_span = max(3.0, total_duration - visual_lead_in - 0.5)
+            slot_dur = round(usable_span / len(top_highlights), 2)
+            for h_idx, h_text in enumerate(top_highlights):
+                h_start = round(visual_lead_in + h_idx * slot_dur, 2)
+                h_end = round(min(total_duration - 0.3, h_start + max(1.8, slot_dur - 0.2)), 2)
+                if h_end > h_start:
+                    annotations_list.append({
+                        "text": h_text,
+                        "start_sec": h_start,
+                        "end_sec": h_end,
+                        "position": "top_right",
+                        "style": "highlight_badge",
+                    })
+
     # Strict Opt-In for synchronized captions / subtitles: Default OFF
     subtitles_opt_in = bool(
         enable_subtitles if enable_subtitles is not None
@@ -1833,17 +1962,23 @@ def process_mobile_video(
 
     subtitles_list: List[Dict[str, Any]] = []
     if subtitles_opt_in:
-        if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
-            subtitles_list = list(vision_result["subtitles"])
-        elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
-            subtitles_list = list(fb_res["subtitles"])
-        else:
-            from web.vision_analyzer import generate_synchronized_subtitles
-            subtitles_list = generate_synchronized_subtitles(
-                script=selected_script,
-                narration_duration=narration_duration,
-                visual_lead_in=visual_lead_in,
-            )
+        from web.vision_analyzer import generate_synchronized_subtitles
+        # Synchronize captions directly to the ACTUAL synthesized narration_duration and shot_timeline
+        subtitles_list = generate_synchronized_subtitles(
+            script=selected_script,
+            narration_duration=narration_duration,
+            visual_lead_in=visual_lead_in,
+            shot_timeline=shot_timeline_data,
+        )
+        # Fallback if selected_script yielded empty list but vision_result had custom subtitles
+        if not subtitles_list and is_auto_mode:
+            candidate_subs = []
+            if "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
+                candidate_subs = list(vision_result["subtitles"])
+            elif "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
+                candidate_subs = list(fb_res["subtitles"])
+            if candidate_subs:
+                subtitles_list = candidate_subs
 
         # Append synchronized captions to video annotations list
         for sub in subtitles_list:
@@ -1910,19 +2045,6 @@ def process_mobile_video(
         logger.info("Job %s: Atomically updated legacy cut -> %s (%d bytes)", job_id, legacy_cut_path, legacy_cut_path.stat().st_size)
     except Exception as copy_err:
         logger.warning("Job %s: Failed to copy to legacy final_cut.mp4: %s", job_id, copy_err)
-
-    # Compile shot timeline for summary
-    shot_timeline_data: List[Dict[str, Any]] = []
-    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("shot_timeline"):
-        shot_timeline_data = vision_result["shot_timeline"]
-    elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("shot_timeline"):
-        shot_timeline_data = fb_res["shot_timeline"]
-    else:
-        from web.vision_analyzer import build_shot_timeline, extract_keyframe_records
-        shot_timeline_data = build_shot_timeline(
-            extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=src_duration),
-            video_duration=src_duration,
-        )
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"

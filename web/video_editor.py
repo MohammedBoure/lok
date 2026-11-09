@@ -405,6 +405,7 @@ def auto_smart_montage(
     preferred_scenes: Optional[List[Dict[str, Any]]] = None,
     target_w: Optional[int] = None,
     target_h: Optional[int] = None,
+    scene_cuts: Optional[List[float]] = None,
 ) -> Dict[str, Any]:
     """
     Intelligently select the best highlights and assemble a fast marketing cut.
@@ -424,9 +425,17 @@ def auto_smart_montage(
                     segments.append((st, en))
 
     if not segments:
+        if scene_cuts is None:
+            try:
+                import frame_extractor
+                scene_cuts = frame_extractor.detect_scene_cut_timestamps(in_file)
+            except Exception:
+                scene_cuts = None
+
         segments = calculate_smart_montage_segments(
             total_duration=src_dur,
             target_duration=target_duration,
+            scene_cuts=scene_cuts,
         )
 
     return assemble_shot_segments(
