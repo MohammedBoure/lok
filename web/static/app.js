@@ -1527,7 +1527,7 @@
 
   async function pollJobStatus(jobId) {
     let attempts = 0;
-    const maxAttempts = 160; // Extended timeout ceiling (~240-300 seconds total)
+    const maxAttempts = 300; // Extended timeout ceiling (~600 seconds total for long 4K/1080p videos)
     let consecutiveNetworkErrors = 0;
     const maxNetworkErrors = 6;
 

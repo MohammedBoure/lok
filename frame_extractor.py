@@ -256,10 +256,11 @@ def extract_frames(
     resolution = meta["resolution"]
     stem = path.stem
 
-    # Detect scene cuts and native I-frames
+    # Detect scene cuts and native I-frames (skip full-stream decode when explicit timestamps are given on long videos)
     scene_cuts: List[float] = [0.0]
     i_frames: List[float] = [0.0]
-    if include_scene_analysis:
+    explicit_ts_provided = bool(timestamps is not None and len(timestamps) > 0)
+    if include_scene_analysis and not (explicit_ts_provided and duration > 20.0):
         try:
             scene_cuts = detect_scene_cut_timestamps(path)
         except Exception:
