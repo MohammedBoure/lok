@@ -281,8 +281,9 @@ def annotate_video(
         "-i", str(input_path),
         "-vf", filter_chain,
         "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "22",
+        "-preset", "ultrafast",
+        "-crf", "23",
+        "-threads", "0",
         "-c:a", "copy",
         "-movflags", "+faststart",
         str(output_path)

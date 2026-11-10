@@ -1527,9 +1527,9 @@
 
   async function pollJobStatus(jobId) {
     let attempts = 0;
-    const maxAttempts = 300; // Extended timeout ceiling (~600 seconds total for long 4K/1080p videos)
+    const maxAttempts = 1800; // Extended timeout ceiling (~60 minutes total)
     let consecutiveNetworkErrors = 0;
-    const maxNetworkErrors = 6;
+    const maxNetworkErrors = 10;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -1547,9 +1547,10 @@
       try {
         const token = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
         const headers = token ? { "Authorization": `Bearer ${token}` } : {};
-        const resp = await fetch(`/api/status/${jobId}`, {
+        const resp = await fetch(`/api/status/${jobId}?t=${Date.now()}`, {
           headers: headers,
-          credentials: "include"
+          credentials: "include",
+          cache: "no-store"
         });
 
         // 404 grace period for just-spawned jobs

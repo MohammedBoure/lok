@@ -482,6 +482,11 @@ def analyze_source_audio_for_speech(video_path: Union[str, Path], max_duration: 
     Inspect source video audio stream for speech or spoken remarks by the videographer.
     If speech is detected, transcribes and summarizes remarks using Gemini API.
     """
+    # Fast-exit if Gemini API key is not configured to avoid unnecessary audio extraction overhead
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
+    if not api_key:
+        return None
+
     v_path = Path(video_path).resolve()
     if not v_path.is_file():
         return None
@@ -1780,8 +1785,8 @@ def process_mobile_video(
             "-map", "[vout]",
             "-map", "[aout]",
             "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "22",
+            "-preset", "ultrafast",
+            "-crf", "23",
             "-threads", "0",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
@@ -1808,8 +1813,8 @@ def process_mobile_video(
             "-map", "[vout]",
             "-map", "[aout]",
             "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "22",
+            "-preset", "ultrafast",
+            "-crf", "23",
             "-threads", "0",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
