@@ -112,6 +112,13 @@ from web.auth_db import (
     verify_password,
 )
 from web.video_annotator import annotate_video
+from web.caption_templates import (
+    DEFAULT_TEMPLATE as DEFAULT_CAPTION_TEMPLATE,
+    assign_timings as assign_caption_timings,
+    list_caption_templates,
+    normalize_template as normalize_caption_template,
+    smart_split_text as smart_split_caption_text,
+)
 
 logger = logging.getLogger("mobile_api_server")
 if not logger.handlers:
@@ -246,6 +253,67 @@ def _get_authenticated_user_from_form_or_header(
     return user
 
 
+def _parse_caption_options(form: Any) -> Optional[Dict[str, Any]]:
+    """
+    Parse CapCut-style animated caption options from the production form.
+    Returns None when the customer did not pick a caption template.
+    Raises ValueError if the custom caption text fails the prompt security guardrails.
+    """
+    def _str_field(*names: str) -> Optional[str]:
+        for n in names:
+            val = form.get(n)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+        return None
+
+    template = _str_field("caption_template", "captions_template")
+    custom_text = _str_field("custom_caption_text", "caption_text", "custom_captions")
+    if not template and not custom_text:
+        return None
+    if custom_text:
+        custom_text = sanitize_and_validate_prompt(custom_text)[:1500]
+    return {
+        "template": normalize_caption_template(template),
+        "custom_text": custom_text,
+        "position": _str_field("caption_position"),
+        "size": _str_field("caption_size"),
+    }
+
+
+async def get_caption_templates_endpoint(request: Request) -> JSONResponse:
+    """GET /api/captions/templates - Catalogue of animated caption templates."""
+    return JSONResponse({"status": "ok", "templates": list_caption_templates(), "default": DEFAULT_CAPTION_TEMPLATE})
+
+
+async def split_captions_endpoint(request: Request) -> JSONResponse:
+    """POST /api/captions/split - Preview how the AI splits custom caption text into chunks."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"status": "error", "error": "Invalid JSON body."}, status_code=400)
+    text = str(body.get("text") or "").strip()
+    if not text:
+        return JSONResponse({"status": "error", "error": "Missing text."}, status_code=400)
+    try:
+        text = sanitize_and_validate_prompt(text)[:1500]
+    except ValueError as sec_err:
+        return JSONResponse({"status": "error", "error": "security_violation", "message": str(sec_err)}, status_code=400)
+    try:
+        duration = float(body.get("duration") or 15.0)
+    except (TypeError, ValueError):
+        duration = 15.0
+    duration = max(3.0, min(600.0, duration))
+    result = await asyncio.to_thread(smart_split_caption_text, text, body.get("template"), duration)
+    timed = assign_caption_timings(result["chunks"], duration)
+    return JSONResponse({
+        "status": "ok",
+        "engine": result["engine"],
+        "template": result["template"],
+        "duration": duration,
+        "chunks": [{k: v for k, v in c.items() if k != "words"} for c in timed],
+    })
+
+
 def _execute_processing_job(
     job_id: str,
     saved_video_path: Path,
@@ -269,6 +337,7 @@ def _execute_processing_job(
     phone_number: Optional[str] = None,
     enable_subtitles: Optional[bool] = None,
     enable_music: Optional[bool] = None,
+    caption_options: Optional[Dict[str, Any]] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -353,6 +422,7 @@ def _execute_processing_job(
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
             job_id=job_id,
+            caption_options=caption_options,
         )
 
         # Record video generation in SaaS audit history
@@ -668,6 +738,14 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         video_orientation = None
 
+    try:
+        caption_options = _parse_caption_options(form)
+    except ValueError as cap_err:
+        return JSONResponse(
+            {"status": "error", "error": "security_violation", "message": str(cap_err)},
+            status_code=400,
+        )
+
     # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
@@ -746,6 +824,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             phone_number,
             enable_subtitles,
             enable_music,
+            caption_options,
         ),
         daemon=True,
     )
@@ -967,6 +1046,14 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         video_orientation = None
 
+    try:
+        caption_options = _parse_caption_options(form)
+    except ValueError as cap_err:
+        return JSONResponse(
+            {"status": "error", "error": "security_violation", "message": str(cap_err)},
+            status_code=400,
+        )
+
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -1075,6 +1162,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
             job_id=job_id,
+            caption_options=caption_options,
         )
 
         # Record video generation in SaaS audit history
@@ -2019,6 +2107,8 @@ routes = [
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
     Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),
     Route("/api/video/annotate", annotate_video_endpoint, methods=["POST"]),
+    Route("/api/captions/templates", get_caption_templates_endpoint, methods=["GET"]),
+    Route("/api/captions/split", split_captions_endpoint, methods=["POST"]),
     Route("/api/prompts/history", get_prompts_history_endpoint, methods=["GET"]),
     Route("/api/prompts", create_prompt_endpoint, methods=["POST"]),
     Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),

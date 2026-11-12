@@ -240,8 +240,14 @@ def annotate_video(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    valid_annotations = [a for a in annotations if isinstance(a, dict) and a.get("text", "").strip()]
-    if not valid_annotations:
+    # Optional animated caption track (.ass rendered by libass) burned on top of drawtext overlays
+    ass_file = kwargs.get("ass_file") or kwargs.get("captions_ass")
+    ass_path: Optional[Path] = Path(ass_file).resolve() if ass_file else None
+    if ass_path is not None and not ass_path.is_file():
+        ass_path = None
+
+    valid_annotations = [a for a in (annotations or []) if isinstance(a, dict) and str(a.get("text", "")).strip()]
+    if not valid_annotations and ass_path is None:
         shutil.copy2(input_path, output_path)
         return {
             "status": "ok",
@@ -271,10 +277,16 @@ def annotate_video(
             vh = 1920
 
     font_file = find_system_font()
-    filter_chain = ",".join(
+    filters = [
         _build_drawtext_filter(a, font_file=font_file, video_width=vw, video_height=vh)
         for a in valid_annotations
-    )
+    ]
+    run_cwd: Optional[str] = None
+    if ass_path is not None:
+        # Run FFmpeg from the subtitle directory so the filter argument needs no path escaping
+        run_cwd = str(ass_path.parent)
+        filters.append(f"ass=filename={ass_path.name}")
+    filter_chain = ",".join(filters)
 
     cmd = [
         "ffmpeg", "-y",
@@ -290,10 +302,14 @@ def annotate_video(
     ]
 
     try:
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        res = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", errors="replace", check=True, cwd=run_cwd,
+        )
         return {
             "status": "ok",
             "annotations_applied": len(valid_annotations),
+            "captions_applied": ass_path is not None,
             "output_video": str(output_path),
             "filtergraph": filter_chain
         }

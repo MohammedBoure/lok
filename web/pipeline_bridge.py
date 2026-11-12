@@ -57,7 +57,7 @@ def _ensure_env_loaded():
 _ensure_env_loaded()
 
 import frame_extractor
-from web.video_annotator import annotate_video
+from web.video_annotator import annotate_video, find_system_font
 
 logger = logging.getLogger("mobile_pipeline_bridge")
 if not logger.handlers:
@@ -1219,6 +1219,7 @@ def process_mobile_video(
     enable_subtitles: Optional[bool] = None,
     enable_music: Optional[bool] = None,
     job_id: Optional[str] = None,
+    caption_options: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -2004,20 +2005,72 @@ def process_mobile_video(
                         "font_size": max(30, min(42, int(target_h * 0.026))),
                     })
 
-    if annotations_list:
+    # CapCut-style animated captions: customer typed text (AI smart split) or narration
+    # captions restyled with the chosen animated template, rendered via libass.
+    caption_track_meta: Optional[Dict[str, Any]] = None
+    if caption_options:
+        custom_caption_text = (caption_options.get("custom_text") or "").strip() or None
+        narration_segments = subtitles_list if (not custom_caption_text and subtitles_list) else None
+        if custom_caption_text or narration_segments:
+            try:
+                from web.caption_templates import prepare_caption_track
+                caption_track_meta = prepare_caption_track(
+                    job_sandbox_dir / f"captions_{job_id}.ass",
+                    total_duration=total_duration,
+                    video_width=target_w,
+                    video_height=target_h,
+                    template=caption_options.get("template"),
+                    custom_text=custom_caption_text,
+                    segments=narration_segments,
+                    position=caption_options.get("position"),
+                    size=caption_options.get("size"),
+                    shot_timeline=shot_timeline_data,
+                    font_path=find_system_font(),
+                )
+            except Exception as cap_err:
+                logger.warning("Job %s: Animated caption track preparation failed: %s", job_id, cap_err)
+                caption_track_meta = None
+        if caption_track_meta:
+            # The animated template replaces the plain drawtext subtitle boxes
+            annotations_list = [a for a in annotations_list if a.get("position") != "subtitle"]
+            logger.info(
+                "Job %s: Animated captions ready (template=%s, chunks=%d, split=%s)",
+                job_id, caption_track_meta["template"], caption_track_meta["chunks_count"], caption_track_meta["engine"],
+            )
+            _notify(
+                step=5,
+                percent=88,
+                message="جاري تطبيق النصوص المتحركة بالقالب المختار...",
+                log=(
+                    f"[نصوص متحركة] القالب: {caption_track_meta['template_name_ar']} | "
+                    f"عدد المقاطع: {caption_track_meta['chunks_count']} | "
+                    f"التقسيم: {'ذكاء اصطناعي' if caption_track_meta['engine'] == 'gemini' else 'تقسيم ذكي محلي' if caption_track_meta['engine'] == 'heuristic' else 'متزامن مع التعليق الصوتي'}"
+                ),
+            )
+
+    if annotations_list or caption_track_meta:
         annotated_tmp = job_sandbox_dir / f"annotated_{job_id}.mp4"
         try:
+            annot_kwargs: Dict[str, Any] = {}
+            if caption_track_meta:
+                annot_kwargs["ass_file"] = caption_track_meta["ass_path"]
             annot_res = annotate_video(
                 input_video_path=final_cut_path,
                 output_video_path=annotated_tmp,
                 annotations=annotations_list,
                 video_width=target_w,
                 video_height=target_h,
+                **annot_kwargs,
             )
             ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
+            if not ok and caption_track_meta:
+                logger.warning("Job %s: Caption burn failed: %s", job_id, str(annot_res.get("error", ""))[-800:])
+                caption_track_meta["applied"] = False
             if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
                 annotated_tmp.replace(final_cut_path)
-                applied_annotations_count = len(annotations_list)
+                applied_annotations_count = len(annotations_list) + (caption_track_meta["chunks_count"] if caption_track_meta else 0)
+                if caption_track_meta:
+                    caption_track_meta["applied"] = True
                 logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
                 _notify(
                     step=5,
@@ -2081,6 +2134,7 @@ def process_mobile_video(
         "subtitles_count": len(subtitles_list),
         "subtitles_enabled": subtitles_opt_in,
         "subtitles_requested": subtitles_opt_in,
+        "animated_captions": caption_track_meta,
         "shot_timeline": shot_timeline_data,
         "videographer_speech": videographer_speech,
         "customer_specifications": {

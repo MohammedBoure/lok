@@ -188,7 +188,10 @@
       captions: false,
       music: false,
       timeline: false
-    }
+    },
+    selectedCaptionTemplate: "",
+    captionPosition: "",
+    captionSize: "medium"
   };
 
   // ---------------------------------------------------------------------------
@@ -293,6 +296,17 @@
     settingToggleCaptions: document.getElementById("settingToggleCaptions"),
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
+
+    // CapCut-Style Animated Caption Studio
+    captionTemplatesGrid: document.getElementById("captionTemplatesGrid"),
+    capcutActiveBadge: document.getElementById("capcutActiveBadge"),
+    captionPositionSelect: document.getElementById("captionPositionSelect"),
+    captionSizeSelect: document.getElementById("captionSizeSelect"),
+    customCaptionTextarea: document.getElementById("customCaptionTextarea"),
+    btnPreviewSmartSplit: document.getElementById("btnPreviewSmartSplit"),
+    capcutSplitPreview: document.getElementById("capcutSplitPreview"),
+    splitPreviewEngine: document.getElementById("splitPreviewEngine"),
+    splitChunksList: document.getElementById("splitChunksList"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1339,6 +1353,24 @@
       formData.append("enable_subtitles", "true");
     }
 
+    // CapCut-Style Animated Caption Template & Custom Text
+    const customCaptionText = (dom.customCaptionTextarea?.value || "").trim();
+    const chosenTemplate = state.selectedCaptionTemplate || (customCaptionText ? "karaoke_highlight" : "");
+    if (chosenTemplate) {
+      formData.append("caption_template", chosenTemplate);
+      if (customCaptionText) {
+        formData.append("custom_caption_text", customCaptionText);
+      } else if (!isCaptionsOpted) {
+        // When user picks an animated template without custom text, style the narration captions
+        formData.append("enable_captions", "true");
+        formData.append("enable_subtitles", "true");
+      }
+      const posVal = (dom.captionPositionSelect?.value || state.captionPosition || "").trim();
+      const sizeVal = (dom.captionSizeSelect?.value || state.captionSize || "medium").trim();
+      if (posVal) formData.append("caption_position", posVal);
+      if (sizeVal) formData.append("caption_size", sizeVal);
+    }
+
     if (!isMusicOpted || (promptText && (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى")))) {
       formData.append("mute_music", "true");
       formData.append("music_muted", "true");
@@ -1846,8 +1878,18 @@
         ))
       )) || 0;
 
+      const animCaptions = (data && (data.animated_captions || (data.result && data.result.animated_captions))) || null;
+
       if (dom.resultCaptionsPill && dom.resultCaptionsText) {
-        if (captionsApplied || captionsCount > 0) {
+        if (animCaptions && animCaptions.chunks_count > 0) {
+          const tplLabel = animCaptions.template_name_ar || animCaptions.template || "قالب متحرك";
+          dom.resultCaptionsText.textContent = `كابشن متحرك (${tplLabel}) — مقسم بذكاء`;
+          if (dom.resultCaptionsBadge) {
+            dom.resultCaptionsBadge.textContent = `${animCaptions.chunks_count} مقاطع متحركة`;
+            dom.resultCaptionsBadge.style.display = "inline-block";
+          }
+          dom.resultCaptionsPill.style.display = "inline-flex";
+        } else if (captionsApplied || captionsCount > 0) {
           dom.resultCaptionsText.textContent = "ترجمة الكلام متزامنة بدقة عالية مع المشاهد (كلمة بكلمة)";
           if (dom.resultCaptionsBadge) {
             dom.resultCaptionsBadge.textContent = captionsCount > 0 ? `${captionsCount} جمل متزامنة` : "متزامن 100%";
@@ -2051,9 +2093,130 @@
     if (dom.resultMontageText) dom.resultMontageText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
+    if (dom.customCaptionTextarea) dom.customCaptionTextarea.value = "";
+    if (dom.capcutSplitPreview) dom.capcutSplitPreview.style.display = "none";
+    if (dom.splitChunksList) dom.splitChunksList.innerHTML = "";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
     dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
     showToast("جاهز لإنتاج فيديو جديد 📹");
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7b. CapCut-Style Animated Caption Studio & AI Smart Split Preview
+  // ---------------------------------------------------------------------------
+  function setupCaptionTemplatesStudio() {
+    if (dom.captionTemplatesGrid) {
+      const cards = dom.captionTemplatesGrid.querySelectorAll(".capcut-tpl-card");
+      cards.forEach((card) => {
+        card.addEventListener("click", () => {
+          const tpl = card.getAttribute("data-template") || "";
+          state.selectedCaptionTemplate = tpl;
+          cards.forEach((c) => {
+            const isSel = c === card;
+            c.classList.toggle("active", isSel);
+            c.setAttribute("aria-pressed", isSel ? "true" : "false");
+          });
+          if (dom.capcutActiveBadge) {
+            const titleEl = card.querySelector(".tpl-title");
+            if (tpl) {
+              dom.capcutActiveBadge.textContent = `✨ القالب: ${titleEl ? titleEl.textContent : tpl}`;
+              dom.capcutActiveBadge.classList.add("is-enabled");
+            } else {
+              dom.capcutActiveBadge.textContent = "بدون قالب متحرك";
+              dom.capcutActiveBadge.classList.remove("is-enabled");
+            }
+          }
+        });
+      });
+    }
+
+    if (dom.captionPositionSelect) {
+      dom.captionPositionSelect.addEventListener("change", () => {
+        state.captionPosition = dom.captionPositionSelect.value || "";
+      });
+    }
+    if (dom.captionSizeSelect) {
+      dom.captionSizeSelect.addEventListener("change", () => {
+        state.captionSize = dom.captionSizeSelect.value || "medium";
+      });
+    }
+
+    // Auto-select Karaoke Highlight when user starts typing custom caption text if no template is active
+    if (dom.customCaptionTextarea && dom.captionTemplatesGrid) {
+      dom.customCaptionTextarea.addEventListener("input", () => {
+        const val = dom.customCaptionTextarea.value.trim();
+        if (val && !state.selectedCaptionTemplate) {
+          const defaultCard = dom.captionTemplatesGrid.querySelector('[data-template="karaoke_highlight"]');
+          if (defaultCard) defaultCard.click();
+        }
+      });
+    }
+
+    if (dom.btnPreviewSmartSplit) {
+      dom.btnPreviewSmartSplit.addEventListener("click", async () => {
+        const text = (dom.customCaptionTextarea?.value || dom.promptTextarea?.value || "").trim();
+        if (!text) {
+          showToast("اكتب نص الكابشن أولاً لمعاينة التقسيم الذكي ✍️");
+          dom.customCaptionTextarea?.focus();
+          return;
+        }
+        const tpl = state.selectedCaptionTemplate || "karaoke_highlight";
+        const origLabel = dom.btnPreviewSmartSplit.innerHTML;
+        dom.btnPreviewSmartSplit.disabled = true;
+        dom.btnPreviewSmartSplit.innerHTML = "<span>⏳ جاري التقسيم الذكي...</span>";
+        try {
+          const resp = await fetch("/api/captions/split", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, template: tpl, duration: 15.0 }),
+          });
+          const data = await resp.json();
+          if (!resp.ok || data.status !== "ok") {
+            throw new Error(data.message || data.error || "تعذر تقسيم النص.");
+          }
+          if (dom.splitPreviewEngine) {
+            dom.splitPreviewEngine.textContent = data.engine === "gemini" ? "Gemini AI ✨" : "تقسيم ذكي فوري ⚡";
+          }
+          if (dom.splitChunksList) {
+            dom.splitChunksList.innerHTML = "";
+            (data.chunks || []).forEach((chunk) => {
+              const chip = document.createElement("div");
+              chip.className = "split-chunk-chip";
+              const st = Number(chunk.start_sec || 0).toFixed(1);
+              const et = Number(chunk.end_sec || 0).toFixed(1);
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "split-chunk-time";
+              timeSpan.textContent = `${st}s–${et}s`;
+              const textSpan = document.createElement("span");
+              const words = String(chunk.text || "").split(/\s+/);
+              words.forEach((w, i) => {
+                if (i > 0) textSpan.appendChild(document.createTextNode(" "));
+                if (chunk.emphasis && w === chunk.emphasis) {
+                  const em = document.createElement("span");
+                  em.className = "split-chunk-emph";
+                  em.textContent = w;
+                  textSpan.appendChild(em);
+                } else {
+                  textSpan.appendChild(document.createTextNode(w));
+                }
+              });
+              chip.appendChild(timeSpan);
+              chip.appendChild(textSpan);
+              dom.splitChunksList.appendChild(chip);
+            });
+          }
+          if (dom.capcutSplitPreview) {
+            dom.capcutSplitPreview.style.display = "block";
+          }
+          showToast(`تم تقسيم النص بذكاء إلى ${(data.chunks || []).length} مقاطع متناسقة ✨`);
+        } catch (err) {
+          showToast(err.message || "حدث خطأ أثناء معاينة التقسيم.");
+        } finally {
+          dom.btnPreviewSmartSplit.disabled = false;
+          dom.btnPreviewSmartSplit.innerHTML = origLabel;
+        }
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -2064,6 +2227,7 @@
     setupVideoUpload();
     setupPromptTextarea();
     setupOptInToggles();
+    setupCaptionTemplatesStudio();
     setupRecommendationsManager();
     setupVoiceoverPicker();
     setupSettingsModal();
