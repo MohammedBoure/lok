@@ -80,6 +80,7 @@ from web.pipeline_bridge import (
     process_mobile_video,
     resolve_voice_profile,
     sanitize_and_validate_prompt,
+    update_cuts_text_and_rerender,
 )
 from web.prompt_db import (
     delete_prompt,
@@ -1370,6 +1371,7 @@ async def get_job_status(request: Request) -> JSONResponse:
             res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
             res_dict.setdefault("subtitles", p_data.get("subtitles") or [])
             res_dict.setdefault("shot_timeline", p_data.get("shot_timeline") or [])
+            res_dict.setdefault("editable_cuts", p_data.get("editable_cuts") or [])
             res_dict.setdefault("videographer_speech", p_data.get("videographer_speech"))
             res_dict.setdefault("customer_specifications", p_data.get("customer_specifications") or {})
             res_dict["job_id"] = job_id
@@ -1476,6 +1478,87 @@ async def get_job_status(request: Request) -> JSONResponse:
         },
         status_code=404,
     )
+
+
+async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/jobs/{job_id}/update-cuts-text
+    Re-synthesize edited cut-by-cut narration text and re-render audio + captions onto
+    the job's already-cut visual track without re-running Gemini Vision or re-cutting 1080p.
+    """
+    job_id = (request.path_params.get("job_id") or "").strip()
+    if not job_id:
+        return JSONResponse({"error": "Missing job_id parameter."}, status_code=400)
+
+    user = _get_authenticated_user_from_form_or_header(request)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب تعديل النص تسجيل دخول نشط.",
+            },
+            status_code=401,
+        )
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body."}, status_code=400)
+
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "JSON object expected."}, status_code=400)
+
+    cuts = body.get("cuts")
+    edited_script = body.get("script")
+    voice = body.get("voice")
+
+    if cuts is not None and not isinstance(cuts, list):
+        return JSONResponse({"error": "'cuts' must be a list of cut objects."}, status_code=400)
+
+    has_cut_text = bool(cuts and any(isinstance(c, dict) and str(c.get("text") or "").strip() for c in cuts))
+    has_script_text = bool(isinstance(edited_script, str) and edited_script.strip())
+    if not has_cut_text and not has_script_text:
+        return JSONResponse(
+            {"error": "Provide at least one non-empty cut text or script."},
+            status_code=400,
+        )
+
+    try:
+        updated_summary = await asyncio.to_thread(
+            update_cuts_text_and_rerender,
+            job_id=job_id,
+            edited_cuts=cuts,
+            edited_script=edited_script if isinstance(edited_script, str) else None,
+            output_dir=OUTPUTS_DIR / "mobile_cuts",
+            voice=voice if isinstance(voice, str) and voice.strip() else None,
+        )
+    except FileNotFoundError as exc:
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": "تعذر العثور على ملفات هذه المهمة."},
+            status_code=404,
+        )
+    except Exception as exc:
+        logger.exception("Failed updating cuts text for job %s: %s", job_id, exc)
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": f"تعذر إعادة تصدير الصوت المعدّل: {exc}"},
+            status_code=500,
+        )
+
+    version_ts = int(datetime.now(timezone.utc).timestamp() * 1000)
+    updated_summary["video_url_versioned"] = f"{updated_summary.get('video_url', '')}?v={version_ts}"
+    JOBS_STORE[job_id] = dict(updated_summary)
+    if job_id in PROGRESS_STORE:
+        p_curr = dict(PROGRESS_STORE[job_id])
+        p_curr["result"] = dict(updated_summary)
+        p_curr["script"] = updated_summary.get("script")
+        p_curr["editable_cuts"] = updated_summary.get("editable_cuts")
+        p_curr["shot_timeline"] = updated_summary.get("shot_timeline")
+        p_curr["subtitles"] = updated_summary.get("subtitles")
+        p_curr["updated_at"] = updated_summary.get("updated_at")
+        PROGRESS_STORE[job_id] = p_curr
+
+    return JSONResponse(updated_summary, status_code=200)
 
 
 async def get_mobile_cut_endpoint(request: Request) -> Response:
@@ -2134,6 +2217,7 @@ routes = [
     Route("/api/admin/stats", admin_stats_endpoint, methods=["GET"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
+    Route("/api/jobs/{job_id}/update-cuts-text", update_job_cuts_text_endpoint, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),
     Route("/admin", admin_page, methods=["GET"]),
     Route("/style.css", style_css_endpoint, methods=["GET"]),

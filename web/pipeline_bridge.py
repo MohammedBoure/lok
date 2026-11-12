@@ -1327,18 +1327,33 @@ def _build_atempo_chain(tempo: float) -> str:
     return ",".join(parts)
 
 
-def _fit_audio_tempo(wav_path: Path, max_duration: float, max_tempo: float = 1.55) -> float:
+def _fit_audio_tempo(
+    wav_path: Path,
+    max_duration: float,
+    max_tempo: float = 1.55,
+    min_duration: float = 0.0,
+    min_tempo: float = 0.88,
+) -> float:
     """
-    Compress WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch)
-    when audio exceeds ``max_duration``. Returns new duration in seconds.
+    Adjust WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch):
+    compresses when audio exceeds ``max_duration``, and gently relaxes down to ``min_tempo``
+    when ``min_duration > 0`` and audio finishes noticeably early, eliminating dead air.
     """
     cur_dur = get_media_duration(wav_path)
-    if cur_dur <= 0.0 or max_duration <= 0.4 or cur_dur <= max_duration * 1.01:
+    if cur_dur <= 0.0 or max_duration <= 0.4:
         return cur_dur
 
-    desired_tempo = cur_dur / float(max_duration)
-    eff_tempo = min(float(max_tempo), max(1.01, desired_tempo))
-    if eff_tempo <= 1.01:
+    eff_tempo = 1.0
+    if cur_dur > max_duration * 1.01:
+        desired_tempo = cur_dur / float(max_duration)
+        eff_tempo = min(float(max_tempo), max(1.01, desired_tempo))
+    elif min_duration > 0.4 and cur_dur < min_duration * 0.94:
+        target_dur = min(float(max_duration) * 0.96, float(min_duration))
+        if target_dur > cur_dur * 1.04:
+            desired_tempo = cur_dur / target_dur
+            eff_tempo = max(float(min_tempo), min(0.98, desired_tempo))
+
+    if 0.985 <= eff_tempo <= 1.01:
         return cur_dur
 
     ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
@@ -1419,10 +1434,16 @@ def synthesize_scene_aligned_narration(
             emotional_tone=emotional_tone,
         )
         _trim_wav_silence(c_path)
-        slot_budget = max(0.8, (slot["end_sec"] - slot["start_sec"]) - 0.12)
+        slot_budget = max(0.8, (slot["end_sec"] - slot["start_sec"]) - 0.08)
         if idx == 0 and slot["start_sec"] < visual_lead_in:
-            slot_budget = max(0.8, (slot["end_sec"] - visual_lead_in) - 0.12)
-        fitted_dur = _fit_audio_tempo(c_path, max_duration=slot_budget, max_tempo=1.55)
+            slot_budget = max(0.8, (slot["end_sec"] - visual_lead_in) - 0.08)
+        fitted_dur = _fit_audio_tempo(
+            c_path,
+            max_duration=slot_budget,
+            max_tempo=1.55,
+            min_duration=slot_budget * 0.85,
+            min_tempo=0.88,
+        )
         res["duration"] = fitted_dur
         return res
 
@@ -1458,7 +1479,9 @@ def synthesize_scene_aligned_narration(
                     raw_frames = w_chunk.readframes(w_chunk.getnframes())
                     c_dur = w_chunk.getnframes() / float(params.framerate)
 
-                target_rel = 0.0 if idx == 0 else max(cursor_sec, slot["start_sec"] - base_offset)
+                # Allow Scene N+1 to cue smoothly up to 0.14s inside the crossfade edge with a minimal 0.06s breath
+                # so the narrator keeps talking continuously without choppy dead silence.
+                target_rel = 0.0 if idx == 0 else max(cursor_sec + 0.06, (slot["start_sec"] - base_offset) - 0.14)
                 gap_sec = max(0.0, target_rel - cursor_sec)
                 if gap_sec >= 0.02:
                     gap_frames = int(round(gap_sec * params.framerate))
@@ -1503,6 +1526,673 @@ def synthesize_scene_aligned_narration(
     finally:
         for cp in chunk_paths:
             cp.unlink(missing_ok=True)
+
+
+def _compute_timeline_fit(
+    narration_wav: Path,
+    initial_narration_dur: float,
+    src_duration: float,
+    visual_lead_in: float,
+    outro_buffer: float,
+) -> Dict[str, float]:
+    """Trim silence, fit overflowing audio with pitch-safe tempo, and cap last-frame freeze."""
+    lead_in = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
+    outro = max(0.5, float(outro_buffer if outro_buffer is not None else 1.2))
+    trimmed_dur = _trim_wav_silence(narration_wav) if narration_wav.is_file() else 0.0
+    narration_duration = trimmed_dur if trimmed_dur > 0 else float(initial_narration_dur or 0.0)
+
+    eff_outro = outro
+    if src_duration >= 4.0 and narration_duration > 0.0 and (lead_in + narration_duration > src_duration + 0.5):
+        eff_outro = min(outro, 0.25)
+        max_speech_win = max(2.0, src_duration - lead_in - eff_outro)
+        narration_duration = _fit_audio_tempo(narration_wav, max_duration=max_speech_win, max_tempo=1.55)
+        if (lead_in + narration_duration > src_duration + 0.3) and lead_in > 0.25:
+            lead_in = round(max(0.25, src_duration - narration_duration - eff_outro), 2)
+
+    max_end_freeze_sec = 0.8
+    min_required_duration = round(lead_in + narration_duration + eff_outro, 2)
+    if src_duration >= 4.0:
+        raw_pad = max(0.0, round(min_required_duration - src_duration, 2))
+        pad_needed = min(max_end_freeze_sec, raw_pad)
+        total_duration = round(src_duration + pad_needed, 2)
+    else:
+        total_duration = max(round(src_duration, 2), min_required_duration)
+        pad_needed = max(0.0, round(total_duration - src_duration, 2))
+    total_duration = max(5.0, total_duration)
+    fade_out_start = max(0.5, round(total_duration - 1.8, 2))
+
+    return {
+        "narration_duration": narration_duration,
+        "visual_lead_in": lead_in,
+        "eff_outro": eff_outro,
+        "total_duration": total_duration,
+        "pad_needed": pad_needed,
+        "fade_out_start": fade_out_start,
+    }
+
+
+def _render_mixed_cut(
+    *,
+    input_path: Path,
+    narration_wav: Path,
+    output_path: Path,
+    target_w: int,
+    target_h: int,
+    total_duration: float,
+    pad_needed: float,
+    fade_out_start: float,
+    visual_lead_in: float,
+    mute_music: bool,
+    music_audio_file: Path,
+    duck_threshold: float,
+    duck_ratio: float,
+    duck_attack: int,
+    duck_release: int,
+    ambient_volume: float,
+) -> float:
+    """Mux visual track with narration WAV and optional ducked music via FFmpeg."""
+    visual_lead_in_ms = int(round(max(0.0, float(visual_lead_in)) * 1000))
+    narration_delay = f"adelay={visual_lead_in_ms}|{visual_lead_in_ms}," if visual_lead_in_ms > 0 else ""
+
+    video_filters: List[str] = [
+        f"scale={target_w}:{target_h}:force_original_aspect_ratio=decrease",
+        f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2",
+        "setsar=1",
+    ]
+    if pad_needed > 0:
+        video_filters.append(f"tpad=stop_mode=clone:stop_duration={pad_needed}")
+    video_filters.append("fade=t=in:st=0:d=0.5")
+    video_filters.append(f"fade=t=out:st={round(total_duration - 1.0, 2)}:d=1.0")
+    video_filters.append("format=yuv420p")
+    v_graph = ",".join(video_filters) + "[vout]"
+
+    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if mute_music:
+        filter_complex = f"""
+        [0:v]{v_graph};
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},volume=1.0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", "23",
+            "-threads", "0",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(output_path),
+        ]
+    elif music_audio_file.is_file():
+        filter_complex = f"""
+        [0:v]{v_graph};
+        [2:a]aloop=loop=-1:size=2e+09,atrim=0:{total_duration},afade=t=in:ss=0:d=1.0,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
+        [v_mix]volume=1.0[v_clean];
+        [ducked_music]volume={ambient_volume}[m_clean];
+        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-i", str(music_audio_file),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", "23",
+            "-threads", "0",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(output_path),
+        ]
+    else:
+        filter_complex = f"""
+        [0:v]{v_graph};
+        sine=f=146.83:d={total_duration},volume=0.14[d3];
+        sine=f=174.61:d={total_duration},volume=0.12[f3];
+        sine=f=220.00:d={total_duration},volume=0.10[a3];
+        sine=f=261.63:d={total_duration},volume=0.08[c4];
+        anoisesrc=d={total_duration}:c=pink:r=48000:a=0.003,lowpass=f=900[warm_air];
+        [d3][f3][a3][c4][warm_air]amix=inputs=5:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
+        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
+        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
+        [v_mix]volume=1.0[v_clean];
+        [ducked_music]volume={ambient_volume}[m_clean];
+        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
+        """
+        ffmpeg_cmd = [
+            ffmpeg_bin, "-y",
+            "-i", str(input_path),
+            "-i", str(narration_wav),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", "22",
+            "-threads", "0",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-t", str(total_duration),
+            str(output_path),
+        ]
+
+    start_render = datetime.now(timezone.utc)
+    try:
+        subprocess.run(ffmpeg_cmd, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error("FFmpeg render failed: %s", e.stderr)
+        raise RuntimeError(f"FFmpeg assembly failed: {e.stderr.strip()}") from e
+    return (datetime.now(timezone.utc) - start_render).total_seconds()
+
+
+def _apply_subtitles_and_annotations(
+    *,
+    final_cut_path: Path,
+    job_id: str,
+    job_sandbox_dir: Path,
+    total_duration: float,
+    target_w: int,
+    target_h: int,
+    subtitles_opt_in: bool,
+    narration_info: Dict[str, Any],
+    selected_script: str,
+    narration_duration: float,
+    visual_lead_in: float,
+    shot_timeline_data: List[Dict[str, Any]],
+    caption_options: Optional[Dict[str, Any]],
+    base_annotations: List[Dict[str, Any]],
+    fallback_subtitles: Optional[List[Dict[str, Any]]] = None,
+    notify_fn: Optional[Callable[..., None]] = None,
+) -> tuple[List[Dict[str, Any]], Optional[Dict[str, Any]], int]:
+    """Build synced subtitles + CapCut ASS caption track and burn overlays onto ``final_cut_path``."""
+    annotations_list: List[Dict[str, Any]] = [
+        {**ann, "end_sec": min(total_duration, float(ann.get("end_sec", total_duration)))}
+        for ann in base_annotations
+    ]
+    subtitles_list: List[Dict[str, Any]] = []
+
+    if subtitles_opt_in:
+        from web.vision_analyzer import generate_synchronized_subtitles
+        measured_scene_timings = narration_info.get("scene_timings") if isinstance(narration_info, dict) else None
+        if measured_scene_timings:
+            seg_counter = 1
+            for st_item in measured_scene_timings:
+                s_dur = max(0.6, float(st_item["end_sec"]) - float(st_item["start_sec"]))
+                chunk_subs = generate_synchronized_subtitles(
+                    script=st_item["text"],
+                    narration_duration=s_dur,
+                    visual_lead_in=float(st_item["start_sec"]),
+                )
+                for cs in chunk_subs:
+                    cs["segment_index"] = seg_counter
+                    cs["scene_index"] = st_item.get("scene_index")
+                    subtitles_list.append(cs)
+                    seg_counter += 1
+        else:
+            subtitles_list = generate_synchronized_subtitles(
+                script=selected_script,
+                narration_duration=narration_duration,
+                visual_lead_in=visual_lead_in,
+                shot_timeline=shot_timeline_data,
+            )
+        if not subtitles_list and fallback_subtitles:
+            subtitles_list = list(fallback_subtitles)
+
+        for sub in subtitles_list:
+            sub_txt = str(sub.get("text", "")).strip()
+            if sub_txt:
+                sub_st = max(0.0, float(sub.get("start_sec", visual_lead_in)))
+                sub_et = min(total_duration, float(sub.get("end_sec", sub_st + 2.0)))
+                if sub_et > sub_st:
+                    annotations_list.append({
+                        "text": sub_txt,
+                        "start_sec": round(sub_st, 2),
+                        "end_sec": round(sub_et, 2),
+                        "position": "subtitle",
+                        "style": "subtitle",
+                        "safe_margin": max(185, int(target_h * 0.145)),
+                        "font_size": max(30, min(42, int(target_h * 0.026))),
+                    })
+
+    caption_track_meta: Optional[Dict[str, Any]] = None
+    if caption_options:
+        custom_caption_text = (caption_options.get("custom_text") or "").strip() or None
+        narration_segments = subtitles_list if (not custom_caption_text and subtitles_list) else None
+        if custom_caption_text or narration_segments:
+            try:
+                from web.caption_templates import prepare_caption_track
+                caption_track_meta = prepare_caption_track(
+                    job_sandbox_dir / f"captions_{job_id}.ass",
+                    total_duration=total_duration,
+                    video_width=target_w,
+                    video_height=target_h,
+                    template=caption_options.get("template"),
+                    custom_text=custom_caption_text,
+                    segments=narration_segments,
+                    position=caption_options.get("position"),
+                    size=caption_options.get("size"),
+                    shot_timeline=shot_timeline_data,
+                    font_path=find_system_font(),
+                )
+            except Exception as cap_err:
+                logger.warning("Job %s: Animated caption track preparation failed: %s", job_id, cap_err)
+                caption_track_meta = None
+        if caption_track_meta:
+            annotations_list = [a for a in annotations_list if a.get("position") != "subtitle"]
+            logger.info(
+                "Job %s: Animated captions ready (template=%s, chunks=%d, split=%s)",
+                job_id, caption_track_meta["template"], caption_track_meta["chunks_count"], caption_track_meta["engine"],
+            )
+            if notify_fn:
+                notify_fn(
+                    step=5,
+                    percent=88,
+                    message="جاري تطبيق النصوص المتحركة بالقالب المختار...",
+                    log=(
+                        f"[نصوص متحركة] القالب: {caption_track_meta['template_name_ar']} | "
+                        f"عدد المقاطع: {caption_track_meta['chunks_count']} | "
+                        f"التقسيم: {'ذكاء اصطناعي' if caption_track_meta['engine'] == 'gemini' else 'تقسيم ذكي محلي' if caption_track_meta['engine'] == 'heuristic' else 'متزامن مع التعليق الصوتي'}"
+                    ),
+                )
+
+    applied_annotations_count = 0
+    if annotations_list or caption_track_meta:
+        annotated_tmp = job_sandbox_dir / f"annotated_{job_id}.mp4"
+        try:
+            annot_kwargs: Dict[str, Any] = {}
+            if caption_track_meta:
+                annot_kwargs["ass_file"] = caption_track_meta["ass_path"]
+            annot_res = annotate_video(
+                input_video_path=final_cut_path,
+                output_video_path=annotated_tmp,
+                annotations=annotations_list,
+                video_width=target_w,
+                video_height=target_h,
+                **annot_kwargs,
+            )
+            ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
+            if not ok and caption_track_meta:
+                logger.warning("Job %s: Caption burn failed: %s", job_id, str(annot_res.get("error", ""))[-800:])
+                caption_track_meta["applied"] = False
+            if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
+                annotated_tmp.replace(final_cut_path)
+                applied_annotations_count = len(annotations_list) + (caption_track_meta["chunks_count"] if caption_track_meta else 0)
+                if caption_track_meta:
+                    caption_track_meta["applied"] = True
+                logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
+                if notify_fn:
+                    notify_fn(
+                        step=5,
+                        percent=95,
+                        message="تمت إضافة الملصقات والترجمة المتزامنة على الفيديو بنجاح.",
+                        log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات وترجمات متزامنة على المشاهد.",
+                    )
+        except Exception as annot_err:
+            logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
+
+    return subtitles_list, caption_track_meta, applied_annotations_count
+
+
+def _mirror_outputs(final_cut_path: Path, narration_wav: Path, out_cuts_dir: Path, job_id: str) -> Path:
+    """Copy finalized video cut and WAV narration into shared outputs and atomic legacy target."""
+    if not final_cut_path.is_file() or final_cut_path.stat().st_size == 0:
+        raise RuntimeError(f"Rendered video cut file was not found or is empty: {final_cut_path}")
+
+    out_cuts_dir.mkdir(parents=True, exist_ok=True)
+    mirror_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
+    if str(final_cut_path.resolve()) != str(mirror_cut_path.resolve()):
+        shutil.copyfile(final_cut_path, mirror_cut_path)
+
+    mirror_narration_path = out_cuts_dir / f"narration_{job_id}.wav"
+    if narration_wav.is_file() and str(narration_wav.resolve()) != str(mirror_narration_path.resolve()):
+        shutil.copyfile(narration_wav, mirror_narration_path)
+
+    try:
+        legacy_dir = REPO_ROOT / "outputs"
+        legacy_dir.mkdir(parents=True, exist_ok=True)
+        legacy_cut_path = legacy_dir / "final_cut.mp4"
+        legacy_cut_tmp = legacy_dir / f"final_cut_{job_id}.mp4.tmp"
+        shutil.copyfile(final_cut_path, legacy_cut_tmp)
+        legacy_cut_tmp.replace(legacy_cut_path)
+    except Exception as copy_err:
+        logger.warning("Job %s: Failed to copy to legacy final_cut.mp4: %s", job_id, copy_err)
+
+    return mirror_cut_path
+
+
+def _pick_closest_thumb(keyframes: List[Dict[str, Any]], mid_sec: float) -> str:
+    """Return URL of the keyframe nearest to ``mid_sec``."""
+    best_url = ""
+    best_dist = float("inf")
+    for kf in keyframes:
+        u = str(kf.get("url") or kf.get("sandboxed_url") or "")
+        if not u:
+            continue
+        try:
+            d = abs(float(kf.get("timestamp", 0.0)) - mid_sec)
+        except (TypeError, ValueError):
+            continue
+        if d < best_dist:
+            best_dist = d
+            best_url = u
+    return best_url
+
+
+def _split_script_across_slots(script_text: str, count: int) -> List[str]:
+    """Split a continuous script cleanly into ``count`` balanced spoken phrases."""
+    clean = " ".join(str(script_text or "").split()).strip()
+    if count <= 1 or not clean:
+        return [clean] if clean else []
+
+    raw_sentences = [s.strip() for s in re.split(r"(?<=[.!؟?،,])\s+", clean) if s.strip()]
+    if len(raw_sentences) == count:
+        return raw_sentences
+
+    words = clean.split()
+    if not words:
+        return [""] * count
+    chunks: List[str] = []
+    for i in range(count):
+        a = int(round(i * len(words) / count))
+        b = int(round((i + 1) * len(words) / count))
+        chunks.append(" ".join(words[a:b]).strip())
+    return [c for c in chunks if c]
+
+
+def _build_editable_cuts(
+    *,
+    aligned_scene_plan: List[Dict[str, Any]],
+    montage_details: Optional[Dict[str, Any]],
+    shot_timeline_data: List[Dict[str, Any]],
+    formatted_keyframes: List[Dict[str, Any]],
+    selected_script: str,
+    src_duration: float,
+) -> List[Dict[str, Any]]:
+    """Build normalized per-cut cards pairing timestamps, titles, thumbnails, and editable spoken text."""
+    out_segs = (montage_details or {}).get("output_segments") or []
+    cuts: List[Dict[str, Any]] = []
+
+    if aligned_scene_plan:
+        for idx, slot in enumerate(aligned_scene_plan):
+            st = round(float(slot.get("start_sec", 0.0)), 2)
+            en = round(max(st + 0.5, float(slot.get("end_sec", st + 2.5))), 2)
+            title = ""
+            if idx < len(out_segs):
+                title = str(out_segs[idx].get("title") or "")
+            if not title and idx < len(shot_timeline_data):
+                title = str(shot_timeline_data[idx].get("title") or "")
+            if not title:
+                title = str(slot.get("room_or_subject") or f"اللقطة {idx + 1}")
+            cuts.append({
+                "scene_index": idx + 1,
+                "start_sec": st,
+                "end_sec": en,
+                "title": title,
+                "text": str(slot.get("text") or "").strip(),
+                "thumb": _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
+            })
+        return cuts
+
+    base_slots = out_segs or shot_timeline_data
+    if base_slots:
+        texts = _split_script_across_slots(selected_script, len(base_slots))
+        for idx, seg in enumerate(base_slots):
+            st = round(float(seg.get("start_sec", seg.get("timestamp", idx * 3.0))), 2)
+            en = round(max(st + 0.5, float(seg.get("end_sec", st + 3.0))), 2)
+            cuts.append({
+                "scene_index": idx + 1,
+                "start_sec": st,
+                "end_sec": en,
+                "title": str(seg.get("title") or f"اللقطة {idx + 1}"),
+                "text": texts[idx] if idx < len(texts) else str(seg.get("narration_line") or seg.get("description") or "").strip(),
+                "thumb": str(seg.get("thumbnail") or "") or _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
+            })
+        return cuts
+
+    # Single-shot video: break narration into 2–3 logical phrase cards for easy word editing
+    target_chunks = 3 if len(selected_script.split()) >= 18 else (2 if len(selected_script.split()) >= 10 else 1)
+    phrases = _split_script_across_slots(selected_script, target_chunks) or [selected_script]
+    dur = max(2.0, float(src_duration or 8.0))
+    span = dur / len(phrases)
+    for idx, phrase in enumerate(phrases):
+        st = round(idx * span, 2)
+        en = round(min(dur, (idx + 1) * span), 2)
+        cuts.append({
+            "scene_index": idx + 1,
+            "start_sec": st,
+            "end_sec": en,
+            "title": f"اللقطة {idx + 1}",
+            "text": phrase,
+            "thumb": _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
+        })
+    return cuts
+
+
+def update_cuts_text_and_rerender(
+    job_id: str,
+    edited_cuts: Optional[List[Dict[str, Any]]] = None,
+    edited_script: Optional[str] = None,
+    output_dir: Union[str, Path] = "outputs/mobile_cuts",
+    voice: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's
+    already-cut visual track without re-running Gemini Vision or re-cutting raw footage.
+    """
+    out_cuts_dir = Path(output_dir).resolve()
+    job_sandbox_dir = REPO_ROOT / "outputs" / "jobs" / job_id / "sandbox"
+
+    summary_path = next(
+        (
+            p for p in [
+                job_sandbox_dir / f"summary_{job_id}.json",
+                out_cuts_dir / f"summary_{job_id}.json",
+            ]
+            if p.is_file()
+        ),
+        None,
+    )
+    if summary_path is None:
+        raise FileNotFoundError(f"Job summary not found for '{job_id}'.")
+
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = json.load(f)
+
+    cfg = dict(summary.get("render_config") or {})
+    visual_candidates = [
+        summary.get("clean_visual_source"),
+        str(job_sandbox_dir / f"montaged_{job_id}.mp4"),
+        (summary.get("metadata") or {}).get("source_video"),
+    ]
+    visual_source = next((Path(c) for c in visual_candidates if c and Path(c).is_file()), None)
+    if visual_source is None:
+        raise FileNotFoundError(f"Visual source video missing for job '{job_id}'.")
+
+    if not job_sandbox_dir.exists():
+        job_sandbox_dir.mkdir(parents=True, exist_ok=True)
+
+    meta = frame_extractor.get_video_metadata(visual_source)
+    src_duration = float(cfg.get("src_duration") or meta.get("total_duration") or summary.get("duration") or 10.0)
+    target_w = int(cfg.get("target_w") or meta.get("width") or 720)
+    target_h = int(cfg.get("target_h") or meta.get("height") or 1280)
+
+    resolved_voice_id, resolved_voice_name = resolve_voice_profile(
+        voice or cfg.get("voice") or summary.get("voice") or "ar-XA-Standard-A"
+    )
+    resolved_tone = cfg.get("emotional_tone") or summary.get("emotional_tone") or "فاخر وهادئ"
+    style_prompt = cfg.get("style_prompt") or summary.get("style_prompt")
+    visual_lead_in = float(cfg.get("visual_lead_in") if cfg.get("visual_lead_in") is not None else summary.get("visual_lead_in_seconds", 0.35))
+    outro_buffer = float(cfg.get("outro_buffer") if cfg.get("outro_buffer") is not None else summary.get("outro_buffer_seconds", 1.2))
+
+    # Build sanitized scene plan from edited cuts (or fallback to existing cuts / edited script)
+    existing_cuts = list(summary.get("editable_cuts") or [])
+    normalized_cuts: List[Dict[str, Any]] = []
+    source_list = edited_cuts if (edited_cuts is not None and len(edited_cuts) > 0) else existing_cuts
+
+    for idx, item in enumerate(source_list):
+        txt = sanitize_script_against_meta_prompts(str(item.get("text") or "").strip())
+        base = existing_cuts[idx] if idx < len(existing_cuts) else {}
+        try:
+            st = max(0.0, float(item.get("start_sec") if item.get("start_sec") is not None else base.get("start_sec", 0.0)))
+            en = max(st + 0.5, float(item.get("end_sec") if item.get("end_sec") is not None else base.get("end_sec", st + 3.0)))
+        except (TypeError, ValueError):
+            st, en = 0.0, max(1.0, src_duration)
+        title = str(item.get("title") or base.get("title") or f"اللقطة {idx + 1}").strip()
+        thumb = str(item.get("thumb") or base.get("thumb") or "")
+        normalized_cuts.append({
+            "scene_index": idx + 1,
+            "start_sec": round(st, 2),
+            "end_sec": round(en, 2),
+            "title": title,
+            "text": txt,
+            "thumb": thumb,
+        })
+
+    non_empty_slots = [c for c in normalized_cuts if c.get("text")]
+    combined_script = sanitize_script_against_meta_prompts(
+        edited_script.strip() if (edited_script and edited_script.strip() and not non_empty_slots)
+        else " ".join(c["text"] for c in non_empty_slots)
+    ) or str(summary.get("script") or DEFAULT_PROMO_SCRIPT)
+
+    narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
+    if len(non_empty_slots) >= 2:
+        scene_lead_in = min(max(0.0, visual_lead_in), 0.35) if visual_lead_in > 0 else 0.0
+        narration_info = synthesize_scene_aligned_narration(
+            scene_segments=non_empty_slots,
+            output_path=narration_wav,
+            voice=resolved_voice_id,
+            style_prompt=style_prompt,
+            emotional_tone=resolved_tone,
+            visual_lead_in=scene_lead_in,
+        )
+        visual_lead_in = scene_lead_in
+        if narration_info.get("script"):
+            combined_script = narration_info["script"]
+    else:
+        narration_info = synthesize_narration(
+            script_text=combined_script,
+            output_path=narration_wav,
+            voice=resolved_voice_id,
+            style_prompt=style_prompt,
+            emotional_tone=resolved_tone,
+        )
+
+    timeline_fit = _compute_timeline_fit(
+        narration_wav=narration_wav,
+        initial_narration_dur=narration_info["duration"],
+        src_duration=src_duration,
+        visual_lead_in=visual_lead_in,
+        outro_buffer=outro_buffer,
+    )
+    narration_duration = timeline_fit["narration_duration"]
+    visual_lead_in = timeline_fit["visual_lead_in"]
+    total_duration = timeline_fit["total_duration"]
+    pad_needed = timeline_fit["pad_needed"]
+    fade_out_start = timeline_fit["fade_out_start"]
+
+    music_key = str(cfg.get("music_track_id") or (summary.get("music_track") or {}).get("id") or "luxury_piano")
+    music_meta = MUSIC_LIBRARY.get(music_key, MUSIC_LIBRARY["luxury_piano"])
+    mute_music = bool(cfg.get("mute_music") if "mute_music" in cfg else summary.get("music_muted", True))
+    ambient_volume = float(cfg.get("ambient_volume") if "ambient_volume" in cfg else summary.get("music_volume", 0.16))
+
+    final_cut_path = job_sandbox_dir / f"cut_{job_id}.mp4"
+    render_seconds = _render_mixed_cut(
+        input_path=visual_source,
+        narration_wav=narration_wav,
+        output_path=final_cut_path,
+        target_w=target_w,
+        target_h=target_h,
+        total_duration=total_duration,
+        pad_needed=pad_needed,
+        fade_out_start=fade_out_start,
+        visual_lead_in=visual_lead_in,
+        mute_music=mute_music,
+        music_audio_file=music_meta["file"],
+        duck_threshold=float(cfg.get("duck_threshold", 0.015)),
+        duck_ratio=float(cfg.get("duck_ratio", 12.0)),
+        duck_attack=int(cfg.get("duck_attack", 60)),
+        duck_release=int(cfg.get("duck_release", 350)),
+        ambient_volume=ambient_volume,
+    )
+
+    shot_timeline_data = list(summary.get("shot_timeline") or [])
+    for idx, c in enumerate(normalized_cuts):
+        if idx < len(shot_timeline_data) and c.get("text"):
+            shot_timeline_data[idx]["description"] = c["text"]
+            shot_timeline_data[idx]["narration_line"] = c["text"]
+
+    subtitles_opt_in = bool(cfg.get("subtitles_enabled") if "subtitles_enabled" in cfg else summary.get("subtitles_enabled", False))
+    caption_options = cfg.get("caption_options")
+    base_annotations = list(cfg.get("base_annotations") or [])
+
+    subtitles_list, caption_track_meta, applied_annotations_count = _apply_subtitles_and_annotations(
+        final_cut_path=final_cut_path,
+        job_id=job_id,
+        job_sandbox_dir=job_sandbox_dir,
+        total_duration=total_duration,
+        target_w=target_w,
+        target_h=target_h,
+        subtitles_opt_in=subtitles_opt_in,
+        narration_info=narration_info,
+        selected_script=combined_script,
+        narration_duration=narration_duration,
+        visual_lead_in=visual_lead_in,
+        shot_timeline_data=shot_timeline_data,
+        caption_options=caption_options,
+        base_annotations=base_annotations,
+    )
+
+    mirror_cut_path = _mirror_outputs(final_cut_path, narration_wav, out_cuts_dir, job_id)
+
+    summary["script"] = combined_script
+    summary["inferred_script"] = combined_script
+    summary["editable_cuts"] = normalized_cuts
+    summary["shot_timeline"] = shot_timeline_data
+    summary["subtitles"] = subtitles_list
+    summary["subtitles_count"] = len(subtitles_list)
+    summary["animated_captions"] = caption_track_meta
+    summary["annotations_applied"] = applied_annotations_count
+    summary["duration"] = total_duration
+    summary["end_freeze_seconds"] = pad_needed
+    summary["visual_lead_in_seconds"] = visual_lead_in
+    summary["voice"] = resolved_voice_id
+    summary["gemini_voice"] = resolved_voice_name
+    summary["file_size_bytes"] = final_cut_path.stat().st_size
+    summary["output_path"] = str(mirror_cut_path)
+    summary["absolute_output_path"] = str(mirror_cut_path.resolve())
+    summary["updated_at"] = datetime.now(timezone.utc).isoformat()
+    if isinstance(summary.get("metadata"), dict):
+        summary["metadata"]["narration_duration"] = narration_duration
+        summary["metadata"]["render_seconds"] = round(render_seconds, 2)
+        summary["metadata"]["visual_lead_in_seconds"] = visual_lead_in
+        summary["metadata"]["shot_timeline"] = shot_timeline_data
+        if isinstance(summary["metadata"].get("subtitles"), dict):
+            summary["metadata"]["subtitles"]["count"] = len(subtitles_list)
+            summary["metadata"]["subtitles"]["items"] = subtitles_list
+
+    for sp in {job_sandbox_dir / f"summary_{job_id}.json", out_cuts_dir / f"summary_{job_id}.json"}:
+        sp.parent.mkdir(parents=True, exist_ok=True)
+        with open(sp, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+
+    logger.info("Job %s: Re-rendered video after cut text edit cleanly in %.2fs", job_id, render_seconds)
+    return summary
 
 
 # ---------------------------------------------------------------------------
@@ -2170,14 +2860,17 @@ def process_mobile_video(
 
     narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
     if len(aligned_scene_plan) >= 2:
+        raw_lead = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
+        scene_lead_in = min(raw_lead, 0.35) if raw_lead > 0 else 0.0
         narration_info = synthesize_scene_aligned_narration(
             scene_segments=aligned_scene_plan,
             output_path=narration_wav,
             voice=voice,
             style_prompt=final_style_prompt,
             emotional_tone=resolved_tone,
-            visual_lead_in=max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2)),
+            visual_lead_in=scene_lead_in,
         )
+        visual_lead_in = scene_lead_in
         if narration_info.get("script"):
             selected_script = narration_info["script"]
     else:
@@ -2191,35 +2884,19 @@ def process_mobile_video(
     narration_duration = narration_info["duration"]
 
     # 5. Timeline Synchronization, Silence Trim, Tempo Fit & Zero Long End-Freeze
-    visual_lead_in = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
-    outro_buffer = max(0.5, float(outro_buffer if outro_buffer is not None else 1.2))
-    trimmed_dur = _trim_wav_silence(narration_wav)
-    if trimmed_dur > 0:
-        narration_duration = trimmed_dur
-
-    eff_outro = outro_buffer
-    if src_duration >= 4.0 and narration_duration > 0.0 and (visual_lead_in + narration_duration > src_duration + 0.5):
-        eff_outro = min(outro_buffer, 0.25)
-        max_speech_win = max(2.0, src_duration - visual_lead_in - eff_outro)
-        narration_duration = _fit_audio_tempo(narration_wav, max_duration=max_speech_win, max_tempo=1.55)
-        # Reclaim excess lead-in pause first if narration still runs long, instead of freezing last video frame
-        if (visual_lead_in + narration_duration > src_duration + 0.3) and visual_lead_in > 0.25:
-            visual_lead_in = round(max(0.25, src_duration - narration_duration - eff_outro), 2)
-
-    visual_lead_in_ms = int(round(visual_lead_in * 1000))
-    narration_delay = f"adelay={visual_lead_in_ms}|{visual_lead_in_ms}," if visual_lead_in_ms > 0 else ""
-
-    max_end_freeze_sec = 0.8
-    min_required_duration = round(visual_lead_in + narration_duration + eff_outro, 2)
-    if src_duration >= 4.0:
-        raw_pad = max(0.0, round(min_required_duration - src_duration, 2))
-        pad_needed = min(max_end_freeze_sec, raw_pad)
-        total_duration = round(src_duration + pad_needed, 2)
-    else:
-        total_duration = max(round(src_duration, 2), min_required_duration)
-        pad_needed = max(0.0, round(total_duration - src_duration, 2))
-    total_duration = max(5.0, total_duration)
-    fade_out_start = max(0.5, round(total_duration - 1.8, 2))
+    timeline_fit = _compute_timeline_fit(
+        narration_wav=narration_wav,
+        initial_narration_dur=narration_duration,
+        src_duration=src_duration,
+        visual_lead_in=visual_lead_in,
+        outro_buffer=outro_buffer,
+    )
+    narration_duration = timeline_fit["narration_duration"]
+    visual_lead_in = timeline_fit["visual_lead_in"]
+    eff_outro = timeline_fit["eff_outro"]
+    total_duration = timeline_fit["total_duration"]
+    pad_needed = timeline_fit["pad_needed"]
+    fade_out_start = timeline_fit["fade_out_start"]
 
     logger.info(
         "Job %s: Timeline - Video: %.2fs, Lead-In: %.2fs, Narration: %.2fs, Outro: %.2fs, Total: %.2fs (Pad: %.2fs)",
@@ -2239,7 +2916,6 @@ def process_mobile_video(
     duck_ratio = 12.0
     duck_attack = 60
     duck_release = 350
-    # Balanced default background bed: 0.16 (subtle, non-intrusive)
     ambient_volume = float(music_directives.get("music_volume") or principles_visual.get("ambient_music_volume") or 0.16)
 
     if mute_music:
@@ -2262,123 +2938,33 @@ def process_mobile_video(
             log=f"[مكساج صوتي] تم إنتاج الصوت ({narration_duration:.1f}s - {narration_info['synthesizer']}). دمج الموسيقى بمستوى متوازن ({ambient_volume:.2f}) وخفض ذكي ({effective_duck_level:.2f}).",
         )
 
-    # 7. Construct FFmpeg Filter Graph
-    video_filters: List[str] = [
-        f"scale={target_w}:{target_h}:force_original_aspect_ratio=decrease",
-        f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2",
-        "setsar=1",
-    ]
-    if pad_needed > 0:
-        video_filters.append(f"tpad=stop_mode=clone:stop_duration={pad_needed}")
-    video_filters.append("fade=t=in:st=0:d=0.5")
-    video_filters.append(f"fade=t=out:st={round(total_duration - 1.0, 2)}:d=1.0")
-    video_filters.append("format=yuv420p")
-    v_graph = ",".join(video_filters) + "[vout]"
-
-    # Audio pipeline: Handle mute_music or mix open-source royalty-free music
-    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    # 7. Render Mixed Video Cut via shared helper
     final_cut_path = job_sandbox_dir / f"cut_{job_id}.mp4"
-
-    if mute_music:
-        filter_complex = f"""
-        [0:v]{v_graph};
-        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},volume=1.0[aout]
-        """
-        ffmpeg_cmd = [
-            ffmpeg_bin, "-y",
-            "-i", str(input_path),
-            "-i", str(narration_wav),
-            "-filter_complex", filter_complex,
-            "-map", "[vout]",
-            "-map", "[aout]",
-            "-c:v", "libx264",
-            "-preset", "ultrafast",
-            "-crf", "23",
-            "-threads", "0",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
-            "-t", str(total_duration),
-            str(final_cut_path),
-        ]
-    elif music_audio_file.is_file():
-        filter_complex = f"""
-        [0:v]{v_graph};
-        [2:a]aloop=loop=-1:size=2e+09,atrim=0:{total_duration},afade=t=in:ss=0:d=1.0,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
-        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
-        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
-        [v_mix]volume=1.0[v_clean];
-        [ducked_music]volume={ambient_volume}[m_clean];
-        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
-        """
-        ffmpeg_cmd = [
-            ffmpeg_bin, "-y",
-            "-i", str(input_path),
-            "-i", str(narration_wav),
-            "-i", str(music_audio_file),
-            "-filter_complex", filter_complex,
-            "-map", "[vout]",
-            "-map", "[aout]",
-            "-c:v", "libx264",
-            "-preset", "ultrafast",
-            "-crf", "23",
-            "-threads", "0",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
-            "-t", str(total_duration),
-            str(final_cut_path),
-        ]
-    else:
-        # Fallback harmonic synth pad
-        filter_complex = f"""
-        [0:v]{v_graph};
-        sine=f=146.83:d={total_duration},volume=0.14[d3];
-        sine=f=174.61:d={total_duration},volume=0.12[f3];
-        sine=f=220.00:d={total_duration},volume=0.10[a3];
-        sine=f=261.63:d={total_duration},volume=0.08[c4];
-        anoisesrc=d={total_duration}:c=pink:r=48000:a=0.003,lowpass=f=900[warm_air];
-        [d3][f3][a3][c4][warm_air]amix=inputs=5:normalize=0,lowpass=f=2000,afade=t=in:ss=0:d=1.5,afade=t=out:st={fade_out_start}:d=1.8,aformat=sample_rates=48000:channel_layouts=stereo[music];
-        [1:a]aformat=sample_rates=48000:channel_layouts=stereo,{narration_delay}apad=whole_dur={total_duration},asplit=2[v_sc][v_mix];
-        [music][v_sc]sidechaincompress=threshold={duck_threshold}:ratio={duck_ratio}:attack={duck_attack}:release={duck_release}:makeup=1[ducked_music];
-        [v_mix]volume=1.0[v_clean];
-        [ducked_music]volume={ambient_volume}[m_clean];
-        [v_clean][m_clean]amix=inputs=2:duration=first:normalize=0[aout]
-        """
-        ffmpeg_cmd = [
-            ffmpeg_bin, "-y",
-            "-i", str(input_path),
-            "-i", str(narration_wav),
-            "-filter_complex", filter_complex,
-            "-map", "[vout]",
-            "-map", "[aout]",
-            "-c:v", "libx264",
-            "-preset", "ultrafast",
-            "-crf", "22",
-            "-threads", "0",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
-            "-t", str(total_duration),
-            str(final_cut_path),
-        ]
-
     _notify(
         step=5,
         percent=90,
         message="ريندر وتجميع مشاهد الفيديو والصوت عبر FFmpeg...",
         log=f"[ريندر الفيديو] 🎬 بدء تصدير الفيديو النهائي بدقة {target_w}x{target_h} ودمج الصوت والمشاهد...",
     )
-
     logger.info("Job %s: Rendering final cut with FFmpeg -> %s", job_id, final_cut_path)
-    start_render = datetime.now(timezone.utc)
-    try:
-        subprocess.run(ffmpeg_cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        logger.error("FFmpeg render failed: %s", e.stderr)
-        raise RuntimeError(f"FFmpeg assembly failed: {e.stderr.strip()}") from e
-
-    render_seconds = (datetime.now(timezone.utc) - start_render).total_seconds()
+    render_seconds = _render_mixed_cut(
+        input_path=input_path,
+        narration_wav=narration_wav,
+        output_path=final_cut_path,
+        target_w=target_w,
+        target_h=target_h,
+        total_duration=total_duration,
+        pad_needed=pad_needed,
+        fade_out_start=fade_out_start,
+        visual_lead_in=visual_lead_in,
+        mute_music=mute_music,
+        music_audio_file=music_audio_file,
+        duck_threshold=duck_threshold,
+        duck_ratio=duck_ratio,
+        duck_attack=duck_attack,
+        duck_release=duck_release,
+        ambient_volume=ambient_volume,
+    )
     logger.info("Job %s: Final cut rendered in %.2fs (%d bytes)", job_id, render_seconds, final_cut_path.stat().st_size)
 
     # Compile shot timeline prior to annotations & subtitle synchronization
@@ -2468,165 +3054,54 @@ def process_mobile_video(
                         "style": "highlight_badge",
                     })
 
+    base_annotations = list(annotations_list)
+
     # Strict Opt-In for synchronized captions / subtitles: Default OFF
     subtitles_opt_in = bool(
         enable_subtitles if enable_subtitles is not None
         else parsed_dirs.get("subtitles_requested", False)
     )
 
-    subtitles_list: List[Dict[str, Any]] = []
-    if subtitles_opt_in:
-        from web.vision_analyzer import generate_synchronized_subtitles
-        measured_scene_timings = narration_info.get("scene_timings") if isinstance(narration_info, dict) else None
-        if measured_scene_timings:
-            seg_counter = 1
-            for st_item in measured_scene_timings:
-                s_dur = max(0.6, float(st_item["end_sec"]) - float(st_item["start_sec"]))
-                chunk_subs = generate_synchronized_subtitles(
-                    script=st_item["text"],
-                    narration_duration=s_dur,
-                    visual_lead_in=float(st_item["start_sec"]),
-                )
-                for cs in chunk_subs:
-                    cs["segment_index"] = seg_counter
-                    cs["scene_index"] = st_item.get("scene_index")
-                    subtitles_list.append(cs)
-                    seg_counter += 1
-        else:
-            # Synchronize captions directly to the ACTUAL synthesized narration_duration and shot_timeline
-            subtitles_list = generate_synchronized_subtitles(
-                script=selected_script,
-                narration_duration=narration_duration,
-                visual_lead_in=visual_lead_in,
-                shot_timeline=shot_timeline_data,
-            )
-        # Fallback if selected_script yielded empty list but vision_result had custom subtitles
-        if not subtitles_list and is_auto_mode:
-            candidate_subs = []
-            if "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
-                candidate_subs = list(vision_result["subtitles"])
-            elif "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
-                candidate_subs = list(fb_res["subtitles"])
-            if candidate_subs:
-                subtitles_list = candidate_subs
+    fallback_subs: List[Dict[str, Any]] = []
+    if is_auto_mode:
+        if "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("subtitles"):
+            fallback_subs = list(vision_result["subtitles"])
+        elif "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
+            fallback_subs = list(fb_res["subtitles"])
 
-        # Append synchronized captions to video annotations list
-        for sub in subtitles_list:
-            sub_txt = str(sub.get("text", "")).strip()
-            if sub_txt:
-                sub_st = max(0.0, float(sub.get("start_sec", visual_lead_in)))
-                sub_et = min(total_duration, float(sub.get("end_sec", sub_st + 2.0)))
-                if sub_et > sub_st:
-                    annotations_list.append({
-                        "text": sub_txt,
-                        "start_sec": round(sub_st, 2),
-                        "end_sec": round(sub_et, 2),
-                        "position": "subtitle",
-                        "style": "subtitle",
-                        "safe_margin": max(185, int(target_h * 0.145)),
-                        "font_size": max(30, min(42, int(target_h * 0.026))),
-                    })
+    subtitles_list, caption_track_meta, applied_annotations_count = _apply_subtitles_and_annotations(
+        final_cut_path=final_cut_path,
+        job_id=job_id,
+        job_sandbox_dir=job_sandbox_dir,
+        total_duration=total_duration,
+        target_w=target_w,
+        target_h=target_h,
+        subtitles_opt_in=subtitles_opt_in,
+        narration_info=narration_info,
+        selected_script=selected_script,
+        narration_duration=narration_duration,
+        visual_lead_in=visual_lead_in,
+        shot_timeline_data=shot_timeline_data,
+        caption_options=caption_options,
+        base_annotations=base_annotations,
+        fallback_subtitles=fallback_subs,
+        notify_fn=_notify,
+    )
 
-    # CapCut-style animated captions: customer typed text (AI smart split) or narration
-    # captions restyled with the chosen animated template, rendered via libass.
-    caption_track_meta: Optional[Dict[str, Any]] = None
-    if caption_options:
-        custom_caption_text = (caption_options.get("custom_text") or "").strip() or None
-        narration_segments = subtitles_list if (not custom_caption_text and subtitles_list) else None
-        if custom_caption_text or narration_segments:
-            try:
-                from web.caption_templates import prepare_caption_track
-                caption_track_meta = prepare_caption_track(
-                    job_sandbox_dir / f"captions_{job_id}.ass",
-                    total_duration=total_duration,
-                    video_width=target_w,
-                    video_height=target_h,
-                    template=caption_options.get("template"),
-                    custom_text=custom_caption_text,
-                    segments=narration_segments,
-                    position=caption_options.get("position"),
-                    size=caption_options.get("size"),
-                    shot_timeline=shot_timeline_data,
-                    font_path=find_system_font(),
-                )
-            except Exception as cap_err:
-                logger.warning("Job %s: Animated caption track preparation failed: %s", job_id, cap_err)
-                caption_track_meta = None
-        if caption_track_meta:
-            # The animated template replaces the plain drawtext subtitle boxes
-            annotations_list = [a for a in annotations_list if a.get("position") != "subtitle"]
-            logger.info(
-                "Job %s: Animated captions ready (template=%s, chunks=%d, split=%s)",
-                job_id, caption_track_meta["template"], caption_track_meta["chunks_count"], caption_track_meta["engine"],
-            )
-            _notify(
-                step=5,
-                percent=88,
-                message="جاري تطبيق النصوص المتحركة بالقالب المختار...",
-                log=(
-                    f"[نصوص متحركة] القالب: {caption_track_meta['template_name_ar']} | "
-                    f"عدد المقاطع: {caption_track_meta['chunks_count']} | "
-                    f"التقسيم: {'ذكاء اصطناعي' if caption_track_meta['engine'] == 'gemini' else 'تقسيم ذكي محلي' if caption_track_meta['engine'] == 'heuristic' else 'متزامن مع التعليق الصوتي'}"
-                ),
-            )
+    mirror_cut_path = _mirror_outputs(final_cut_path, narration_wav, out_cuts_dir, job_id)
 
-    if annotations_list or caption_track_meta:
-        annotated_tmp = job_sandbox_dir / f"annotated_{job_id}.mp4"
-        try:
-            annot_kwargs: Dict[str, Any] = {}
-            if caption_track_meta:
-                annot_kwargs["ass_file"] = caption_track_meta["ass_path"]
-            annot_res = annotate_video(
-                input_video_path=final_cut_path,
-                output_video_path=annotated_tmp,
-                annotations=annotations_list,
-                video_width=target_w,
-                video_height=target_h,
-                **annot_kwargs,
-            )
-            ok = isinstance(annot_res, dict) and annot_res.get("status") in ("ok", "completed")
-            if not ok and caption_track_meta:
-                logger.warning("Job %s: Caption burn failed: %s", job_id, str(annot_res.get("error", ""))[-800:])
-                caption_track_meta["applied"] = False
-            if ok and annotated_tmp.is_file() and annotated_tmp.stat().st_size > 1000:
-                annotated_tmp.replace(final_cut_path)
-                applied_annotations_count = len(annotations_list) + (caption_track_meta["chunks_count"] if caption_track_meta else 0)
-                if caption_track_meta:
-                    caption_track_meta["applied"] = True
-                logger.info("Job %s: Video annotations applied successfully (%d overlays)", job_id, applied_annotations_count)
-                _notify(
-                    step=5,
-                    percent=95,
-                    message="تمت إضافة الملصقات والترجمة المتزامنة على الفيديو بنجاح.",
-                    log=f"[ملصقات الفيديو] تم تطبيق {applied_annotations_count} نصوص وشارات وترجمات متزامنة على المشاهد.",
-                )
-        except Exception as annot_err:
-            logger.warning("Job %s: Annotation pass encountered non-fatal error: %s", job_id, annot_err)
-
-    # Verify final cut is completely written and non-empty
-    if not final_cut_path.is_file() or final_cut_path.stat().st_size == 0:
-        raise RuntimeError(f"Rendered video cut file was not found or is empty: {final_cut_path}")
-
-    # Mirror rendered cuts and narration to output_dir for backward compatibility
-    mirror_cut_path = out_cuts_dir / f"cut_{job_id}.mp4"
-    if str(final_cut_path.resolve()) != str(mirror_cut_path.resolve()):
-        shutil.copyfile(final_cut_path, mirror_cut_path)
-
-    mirror_narration_path = out_cuts_dir / f"narration_{job_id}.wav"
-    if narration_wav.is_file() and str(narration_wav.resolve()) != str(mirror_narration_path.resolve()):
-        shutil.copyfile(narration_wav, mirror_narration_path)
-
-    # Atomically update legacy outputs/final_cut.mp4 so legacy endpoints work
-    try:
-        legacy_dir = REPO_ROOT / "outputs"
-        legacy_dir.mkdir(parents=True, exist_ok=True)
-        legacy_cut_path = legacy_dir / "final_cut.mp4"
-        legacy_cut_tmp = legacy_dir / f"final_cut_{job_id}.mp4.tmp"
-        shutil.copyfile(final_cut_path, legacy_cut_tmp)
-        legacy_cut_tmp.replace(legacy_cut_path)
-        logger.info("Job %s: Atomically updated legacy cut -> %s (%d bytes)", job_id, legacy_cut_path, legacy_cut_path.stat().st_size)
-    except Exception as copy_err:
-        logger.warning("Job %s: Failed to copy to legacy final_cut.mp4: %s", job_id, copy_err)
+    editable_cuts = _build_editable_cuts(
+        aligned_scene_plan=aligned_scene_plan,
+        montage_details=montage_details,
+        shot_timeline_data=shot_timeline_data,
+        formatted_keyframes=formatted_keyframes,
+        selected_script=selected_script,
+        src_duration=src_duration,
+    )
+    for idx, ec in enumerate(editable_cuts):
+        if idx < len(shot_timeline_data) and ec.get("text"):
+            shot_timeline_data[idx]["description"] = ec["text"]
+            shot_timeline_data[idx]["narration_line"] = ec["text"]
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
@@ -2641,6 +3116,7 @@ def process_mobile_video(
         "output_video": video_web_url,
         "sandboxed_video_url": sandboxed_video_url,
         "sandbox_dir": str(job_sandbox_dir),
+        "clean_visual_source": str(input_path),
         "output_path": str(mirror_cut_path),
         "absolute_output_path": str(mirror_cut_path.resolve()),
         "file_size_bytes": final_cut_path.stat().st_size,
@@ -2659,6 +3135,28 @@ def process_mobile_video(
         "subtitles_requested": subtitles_opt_in,
         "animated_captions": caption_track_meta,
         "shot_timeline": shot_timeline_data,
+        "editable_cuts": editable_cuts,
+        "render_config": {
+            "target_w": target_w,
+            "target_h": target_h,
+            "src_duration": src_duration,
+            "voice": resolved_voice_id,
+            "emotional_tone": resolved_tone,
+            "style_prompt": final_style_prompt,
+            "visual_lead_in": visual_lead_in,
+            "outro_buffer": outro_buffer,
+            "duck_level": effective_duck_level,
+            "duck_threshold": duck_threshold,
+            "duck_ratio": duck_ratio,
+            "duck_attack": duck_attack,
+            "duck_release": duck_release,
+            "mute_music": mute_music,
+            "music_track_id": resolved_music_key,
+            "ambient_volume": ambient_volume,
+            "subtitles_enabled": subtitles_opt_in,
+            "caption_options": caption_options,
+            "base_annotations": base_annotations,
+        },
         "videographer_speech": videographer_speech,
         "customer_specifications": {
             "phone_number": phone_number,
