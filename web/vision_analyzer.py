@@ -521,6 +521,187 @@ def _generate_dynamic_darja_script(
     return f"{hook} {' '.join(tour_segments)} {cta}"
 
 
+def _upload_video_to_gemini_files(
+    video_path: Union[str, Path],
+    api_key: str,
+    mime_type: str = "video/mp4",
+    poll_timeout: float = 45.0,
+) -> Optional[Dict[str, str]]:
+    """
+    Upload a lightweight analysis proxy video to the Gemini Files API via resumable
+    upload and wait until its processing state becomes ACTIVE.
+    """
+    path = Path(video_path)
+    if not path.is_file() or not api_key:
+        return None
+
+    size_bytes = path.stat().st_size
+    if size_bytes <= 0:
+        return None
+
+    start_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={api_key}"
+    start_headers = {
+        "X-Goog-Upload-Protocol": "resumable",
+        "X-Goog-Upload-Command": "start",
+        "X-Goog-Upload-Header-Content-Length": str(size_bytes),
+        "X-Goog-Upload-Header-Content-Type": mime_type,
+        "Content-Type": "application/json",
+    }
+    try:
+        init_resp = requests.post(
+            start_url,
+            headers=start_headers,
+            json={"file": {"display_name": path.name}},
+            timeout=(5.0, 15.0),
+        )
+        if init_resp.status_code != 200:
+            logger.warning("Gemini Files API init failed (%d): %s", init_resp.status_code, init_resp.text[:180])
+            return None
+
+        upload_url = init_resp.headers.get("X-Goog-Upload-URL") or init_resp.headers.get("x-goog-upload-url")
+        if not upload_url:
+            logger.warning("Gemini Files API init response missing X-Goog-Upload-URL header.")
+            return None
+
+        with open(path, "rb") as fh:
+            upload_resp = requests.post(
+                upload_url,
+                headers={
+                    "Content-Length": str(size_bytes),
+                    "X-Goog-Upload-Offset": "0",
+                    "X-Goog-Upload-Command": "upload, finalize",
+                },
+                data=fh,
+                timeout=(10.0, 60.0),
+            )
+        if upload_resp.status_code != 200:
+            logger.warning("Gemini Files API upload failed (%d): %s", upload_resp.status_code, upload_resp.text[:180])
+            return None
+
+        file_info = (upload_resp.json() or {}).get("file", {})
+        file_name = str(file_info.get("name") or "")
+        file_uri = str(file_info.get("uri") or "")
+        state = str(file_info.get("state") or "").upper()
+        if not file_name or not file_uri:
+            return None
+
+        deadline = time.monotonic() + max(5.0, float(poll_timeout))
+        while state != "ACTIVE":
+            if state == "FAILED":
+                logger.warning("Gemini Files API processing FAILED for %s.", file_name)
+                _delete_gemini_file(file_name, api_key)
+                return None
+            if time.monotonic() >= deadline:
+                logger.warning("Gemini Files API polling timed out for %s (last state=%s).", file_name, state)
+                _delete_gemini_file(file_name, api_key)
+                return None
+            time.sleep(1.2)
+            status_resp = requests.get(
+                f"https://generativelanguage.googleapis.com/v1beta/{file_name}?key={api_key}",
+                timeout=(5.0, 10.0),
+            )
+            if status_resp.status_code != 200:
+                continue
+            status_json = status_resp.json() or {}
+            file_info = status_json.get("file", status_json)
+            state = str(file_info.get("state") or "").upper()
+            if file_info.get("uri"):
+                file_uri = str(file_info["uri"])
+
+        logger.info("Gemini Files API proxy READY: name=%s size=%.2fMB", file_name, size_bytes / (1024 * 1024))
+        return {"name": file_name, "uri": file_uri, "mime_type": mime_type}
+    except Exception as exc:
+        logger.warning("Gemini Files API upload error: %s", exc)
+        return None
+
+
+def _delete_gemini_file(file_name: Optional[str], api_key: Optional[str]) -> None:
+    """Best-effort deletion of a temporary Gemini Files API resource."""
+    if not file_name or not api_key:
+        return
+    try:
+        requests.delete(
+            f"https://generativelanguage.googleapis.com/v1beta/{file_name}?key={api_key}",
+            timeout=(3.0, 8.0),
+        )
+    except Exception:
+        pass
+
+
+def _normalize_recommended_cuts(
+    raw_cuts: Any,
+    video_duration: float,
+    quality_segments: Optional[List[Dict[str, Any]]] = None,
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Validate, clamp, deduplicate, and chronologically order Vision-recommended cuts.
+    Falls back to top-scoring local ``quality_segments`` when raw cuts are absent
+    for longer clips.
+    """
+    dur = max(0.5, float(video_duration or 0.0))
+    candidates: List[Dict[str, Any]] = []
+
+    if isinstance(raw_cuts, list):
+        for idx, item in enumerate(raw_cuts):
+            if not isinstance(item, dict):
+                continue
+            try:
+                st = max(0.0, min(dur, float(item.get("start_sec", 0.0))))
+                en = max(0.0, min(dur, float(item.get("end_sec", 0.0))))
+            except (TypeError, ValueError):
+                continue
+            if en - st < 0.8:
+                continue
+            raw_score = item.get("score")
+            try:
+                score = max(0.0, min(1.0, float(raw_score))) if raw_score is not None else round(max(0.5, 0.95 - idx * 0.05), 3)
+            except (TypeError, ValueError):
+                score = 0.8
+            candidates.append({
+                "start_sec": round(st, 2),
+                "end_sec": round(en, 2),
+                "title": str(item.get("title") or item.get("reason") or f"لقطة مختارة {len(candidates) + 1}").strip(),
+                "reason": str(item.get("reason") or item.get("title") or "").strip(),
+                "score": round(score, 3),
+            })
+
+    if not candidates and quality_segments and dur > 12.0:
+        top_segs = sorted(quality_segments, key=lambda s: float(s.get("quality_score", 0.0)), reverse=True)[:4]
+        for idx, seg in enumerate(top_segs):
+            try:
+                st = max(0.0, min(dur, float(seg.get("start_sec", 0.0))))
+                en = max(0.0, min(dur, float(seg.get("end_sec", 0.0))))
+            except (TypeError, ValueError):
+                continue
+            if en - st >= 0.8:
+                candidates.append({
+                    "start_sec": round(st, 2),
+                    "end_sec": round(en, 2),
+                    "title": f"لقطة عالية الوضوح {idx + 1}",
+                    "reason": "local_quality_score",
+                    "score": round(float(seg.get("quality_score", 0.7)), 3),
+                })
+
+    if not candidates:
+        return None
+
+    # Resolve overlaps greedily keeping higher-scoring cuts, then sort chronologically
+    by_score = sorted(candidates, key=lambda c: (c["score"], c["end_sec"] - c["start_sec"]), reverse=True)
+    selected: List[Dict[str, Any]] = []
+    for cand in by_score:
+        overlaps = any(min(cand["end_sec"], kept["end_sec"]) - max(cand["start_sec"], kept["start_sec"]) > 0.35 for kept in selected)
+        if not overlaps:
+            selected.append(cand)
+
+    selected.sort(key=lambda c: c["start_sec"])
+    # Snap tiny adjacent seams apart cleanly so no overlap remains
+    for i in range(1, len(selected)):
+        if selected[i]["start_sec"] < selected[i - 1]["end_sec"]:
+            selected[i]["start_sec"] = selected[i - 1]["end_sec"]
+    selected = [c for c in selected if (c["end_sec"] - c["start_sec"]) >= 0.8]
+    return selected or None
+
+
 def _get_smart_fallback(
     duration: float = 10.0,
     preset_hint: Optional[str] = None,
@@ -531,6 +712,7 @@ def _get_smart_fallback(
     keyframe_count: int = 0,
     shot_timeline: Optional[List[Dict[str, Any]]] = None,
     videographer_speech: Optional[str] = None,
+    quality_segments: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Provide intelligent fallback when Gemini Vision API is offline or unreachable."""
     principles = load_principles()
@@ -634,6 +816,16 @@ def _get_smart_fallback(
             })
         shot_timeline = synth_timeline
 
+    default_fb_cuts = [
+        {"start_sec": 0.0, "end_sec": min(5.0, duration), "title": "المدخل والإطلالة"},
+        {"start_sec": min(duration * 0.4, max(0.0, duration - 6.0)), "end_sec": min(duration * 0.4 + 5.0, duration), "title": "المساحات الرئيسية"},
+    ] if duration > 12.0 else None
+    fb_cuts = _normalize_recommended_cuts(
+        None if quality_segments else default_fb_cuts,
+        video_duration=duration,
+        quality_segments=quality_segments,
+    ) or default_fb_cuts
+
     fb_result = {
         "script": script,
         "subtitles": subtitles,
@@ -643,10 +835,7 @@ def _get_smart_fallback(
         "emotional_prompt": profile["emotional_prompt"],
         "recommended_music": profile["recommended_music"],
         "highlights": highlights,
-        "recommended_cuts": [
-            {"start_sec": 0.0, "end_sec": min(5.0, duration), "title": "المدخل والإطلالة"},
-            {"start_sec": min(duration * 0.4, max(0.0, duration - 6.0)), "end_sec": min(duration * 0.4 + 5.0, duration), "title": "المساحات الرئيسية"},
-        ] if duration > 12.0 else None,
+        "recommended_cuts": fb_cuts,
         "engine": "smart_vision_fallback",
         "analyzed_frames_count": keyframe_count,
         "visual_lead_in_seconds": visual_lead_in,
@@ -674,29 +863,19 @@ def infer_video_script_and_mood(
     outro_buffer: float = 1.2,
     keyframes_metadata: Optional[List[Dict[str, Any]]] = None,
     videographer_speech: Optional[str] = None,
+    proxy_video_path: Optional[Union[str, Path]] = None,
+    quality_segments: Optional[List[Dict[str, Any]]] = None,
+    target_montage_duration: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
-    Analyze extracted video keyframes via Gemini Multimodal Vision API to infer:
+    Analyze extracted video keyframes (and/or a lightweight full-video analysis proxy
+    via Gemini Files API) to infer:
       1. An engaging Arabic real estate voiceover script matched to video length.
       2. Timestamp-anchored shot-by-shot timeline and anti-hallucination grounded narration.
       3. Synchronized subtitle segments aligned with speech timing.
-      4. An emotional atmosphere / mood (الحالة الشعورية - e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق').
-      5. The best matching background music from assets/music/ ('luxury_piano', 'acoustic_guitar', 'ambient_meditation').
-
-    Args:
-        keyframe_paths: List of file paths or keyframe dicts with timestamp metadata.
-        video_duration: Duration of the video in seconds to pace narrative word count.
-        preset_hint: Optional preset ID hint to guide architectural context if available.
-        speech_description: Optional linguistic speech intent guidance ("وصف لغوي لما تريده أن يقال وليس نصاً حرفياً").
-        visual_description: Optional linguistic visual intent description ("وصف ما يظهر في الفيديو وتوجيه التركيز البصري").
-        visual_lead_in: Visual establishing lead-in delay in seconds (default 1.2s).
-        outro_buffer: Outro ambient swell buffer in seconds (default 1.2s).
-        keyframes_metadata: Optional list of frame metadata dictionaries with timestamps.
-        videographer_speech: Optional transcribed live speech from the videographer.
-
-    Returns:
-        Dict with keys 'script', 'subtitles', 'shot_timeline', 'emotional_tone', 'emotional_prompt',
-        'recommended_music', 'highlights', 'engine', 'analyzed_frames_count', 'visual_lead_in_seconds', 'speech_duration'.
+      4. An emotional atmosphere / mood (الحالة الشعورية).
+      5. The best matching background music from assets/music/.
+      6. Normalized ``recommended_cuts`` for AI-guided 1080p montage cutting.
     """
     _ensure_env_loaded()
     api_keys = _discover_vision_api_keys()
@@ -709,11 +888,14 @@ def infer_video_script_and_mood(
     )
     shot_timeline = build_shot_timeline(keyframe_records, video_duration=video_duration)
 
-    # If no keyframe provided or API key absent, use smart fallback immediately
-    if not keyframe_records or not api_key:
+    has_proxy_video = bool(proxy_video_path and Path(proxy_video_path).is_file())
+
+    # If neither keyframes nor proxy video exists, or API key absent, use smart fallback immediately
+    if (not keyframe_records and not has_proxy_video) or not api_key:
         logger.warning(
-            "Vision analysis using fallback (keyframe_count=%d, has_api_key=%s)",
+            "Vision analysis using fallback (keyframe_count=%d, has_proxy=%s, has_api_key=%s)",
             len(keyframe_records),
+            has_proxy_video,
             bool(api_key),
         )
         return _get_smart_fallback(
@@ -726,6 +908,7 @@ def infer_video_script_and_mood(
             keyframe_count=min(16, len(keyframe_records)),
             shot_timeline=shot_timeline,
             videographer_speech=videographer_speech,
+            quality_segments=quality_segments,
         )
 
     # Dense keyframe sampling: pass up to 10 representative frames evenly (latency optimized)
@@ -739,9 +922,9 @@ def infer_video_script_and_mood(
 
     selected_frames = [r["path"] for r in selected_records]
 
-    # Compute target word count strictly from net speaking window (speech_duration)
-    # allowing visual_lead_in for establishing visuals and outro_buffer for music swell
-    speech_duration = max(2.0, round(video_duration - visual_lead_in - outro_buffer, 2))
+    # Size narration script for final montage length (if trimming/shortening) rather than raw uncut duration
+    narrative_video_duration = float(target_montage_duration) if (target_montage_duration and float(target_montage_duration) >= 3.0) else video_duration
+    speech_duration = max(2.0, round(narrative_video_duration - visual_lead_in - outro_buffer, 2))
     target_words = max(18, min(160, int(speech_duration * 2.1)))
 
     # Construct multimodal parts
@@ -846,12 +1029,37 @@ def infer_video_script_and_mood(
         f"CRITICAL: Infuse the voiceover with this fresh creative lens (variation seed {variation_seed}) so every generated cut has a distinct phrasing, fresh vocabulary, and unique marketing momentum.\n"
     )
 
+    quality_prompt_section = ""
+    if quality_segments:
+        q_lines = [
+            f"- [{q.get('start_sec', 0):.1f}s - {q.get('end_sec', 0):.1f}s] score={q.get('quality_score', 0):.2f} (sharpness={q.get('sharpness', 0):.1f}, motion={q.get('motion', 0):.1f}, luma={q.get('luma', 0):.0f})"
+            for q in quality_segments[:18]
+        ]
+        quality_prompt_section = (
+            "\n--- LOCAL VISUAL QUALITY PROFILE (تقييم الإضاءة والوضوح والثبات) ---\n"
+            "Prefer bright, sharp, smooth segments and avoid dark/blurry/shaky stretches when choosing cuts:\n"
+            + "\n".join(q_lines) + "\n"
+        )
+
+    montage_cut_guidance = (
+        f"7. 'recommended_cuts': Array of chronologically ordered highlight shots to keep"
+        + (f" (aiming for ~{float(target_montage_duration):.1f}s total cut duration)" if target_montage_duration else "")
+        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', and brief 'reason'. Omit dark, blurry, or shaky moments.\n"
+    )
+
+    visual_input_desc = (
+        f"the attached full analysis video clip (total duration: {video_duration:.1f}s, target narrated cut: {narrative_video_duration:.1f}s)"
+        if has_proxy_video
+        else f"these {len(selected_frames)} representative visual keyframes extracted across the video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s)"
+    )
+
     prompt = (
         f"You are an expert Algerian commercial marketing director, creative videographer, and multi-sector copywriter (adapting to whatever the customer's video and prompt are about: restaurants, automotive, fashion, tech, services, events, or real estate).\n"
-        f"Analyze these {len(selected_frames)} representative visual keyframes extracted across the video recording (total duration: {video_duration:.1f}s, net speaking window: {speech_duration:.1f}s).\n\n"
+        f"Analyze {visual_input_desc}.\n\n"
         f"{intent_guidance}\n"
+        f"{quality_prompt_section}"
         f"{principles_section}\n\n"
-        f"Based on what you visually see across the frames AND the customer's specific topic/instructions above (never force real estate if the video or prompt is about another subject!), return a JSON response with:\n"
+        f"Based on what you visually see across the footage AND the customer's specific topic/instructions above (never force real estate if the video or prompt is about another subject!), return a JSON response with:\n"
         f"1. 'script': The marketing voiceover script describing this specific video subject and scenes in chronological visual order as the camera moves.\n"
         f"   CRITICAL DIALECT & PERSPECTIVE MANDATE: You MUST strictly obey the Production Principles above. "
         f"If the principles instruct using Algerian dialect (الدارجة الجزائرية), write the script completely in authentic natural Algerian Darja. "
@@ -868,19 +1076,18 @@ def infer_video_script_and_mood(
         f"   - 'ambient_meditation' (best for villas, sea views, pools, gardens, serene or relaxation spaces)\n"
         f"6. 'highlights': Array of 1 to 3 short Arabic highlight captions for on-screen lower-third badges (e.g. ['صالون ملكي واسع', 'مطبخ عصري مجهز']). "
         f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n"
-        f"7. 'recommended_cuts': Optional array of highlight video shots to keep if montage or trimming is desired (e.g. [{{'start_sec': 0.0, 'end_sec': 5.0, 'title': 'المدخل'}}]) or null.\n"
+        f"{montage_cut_guidance}"
         f"8. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
         f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
         f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text'."
     )
-    parts.append({"text": prompt})
 
-    # Encode images to base64
+    frame_parts: List[Dict[str, Any]] = [{"text": prompt}]
     for kf_path in selected_frames:
         try:
             with open(kf_path, "rb") as f_img:
                 b64_data = base64.b64encode(f_img.read()).decode("utf-8")
-            parts.append({
+            frame_parts.append({
                 "inlineData": {
                     "mimeType": "image/jpeg",
                     "data": b64_data,
@@ -889,6 +1096,32 @@ def infer_video_script_and_mood(
         except Exception as exc:
             logger.warning("Failed to encode keyframe %s: %s", kf_path, exc)
 
+    # Attempt Gemini Files API proxy upload so Vision inspects motion + audio + full timeline
+    uploaded_file_meta: Optional[Dict[str, str]] = None
+    upload_key: Optional[str] = None
+    use_video_file = os.getenv("GEMINI_VISION_USE_VIDEO_FILE", "1").strip().lower() not in ("0", "false", "no")
+    if has_proxy_video and use_video_file and api_key:
+        max_proxy_bytes = int(os.getenv("GEMINI_VISION_MAX_PROXY_BYTES", str(60 * 1024 * 1024)))
+        try:
+            proxy_size = Path(proxy_video_path).stat().st_size  # type: ignore[arg-type]
+            if 0 < proxy_size <= max_proxy_bytes:
+                upload_key = api_key
+                uploaded_file_meta = _upload_video_to_gemini_files(proxy_video_path, api_key=upload_key)  # type: ignore[arg-type]
+        except Exception as up_exc:
+            logger.warning("Proxy video upload skipped due to error: %s", up_exc)
+
+    video_parts: Optional[List[Dict[str, Any]]] = None
+    if uploaded_file_meta and uploaded_file_meta.get("uri"):
+        video_parts = [
+            {
+                "fileData": {
+                    "mimeType": uploaded_file_meta.get("mime_type", "video/mp4"),
+                    "fileUri": uploaded_file_meta["uri"],
+                }
+            },
+            {"text": prompt},
+        ]
+
     # Candidate Gemini multimodal vision models in preference order
     env_models = os.getenv("GEMINI_VISION_MODELS")
     if env_models:
@@ -896,187 +1129,211 @@ def infer_video_script_and_mood(
     else:
         candidate_models = list(ACTIVE_VISION_MODELS)
 
-    # Configurable timeouts: 25s read timeout to prevent pipeline stalls and client polling timeouts
-    read_timeout = float(os.getenv("GEMINI_VISION_READ_TIMEOUT", "25.0"))
+    read_timeout = float(os.getenv("GEMINI_VISION_VIDEO_READ_TIMEOUT" if video_parts else "GEMINI_VISION_READ_TIMEOUT", "40.0" if video_parts else "25.0"))
     connect_timeout = float(os.getenv("GEMINI_VISION_CONNECT_TIMEOUT", "5.0"))
     max_retries = int(os.getenv("GEMINI_VISION_MAX_RETRIES", "2"))
 
-    import requests
-    import time
-
     vision_temperature = float(os.getenv("GEMINI_VISION_TEMPERATURE", "0.80"))
+    use_video_parts = bool(video_parts)
 
-    for model_name in candidate_models:
-        request_body = {
-            "contents": [{"parts": parts}],
-            "generationConfig": {
-                "temperature": vision_temperature,
-                "topP": 0.95,
-                "responseMimeType": "application/json",
-            },
-        }
-
-        for attempt in range(1, max_retries + 1):
-            attempt_key = api_keys[(attempt - 1) % len(api_keys)] if api_keys else api_key
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={attempt_key}"
-            logger.info(
-                "Querying Gemini Vision model '%s' (attempt %d/%d) with %d keyframes...",
-                model_name,
-                attempt,
-                max_retries,
-                len(selected_frames),
-            )
-            try:
-                resp = requests.post(
-                    url,
-                    json=request_body,
-                    timeout=(connect_timeout, read_timeout),
+    try:
+        for model_name in candidate_models:
+            for attempt in range(1, max_retries + 1):
+                active_parts = video_parts if (use_video_parts and video_parts) else frame_parts
+                active_mode = "proxy_video_file" if (use_video_parts and video_parts) else "keyframes"
+                if active_mode == "keyframes" and len(active_parts) <= 1:
+                    break
+                request_body = {
+                    "contents": [{"parts": active_parts}],
+                    "generationConfig": {
+                        "temperature": vision_temperature,
+                        "topP": 0.95,
+                        "responseMimeType": "application/json",
+                    },
+                }
+                if active_mode == "proxy_video_file" and upload_key:
+                    attempt_key = upload_key
+                else:
+                    attempt_key = api_keys[(attempt - 1) % len(api_keys)] if api_keys else api_key
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={attempt_key}"
+                logger.info(
+                    "Querying Gemini Vision model '%s' (attempt %d/%d, mode=%s, keyframes=%d)...",
+                    model_name,
+                    attempt,
+                    max_retries,
+                    active_mode,
+                    len(selected_frames),
                 )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        candidate_part = candidates[0].get("content", {}).get("parts", [{}])[0]
-                        raw_text = candidate_part.get("text", "").strip()
-                        # Clean potential markdown wrapping
-                        clean_json_str = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
-                        clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
+                try:
+                    resp = requests.post(
+                        url,
+                        json=request_body,
+                        timeout=(connect_timeout, read_timeout),
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            candidate_part = candidates[0].get("content", {}).get("parts", [{}])[0]
+                            raw_text = candidate_part.get("text", "").strip()
+                            # Clean potential markdown wrapping
+                            clean_json_str = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
+                            clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
 
-                        parsed = json.loads(clean_json_str)
-                        inferred_script = sanitize_script_against_meta_prompts(str(parsed.get("script", "")).strip())
-                        emotional_tone = str(parsed.get("emotional_tone", "فاخر وهادئ")).strip()
-                        emotional_prompt = str(parsed.get("emotional_prompt", "Warm, prestigious, and calm real estate tone")).strip()
-                        recommended_music = str(parsed.get("recommended_music", "luxury_piano")).strip().lower()
-                        phone_number = parsed.get("phone_number") or directives.get("phone_number")
-                        bottom_text = parsed.get("bottom_text") or directives.get("bottom_text")
+                            parsed = json.loads(clean_json_str)
+                            inferred_script = sanitize_script_against_meta_prompts(str(parsed.get("script", "")).strip())
+                            emotional_tone = str(parsed.get("emotional_tone", "فاخر وهادئ")).strip()
+                            emotional_prompt = str(parsed.get("emotional_prompt", "Warm, prestigious, and calm real estate tone")).strip()
+                            recommended_music = str(parsed.get("recommended_music", "luxury_piano")).strip().lower()
+                            phone_number = parsed.get("phone_number") or directives.get("phone_number")
+                            bottom_text = parsed.get("bottom_text") or directives.get("bottom_text")
 
-                        if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
-                            recommended_music = "luxury_piano"
+                            if recommended_music not in ("luxury_piano", "acoustic_guitar", "ambient_meditation"):
+                                recommended_music = "luxury_piano"
 
-                        # If user requested sea view, align music recommendation with coastal meditation
-                        if prop_feats.get("sea_view") and recommended_music == "luxury_piano":
-                            recommended_music = "ambient_meditation"
+                            # If user requested sea view, align music recommendation with coastal meditation
+                            if prop_feats.get("sea_view") and recommended_music == "luxury_piano":
+                                recommended_music = "ambient_meditation"
 
-                        # Ensure the script length covers the video duration without dying out after a few seconds
-                        word_count = len(inferred_script.split())
-                        if word_count < 16 and speech_duration >= 20.0:
-                            logger.info(
-                                "Inferred script too brief (%d words) for duration (%.1fs); supplementing with dynamic walkthrough...",
-                                word_count,
-                                speech_duration,
-                            )
-                            supplement = _generate_dynamic_darja_script(
-                                speech_duration=speech_duration,
-                                prop_feats=prop_feats,
-                                directives=directives,
-                                preset_hint=preset_hint,
-                            )
-                            inferred_script = f"{inferred_script} {supplement}"
+                            # Ensure the script length covers the video duration without dying out after a few seconds
+                            word_count = len(inferred_script.split())
+                            if word_count < 16 and speech_duration >= 20.0:
+                                logger.info(
+                                    "Inferred script too brief (%d words) for duration (%.1fs); supplementing with dynamic walkthrough...",
+                                    word_count,
+                                    speech_duration,
+                                )
+                                supplement = _generate_dynamic_darja_script(
+                                    speech_duration=speech_duration,
+                                    prop_feats=prop_feats,
+                                    directives=directives,
+                                    preset_hint=preset_hint,
+                                )
+                                inferred_script = f"{inferred_script} {supplement}"
 
-                        if inferred_script:
-                            logger.info(
-                                "Gemini Vision model '%s' successfully inferred script (%d words, mood: %s, music: %s)",
-                                model_name,
-                                len(inferred_script.split()),
-                                emotional_tone,
-                                recommended_music,
-                            )
-                            # Parse or generate timestamp-synchronized subtitles
-                            raw_subs = parsed.get("subtitles")
-                            valid_subs = []
-                            if isinstance(raw_subs, list) and raw_subs:
-                                for idx, s_item in enumerate(raw_subs):
-                                    if isinstance(s_item, dict) and s_item.get("text"):
-                                        try:
-                                            s_start = max(0.0, float(s_item.get("start_sec", 0.0)))
-                                            s_end = max(s_start + 0.5, float(s_item.get("end_sec", s_start + 2.0)))
-                                            valid_subs.append({
-                                                "segment_index": idx + 1,
-                                                "start_sec": round(s_start, 2),
-                                                "end_sec": round(s_end, 2),
-                                                "text": str(s_item["text"]).strip(),
-                                            })
-                                        except (ValueError, TypeError):
-                                            pass
-                            if not valid_subs:
-                                valid_subs = generate_synchronized_subtitles(
-                                    script=inferred_script,
-                                    narration_duration=speech_duration,
-                                    visual_lead_in=visual_lead_in,
+                            if inferred_script:
+                                logger.info(
+                                    "Gemini Vision model '%s' successfully inferred script (%d words, mode: %s, mood: %s, music: %s)",
+                                    model_name,
+                                    len(inferred_script.split()),
+                                    active_mode,
+                                    emotional_tone,
+                                    recommended_music,
+                                )
+                                # Parse or generate timestamp-synchronized subtitles
+                                raw_subs = parsed.get("subtitles")
+                                valid_subs = []
+                                if isinstance(raw_subs, list) and raw_subs:
+                                    for idx, s_item in enumerate(raw_subs):
+                                        if isinstance(s_item, dict) and s_item.get("text"):
+                                            try:
+                                                s_start = max(0.0, float(s_item.get("start_sec", 0.0)))
+                                                s_end = max(s_start + 0.5, float(s_item.get("end_sec", s_start + 2.0)))
+                                                valid_subs.append({
+                                                    "segment_index": idx + 1,
+                                                    "start_sec": round(s_start, 2),
+                                                    "end_sec": round(s_end, 2),
+                                                    "text": str(s_item["text"]).strip(),
+                                                })
+                                            except (ValueError, TypeError):
+                                                pass
+                                if not valid_subs:
+                                    valid_subs = generate_synchronized_subtitles(
+                                        script=inferred_script,
+                                        narration_duration=speech_duration,
+                                        visual_lead_in=visual_lead_in,
+                                    )
+
+                                normalized_cuts = _normalize_recommended_cuts(
+                                    parsed.get("recommended_cuts"),
+                                    video_duration=video_duration,
+                                    quality_segments=quality_segments,
                                 )
 
-                            return {
-                                "script": inferred_script,
-                                "subtitles": valid_subs,
-                                "shot_timeline": shot_timeline,
-                                "videographer_speech": videographer_speech,
-                                "emotional_tone": emotional_tone,
-                                "emotional_prompt": emotional_prompt,
-                                "recommended_music": recommended_music,
-                                "highlights": parsed.get("highlights", []),
-                                "recommended_cuts": parsed.get("recommended_cuts"),
-                                "phone_number": phone_number,
-                                "bottom_text": bottom_text,
-                                "engine": "gemini_multimodal_vision",
-                                "model_used": model_name,
-                                "analyzed_frames_count": len(selected_frames),
-                                "visual_lead_in_seconds": visual_lead_in,
-                                "speech_duration": speech_duration,
-                            }
-                elif resp.status_code == 404:
-                    logger.warning("Gemini Vision model '%s' returned 404 Not Found. Skipping to next fallback model.", model_name)
-                    break
-                elif resp.status_code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                                return {
+                                    "script": inferred_script,
+                                    "subtitles": valid_subs,
+                                    "shot_timeline": shot_timeline,
+                                    "videographer_speech": videographer_speech,
+                                    "emotional_tone": emotional_tone,
+                                    "emotional_prompt": emotional_prompt,
+                                    "recommended_music": recommended_music,
+                                    "highlights": parsed.get("highlights", []),
+                                    "recommended_cuts": normalized_cuts,
+                                    "phone_number": phone_number,
+                                    "bottom_text": bottom_text,
+                                    "engine": "gemini_multimodal_vision",
+                                    "analysis_mode": active_mode,
+                                    "model_used": model_name,
+                                    "analyzed_frames_count": len(selected_frames),
+                                    "visual_lead_in_seconds": visual_lead_in,
+                                    "speech_duration": speech_duration,
+                                }
+                    elif resp.status_code == 400 and use_video_parts and len(frame_parts) > 1:
+                        logger.warning("Gemini Vision model '%s' rejected fileData (400); falling back to keyframes.", model_name)
+                        use_video_parts = False
+                        continue
+                    elif resp.status_code == 404:
+                        logger.warning("Gemini Vision model '%s' returned 404 Not Found. Skipping to next fallback model.", model_name)
+                        break
+                    elif resp.status_code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                        logger.warning(
+                            "Gemini Vision model '%s' returned transient status %d on attempt %d/%d: %s. Retrying...",
+                            model_name,
+                            resp.status_code,
+                            attempt,
+                            max_retries,
+                            resp.text[:160],
+                        )
+                        time.sleep(1.0)
+                        continue
+                    else:
+                        logger.warning(
+                            "Gemini Vision model '%s' returned status %d on attempt %d: %s",
+                            model_name,
+                            resp.status_code,
+                            attempt,
+                            resp.text[:200],
+                        )
+                        if use_video_parts and len(frame_parts) > 1:
+                            use_video_parts = False
+                        break
+
+                except requests.exceptions.Timeout as t_err:
                     logger.warning(
-                        "Gemini Vision model '%s' returned transient status %d on attempt %d/%d: %s. Retrying...",
+                        "Timeout (read_timeout=%.1fs) querying Gemini Vision model '%s' on attempt %d/%d: %s",
+                        read_timeout,
                         model_name,
-                        resp.status_code,
                         attempt,
                         max_retries,
-                        resp.text[:160],
+                        t_err,
                     )
-                    time.sleep(1.0)
-                    continue
-                else:
+                    if use_video_parts and len(frame_parts) > 1:
+                        use_video_parts = False
+                    if attempt < max_retries:
+                        time.sleep(1.0)
+                        continue
+                    else:
+                        break
+                except requests.exceptions.RequestException as req_err:
                     logger.warning(
-                        "Gemini Vision model '%s' returned status %d on attempt %d: %s",
+                        "Network error querying Gemini Vision model '%s' on attempt %d/%d: %s",
                         model_name,
-                        resp.status_code,
                         attempt,
-                        resp.text[:200],
+                        max_retries,
+                        req_err,
                     )
+                    if attempt < max_retries:
+                        time.sleep(1.0)
+                        continue
+                    else:
+                        break
+                except Exception as exc:
+                    logger.warning("Unexpected error querying Gemini Vision model '%s': %s", model_name, exc)
                     break
-
-            except requests.exceptions.Timeout as t_err:
-                logger.warning(
-                    "Timeout (read_timeout=%.1fs) querying Gemini Vision model '%s' on attempt %d/%d: %s",
-                    read_timeout,
-                    model_name,
-                    attempt,
-                    max_retries,
-                    t_err,
-                )
-                if attempt < max_retries:
-                    time.sleep(1.0)
-                    continue
-                else:
-                    break
-            except requests.exceptions.RequestException as req_err:
-                logger.warning(
-                    "Network error querying Gemini Vision model '%s' on attempt %d/%d: %s",
-                    model_name,
-                    attempt,
-                    max_retries,
-                    req_err,
-                )
-                if attempt < max_retries:
-                    time.sleep(1.0)
-                    continue
-                else:
-                    break
-            except Exception as exc:
-                logger.warning("Unexpected error querying Gemini Vision model '%s': %s", model_name, exc)
-                break
+    finally:
+        if uploaded_file_meta and upload_key:
+            _delete_gemini_file(uploaded_file_meta.get("name"), upload_key)
 
     # If all models fail, return smart fallback
     logger.warning("All Gemini Vision models failed or timed out. Activating smart fallback.")
@@ -1090,4 +1347,5 @@ def infer_video_script_and_mood(
         keyframe_count=len(selected_frames),
         shot_timeline=shot_timeline,
         videographer_speech=videographer_speech,
+        quality_segments=quality_segments,
     )
