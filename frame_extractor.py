@@ -189,7 +189,7 @@ def detect_scene_cut_timestamps(video_path: Union[str, Path], threshold: float =
 
     scene_timestamps: List[float] = [0.0]
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True)
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
         for line in res.stdout.splitlines() + res.stderr.splitlines():
             line_str = line.strip()
             if "pts_time:" in line_str:
@@ -204,6 +204,254 @@ def detect_scene_cut_timestamps(video_path: Union[str, Path], threshold: float =
         return sorted(list(set(scene_timestamps)))
     except Exception:
         return [0.0]
+
+
+def _compute_even_proxy_dimensions(width: int, height: int, max_short_side: int = 480) -> tuple[int, int]:
+    """Compute even width and height capping the shorter side to ``max_short_side``."""
+    w = max(2, int(width or 0))
+    h = max(2, int(height or 0))
+    short_side = min(w, h)
+    if short_side <= max_short_side:
+        return (w - (w % 2), h - (h % 2))
+    scale = max_short_side / float(short_side)
+    new_w = max(2, int(round((w * scale) / 2.0)) * 2)
+    new_h = max(2, int(round((h * scale) / 2.0)) * 2)
+    return (new_w, new_h)
+
+
+def create_analysis_proxy(
+    video_path: Union[str, Path],
+    output_path: Optional[Union[str, Path]] = None,
+    max_short_side: int = 480,
+    fps: float = 2.0,
+    crf: int = 28,
+    include_audio: bool = True,
+    timeout: int = 120,
+) -> Dict[str, Any]:
+    """
+    Create a lightweight compressed analysis proxy (e.g. 480p @ 2 fps) from a
+    high-resolution upload so vision/scene analysis stays fast and small while the
+    final render cuts from the original 1080p source.
+    """
+    src = Path(video_path).resolve()
+    if not src.is_file():
+        raise FileNotFoundError(f"Video file not found at: {src}")
+
+    meta = get_video_metadata(src)
+    src_w = int(meta.get("width") or 0)
+    src_h = int(meta.get("height") or 0)
+    src_dur = float(meta.get("duration") or 0.0)
+    target_w, target_h = _compute_even_proxy_dimensions(src_w, src_h, max_short_side=max_short_side)
+
+    if output_path is None:
+        out = src.parent / f"{src.stem}_analysis_proxy_{max_short_side}p.mp4"
+    else:
+        out = Path(output_path).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    eff_fps = max(0.5, float(fps))
+    scale_filter = (
+        f"scale={target_w}:{target_h}:flags=fast_bilinear,fps={eff_fps:.3f}"
+        if target_w > 0 and target_h > 0
+        else f"scale='if(gt(iw,ih),-2,min({max_short_side},iw))':'if(gt(iw,ih),min({max_short_side},ih),-2)',fps={eff_fps:.3f}"
+    )
+
+    cmd: List[str] = [
+        ffmpeg_bin,
+        "-y",
+        "-i", str(src),
+        "-map", "0:v:0",
+    ]
+    if include_audio:
+        cmd.extend(["-map", "0:a?"])
+    cmd.extend([
+        "-vf", scale_filter,
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-crf", str(int(crf)),
+        "-pix_fmt", "yuv420p",
+        "-threads", "0",
+        "-movflags", "+faststart",
+    ])
+    if include_audio:
+        cmd.extend(["-c:a", "aac", "-b:a", "48k", "-ac", "1", "-ar", "16000"])
+    else:
+        cmd.append("-an")
+    cmd.append(str(out))
+
+    res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    if res.returncode != 0 or not out.exists() or out.stat().st_size == 0:
+        raise RuntimeError(f"FFmpeg proxy generation failed: {res.stderr[-300:] if res.stderr else res.returncode}")
+
+    return {
+        "proxy_path": str(out),
+        "source_path": str(src),
+        "source_width": src_w,
+        "source_height": src_h,
+        "width": target_w,
+        "height": target_h,
+        "fps": eff_fps,
+        "duration": src_dur,
+        "size_bytes": out.stat().st_size,
+        "created": True,
+    }
+
+
+def _score_gray_frame(
+    buf: bytes,
+    prev_buf: Optional[bytes],
+    width: int,
+    height: int,
+) -> Dict[str, float]:
+    """Compute brightness, contrast, sharpness, and frame-to-frame motion."""
+    try:
+        import numpy as np  # type: ignore
+
+        arr = np.frombuffer(buf, dtype=np.uint8).reshape((height, width)).astype(np.float32)
+        mean_luma = float(arr.mean())
+        std_luma = float(arr.std())
+        dx = np.abs(arr[:, 1:] - arr[:, :-1]).mean() if width > 1 else 0.0
+        dy = np.abs(arr[1:, :] - arr[:-1, :]).mean() if height > 1 else 0.0
+        sharpness = float(dx + dy)
+        motion = float(np.abs(arr - np.frombuffer(prev_buf, dtype=np.uint8).reshape((height, width)).astype(np.float32)).mean()) if prev_buf else 0.0
+        return {
+            "luma": round(mean_luma, 2),
+            "contrast": round(std_luma, 2),
+            "sharpness": round(sharpness, 2),
+            "motion": round(motion, 2),
+        }
+    except Exception:
+        total = max(1, len(buf))
+        step = max(1, total // 2000)
+        samples = buf[::step]
+        n = max(1, len(samples))
+        mean_luma = sum(samples) / n
+        var_luma = sum((v - mean_luma) ** 2 for v in samples) / n
+        sharp_acc = sum(abs(samples[i] - samples[i - 1]) for i in range(1, n)) / max(1, n - 1)
+        if prev_buf and len(prev_buf) == len(buf):
+            prev_samples = prev_buf[::step]
+            motion = sum(abs(a - b) for a, b in zip(samples, prev_samples)) / n
+        else:
+            motion = 0.0
+        return {
+            "luma": round(mean_luma, 2),
+            "contrast": round(var_luma ** 0.5, 2),
+            "sharpness": round(sharp_acc * 1.5, 2),
+            "motion": round(motion, 2),
+        }
+
+
+def score_video_segments(
+    video_path: Union[str, Path],
+    segment_duration: float = 2.5,
+    sample_fps: float = 2.0,
+    scene_cuts: Optional[List[float]] = None,
+    top_k: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Score candidate windows in a video (ideally the lightweight 480p proxy)
+    for brightness, exposure contrast, edge sharpness, and camera stability.
+    """
+    path = Path(video_path).resolve()
+    if not path.is_file():
+        return []
+
+    try:
+        meta = get_video_metadata(path)
+        duration = max(0.5, float(meta.get("duration") or 0.0))
+    except Exception:
+        return []
+
+    grid_w, grid_h = 160, 90
+    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    eff_fps = max(0.5, min(6.0, float(sample_fps)))
+    cmd = [
+        ffmpeg_bin,
+        "-i", str(path),
+        "-vf", f"fps={eff_fps:.3f},scale={grid_w}:{grid_h}:flags=fast_bilinear",
+        "-f", "rawvideo",
+        "-pix_fmt", "gray",
+        "-",
+    ]
+
+    frame_bytes = grid_w * grid_h
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=60)
+        raw = proc.stdout or b""
+    except Exception:
+        return []
+
+    num_frames = len(raw) // frame_bytes
+    if num_frames <= 0:
+        return []
+
+    frame_metrics: List[Dict[str, float]] = []
+    prev_slice: Optional[bytes] = None
+    for idx in range(num_frames):
+        chunk = raw[idx * frame_bytes : (idx + 1) * frame_bytes]
+        m = _score_gray_frame(chunk, prev_slice, grid_w, grid_h)
+        m["time"] = round(idx / eff_fps, 3)
+        # Quality formula: favor clear exposure (luma 40..220), contrast, sharpness, moderate smooth motion
+        luma = m["luma"]
+        expo_score = 1.0 if 35.0 <= luma <= 220.0 else max(0.1, 1.0 - abs(luma - 125.0) / 140.0)
+        sharp_score = min(1.0, m["sharpness"] / 18.0)
+        contrast_score = min(1.0, m["contrast"] / 45.0)
+        # Excess whip-pan / camera shake (>28 avg delta) reduces score; slight smooth motion (1..14) is good
+        motion_val = m["motion"]
+        if motion_val > 28.0:
+            stability_score = max(0.2, 1.0 - (motion_val - 28.0) / 35.0)
+        elif motion_val < 0.6:
+            stability_score = 0.72
+        else:
+            stability_score = 1.0
+        m["quality"] = round(
+            0.35 * sharp_score + 0.25 * expo_score + 0.20 * contrast_score + 0.20 * stability_score,
+            4,
+        )
+        frame_metrics.append(m)
+        prev_slice = chunk
+
+    # Build contiguous windows aligned with scene_cuts when available, otherwise uniform buckets
+    win_len = max(1.5, float(segment_duration))
+    boundaries: List[float] = [0.0]
+    if scene_cuts:
+        for cut in sorted(scene_cuts):
+            c = float(cut)
+            if 0.6 < c < duration - 0.6 and (c - boundaries[-1]) >= 1.5:
+                boundaries.append(round(c, 3))
+    while duration - boundaries[-1] > win_len * 1.35:
+        boundaries.append(round(boundaries[-1] + win_len, 3))
+    boundaries.append(round(duration, 3))
+
+    segments: List[Dict[str, Any]] = []
+    for i in range(len(boundaries) - 1):
+        st = boundaries[i]
+        en = boundaries[i + 1]
+        if (en - st) < 0.8:
+            continue
+        bucket = [fm for fm in frame_metrics if st <= fm["time"] < en]
+        if not bucket:
+            nearest = min(frame_metrics, key=lambda fm: abs(fm["time"] - (st + en) / 2.0))
+            bucket = [nearest]
+        avg_q = sum(b["quality"] for b in bucket) / len(bucket)
+        avg_sharp = sum(b["sharpness"] for b in bucket) / len(bucket)
+        avg_motion = sum(b["motion"] for b in bucket) / len(bucket)
+        avg_luma = sum(b["luma"] for b in bucket) / len(bucket)
+        segments.append({
+            "start_sec": round(st, 2),
+            "end_sec": round(en, 2),
+            "duration_sec": round(en - st, 2),
+            "quality_score": round(avg_q, 4),
+            "sharpness": round(avg_sharp, 2),
+            "motion": round(avg_motion, 2),
+            "luma": round(avg_luma, 2),
+        })
+
+    if top_k is not None and top_k > 0:
+        ranked = sorted(segments, key=lambda s: s["quality_score"], reverse=True)[:top_k]
+        return sorted(ranked, key=lambda s: s["start_sec"])
+    return segments
 
 
 # ---------------------------------------------------------------------------
