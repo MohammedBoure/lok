@@ -1256,6 +1256,255 @@ def get_media_duration(file_path: Union[str, Path]) -> float:
         return 0.0
 
 
+def _trim_wav_silence(wav_path: Path, rms_threshold: int = 180, pad_sec: float = 0.05) -> float:
+    """
+    Strip leading and trailing dead silence from a PCM WAV file in pure Python,
+    preserving brief ``pad_sec`` margins so consonants never clip.
+    Returns updated WAV duration in seconds.
+    """
+    if not wav_path.is_file() or wav_path.stat().st_size <= 44:
+        return get_media_duration(wav_path)
+    try:
+        with wave.open(str(wav_path), "rb") as w_in:
+            n_channels = w_in.getnchannels()
+            sampwidth = w_in.getsampwidth()
+            framerate = w_in.getframerate()
+            n_frames = w_in.getnframes()
+            if sampwidth != 2 or n_frames <= 0 or framerate <= 0:
+                return round(n_frames / max(1, framerate), 3)
+            raw = w_in.readframes(n_frames)
+            params = w_in.getparams()
+
+        samples = struct.unpack(f"<{len(raw) // 2}h", raw)
+        step = max(1, n_channels)
+        win_frames = max(1, int(framerate * 0.02))
+        win_stride = win_frames * step
+        total_samples = len(samples)
+
+        first_active = None
+        last_active = None
+        for idx in range(0, total_samples, win_stride):
+            chunk = samples[idx : idx + win_stride]
+            if not chunk:
+                continue
+            mean_sq = sum(s * s for s in chunk) / len(chunk)
+            if math.sqrt(mean_sq) >= rms_threshold:
+                if first_active is None:
+                    first_active = idx
+                last_active = idx + len(chunk)
+
+        if first_active is None or last_active is None:
+            return round(n_frames / float(framerate), 3)
+
+        pad_samples = int(framerate * pad_sec) * step
+        cut_start = max(0, first_active - pad_samples)
+        cut_end = min(total_samples, last_active + pad_samples)
+        if cut_start <= win_stride and (total_samples - cut_end) <= win_stride:
+            return round(n_frames / float(framerate), 3)
+
+        trimmed_bytes = raw[cut_start * 2 : cut_end * 2]
+        if not trimmed_bytes:
+            return round(n_frames / float(framerate), 3)
+
+        tmp_wav = wav_path.with_name(f"{wav_path.stem}_trimtmp.wav")
+        with wave.open(str(tmp_wav), "wb") as w_out:
+            w_out.setparams(params)
+            w_out.writeframes(trimmed_bytes)
+        tmp_wav.replace(wav_path)
+        return round((cut_end - cut_start) / float(step * framerate), 3)
+    except Exception:
+        return get_media_duration(wav_path)
+
+
+def _build_atempo_chain(tempo: float) -> str:
+    """Build a valid FFmpeg pitch-preserving ``atempo`` filter chain for any speed >= 0.5."""
+    t = max(0.5, float(tempo))
+    parts: List[str] = []
+    while t > 1.95:
+        parts.append("atempo=1.9500")
+        t /= 1.95
+    parts.append(f"atempo={t:.4f}")
+    return ",".join(parts)
+
+
+def _fit_audio_tempo(wav_path: Path, max_duration: float, max_tempo: float = 1.55) -> float:
+    """
+    Compress WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch)
+    when audio exceeds ``max_duration``. Returns new duration in seconds.
+    """
+    cur_dur = get_media_duration(wav_path)
+    if cur_dur <= 0.0 or max_duration <= 0.4 or cur_dur <= max_duration * 1.01:
+        return cur_dur
+
+    desired_tempo = cur_dur / float(max_duration)
+    eff_tempo = min(float(max_tempo), max(1.01, desired_tempo))
+    if eff_tempo <= 1.01:
+        return cur_dur
+
+    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    tmp_wav = wav_path.with_name(f"{wav_path.stem}_fit.wav")
+    cmd = [
+        ffmpeg_bin, "-y",
+        "-i", str(wav_path),
+        "-filter:a", _build_atempo_chain(eff_tempo),
+        "-c:a", "pcm_s16le",
+        str(tmp_wav),
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=45)
+        if tmp_wav.is_file() and tmp_wav.stat().st_size > 44:
+            tmp_wav.replace(wav_path)
+            new_dur = get_media_duration(wav_path)
+            logger.info("Fitted narration WAV via atempo=%.3f (%.2fs -> %.2fs)", eff_tempo, cur_dur, new_dur)
+            return new_dur or round(cur_dur / eff_tempo, 3)
+    except Exception as exc:
+        logger.warning("Audio tempo fitting failed (%s); keeping original WAV.", exc)
+    finally:
+        tmp_wav.unlink(missing_ok=True)
+    return cur_dur
+
+
+def synthesize_scene_aligned_narration(
+    scene_segments: List[Dict[str, Any]],
+    output_path: Union[str, Path],
+    voice: str = "ar-XA-Standard-A",
+    style_prompt: Optional[str] = None,
+    emotional_tone: Optional[str] = None,
+    visual_lead_in: float = 1.2,
+) -> Dict[str, Any]:
+    """
+    Synthesize each visual scene's spoken sentence separately (in parallel) and place it
+    onto its exact visual window ``[start_sec, end_sec]``, fitting per-scene speed cleanly
+    so cumulative drift cannot push later callouts out of sync.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    out_file = Path(output_path).resolve()
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+
+    valid_slots: List[Dict[str, Any]] = []
+    for item in scene_segments:
+        txt = " ".join(str(item.get("text") or item.get("narration_line") or "").split()).strip()
+        if not txt:
+            continue
+        try:
+            st = max(0.0, float(item.get("start_sec", 0.0)))
+            en = max(st + 0.8, float(item.get("end_sec", st + 2.5)))
+        except (TypeError, ValueError):
+            continue
+        valid_slots.append({"start_sec": st, "end_sec": en, "text": txt})
+
+    combined_script = " ".join(s["text"] for s in valid_slots)
+    has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
+    if len(valid_slots) < 2 or not has_api_key:
+        return synthesize_narration(
+            script_text=combined_script,
+            output_path=out_file,
+            voice=voice,
+            style_prompt=style_prompt,
+            emotional_tone=emotional_tone,
+        )
+
+    chunk_paths: List[Path] = [out_file.parent / f"{out_file.stem}_scene_{idx}.wav" for idx in range(len(valid_slots))]
+    scene_results: Dict[int, Dict[str, Any]] = {}
+
+    def _synth_one(idx: int) -> Dict[str, Any]:
+        slot = valid_slots[idx]
+        c_path = chunk_paths[idx]
+        res = synthesize_narration(
+            script_text=slot["text"],
+            output_path=c_path,
+            voice=voice,
+            style_prompt=style_prompt,
+            emotional_tone=emotional_tone,
+        )
+        _trim_wav_silence(c_path)
+        slot_budget = max(0.8, (slot["end_sec"] - slot["start_sec"]) - 0.12)
+        if idx == 0 and slot["start_sec"] < visual_lead_in:
+            slot_budget = max(0.8, (slot["end_sec"] - visual_lead_in) - 0.12)
+        fitted_dur = _fit_audio_tempo(c_path, max_duration=slot_budget, max_tempo=1.55)
+        res["duration"] = fitted_dur
+        return res
+
+    try:
+        with ThreadPoolExecutor(max_workers=min(3, len(valid_slots))) as pool:
+            futs = {pool.submit(_synth_one, idx): idx for idx in range(len(valid_slots))}
+            for fut, idx in futs.items():
+                scene_results[idx] = fut.result()
+
+        # Verify uniform PCM WAV parameters and stitch at exact visual start offsets
+        with wave.open(str(chunk_paths[0]), "rb") as w0:
+            params = w0.getparams()
+        if params.sampwidth != 2 or params.framerate <= 0:
+            raise ValueError("Unsupported WAV format for scene alignment.")
+
+        base_offset = max(0.0, float(visual_lead_in))
+        cursor_sec = 0.0
+        scene_timings: List[Dict[str, Any]] = []
+        bytes_per_sec = params.framerate * params.nchannels * params.sampwidth
+
+        with wave.open(str(out_file), "wb") as out_w:
+            out_w.setparams(params)
+            for idx, slot in enumerate(valid_slots):
+                c_path = chunk_paths[idx]
+                with wave.open(str(c_path), "rb") as w_chunk:
+                    if (w_chunk.getframerate(), w_chunk.getnchannels(), w_chunk.getsampwidth()) != (
+                        params.framerate,
+                        params.nchannels,
+                        params.sampwidth,
+                    ):
+                        # Resample/normalize to base params via FFmpeg if mismatched
+                        raise ValueError("Mismatched WAV stream params across scene chunks.")
+                    raw_frames = w_chunk.readframes(w_chunk.getnframes())
+                    c_dur = w_chunk.getnframes() / float(params.framerate)
+
+                target_rel = 0.0 if idx == 0 else max(cursor_sec, slot["start_sec"] - base_offset)
+                gap_sec = max(0.0, target_rel - cursor_sec)
+                if gap_sec >= 0.02:
+                    gap_frames = int(round(gap_sec * params.framerate))
+                    out_w.writeframes(b"\x00" * (gap_frames * params.nchannels * params.sampwidth))
+                    cursor_sec += gap_frames / float(params.framerate)
+
+                out_w.writeframes(raw_frames)
+                actual_start = round(base_offset + cursor_sec, 2)
+                cursor_sec += c_dur
+                actual_end = round(base_offset + cursor_sec, 2)
+                scene_timings.append({
+                    "segment_index": idx + 1,
+                    "start_sec": actual_start,
+                    "end_sec": actual_end,
+                    "text": slot["text"],
+                    "scene_index": idx + 1,
+                })
+
+        total_dur = get_media_duration(out_file)
+        first_meta = scene_results.get(0, {})
+        return {
+            "audio_path": str(out_file),
+            "duration": total_dur,
+            "synthesizer": first_meta.get("synthesizer", "gemini_tts"),
+            "voice": first_meta.get("voice"),
+            "gemini_voice": first_meta.get("gemini_voice"),
+            "requested_voice": voice,
+            "script": combined_script,
+            "emotional_tone": emotional_tone,
+            "style_prompt": style_prompt,
+            "scene_timings": scene_timings,
+        }
+    except Exception as exc:
+        logger.warning("Scene-aligned parallel synthesis fell back to single-track TTS (%s).", exc)
+        return synthesize_narration(
+            script_text=combined_script,
+            output_path=out_file,
+            voice=voice,
+            style_prompt=style_prompt,
+            emotional_tone=emotional_tone,
+        )
+    finally:
+        for cp in chunk_paths:
+            cp.unlink(missing_ok=True)
+
+
 # ---------------------------------------------------------------------------
 # Core Mobile Video Processing Engine
 # ---------------------------------------------------------------------------
@@ -1520,6 +1769,7 @@ def process_mobile_video(
     proxy_quality_segments: Optional[List[Dict[str, Any]]] = None
     analysis_mode: Optional[str] = None
     ai_recommended_cuts: Optional[List[Dict[str, Any]]] = None
+    vision_scene_scripts: Optional[List[Dict[str, Any]]] = None
     inferred_script: Optional[str] = None
     vision_engine: Optional[str] = None
     inferred_music: Optional[str] = None
@@ -1598,21 +1848,43 @@ def process_mobile_video(
                 log="[رؤية حاسوبية] 🧠 تحليل الفيديو كاملاً عبر Gemini Multimodal Vision...",
             )
             try:
+                import inspect as _inspect
                 from web.vision_analyzer import infer_video_script_and_mood
-                vision_result = infer_video_script_and_mood(
-                    keyframe_paths=keyframe_files,
-                    video_duration=original_source_duration,
-                    preset_hint=preset_id,
-                    speech_description=speech_description,
-                    visual_description=visual_description,
-                    visual_lead_in=visual_lead_in,
-                    outro_buffer=outro_buffer,
-                    keyframes_metadata=formatted_keyframes,
-                    videographer_speech=videographer_speech,
-                    proxy_video_path=proxy_path,
-                    quality_segments=proxy_quality_segments,
-                    target_montage_duration=planned_target_dur,
-                )
+                _vision_kwargs: Dict[str, Any] = {
+                    "keyframe_paths": keyframe_files,
+                    "video_duration": original_source_duration,
+                    "preset_hint": preset_id,
+                    "speech_description": speech_description,
+                    "visual_description": visual_description,
+                    "visual_lead_in": visual_lead_in,
+                    "outro_buffer": outro_buffer,
+                    "keyframes_metadata": formatted_keyframes,
+                    "videographer_speech": videographer_speech,
+                    "proxy_video_path": proxy_path,
+                    "quality_segments": proxy_quality_segments,
+                    "target_montage_duration": planned_target_dur,
+                }
+                _sig_target = infer_video_script_and_mood
+                _side_eff = getattr(_sig_target, "side_effect", None)
+                if callable(_side_eff):
+                    _sig_target = _side_eff
+                try:
+                    _sig_params = _inspect.signature(_sig_target).parameters
+                    _accepts_kwargs = any(
+                        p.kind == _inspect.Parameter.VAR_KEYWORD for p in _sig_params.values()
+                    )
+                    if _accepts_kwargs or "scene_cuts" in _sig_params:
+                        _vision_kwargs["scene_cuts"] = proxy_scene_cuts
+                except (ValueError, TypeError):
+                    _vision_kwargs["scene_cuts"] = proxy_scene_cuts
+                try:
+                    vision_result = infer_video_script_and_mood(**_vision_kwargs)
+                except TypeError as _te:
+                    if "scene_cuts" in str(_te) and "scene_cuts" in _vision_kwargs:
+                        _vision_kwargs.pop("scene_cuts", None)
+                        vision_result = infer_video_script_and_mood(**_vision_kwargs)
+                    else:
+                        raise
                 inferred_script = sanitize_script_against_meta_prompts(vision_result.get("script"))
                 selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
                 resolved_tone = emotional_tone or vision_result.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
@@ -1621,6 +1893,7 @@ def process_mobile_video(
                 vision_engine = vision_result.get("engine")
                 analysis_mode = vision_result.get("analysis_mode")
                 ai_recommended_cuts = vision_result.get("recommended_cuts")
+                vision_scene_scripts = vision_result.get("scene_scripts")
                 if not phone_number and vision_result.get("phone_number"):
                     phone_number = vision_result.get("phone_number")
                 if not bottom_text and vision_result.get("bottom_text"):
@@ -1766,6 +2039,7 @@ def process_mobile_video(
                         "target_duration": eff_dur,
                         "used_ai_cuts": bool(ai_recommended_cuts),
                         "segments": m_res.get("segments", []),
+                        "output_segments": m_res.get("output_segments", []),
                         "duration": m_res["duration"],
                         "original_duration": original_source_duration,
                     }
@@ -1870,27 +2144,81 @@ def process_mobile_video(
     tts_principles_style = build_tts_style_principles(emotional_tone=resolved_tone)
     final_style_prompt = f"{resolved_style_prompt}. {tts_principles_style}" if resolved_style_prompt else tts_principles_style
 
+    # Build scene-locked narration plan when multi-scene scripts exist and user didn't supply manual verbatim text
+    aligned_scene_plan: List[Dict[str, Any]] = []
+    if is_auto_mode and not (script and script.strip()):
+        out_segs = montage_details.get("output_segments") if montage_applied else None
+        if out_segs:
+            for o_seg in out_segs:
+                line = str(o_seg.get("narration_line") or "").strip()
+                if not line and vision_scene_scripts:
+                    mid_src = (float(o_seg.get("src_start_sec", 0.0)) + float(o_seg.get("src_end_sec", 0.0))) * 0.5
+                    matched_sc = next(
+                        (vs for vs in vision_scene_scripts if float(vs["start_sec"]) <= mid_src <= float(vs["end_sec"])),
+                        None,
+                    )
+                    if matched_sc:
+                        line = str(matched_sc.get("text") or "").strip()
+                if line:
+                    aligned_scene_plan.append({
+                        "start_sec": o_seg["start_sec"],
+                        "end_sec": o_seg["end_sec"],
+                        "text": line,
+                    })
+        elif vision_scene_scripts:
+            aligned_scene_plan = list(vision_scene_scripts)
+
     narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
-    narration_info = synthesize_narration(
-        script_text=selected_script,
-        output_path=narration_wav,
-        voice=voice,
-        style_prompt=final_style_prompt,
-        emotional_tone=resolved_tone,
-    )
+    if len(aligned_scene_plan) >= 2:
+        narration_info = synthesize_scene_aligned_narration(
+            scene_segments=aligned_scene_plan,
+            output_path=narration_wav,
+            voice=voice,
+            style_prompt=final_style_prompt,
+            emotional_tone=resolved_tone,
+            visual_lead_in=max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2)),
+        )
+        if narration_info.get("script"):
+            selected_script = narration_info["script"]
+    else:
+        narration_info = synthesize_narration(
+            script_text=selected_script,
+            output_path=narration_wav,
+            voice=voice,
+            style_prompt=final_style_prompt,
+            emotional_tone=resolved_tone,
+        )
     narration_duration = narration_info["duration"]
 
-    # 5. Timeline & Outro Calculations (Lead-In Delay & Outro Music Swell)
+    # 5. Timeline Synchronization, Silence Trim, Tempo Fit & Zero Long End-Freeze
     visual_lead_in = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
     outro_buffer = max(0.5, float(outro_buffer if outro_buffer is not None else 1.2))
+    trimmed_dur = _trim_wav_silence(narration_wav)
+    if trimmed_dur > 0:
+        narration_duration = trimmed_dur
+
+    eff_outro = outro_buffer
+    if src_duration >= 4.0 and narration_duration > 0.0 and (visual_lead_in + narration_duration > src_duration + 0.5):
+        eff_outro = min(outro_buffer, 0.25)
+        max_speech_win = max(2.0, src_duration - visual_lead_in - eff_outro)
+        narration_duration = _fit_audio_tempo(narration_wav, max_duration=max_speech_win, max_tempo=1.55)
+        # Reclaim excess lead-in pause first if narration still runs long, instead of freezing last video frame
+        if (visual_lead_in + narration_duration > src_duration + 0.3) and visual_lead_in > 0.25:
+            visual_lead_in = round(max(0.25, src_duration - narration_duration - eff_outro), 2)
+
     visual_lead_in_ms = int(round(visual_lead_in * 1000))
     narration_delay = f"adelay={visual_lead_in_ms}|{visual_lead_in_ms}," if visual_lead_in_ms > 0 else ""
 
-    min_required_duration = round(visual_lead_in + narration_duration + outro_buffer, 2)
-    total_duration = max(round(src_duration, 2), min_required_duration)
+    max_end_freeze_sec = 0.8
+    min_required_duration = round(visual_lead_in + narration_duration + eff_outro, 2)
+    if src_duration >= 4.0:
+        raw_pad = max(0.0, round(min_required_duration - src_duration, 2))
+        pad_needed = min(max_end_freeze_sec, raw_pad)
+        total_duration = round(src_duration + pad_needed, 2)
+    else:
+        total_duration = max(round(src_duration, 2), min_required_duration)
+        pad_needed = max(0.0, round(total_duration - src_duration, 2))
     total_duration = max(5.0, total_duration)
-
-    pad_needed = max(0.0, round(total_duration - src_duration, 2))
     fade_out_start = max(0.5, round(total_duration - 1.8, 2))
 
     logger.info(
@@ -1899,7 +2227,7 @@ def process_mobile_video(
         src_duration,
         visual_lead_in,
         narration_duration,
-        outro_buffer,
+        eff_outro,
         total_duration,
         pad_needed,
     )
@@ -2149,13 +2477,29 @@ def process_mobile_video(
     subtitles_list: List[Dict[str, Any]] = []
     if subtitles_opt_in:
         from web.vision_analyzer import generate_synchronized_subtitles
-        # Synchronize captions directly to the ACTUAL synthesized narration_duration and shot_timeline
-        subtitles_list = generate_synchronized_subtitles(
-            script=selected_script,
-            narration_duration=narration_duration,
-            visual_lead_in=visual_lead_in,
-            shot_timeline=shot_timeline_data,
-        )
+        measured_scene_timings = narration_info.get("scene_timings") if isinstance(narration_info, dict) else None
+        if measured_scene_timings:
+            seg_counter = 1
+            for st_item in measured_scene_timings:
+                s_dur = max(0.6, float(st_item["end_sec"]) - float(st_item["start_sec"]))
+                chunk_subs = generate_synchronized_subtitles(
+                    script=st_item["text"],
+                    narration_duration=s_dur,
+                    visual_lead_in=float(st_item["start_sec"]),
+                )
+                for cs in chunk_subs:
+                    cs["segment_index"] = seg_counter
+                    cs["scene_index"] = st_item.get("scene_index")
+                    subtitles_list.append(cs)
+                    seg_counter += 1
+        else:
+            # Synchronize captions directly to the ACTUAL synthesized narration_duration and shot_timeline
+            subtitles_list = generate_synchronized_subtitles(
+                script=selected_script,
+                narration_duration=narration_duration,
+                visual_lead_in=visual_lead_in,
+                shot_timeline=shot_timeline_data,
+            )
         # Fallback if selected_script yielded empty list but vision_result had custom subtitles
         if not subtitles_list and is_auto_mode:
             candidate_subs = []
@@ -2301,6 +2645,7 @@ def process_mobile_video(
         "absolute_output_path": str(mirror_cut_path.resolve()),
         "file_size_bytes": final_cut_path.stat().st_size,
         "duration": total_duration,
+        "end_freeze_seconds": pad_needed,
         "orientation": orientation,
         "video_orientation": orientation,
         "aspect_ratio": aspect_label,
