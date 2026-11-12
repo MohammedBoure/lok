@@ -147,10 +147,13 @@ class KeyManager:
                 discovered.append(val)
             index += 1
 
-        # Format 3: Single standard key (GEMINI_API_KEY)
+        # Format 3: Single standard key (GEMINI_API_KEY) — also tolerate comma-separated keys
         single_key = os.getenv("GEMINI_API_KEY")
         if single_key and single_key.strip():
-            discovered.append(single_key.strip())
+            for item in single_key.split(","):
+                val = item.strip()
+                if val:
+                    discovered.append(val)
 
         return discovered
 

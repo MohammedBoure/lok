@@ -40,13 +40,34 @@ if not logger.handlers:
 
 # Active high-performance Gemini Multimodal Vision models in preference order
 ACTIVE_VISION_MODELS = [
+    "gemini-3.6-flash",
+    "gemini-3-flash-preview",
     "gemini-3.8-flash",
-    "gemini-2.5-flash",
     "gemini-3.1-pro-preview",
 ]
 
 # Ensure environment configuration (.env)
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _discover_vision_api_keys() -> List[str]:
+    """Return deduplicated individual Gemini API keys from GEMINI_API_KEY / GEMINI_API_KEYS."""
+    keys: List[str] = []
+    for var in ("GEMINI_API_KEYS", "GEMINI_API_KEY"):
+        raw = os.getenv(var) or ""
+        for item in raw.split(","):
+            val = item.strip().strip("\"'")
+            if val and val not in keys:
+                keys.append(val)
+    idx = 1
+    while True:
+        val = (os.getenv(f"GEMINI_API_KEY_{idx}") or "").strip().strip("\"'")
+        if not val:
+            break
+        if val not in keys:
+            keys.append(val)
+        idx += 1
+    return keys
 
 def _ensure_env_loaded() -> None:
     """Load GEMINI_API_KEY from .env if not currently present in os.environ."""
@@ -678,7 +699,8 @@ def infer_video_script_and_mood(
         'recommended_music', 'highlights', 'engine', 'analyzed_frames_count', 'visual_lead_in_seconds', 'speech_duration'.
     """
     _ensure_env_loaded()
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
+    api_keys = _discover_vision_api_keys()
+    api_key = api_keys[0] if api_keys else None
 
     keyframe_records = extract_keyframe_records(
         keyframe_paths=keyframe_paths,
@@ -885,7 +907,6 @@ def infer_video_script_and_mood(
     vision_temperature = float(os.getenv("GEMINI_VISION_TEMPERATURE", "0.80"))
 
     for model_name in candidate_models:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         request_body = {
             "contents": [{"parts": parts}],
             "generationConfig": {
@@ -896,6 +917,8 @@ def infer_video_script_and_mood(
         }
 
         for attempt in range(1, max_retries + 1):
+            attempt_key = api_keys[(attempt - 1) % len(api_keys)] if api_keys else api_key
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={attempt_key}"
             logger.info(
                 "Querying Gemini Vision model '%s' (attempt %d/%d) with %d keyframes...",
                 model_name,

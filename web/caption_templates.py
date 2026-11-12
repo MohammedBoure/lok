@@ -251,11 +251,13 @@ def heuristic_split(text: str, max_words: int = 4) -> List[Dict[str, Any]]:
 
 
 def _gemini_api_key() -> Optional[str]:
-    key = os.getenv("GEMINI_API_KEY") or ""
-    if not key:
-        keys = os.getenv("GEMINI_API_KEYS") or ""
-        key = keys.split(",")[0].strip() if keys else ""
-    return key or None
+    for var in ("GEMINI_API_KEY", "GEMINI_API_KEYS"):
+        raw = os.getenv(var) or ""
+        for item in raw.split(","):
+            val = item.strip().strip("\"'")
+            if val:
+                return val
+    return None
 
 
 def ai_split(text: str, max_words: int, template: str, duration: float) -> Optional[List[Dict[str, Any]]]:
@@ -283,7 +285,7 @@ def ai_split(text: str, max_words: int, template: str, duration: float) -> Optio
         "TEXT:\n<<<\n" + cleaned + "\n>>>"
     )
     env_models = os.getenv("GEMINI_CAPTION_MODELS")
-    models = [m.strip() for m in env_models.split(",") if m.strip()] if env_models else ["gemini-2.5-flash", "gemini-3.8-flash"]
+    models = [m.strip() for m in env_models.split(",") if m.strip()] if env_models else ["gemini-3.6-flash", "gemini-3-flash-preview"]
     original_tokens = cleaned.split()
 
     for model in models[:2]:

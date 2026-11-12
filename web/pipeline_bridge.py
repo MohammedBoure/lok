@@ -482,8 +482,8 @@ def analyze_source_audio_for_speech(video_path: Union[str, Path], max_duration: 
     Inspect source video audio stream for speech or spoken remarks by the videographer.
     If speech is detected, transcribes and summarizes remarks using Gemini API.
     """
-    # Fast-exit if Gemini API key is not configured to avoid unnecessary audio extraction overhead
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS")
+    api_raw = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS") or ""
+    api_key = next((p.strip().strip("\"'") for p in api_raw.split(",") if p.strip()), "")
     if not api_key:
         return None
 
@@ -564,7 +564,7 @@ def analyze_source_audio_for_speech(video_path: Union[str, Path], max_duration: 
             }
         }
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
         resp = requests.post(url, json=body, timeout=(5.0, 20.0))
         if resp.status_code == 200:
             cands = resp.json().get("candidates", [])

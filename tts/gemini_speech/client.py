@@ -95,7 +95,7 @@ class GeminiSpeechClient:
         default_voice: Optional[str] = None,
         key_cooldown_seconds: float = 60.0,
         max_retries_per_request: int = 3,
-        request_timeout: float = 45.0,
+        request_timeout: float = 75.0,
         env_file: Optional[str] = None,
     ) -> None:
         self.key_manager = KeyManager(
@@ -245,11 +245,13 @@ class GeminiSpeechClient:
                     key_state.masked_key,
                     req_err,
                 )
-                self.key_manager.mark_failure(
-                    key_index=key_state.index,
-                    status_code=None,
-                    error_message=str(req_err),
-                )
+                # Put key on cooldown only if another key exists in the pool so 1-key setups can still retry
+                if self.key_manager.total_keys > 1:
+                    self.key_manager.mark_failure(
+                        key_index=key_state.index,
+                        status_code=None,
+                        error_message=str(req_err),
+                    )
                 last_error = req_err
                 time.sleep(random.uniform(0.5, 1.5))
 
@@ -390,9 +392,9 @@ class GeminiSpeechClient:
         }
 
         fallback_models = [
+            "gemini-2.5-flash-preview-tts",
             "gemini-3.1-flash-tts-preview",
             "gemini-3.8-flash-lite-tts",
-            "gemini-2.5-flash-preview-tts",
             "gemini-3.8-flash-tts",
         ]
         candidate_models = [clean_model_id] + [m for m in fallback_models if m != clean_model_id]
