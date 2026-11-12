@@ -1095,6 +1095,48 @@ def generate_synthetic_voice(
     return duration
 
 
+def _split_tts_chunks(text: str, max_words_per_chunk: int = 95) -> List[str]:
+    """Split long narration scripts at natural sentence pauses for reliable TTS calls."""
+    clean = " ".join(str(text or "").split())
+    words = clean.split()
+    if len(words) <= max_words_per_chunk:
+        return [clean] if clean else []
+
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?؟،;])\s+", clean) if s.strip()]
+    chunks: List[str] = []
+    cur_words: List[str] = []
+    for sent in sentences:
+        s_words = sent.split()
+        if cur_words and len(cur_words) + len(s_words) > max_words_per_chunk:
+            chunks.append(" ".join(cur_words))
+            cur_words = list(s_words)
+        else:
+            cur_words.extend(s_words)
+        while len(cur_words) > max_words_per_chunk:
+            chunks.append(" ".join(cur_words[:max_words_per_chunk]))
+            cur_words = cur_words[max_words_per_chunk:]
+    if cur_words:
+        chunks.append(" ".join(cur_words))
+    return chunks or [clean]
+
+
+def _concatenate_wav_files(chunk_paths: List[Path], output_path: Path, gap_sec: float = 0.16) -> None:
+    """Concatenate PCM WAV narration chunks with brief natural pauses."""
+    if not chunk_paths:
+        raise ValueError("No WAV chunks provided to concatenate.")
+    with wave.open(str(chunk_paths[0]), "rb") as first:
+        params = first.getparams()
+        silence = b"\x00" * (int(params.framerate * gap_sec) * params.nchannels * params.sampwidth)
+
+    with wave.open(str(output_path), "wb") as out_w:
+        out_w.setparams(params)
+        for idx, cp in enumerate(chunk_paths):
+            with wave.open(str(cp), "rb") as in_w:
+                if idx > 0 and gap_sec > 0:
+                    out_w.writeframes(silence)
+                out_w.writeframes(in_w.readframes(in_w.getnframes()))
+
+
 def synthesize_narration(
     script_text: str,
     output_path: Union[str, Path],
@@ -1105,7 +1147,8 @@ def synthesize_narration(
     """
     Synthesize narration audio using GeminiSpeechClient via official Google Gemini API,
     or gracefully fall back to local synthetic audio engine if API is unreachable.
-    Supports emotional tone steering and acoustic style prompt modulation.
+    Supports emotional tone steering, acoustic style prompt modulation, and automatic
+    chunking for long scripts (up to 4-minute videos).
     """
     _ensure_env_loaded()
     out_file = Path(output_path).resolve()
@@ -1131,13 +1174,36 @@ def synthesize_narration(
                 style_prompt,
             )
             client = GeminiSpeechClient()
-            client.generate_speech(
-                text=script_text,
-                voice_name=gemini_voice,
-                output_path=str(out_file),
-                style_prompt=style_prompt,
-                emotional_tone=emotional_tone,
-            )
+            chunks = _split_tts_chunks(script_text, max_words_per_chunk=95)
+            if len(chunks) <= 1:
+                client.generate_speech(
+                    text=script_text,
+                    voice_name=gemini_voice,
+                    output_path=str(out_file),
+                    style_prompt=style_prompt,
+                    emotional_tone=emotional_tone,
+                )
+            else:
+                logger.info("Long narration split into %d chunks for reliable TTS synthesis.", len(chunks))
+                chunk_files: List[Path] = []
+                try:
+                    for c_idx, chunk_text in enumerate(chunks):
+                        chunk_wav = out_file.parent / f"{out_file.stem}_chunk_{c_idx}.wav"
+                        client.generate_speech(
+                            text=chunk_text,
+                            voice_name=gemini_voice,
+                            output_path=str(chunk_wav),
+                            style_prompt=style_prompt,
+                            emotional_tone=emotional_tone,
+                        )
+                        if not chunk_wav.is_file() or chunk_wav.stat().st_size == 0:
+                            raise RuntimeError(f"Empty WAV chunk {c_idx}")
+                        chunk_files.append(chunk_wav)
+                    _concatenate_wav_files(chunk_files, out_file)
+                finally:
+                    for cf in chunk_files:
+                        cf.unlink(missing_ok=True)
+
             if out_file.is_file() and out_file.stat().st_size > 0:
                 synthesizer_engine = "gemini_tts"
                 success = True
@@ -1193,6 +1259,48 @@ def get_media_duration(file_path: Union[str, Path]) -> float:
 # ---------------------------------------------------------------------------
 # Core Mobile Video Processing Engine
 # ---------------------------------------------------------------------------
+
+def _extract_formatted_keyframes(
+    video_path: Path,
+    duration: float,
+    job_id: str,
+    keyframes_dest_dir: Path,
+    legacy_keyframes_dir: Path,
+) -> tuple[List[Path], List[Dict[str, Any]]]:
+    """Extract dense keyframes and format sandbox/legacy URL entries."""
+    dense_timestamps = compute_dense_keyframe_timestamps(duration, min_count=8, max_count=16)
+    keyframe_extraction = frame_extractor.extract_keyframes(
+        video_path=video_path,
+        timestamps=dense_timestamps,
+        output_dir=keyframes_dest_dir,
+        image_format="jpg",
+    )
+    raw_frames = keyframe_extraction.get("frames", [])
+    formatted_keyframes: List[Dict[str, Any]] = []
+    keyframe_files: List[Path] = []
+    for f in raw_frames:
+        file_path_obj = Path(f["file_path"])
+        abs_path = Path(f.get("absolute_file_path", file_path_obj)).resolve()
+        keyframe_files.append(abs_path)
+        legacy_kf_path = legacy_keyframes_dir / file_path_obj.name
+        if abs_path.is_file() and not legacy_kf_path.is_file():
+            try:
+                shutil.copyfile(abs_path, legacy_kf_path)
+            except Exception:
+                pass
+        web_url = f"/outputs/keyframes/mobile_{job_id}/{file_path_obj.name}"
+        sandboxed_kf_url = f"/outputs/jobs/{job_id}/sandbox/keyframes/{file_path_obj.name}"
+        formatted_keyframes.append({
+            "frame_index": f.get("frame_index"),
+            "timestamp": f.get("timestamp"),
+            "url": web_url,
+            "sandboxed_url": sandboxed_kf_url,
+            "file_path": f.get("file_path"),
+            "resolution": f.get("resolution"),
+            "is_scene_transition": f.get("is_scene_transition", False),
+        })
+    return keyframe_files, formatted_keyframes
+
 
 def process_mobile_video(
     video_path: Union[str, Path],
@@ -1382,256 +1490,326 @@ def process_mobile_video(
         target_h,
     )
 
-    # 1.5. Autonomous AI Video Montage & Shot Trimming Execution
+    # 1.2. Build Lightweight 480p Analysis Proxy & Local Scene/Quality Map
+    # Analyze the full uncut video quickly via proxy while keeping original 1080p for cutting/export.
     montage_plan = parsed_dirs.get("montage_plan", {})
     montage_applied = False
     montage_details: Dict[str, Any] = {}
     original_source_duration = src_duration
-
-    if montage_plan.get("requested"):
-        _notify(
-            step=1,
-            percent=22,
-            message="وكيل الذكاء الاصطناعي يقوم بالمونتاج واقتطاع المشاهد المطلوبة...",
-            log=f"[مونتاج ذكي] ✂️ بدء تنفيذ المونتاج والاقتطاع: النمط ({montage_plan.get('mode')})...",
-        )
-        try:
-            from web.video_editor import trim_video_clip, auto_smart_montage, assemble_shot_segments
-            montaged_output_file = job_sandbox_dir / f"montaged_{job_id}.mp4"
-
-            mode = montage_plan.get("mode", "interval")
-            t_start = montage_plan.get("trim_start")
-            t_end = montage_plan.get("trim_end")
-            t_offset = montage_plan.get("trim_end_offset")
-            target_dur = montage_plan.get("target_duration")
-            is_smart = montage_plan.get("smart_montage", False)
-
-            if mode == "interval" or (t_start is not None and t_end is not None):
-                st = max(0.0, float(t_start or 0.0))
-                en = min(float(t_end if t_end is not None else src_duration), src_duration)
-                m_res = trim_video_clip(
-                    input_path=input_path,
-                    output_path=montaged_output_file,
-                    start_sec=st,
-                    end_sec=en,
-                    target_w=target_w,
-                    target_h=target_h,
-                )
-                montage_applied = True
-                montage_details = {
-                    "mode": "interval_trim",
-                    "start_sec": st,
-                    "end_sec": en,
-                    "duration": m_res["duration"],
-                    "original_duration": src_duration,
-                    "segments": [(st, en)],
-                }
-            elif mode == "trim_start" or (t_start is not None and t_end is None and not is_smart and not target_dur):
-                st = max(0.0, min(float(t_start), max(0.0, src_duration - 1.0)))
-                m_res = trim_video_clip(
-                    input_path=input_path,
-                    output_path=montaged_output_file,
-                    start_sec=st,
-                    end_sec=src_duration,
-                    target_w=target_w,
-                    target_h=target_h,
-                )
-                montage_applied = True
-                montage_details = {
-                    "mode": "trim_start",
-                    "trimmed_lead_sec": st,
-                    "duration": m_res["duration"],
-                    "original_duration": src_duration,
-                    "segments": [(st, src_duration)],
-                }
-            elif mode == "trim_end" or (t_offset is not None and t_start is None and not is_smart and not target_dur):
-                en = max(1.0, src_duration - float(t_offset))
-                m_res = trim_video_clip(
-                    input_path=input_path,
-                    output_path=montaged_output_file,
-                    start_sec=0.0,
-                    end_sec=en,
-                    target_w=target_w,
-                    target_h=target_h,
-                )
-                montage_applied = True
-                montage_details = {
-                    "mode": "trim_end",
-                    "trimmed_tail_sec": float(t_offset),
-                    "duration": m_res["duration"],
-                    "original_duration": src_duration,
-                    "segments": [(0.0, en)],
-                }
-            elif is_smart or target_dur is not None:
-                eff_dur = float(target_dur if target_dur else min(15.0, src_duration))
-                m_res = auto_smart_montage(
-                    input_path=input_path,
-                    output_path=montaged_output_file,
-                    target_duration=eff_dur,
-                    target_w=target_w,
-                    target_h=target_h,
-                )
-                montage_applied = True
-                montage_details = {
-                    "mode": "smart_ai_montage",
-                    "target_duration": eff_dur,
-                    "segments": m_res.get("segments", []),
-                    "duration": m_res["duration"],
-                    "original_duration": src_duration,
-                }
-
-            if montage_applied and montaged_output_file.is_file() and montaged_output_file.stat().st_size > 0:
-                input_path = montaged_output_file
-                meta = frame_extractor.get_video_metadata(input_path)
-                src_width = int(meta.get("width", target_w))
-                src_height = int(meta.get("height", target_h))
-                src_duration = float(meta.get("total_duration", m_res["duration"]))
-                logger.info(
-                    "Job %s: Montage applied successfully (%s). New input duration: %.2fs (was %.2fs)",
-                    job_id,
-                    montage_details.get("mode"),
-                    src_duration,
-                    original_source_duration,
-                )
-                _notify(
-                    step=1,
-                    percent=25,
-                    message=f"اكتمل المونتاج الذكي: تم اقتطاع المشاهد (المدة الجديدة: {src_duration:.1f}ث).",
-                    log=f"[مونتاج ذكي] ✅ اكتمل المونتاج بنجاح ({montage_details.get('mode')}). المدة: {src_duration:.1f}s (تم اختصار {original_source_duration - src_duration:.1f}s).",
-                    extra={"montage_details": montage_details},
-                )
-        except Exception as m_err:
-            logger.warning("Job %s: Montage step encountered non-fatal error: %s. Continuing with original footage.", job_id, m_err)
-            montage_applied = False
-
-    # 2. Extract visual keyframes
-    _notify(
-        step=2,
-        percent=30,
-        message="وكيل الذكاء الاصطناعي يستخرج اللقطات المفتاحية والمشاهد بدقة...",
-        log="[رؤية حاسوبية] 🖼️ استخراج لقطات المعاينة البصرية من الفيديو...",
-    )
-
-    logger.info("Job %s: Extracting dense keyframes to %s...", job_id, keyframes_dest_dir)
-    dense_timestamps = compute_dense_keyframe_timestamps(src_duration, min_count=8, max_count=16)
-    keyframe_extraction = frame_extractor.extract_keyframes(
-        video_path=input_path,
-        timestamps=dense_timestamps,
-        output_dir=keyframes_dest_dir,
-        image_format="jpg",
-    )
-    raw_frames = keyframe_extraction.get("frames", [])
-
-    formatted_keyframes: List[Dict[str, Any]] = []
-    keyframe_files: List[Path] = []
-    for f in raw_frames:
-        file_path_obj = Path(f["file_path"])
-        abs_path = Path(f.get("absolute_file_path", file_path_obj)).resolve()
-        keyframe_files.append(abs_path)
-        # Mirror keyframe into legacy directory for backwards route compatibility
-        legacy_kf_path = legacy_keyframes_dir / file_path_obj.name
-        if abs_path.is_file() and not legacy_kf_path.is_file():
-            try:
-                shutil.copyfile(abs_path, legacy_kf_path)
-            except Exception:
-                pass
-        web_url = f"/outputs/keyframes/mobile_{job_id}/{file_path_obj.name}"
-        sandboxed_kf_url = f"/outputs/jobs/{job_id}/sandbox/keyframes/{file_path_obj.name}"
-        formatted_keyframes.append({
-            "frame_index": f.get("frame_index"),
-            "timestamp": f.get("timestamp"),
-            "url": web_url,
-            "sandboxed_url": sandboxed_kf_url,
-            "file_path": f.get("file_path"),
-            "resolution": f.get("resolution"),
-            "is_scene_transition": f.get("is_scene_transition", False),
-        })
-
-    # 3. Autonomous Vision Analysis & Script Determination
-    # Check original video audio for live videographer remarks
-    videographer_speech = analyze_source_audio_for_speech(input_path)
-    if videographer_speech:
-        logger.info("Job %s: Extracted videographer field speech: %s", job_id, videographer_speech)
-
-    # If speech_description or visual_description is provided, treat as linguistic intent guidance
-    # and invoke the multimodal agent to generate the full natural spoken script and focus.
     is_auto_mode = bool(auto_mode or speech_description or (not script and not preset_id))
+
+    planned_target_dur: Optional[float] = None
+    if montage_plan.get("requested"):
+        t_start_p = montage_plan.get("trim_start")
+        t_end_p = montage_plan.get("trim_end")
+        t_off_p = montage_plan.get("trim_end_offset")
+        if montage_plan.get("mode") == "interval" and t_start_p is not None and t_end_p is not None:
+            planned_target_dur = max(1.0, min(float(t_end_p), src_duration) - max(0.0, float(t_start_p)))
+        elif montage_plan.get("target_duration") is not None:
+            planned_target_dur = float(montage_plan["target_duration"])
+        elif montage_plan.get("smart_montage"):
+            planned_target_dur = float(min(15.0, src_duration))
+        elif t_start_p is not None:
+            planned_target_dur = max(1.0, src_duration - float(t_start_p))
+        elif t_off_p is not None:
+            planned_target_dur = max(1.0, src_duration - float(t_off_p))
+
+    proxy_path: Optional[Path] = None
+    proxy_used = False
+    proxy_scene_cuts: Optional[List[float]] = None
+    proxy_quality_segments: Optional[List[Dict[str, Any]]] = None
+    analysis_mode: Optional[str] = None
+    ai_recommended_cuts: Optional[List[Dict[str, Any]]] = None
     inferred_script: Optional[str] = None
     vision_engine: Optional[str] = None
     inferred_music: Optional[str] = None
 
-    if is_auto_mode:
+    try:
+        if src_duration >= 5.0 and (is_auto_mode or montage_plan.get("requested")):
+            _notify(
+                step=1,
+                percent=18,
+                message="إنشاء نسخة تحليل خفيفة وسريعة مع الحفاظ على دقة الأصل 1080p للتصدير...",
+                log=f"[وكيل التحليل] 🎞️ تجهيز نسخة تحليل خفيفة (480p @ 2fps) لفحص كامل الفيديو ({src_duration:.1f}ث)...",
+            )
+            try:
+                proxy_candidate = job_sandbox_dir / f"analysis_proxy_{job_id}.mp4"
+                proxy_info = frame_extractor.create_analysis_proxy(
+                    input_path,
+                    output_path=proxy_candidate,
+                    max_short_side=480,
+                    fps=2.0,
+                )
+                p_out = Path(proxy_info["proxy_path"])
+                if p_out.is_file() and p_out.stat().st_size > 0:
+                    proxy_path = p_out
+                    proxy_used = True
+                    logger.info(
+                        "Job %s: Created 480p proxy (%dx%d, %.2fMB)",
+                        job_id,
+                        proxy_info.get("width", 0),
+                        proxy_info.get("height", 0),
+                        proxy_info.get("size_bytes", 0) / (1024 * 1024),
+                    )
+            except Exception as p_err:
+                logger.warning("Job %s: Proxy creation skipped (%s); analyzing input directly.", job_id, p_err)
+                proxy_path = None
+
+        analysis_video = proxy_path if (proxy_path and proxy_path.is_file()) else input_path
+
+        if montage_plan.get("requested") or src_duration >= 8.0:
+            try:
+                proxy_scene_cuts = frame_extractor.detect_scene_cut_timestamps(analysis_video)
+                proxy_quality_segments = frame_extractor.score_video_segments(
+                    analysis_video,
+                    segment_duration=2.5,
+                    sample_fps=2.0,
+                    scene_cuts=proxy_scene_cuts,
+                )
+            except Exception as q_err:
+                logger.warning("Job %s: Local scene/quality scoring skipped (%s).", job_id, q_err)
+
+        # 2. Extract visual keyframes from fast analysis video (used by UI gallery & vision fallback)
         _notify(
             step=2,
-            percent=45,
-            message="تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
-            log="[رؤية حاسوبية] 🧠 تحليل المشاهد المعمارية عبر Gemini Multimodal Vision...",
+            percent=28,
+            message="استخراج اللقطات المفتاحية وفحص جودة المشاهد عبر كامل الفيديو...",
+            log="[رؤية حاسوبية] 🖼️ استخراج لقطات المعاينة البصرية لفحص كامل الفيديو...",
         )
-        try:
-            from web.vision_analyzer import infer_video_script_and_mood
-            vision_result = infer_video_script_and_mood(
-                keyframe_paths=keyframe_files,
-                video_duration=src_duration,
-                preset_hint=preset_id,
-                speech_description=speech_description,
-                visual_description=visual_description,
-                visual_lead_in=visual_lead_in,
-                outro_buffer=outro_buffer,
-                keyframes_metadata=formatted_keyframes,
-                videographer_speech=videographer_speech,
-            )
-            inferred_script = sanitize_script_against_meta_prompts(vision_result.get("script"))
-            selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
-            resolved_tone = emotional_tone or vision_result.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
-            resolved_style_prompt = style_prompt or vision_result.get("emotional_prompt")
-            inferred_music = vision_result.get("recommended_music")
-            vision_engine = vision_result.get("engine")
-            if not phone_number and vision_result.get("phone_number"):
-                phone_number = vision_result.get("phone_number")
-            if not bottom_text and vision_result.get("bottom_text"):
-                bottom_text = vision_result.get("bottom_text")
-        except Exception as exc:
-            logger.warning("Vision analysis error: %s. Using fallback.", exc)
-            from web.vision_analyzer import _get_smart_fallback, build_shot_timeline, extract_keyframe_records
-            fb_res = _get_smart_fallback(
-                duration=src_duration,
-                preset_hint=preset_id,
-                speech_description=speech_description,
-                visual_description=visual_description,
-                visual_lead_in=visual_lead_in,
-                outro_buffer=outro_buffer,
-                keyframe_count=len(keyframe_files),
-                shot_timeline=build_shot_timeline(
-                    extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=src_duration),
-                    video_duration=src_duration,
-                ),
-                videographer_speech=videographer_speech,
-            )
-            selected_script = sanitize_script_against_meta_prompts(fb_res.get("script")) or DEFAULT_PROMO_SCRIPT
-            inferred_script = selected_script
-            resolved_tone = emotional_tone or fb_res.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
-            resolved_style_prompt = style_prompt or fb_res.get("emotional_prompt") or "Warm, luxurious and prestigious real estate tone"
-            inferred_music = fb_res.get("recommended_music", "luxury_piano")
-            vision_engine = "fallback_on_error"
-            if not phone_number and fb_res.get("phone_number"):
-                phone_number = fb_res.get("phone_number")
-            if not bottom_text and fb_res.get("bottom_text"):
-                bottom_text = fb_res.get("bottom_text")
+        logger.info("Job %s: Extracting dense keyframes from '%s' -> %s...", job_id, analysis_video.name, keyframes_dest_dir)
+        keyframe_files, formatted_keyframes = _extract_formatted_keyframes(
+            video_path=analysis_video,
+            duration=original_source_duration,
+            job_id=job_id,
+            keyframes_dest_dir=keyframes_dest_dir,
+            legacy_keyframes_dir=legacy_keyframes_dir,
+        )
 
-        _notify(
-            step=3,
-            percent=60,
-            message=f"تم استنتاج الوصف التسويقي بنجاح. الحالة الشعورية: {resolved_tone}",
-            log=f"[تحليل شعوري] ✨ تم استنتاج الوصف التسويقي والحالة الشعورية: [{resolved_tone}] (تم تحليل {len(keyframe_files)} إطار بدقة)",
-            extra={
-                "emotional_tone": resolved_tone,
-                "inferred_script": inferred_script,
-                "analyzed_frames_count": len(keyframe_files),
-                "visual_lead_in_seconds": visual_lead_in,
-            },
-        )
-        selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
-    else:
+        # 3. Full-Video Autonomous Vision Analysis FIRST (plans recommended_cuts + narration before cutting 1080p)
+        videographer_speech = analyze_source_audio_for_speech(analysis_video)
+        if videographer_speech:
+            logger.info("Job %s: Extracted videographer field speech: %s", job_id, videographer_speech)
+
+        if is_auto_mode:
+            _notify(
+                step=2,
+                percent=42,
+                message="تحليل الفيديو كاملاً عبر Gemini Vision لاختيار أفضل اللقطات وتوليد النص...",
+                log="[رؤية حاسوبية] 🧠 تحليل الفيديو كاملاً عبر Gemini Multimodal Vision...",
+            )
+            try:
+                from web.vision_analyzer import infer_video_script_and_mood
+                vision_result = infer_video_script_and_mood(
+                    keyframe_paths=keyframe_files,
+                    video_duration=original_source_duration,
+                    preset_hint=preset_id,
+                    speech_description=speech_description,
+                    visual_description=visual_description,
+                    visual_lead_in=visual_lead_in,
+                    outro_buffer=outro_buffer,
+                    keyframes_metadata=formatted_keyframes,
+                    videographer_speech=videographer_speech,
+                    proxy_video_path=proxy_path,
+                    quality_segments=proxy_quality_segments,
+                    target_montage_duration=planned_target_dur,
+                )
+                inferred_script = sanitize_script_against_meta_prompts(vision_result.get("script"))
+                selected_script = inferred_script or DEFAULT_PROMO_SCRIPT
+                resolved_tone = emotional_tone or vision_result.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
+                resolved_style_prompt = style_prompt or vision_result.get("emotional_prompt")
+                inferred_music = vision_result.get("recommended_music")
+                vision_engine = vision_result.get("engine")
+                analysis_mode = vision_result.get("analysis_mode")
+                ai_recommended_cuts = vision_result.get("recommended_cuts")
+                if not phone_number and vision_result.get("phone_number"):
+                    phone_number = vision_result.get("phone_number")
+                if not bottom_text and vision_result.get("bottom_text"):
+                    bottom_text = vision_result.get("bottom_text")
+            except Exception as exc:
+                logger.warning("Vision analysis error: %s. Using fallback.", exc)
+                from web.vision_analyzer import _get_smart_fallback, build_shot_timeline, extract_keyframe_records
+                fb_res = _get_smart_fallback(
+                    duration=planned_target_dur or original_source_duration,
+                    preset_hint=preset_id,
+                    speech_description=speech_description,
+                    visual_description=visual_description,
+                    visual_lead_in=visual_lead_in,
+                    outro_buffer=outro_buffer,
+                    keyframe_count=len(keyframe_files),
+                    shot_timeline=build_shot_timeline(
+                        extract_keyframe_records(keyframe_files, keyframes_metadata=formatted_keyframes, video_duration=original_source_duration),
+                        video_duration=original_source_duration,
+                    ),
+                    videographer_speech=videographer_speech,
+                    quality_segments=proxy_quality_segments,
+                )
+                selected_script = sanitize_script_against_meta_prompts(fb_res.get("script")) or DEFAULT_PROMO_SCRIPT
+                inferred_script = selected_script
+                resolved_tone = emotional_tone or fb_res.get("emotional_tone") or principles_voice.get("active_tone_bias", "فاخر وهادئ")
+                resolved_style_prompt = style_prompt or fb_res.get("emotional_prompt") or "Warm, luxurious and prestigious real estate tone"
+                inferred_music = fb_res.get("recommended_music", "luxury_piano")
+                vision_engine = "fallback_on_error"
+                analysis_mode = "fallback"
+                ai_recommended_cuts = fb_res.get("recommended_cuts")
+                if not phone_number and fb_res.get("phone_number"):
+                    phone_number = fb_res.get("phone_number")
+                if not bottom_text and fb_res.get("bottom_text"):
+                    bottom_text = fb_res.get("bottom_text")
+
+            _notify(
+                step=3,
+                percent=55,
+                message=f"تم تحليل الفيديو واستنتاج الوصف التسويقي. الحالة الشعورية: {resolved_tone}",
+                log=f"[تحليل شعوري] ✨ تم استنتاج الوصف التسويقي ({analysis_mode or 'keyframes'}) والحالة: [{resolved_tone}]",
+                extra={
+                    "emotional_tone": resolved_tone,
+                    "inferred_script": inferred_script,
+                    "analyzed_frames_count": len(keyframe_files),
+                    "visual_lead_in_seconds": visual_lead_in,
+                },
+            )
+            selected_preset = preset_id if preset_id in ALGERIAN_REAL_ESTATE_PRESETS else None
+
+        # 3.5. Execute Montage Cutting ONCE on Original 1080p Source Guided by Vision recommended_cuts
+        if montage_plan.get("requested"):
+            _notify(
+                step=3,
+                percent=60,
+                message="وكيل الذكاء الاصطناعي يقص ويركب أفضل اللقطات مباشرة من الفيديو الأصلي 1080p...",
+                log=f"[مونتاج ذكي] ✂️ بدء القص المباشر من الأصل ({target_w}x{target_h}) بالنمط ({montage_plan.get('mode')})...",
+            )
+            try:
+                from web.video_editor import trim_video_clip, auto_smart_montage
+                montaged_output_file = job_sandbox_dir / f"montaged_{job_id}.mp4"
+
+                mode = montage_plan.get("mode", "interval")
+                t_start = montage_plan.get("trim_start")
+                t_end = montage_plan.get("trim_end")
+                t_offset = montage_plan.get("trim_end_offset")
+                target_dur = montage_plan.get("target_duration")
+                is_smart = montage_plan.get("smart_montage", False)
+
+                if mode == "interval" or (t_start is not None and t_end is not None):
+                    st = max(0.0, float(t_start or 0.0))
+                    en = min(float(t_end if t_end is not None else src_duration), src_duration)
+                    m_res = trim_video_clip(
+                        input_path=input_path,
+                        output_path=montaged_output_file,
+                        start_sec=st,
+                        end_sec=en,
+                        target_w=target_w,
+                        target_h=target_h,
+                    )
+                    montage_applied = True
+                    montage_details = {
+                        "mode": "interval_trim",
+                        "start_sec": st,
+                        "end_sec": en,
+                        "duration": m_res["duration"],
+                        "original_duration": original_source_duration,
+                        "segments": [(st, en)],
+                    }
+                elif mode == "trim_start" or (t_start is not None and t_end is None and not is_smart and not target_dur):
+                    st = max(0.0, min(float(t_start), max(0.0, src_duration - 1.0)))
+                    m_res = trim_video_clip(
+                        input_path=input_path,
+                        output_path=montaged_output_file,
+                        start_sec=st,
+                        end_sec=src_duration,
+                        target_w=target_w,
+                        target_h=target_h,
+                    )
+                    montage_applied = True
+                    montage_details = {
+                        "mode": "trim_start",
+                        "trimmed_lead_sec": st,
+                        "duration": m_res["duration"],
+                        "original_duration": original_source_duration,
+                        "segments": [(st, src_duration)],
+                    }
+                elif mode == "trim_end" or (t_offset is not None and t_start is None and not is_smart and not target_dur):
+                    en = max(1.0, src_duration - float(t_offset))
+                    m_res = trim_video_clip(
+                        input_path=input_path,
+                        output_path=montaged_output_file,
+                        start_sec=0.0,
+                        end_sec=en,
+                        target_w=target_w,
+                        target_h=target_h,
+                    )
+                    montage_applied = True
+                    montage_details = {
+                        "mode": "trim_end",
+                        "trimmed_tail_sec": float(t_offset),
+                        "duration": m_res["duration"],
+                        "original_duration": original_source_duration,
+                        "segments": [(0.0, en)],
+                    }
+                elif is_smart or target_dur is not None:
+                    eff_dur = float(target_dur if target_dur else min(15.0, src_duration))
+                    m_res = auto_smart_montage(
+                        input_path=input_path,
+                        output_path=montaged_output_file,
+                        target_duration=eff_dur,
+                        preferred_scenes=ai_recommended_cuts,
+                        target_w=target_w,
+                        target_h=target_h,
+                        scene_cuts=proxy_scene_cuts,
+                        quality_segments=proxy_quality_segments,
+                        proxy_path=proxy_path,
+                        transition="fade",
+                        transition_dur=0.35,
+                    )
+                    montage_applied = True
+                    montage_details = {
+                        "mode": "smart_ai_montage",
+                        "target_duration": eff_dur,
+                        "used_ai_cuts": bool(ai_recommended_cuts),
+                        "segments": m_res.get("segments", []),
+                        "duration": m_res["duration"],
+                        "original_duration": original_source_duration,
+                    }
+
+                if montage_applied and montaged_output_file.is_file() and montaged_output_file.stat().st_size > 0:
+                    input_path = montaged_output_file
+                    meta = frame_extractor.get_video_metadata(input_path)
+                    src_width = int(meta.get("width", target_w))
+                    src_height = int(meta.get("height", target_h))
+                    src_duration = float(meta.get("total_duration", m_res["duration"]))
+                    # Refresh gallery keyframes so UI timeline mirrors the cut video
+                    keyframe_files, formatted_keyframes = _extract_formatted_keyframes(
+                        video_path=input_path,
+                        duration=src_duration,
+                        job_id=job_id,
+                        keyframes_dest_dir=keyframes_dest_dir,
+                        legacy_keyframes_dir=legacy_keyframes_dir,
+                    )
+                    logger.info(
+                        "Job %s: Montage applied cleanly (%s, ai_cuts=%s). New duration: %.2fs (was %.2fs)",
+                        job_id,
+                        montage_details.get("mode"),
+                        bool(ai_recommended_cuts),
+                        src_duration,
+                        original_source_duration,
+                    )
+                    _notify(
+                        step=3,
+                        percent=64,
+                        message=f"اكتمل القص الذكي بدقة {target_w}x{target_h}: المدة الجديدة {src_duration:.1f}ث.",
+                        log=f"[مونتاج ذكي] ✅ اكتمل القص من الأصل 1080p ({montage_details.get('mode')}). المدة: {src_duration:.1f}s.",
+                        extra={"montage_details": montage_details},
+                    )
+            except Exception as m_err:
+                logger.warning("Job %s: Montage step encountered non-fatal error: %s. Continuing with original footage.", job_id, m_err)
+                montage_applied = False
+    finally:
+        if proxy_path and proxy_path.exists():
+            try:
+                proxy_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+    if not is_auto_mode:
         inferred_script = None
         inferred_music = None
         if script and script.strip():
@@ -1847,7 +2025,7 @@ def process_mobile_video(
             "-map", "[vout]",
             "-map", "[aout]",
             "-c:v", "libx264",
-            "-preset", "faster",
+            "-preset", "ultrafast",
             "-crf", "22",
             "-threads", "0",
             "-pix_fmt", "yuv420p",
@@ -2154,6 +2332,9 @@ def process_mobile_video(
         "visual_description": visual_description,
         "inferred_script": inferred_script,
         "vision_engine": vision_engine,
+        "analysis_mode": analysis_mode,
+        "proxy_used": proxy_used,
+        "recommended_cuts": ai_recommended_cuts,
         "style_prompt": resolved_style_prompt,
         "script": selected_script,
         "preset_id": selected_preset,
