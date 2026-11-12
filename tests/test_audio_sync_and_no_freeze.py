@@ -99,8 +99,24 @@ def test_synthesize_scene_aligned_narration_prevents_room_drift(tmp_path: Path, 
     timings = res.get("scene_timings", [])
     assert len(timings) == 2
     # Scene 1 must finish inside its 4.5s window and NEVER push Scene 2 ("bathroom") 3 seconds late
+    # (allows up to ~0.14s pre-cue into crossfade edge for continuous narration without silence gaps)
     assert timings[0]["end_sec"] <= 4.6
-    assert 4.9 <= timings[1]["start_sec"] <= 5.2
+    assert 4.8 <= timings[1]["start_sec"] <= 5.2
+
+
+@pytest.mark.skipif(not _ffmpeg_available(), reason="ffmpeg/ffprobe not on PATH")
+def test_continuous_speech_tempo_fills_short_gaps(tmp_path: Path):
+    wav_file = tmp_path / "short_voice.wav"
+    _write_tone_wav(wav_file, lead_sil_s=0.0, tone_s=3.0, tail_sil_s=0.0)
+    # 3.0s audio in a 4.0s scene with min_duration=3.5s should stretch gently (~0.88x) toward ~3.4s
+    new_dur = _fit_audio_tempo(
+        wav_file,
+        max_duration=4.0,
+        max_tempo=1.55,
+        min_duration=3.5,
+        min_tempo=0.88,
+    )
+    assert 3.25 <= new_dur <= 3.95
 
 
 @pytest.mark.skipif(not _ffmpeg_available(), reason="ffmpeg/ffprobe not on PATH")

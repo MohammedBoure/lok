@@ -994,11 +994,11 @@ def infer_video_script_and_mood(
 
     selected_frames = [r["path"] for r in selected_records]
 
-    # Size narration script for final montage length using realistic Arabic Gemini TTS cadence (~1.55 words/sec)
-    # so spoken sentences stay locked to visual cuts without cumulative drift or end freeze-frames.
+    # Size narration script for final montage length using engaging, continuous Arabic Gemini TTS cadence (~1.75 words/sec)
+    # so speech flows briskly from cut to cut with zero awkward pauses while never overflowing the last frame.
     narrative_video_duration = float(target_montage_duration) if (target_montage_duration and float(target_montage_duration) >= 3.0) else video_duration
     speech_duration = max(2.0, round(narrative_video_duration - visual_lead_in - outro_buffer, 2))
-    target_words = max(14, min(140, int(speech_duration * 1.55)))
+    target_words = max(16, min(180, int(round(speech_duration * 1.75))))
 
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
@@ -1052,13 +1052,14 @@ def infer_video_script_and_mood(
     p_unit_label = f" {prop_feats['unit']}" if prop_feats.get("unit") else ""
     p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "أبرز المزايا ونقاط القوة الحقيقية الظاهرة"
     dynamic_pacing_guidance = (
-        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بدون انقطاع مبكر أو تجاوز المدة) ---\n"
+        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بتدفق مستمر وجذاب بدون ملل أو فراغات صمت) ---\n"
         f"CRITICAL PACING MANDATE: The target video duration is {narrative_video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
-        f"Because expressive Algerian Arabic speech takes ~1.55 words/sec, keep the TOTAL script concise at ~{target_words} words max so it finishes comfortably inside {speech_duration:.1f}s and NEVER spills past the last frame! "
-        f"Align each short sentence strictly to its visual scene across 3 tight phases:\n"
-        f"  1. Opening Hook (~20%): Introduce {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
-        f"  2. Visual Guided Walkthrough (~60%): Speak about each room/subject ONLY during its visible timestamp window.\n"
-        f"  3. Concluding CTA (~20%): Brief closing recap prompting viewers to contact via the number displayed on screen.\n"
+        f"Keep the narrator speaking continuously in lively, engaging Algerian Darja at ~1.75 words/sec (~{target_words} words total) — "
+        f"rich and informative enough that there are NO silent gaps or early stoppages between cuts, yet crisp and non-repetitive so the viewer never gets bored! "
+        f"Fill ~90% of each scene smoothly across 3 connected phases:\n"
+        f"  1. Immediate Hook (~20%): Introduce {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
+        f"  2. Continuous Visual Walkthrough (~65%): Flow seamlessly from room to room strictly matching each visible cut timestamp.\n"
+        f"  3. Crisp CTA (~15%): Energetic closing inviting viewers to contact via the number shown on screen.\n"
     )
     intent_guidance += dynamic_pacing_guidance
 
@@ -1117,7 +1118,7 @@ def infer_video_script_and_mood(
     montage_cut_guidance = (
         f"7. 'recommended_cuts': Array of chronologically ordered highlight shots to keep"
         + (f" (aiming for ~{float(target_montage_duration):.1f}s total cut duration)" if target_montage_duration else "")
-        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', brief 'reason', and a concise 'narration_line' (~1.5 words per second of that cut) describing ONLY what is seen in that cut.\n"
+        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', brief 'reason', and a lively 'narration_line' (~1.75 words per second of that cut so the voice fills ~90% of the shot seamlessly without filler) describing ONLY what is seen in that cut.\n"
     )
 
     visual_input_desc = (
@@ -1139,7 +1140,7 @@ def infer_video_script_and_mood(
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
         f"CRITICAL: NEVER speak or repeat user meta-instructions, directions, or overlay requests (e.g. 'أريد', 'رقم الهاتف', 'يظهر أسفل الفيديو') in the script. The script is strictly voiceover narration of the visual tour. "
         f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
-        f"The script duration MUST fit inside the net speaking window without overflowing: keep it concise at ~{target_words} words (~1.55 words/sec over {speech_duration:.1f}s).\n"
+        f"The script duration MUST stay continuous without awkward pauses or overflowing: write ~{target_words} engaging words (~1.75 words/sec over {speech_duration:.1f}s) so speech carries smoothly across every shot.\n"
         f"2. 'subtitles': Array of synchronized subtitle segment objects (e.g. [{{'start_sec': {visual_lead_in:.1f}, 'end_sec': {visual_lead_in + 3.0:.1f}, 'text': '...'}}]) matching the spoken phrasing.\n"
         f"3. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
         f"4. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
@@ -1152,7 +1153,7 @@ def infer_video_script_and_mood(
         f"{montage_cut_guidance}"
         f"8. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
         f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n"
-        f"10. 'scene_scripts': Array of chronological time-locked scene voiceover objects matching the visual timeline: [{{'start_sec': 0.0, 'end_sec': 4.0, 'room_or_subject': 'المدخل', 'text': 'جملة قصيرة تصف هذا المشهد فقط'}}]. Every spoken sentence MUST stay under ~1.5 words per second of (end_sec - start_sec) so the voice never lags behind the visuals.\n\n"
+        f"10. 'scene_scripts': Array of chronological time-locked scene voiceover objects matching the visual timeline: [{{'start_sec': 0.0, 'end_sec': 4.0, 'room_or_subject': 'المدخل', 'text': 'جملة جذابة تغطي هذا المشهد بتدفق مستمر'}}]. Aim for ~1.75 words per second of (end_sec - start_sec) so every scene stays filled and flowing cleanly without long silence or lag.\n\n"
         f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text', 'scene_scripts'."
     )
 
