@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261112_capcut">
+  <link rel="stylesheet" href="/static/style.css?v=20261112_editable_cuts">
 </head>
 <body>
 
@@ -478,16 +478,22 @@
                   <p class="script-content-text" id="generatedScriptText"></p>
                 </div>
 
-                <!-- Shot-by-Shot Synchronized Timeline -->
+                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts -->
                 <div class="shots-timeline-section" id="shotsTimelineSection" style="display: none;">
                   <div class="timeline-header">
                     <div class="timeline-title-group">
-                      <span class="timeline-icon">⏱️</span>
-                      <h5 class="timeline-title">التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</h5>
+                      <span class="timeline-icon">✂️</span>
+                      <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
                     </div>
                     <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
                   </div>
                   <div class="shots-timeline-list" id="shotsTimelineList"></div>
+                  <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
+                    <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
+                    <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
+                      <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -794,6 +800,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261112_capcut" defer></script>
+  <script src="/static/app.js?v=20261112_editable_cuts" defer></script>
 </body>
 </html>

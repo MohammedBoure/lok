@@ -184,6 +184,7 @@
     activeJobId: null,
     isProcessing: false,
     pollTimer: null,
+    editableCuts: [],
     optIn: {
       captions: false,
       music: false,
@@ -283,6 +284,8 @@
     shotsTimelineSection: document.getElementById("shotsTimelineSection"),
     timelineBadge: document.getElementById("timelineBadge"),
     shotsTimelineList: document.getElementById("shotsTimelineList"),
+    cutsEditActions: document.getElementById("cutsEditActions"),
+    btnApplyCutsEdit: document.getElementById("btnApplyCutsEdit"),
 
     // Opt-In Features Toggles
     optInQuickBar: document.getElementById("optInQuickBar"),
@@ -1952,6 +1955,13 @@
     if (!dom.shotsTimelineSection || !dom.shotsTimelineList) return;
 
     dom.shotsTimelineList.innerHTML = "";
+    state.editableCuts = [];
+    if (dom.cutsEditActions) dom.cutsEditActions.style.display = "none";
+
+    const rawEditableCuts = (data && (
+      data.editable_cuts ||
+      (data.result && data.result.editable_cuts)
+    )) || [];
 
     const rawTimeline = (data && (
       data.shot_timeline ||
@@ -1973,7 +1983,9 @@
       (data.result && data.result.keyframes)
     )) || [];
 
+    const hasEditableCuts = Array.isArray(rawEditableCuts) && rawEditableCuts.length > 0;
     const isTimelineOptedIn = Boolean(data && (
+      hasEditableCuts ||
       data.timeline_applied === true ||
       data.timeline_enabled === true ||
       data.shots_timeline_applied === true ||
@@ -1997,15 +2009,31 @@
 
     let itemsToRender = [];
 
-    if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
+    if (hasEditableCuts) {
+      itemsToRender = rawEditableCuts.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: Number(item.start_sec ?? 0),
+        end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
+        timeRange: formatTimestampRange(item.start_sec ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
+        title: item.title || `اللقطة ${idx + 1}`,
+        description: item.text || "",
+        thumb: item.thumb || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
+      }));
+    } else if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
       itemsToRender = rawTimeline.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: Number(item.start_sec ?? item.timestamp ?? (idx * 3)),
+        end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? item.timestamp ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
         title: item.title || item.room || item.label || `المشهد ${idx + 1}`,
-        description: item.description || item.text || item.details || "",
+        description: item.narration_line || item.description || item.text || item.details || "",
         thumb: item.thumbnail || item.url || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
     } else if (Array.isArray(rawCaptions) && rawCaptions.length > 0) {
       itemsToRender = rawCaptions.map((cap, idx) => ({
+        scene_index: idx + 1,
+        start_sec: Number(cap.start_sec ?? 0),
+        end_sec: Number(cap.end_sec ?? 3),
         timeRange: formatTimestampRange(cap.start_sec, cap.end_sec),
         title: `اللقطة ${idx + 1}`,
         description: cap.text || cap.caption || "",
@@ -2013,6 +2041,9 @@
       }));
     } else if (Array.isArray(rawKeyframes) && rawKeyframes.length > 0) {
       itemsToRender = rawKeyframes.slice(0, 8).map((kf, idx) => ({
+        scene_index: idx + 1,
+        start_sec: Number(kf.timestamp ?? 0),
+        end_sec: Number((rawKeyframes[idx + 1]?.timestamp) || ((kf.timestamp || 0) + 3.0)),
         timeRange: formatTimestampRange(kf.timestamp, (rawKeyframes[idx + 1]?.timestamp) || (kf.timestamp + 3.0)),
         title: kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `لقطة ${idx + 1}`,
         description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا العقار",
@@ -2026,6 +2057,9 @@
         const phaseDur = dur / Math.min(sentences.length, 3);
         const labels = ["المقدمة والإطلالة البصرية", "الجولة البصرية والتفاصيل المعمارية", "الخاتمة والدعوة للتواصل"];
         itemsToRender = sentences.slice(0, 3).map((sent, idx) => ({
+          scene_index: idx + 1,
+          start_sec: idx * phaseDur,
+          end_sec: (idx + 1) * phaseDur,
           timeRange: formatTimestampRange(idx * phaseDur, (idx + 1) * phaseDur),
           title: labels[idx] || `المشهد ${idx + 1}`,
           description: sent,
@@ -2035,31 +2069,151 @@
     }
 
     if (itemsToRender.length > 0) {
-      itemsToRender.forEach(item => {
+      state.editableCuts = itemsToRender.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: item.start_sec,
+        end_sec: item.end_sec,
+        title: item.title,
+        text: item.description || "",
+        thumb: item.thumb || "",
+      }));
+
+      itemsToRender.forEach((item, idx) => {
         const el = document.createElement("div");
         el.className = "shot-timeline-item";
 
-        let thumbHtml = "";
+        const timeCol = document.createElement("div");
+        timeCol.className = "shot-time-col";
+        const tsSpan = document.createElement("span");
+        tsSpan.className = "shot-timestamp";
+        tsSpan.textContent = item.timeRange;
+        timeCol.appendChild(tsSpan);
+        el.appendChild(timeCol);
+
         if (item.thumb) {
-          thumbHtml = `<div class="shot-thumb-col"><img src="${item.thumb}" alt="${item.title}" class="shot-thumb-img" loading="lazy" onerror="this.style.display='none'"></div>`;
+          const thumbCol = document.createElement("div");
+          thumbCol.className = "shot-thumb-col";
+          const img = document.createElement("img");
+          img.src = item.thumb;
+          img.alt = item.title;
+          img.className = "shot-thumb-img";
+          img.loading = "lazy";
+          img.onerror = function() { this.style.display = "none"; };
+          thumbCol.appendChild(img);
+          el.appendChild(thumbCol);
         }
 
-        el.innerHTML = `
-          <div class="shot-time-col">
-            <span class="shot-timestamp">${item.timeRange}</span>
-          </div>
-          ${thumbHtml}
-          <div class="shot-details-col">
-            <div class="shot-title">${item.title}</div>
-            <p class="shot-desc">${item.description}</p>
-          </div>
-        `;
+        const detailsCol = document.createElement("div");
+        detailsCol.className = "shot-details-col";
+
+        const metaRow = document.createElement("div");
+        metaRow.className = "shot-meta-row";
+        const titleEl = document.createElement("div");
+        titleEl.className = "shot-title";
+        titleEl.textContent = item.title;
+
+        const wcBadge = document.createElement("span");
+        wcBadge.className = "shot-word-count";
+        const initWords = (item.description || "").trim().split(/\s+/).filter(Boolean).length;
+        wcBadge.textContent = `${initWords} كلمة`;
+        metaRow.appendChild(titleEl);
+        metaRow.appendChild(wcBadge);
+        detailsCol.appendChild(metaRow);
+
+        const editor = document.createElement("textarea");
+        editor.className = "cut-text-editor";
+        editor.rows = 2;
+        editor.dir = "rtl";
+        editor.dataset.cutIndex = String(idx);
+        editor.value = item.description || "";
+        editor.placeholder = "اكتب نص التعليق الصوتي لهذه اللقطة...";
+        editor.addEventListener("input", () => {
+          const val = editor.value;
+          if (state.editableCuts[idx]) {
+            state.editableCuts[idx].text = val;
+          }
+          const wc = val.trim().split(/\s+/).filter(Boolean).length;
+          wcBadge.textContent = `${wc} كلمة`;
+          if (dom.generatedScriptText) {
+            dom.generatedScriptText.textContent = state.editableCuts
+              .map(c => String(c.text || "").trim())
+              .filter(Boolean)
+              .join(" ");
+          }
+        });
+        detailsCol.appendChild(editor);
+        el.appendChild(detailsCol);
         dom.shotsTimelineList.appendChild(el);
       });
+
       dom.shotsTimelineSection.style.display = "block";
+      if (dom.cutsEditActions && state.activeJobId) {
+        dom.cutsEditActions.style.display = "flex";
+      }
     } else {
       dom.shotsTimelineSection.style.display = "none";
     }
+  }
+
+  function setupCutsTextEditor() {
+    if (!dom.btnApplyCutsEdit) return;
+    dom.btnApplyCutsEdit.addEventListener("click", async () => {
+      if (!state.activeJobId) {
+        showToast("لم يتم العثور على معرف الفيديو لتعديله.");
+        return;
+      }
+      const editors = dom.shotsTimelineList ? dom.shotsTimelineList.querySelectorAll(".cut-text-editor") : [];
+      editors.forEach((ed) => {
+        const idx = Number(ed.dataset.cutIndex);
+        if (!Number.isNaN(idx) && state.editableCuts[idx]) {
+          state.editableCuts[idx].text = ed.value;
+        }
+      });
+
+      const hasAnyText = state.editableCuts.some(c => String(c.text || "").trim().length > 0);
+      if (!hasAnyText) {
+        showToast("يرجى إدخال نص لقطة واحدة على الأقل قبل التحديث.");
+        return;
+      }
+
+      const token = getStoredSessionToken();
+      const origHtml = dom.btnApplyCutsEdit.innerHTML;
+      dom.btnApplyCutsEdit.disabled = true;
+      dom.btnApplyCutsEdit.innerHTML = "<span>⏳ جاري إعادة توليد الصوت وتحديث الفيديو...</span>";
+
+      try {
+        const res = await fetch(`/api/jobs/${encodeURIComponent(state.activeJobId)}/update-cuts-text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ cuts: state.editableCuts }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || data.error || "تعذر تحديث الصوت على الفيديو.");
+        }
+
+        const refreshedSrc = data.video_url_versioned || `${data.video_url || `/outputs/mobile_cuts/cut_${state.activeJobId}.mp4`}?v=${Date.now()}`;
+        if (dom.resultVideo) {
+          dom.resultVideo.src = refreshedSrc;
+          dom.resultVideo.load();
+        }
+        if (dom.btnDownloadVideo) dom.btnDownloadVideo.href = refreshedSrc;
+        if (dom.btnShareVideo) dom.btnShareVideo.href = refreshedSrc;
+        if (dom.generatedScriptText && data.script) {
+          dom.generatedScriptText.textContent = String(data.script).trim();
+        }
+        renderShotTimeline(data);
+        showToast("تم تحديث الصوت والكلام على الفيديو بنجاح! 🎙️✨");
+      } catch (err) {
+        showToast(err.message || "حدث خطأ أثناء تحديث نص المشاهد.");
+      } finally {
+        dom.btnApplyCutsEdit.disabled = false;
+        dom.btnApplyCutsEdit.innerHTML = origHtml;
+      }
+    });
   }
 
   function resetToNewProduction() {
@@ -2232,6 +2386,7 @@
     setupVoiceoverPicker();
     setupSettingsModal();
     setupProductionAction();
+    setupCutsTextEditor();
     await checkExistingSession();
   }
 

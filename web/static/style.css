@@ -1119,6 +1119,69 @@ body {
   word-break: break-word;
 }
 
+.shot-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.shot-word-count {
+  font-size: 0.72rem;
+  color: var(--lok-text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-pill);
+  padding: 1px 8px;
+  flex-shrink: 0;
+}
+
+.cut-text-editor {
+  width: 100%;
+  min-height: 54px;
+  background-color: var(--lok-surface);
+  color: var(--lok-white);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-sm);
+  padding: 8px 10px;
+  font-family: var(--lok-font-arabic);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  direction: rtl;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.cut-text-editor:focus {
+  outline: none;
+  border-color: var(--lok-white);
+  background-color: var(--lok-black);
+}
+
+.cuts-edit-actions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--lok-border);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.cuts-edit-hint {
+  font-size: 0.78rem;
+  color: var(--lok-text-muted);
+  text-align: right;
+}
+
+.btn-apply-cuts-edit {
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .result-actions {
   display: flex;
   gap: 12px;
