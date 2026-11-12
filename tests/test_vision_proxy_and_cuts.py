@@ -10,9 +10,39 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from web.vision_analyzer import (
     _normalize_recommended_cuts,
+    _normalize_scene_scripts,
     _upload_video_to_gemini_files,
+    build_shot_timeline,
     infer_video_script_and_mood,
 )
+
+
+def test_build_shot_timeline_prefers_real_scene_cuts(tmp_path: Path):
+    f1 = tmp_path / "f1.jpg"
+    f2 = tmp_path / "f2.jpg"
+    f1.write_bytes(b"123")
+    f2.write_bytes(b"456")
+    records = [
+        {"path": f1, "timestamp_sec": 2.0, "frame_index": 0},
+        {"path": f2, "timestamp_sec": 8.0, "frame_index": 1},
+    ]
+    tl = build_shot_timeline(records, video_duration=15.0, scene_cuts=[0.0, 4.5, 10.2])
+    assert len(tl) == 3
+    assert tl[0]["start_sec"] == 0.0 and tl[0]["end_sec"] == 4.5
+    assert tl[1]["start_sec"] == 4.5 and tl[1]["end_sec"] == 10.2
+    assert tl[2]["start_sec"] == 10.2 and tl[2]["end_sec"] == 15.0
+
+
+def test_normalize_scene_scripts_orders_and_clamps():
+    raw = [
+        {"start_sec": 6.0, "end_sec": 12.0, "room_or_subject": "الحمام", "text": "وهادا الحمام العصري"},
+        {"start_sec": -1.0, "end_sec": 7.0, "room_or_subject": "المدخل", "text": "أهلاً بكم فالدخلة"},
+    ]
+    scenes = _normalize_scene_scripts(raw, video_duration=10.0)
+    assert scenes is not None and len(scenes) == 2
+    assert scenes[0]["start_sec"] == 0.0 and scenes[0]["text"] == "أهلاً بكم فالدخلة"
+    assert scenes[1]["start_sec"] >= scenes[0]["end_sec"]
+    assert scenes[1]["end_sec"] <= 10.0
 
 
 def test_normalize_recommended_cuts_clamps_dedupes_and_falls_back_to_quality():
@@ -73,7 +103,7 @@ def test_infer_video_uses_gemini_files_api_and_cleans_up(tmp_path: Path, monkeyp
                 "candidates": [{
                     "content": {
                         "parts": [{
-                            "text": '{"script": "شوفو معايا هاد الشقة الرائعة بإطلالة مفتوحة ومساحات واسعة.", "subtitles": [], "emotional_tone": "فاخر وهادئ", "emotional_prompt": "Warm luxury", "recommended_music": "luxury_piano", "highlights": ["صالون واسع"], "recommended_cuts": [{"start_sec": 2.0, "end_sec": 7.0, "score": 0.94, "title": "صالون"}], "phone_number": null, "bottom_text": null}'
+                            "text": '{"script": "شوفو معايا هاد الشقة الرائعة بإطلالة مفتوحة ومساحات واسعة.", "subtitles": [], "emotional_tone": "فاخر وهادئ", "emotional_prompt": "Warm luxury", "recommended_music": "luxury_piano", "highlights": ["صالون واسع"], "recommended_cuts": [{"start_sec": 2.0, "end_sec": 7.0, "score": 0.94, "title": "صالون", "narration_line": "شوفو معايا الصالون الفسيح"}], "scene_scripts": [{"start_sec": 0.0, "end_sec": 4.0, "room_or_subject": "المدخل", "text": "مرحبا فالشقة"}], "phone_number": null, "bottom_text": null}'
                         }]
                     }
                 }]
@@ -113,6 +143,8 @@ def test_infer_video_uses_gemini_files_api_and_cleans_up(tmp_path: Path, monkeyp
     assert res["analysis_mode"] == "proxy_video_file"
     assert res["recommended_cuts"][0]["start_sec"] == 2.0
     assert res["recommended_cuts"][0]["end_sec"] == 7.0
+    assert res["recommended_cuts"][0]["narration_line"] == "شوفو معايا الصالون الفسيح"
+    assert res["scene_scripts"][0]["text"] == "مرحبا فالشقة"
     assert len(calls["delete"]) == 1 and "files/proxy123" in calls["delete"][0]
 
 
@@ -157,3 +189,4 @@ def test_infer_video_falls_back_to_keyframes_when_file_upload_fails(tmp_path: Pa
 
     assert res["engine"] == "gemini_multimodal_vision"
     assert res["analysis_mode"] == "keyframes"
+

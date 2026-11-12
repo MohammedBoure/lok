@@ -154,12 +154,38 @@ def extract_keyframe_records(
 def build_shot_timeline(
     keyframe_records: List[Dict[str, Any]],
     video_duration: float = 10.0,
+    scene_cuts: Optional[List[float]] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Construct an explicit shot-by-shot timeline interval for every keyframe.
-    E.g. Scene 1 [0.0s - 3.5s], Scene 2 [3.5s - 7.0s], etc.
-    Provides chronological visual grounding preventing hallucinated spaces.
+    Construct an explicit shot-by-shot timeline interval grounded to real scene cuts
+    when available (or keyframe timestamps otherwise).
     """
+    dur = max(0.5, float(video_duration or 0.0))
+    if scene_cuts and len(scene_cuts) >= 2:
+        pts = [0.0] + sorted(c for c in set(float(x) for x in scene_cuts) if 0.6 < c < dur - 0.6) + [dur]
+        # Merge micro-spans < 1.2s
+        merged: List[float] = [pts[0]]
+        for p in pts[1:]:
+            if p - merged[-1] >= 1.2 or p == dur:
+                merged.append(round(p, 2))
+        if len(merged) >= 3:
+            cut_timeline: List[Dict[str, Any]] = []
+            for idx in range(len(merged) - 1):
+                st = merged[idx]
+                en = merged[idx + 1]
+                mid = (st + en) * 0.5
+                nearest_kf = min(keyframe_records, key=lambda r: abs(r["timestamp_sec"] - mid)) if keyframe_records else None
+                cut_timeline.append({
+                    "scene_index": idx + 1,
+                    "start_sec": st,
+                    "end_sec": en,
+                    "duration": round(en - st, 2),
+                    "keyframe_timestamp": nearest_kf["timestamp_sec"] if nearest_kf else round(mid, 2),
+                    "keyframe_path": str(nearest_kf["path"]) if nearest_kf else "",
+                    "title": f"Scene {idx + 1} [{st:.1f}s - {en:.1f}s]",
+                })
+            return cut_timeline
+
     if not keyframe_records:
         return []
 
@@ -172,7 +198,7 @@ def build_shot_timeline(
             next_t = keyframe_records[i + 1]["timestamp_sec"]
             end_sec = round(max(start_sec + 0.5, next_t), 2)
         else:
-            end_sec = round(max(start_sec + 0.5, video_duration), 2)
+            end_sec = round(max(start_sec + 0.5, dur), 2)
 
         timeline.append({
             "scene_index": i + 1,
@@ -663,6 +689,7 @@ def _normalize_recommended_cuts(
                 "title": str(item.get("title") or item.get("reason") or f"لقطة مختارة {len(candidates) + 1}").strip(),
                 "reason": str(item.get("reason") or item.get("title") or "").strip(),
                 "score": round(score, 3),
+                **({"narration_line": sanitize_script_against_meta_prompts(str(item["narration_line"]).strip())} if item.get("narration_line") else {}),
             })
 
     if not candidates and quality_segments and dur > 12.0:
@@ -700,6 +727,46 @@ def _normalize_recommended_cuts(
             selected[i]["start_sec"] = selected[i - 1]["end_sec"]
     selected = [c for c in selected if (c["end_sec"] - c["start_sec"]) >= 0.8]
     return selected or None
+
+
+def _normalize_scene_scripts(
+    raw_scenes: Any,
+    video_duration: float,
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Validate and chronologically normalize per-scene narration segments returned by
+    Gemini Vision so each spoken line stays locked to its visual time window.
+    """
+    if not isinstance(raw_scenes, list) or not raw_scenes:
+        return None
+    dur = max(0.5, float(video_duration or 0.0))
+    normalized: List[Dict[str, Any]] = []
+    for item in raw_scenes:
+        if not isinstance(item, dict):
+            continue
+        raw_txt = sanitize_script_against_meta_prompts(str(item.get("text") or item.get("narration_line") or "").strip())
+        if not raw_txt:
+            continue
+        try:
+            st = max(0.0, min(dur - 0.4, float(item.get("start_sec", 0.0))))
+            en = max(st + 0.6, min(dur, float(item.get("end_sec", st + 2.5))))
+        except (TypeError, ValueError):
+            continue
+        normalized.append({
+            "start_sec": round(st, 2),
+            "end_sec": round(en, 2),
+            "text": raw_txt,
+            "title": str(item.get("room_or_subject") or item.get("title") or "").strip(),
+        })
+    if not normalized:
+        return None
+    normalized.sort(key=lambda x: x["start_sec"])
+    for idx, entry in enumerate(normalized):
+        entry["scene_index"] = idx + 1
+        if idx > 0 and entry["start_sec"] < normalized[idx - 1]["end_sec"]:
+            entry["start_sec"] = normalized[idx - 1]["end_sec"]
+            entry["end_sec"] = max(round(entry["start_sec"] + 0.5, 2), entry["end_sec"])
+    return [e for e in normalized if e["end_sec"] - e["start_sec"] >= 0.5] or None
 
 
 def _get_smart_fallback(
@@ -866,6 +933,7 @@ def infer_video_script_and_mood(
     proxy_video_path: Optional[Union[str, Path]] = None,
     quality_segments: Optional[List[Dict[str, Any]]] = None,
     target_montage_duration: Optional[float] = None,
+    scene_cuts: Optional[List[float]] = None,
 ) -> Dict[str, Any]:
     """
     Analyze extracted video keyframes (and/or a lightweight full-video analysis proxy
@@ -886,7 +954,7 @@ def infer_video_script_and_mood(
         keyframes_metadata=keyframes_metadata,
         video_duration=video_duration,
     )
-    shot_timeline = build_shot_timeline(keyframe_records, video_duration=video_duration)
+    shot_timeline = build_shot_timeline(keyframe_records, video_duration=video_duration, scene_cuts=scene_cuts)
 
     has_proxy_video = bool(proxy_video_path and Path(proxy_video_path).is_file())
 
@@ -922,10 +990,11 @@ def infer_video_script_and_mood(
 
     selected_frames = [r["path"] for r in selected_records]
 
-    # Size narration script for final montage length (if trimming/shortening) rather than raw uncut duration
+    # Size narration script for final montage length using realistic Arabic Gemini TTS cadence (~1.55 words/sec)
+    # so spoken sentences stay locked to visual cuts without cumulative drift or end freeze-frames.
     narrative_video_duration = float(target_montage_duration) if (target_montage_duration and float(target_montage_duration) >= 3.0) else video_duration
     speech_duration = max(2.0, round(narrative_video_duration - visual_lead_in - outro_buffer, 2))
-    target_words = max(18, min(160, int(speech_duration * 2.1)))
+    target_words = max(14, min(140, int(speech_duration * 1.55)))
 
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
@@ -979,13 +1048,13 @@ def infer_video_script_and_mood(
     p_unit_label = f" {prop_feats['unit']}" if prop_feats.get("unit") else ""
     p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "أبرز المزايا ونقاط القوة الحقيقية الظاهرة"
     dynamic_pacing_guidance = (
-        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بدون انقطاع مبكر) ---\n"
-        f"CRITICAL PACING MANDATE: The video duration is {video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
-        f"You MUST generate an expansive, engaging narration of approximately {target_words} words (around {speech_duration:.1f}s at ~2.1 words/sec). "
-        f"Do NOT stop early or write a short 1-line script! Structure the narration dynamically across 3 continuous phases:\n"
+        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بدون انقطاع مبكر أو تجاوز المدة) ---\n"
+        f"CRITICAL PACING MANDATE: The target video duration is {narrative_video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
+        f"Because expressive Algerian Arabic speech takes ~1.55 words/sec, keep the TOTAL script concise at ~{target_words} words max so it finishes comfortably inside {speech_duration:.1f}s and NEVER spills past the last frame! "
+        f"Align each short sentence strictly to its visual scene across 3 tight phases:\n"
         f"  1. Opening Hook (~20%): Introduce {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
-        f"  2. Visual Guided Walkthrough (~60%): Detail the exact visual scenes, items, products, dishes, features, or interior spaces shown in keyframes in first-person live walkthrough style.\n"
-        f"  3. Concluding CTA (~20%): Value proposition recap and call to action prompting viewers to contact via the number displayed on screen.\n"
+        f"  2. Visual Guided Walkthrough (~60%): Speak about each room/subject ONLY during its visible timestamp window.\n"
+        f"  3. Concluding CTA (~20%): Brief closing recap prompting viewers to contact via the number displayed on screen.\n"
     )
     intent_guidance += dynamic_pacing_guidance
 
@@ -1044,7 +1113,7 @@ def infer_video_script_and_mood(
     montage_cut_guidance = (
         f"7. 'recommended_cuts': Array of chronologically ordered highlight shots to keep"
         + (f" (aiming for ~{float(target_montage_duration):.1f}s total cut duration)" if target_montage_duration else "")
-        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', and brief 'reason'. Omit dark, blurry, or shaky moments.\n"
+        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', brief 'reason', and a concise 'narration_line' (~1.5 words per second of that cut) describing ONLY what is seen in that cut.\n"
     )
 
     visual_input_desc = (
@@ -1066,7 +1135,7 @@ def infer_video_script_and_mood(
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
         f"CRITICAL: NEVER speak or repeat user meta-instructions, directions, or overlay requests (e.g. 'أريد', 'رقم الهاتف', 'يظهر أسفل الفيديو') in the script. The script is strictly voiceover narration of the visual tour. "
         f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
-        f"The script duration MUST strictly match the net speaking window: approximately {target_words} words (around {speech_duration:.1f} seconds at standard 2.2 words/sec speech rate).\n"
+        f"The script duration MUST fit inside the net speaking window without overflowing: keep it concise at ~{target_words} words (~1.55 words/sec over {speech_duration:.1f}s).\n"
         f"2. 'subtitles': Array of synchronized subtitle segment objects (e.g. [{{'start_sec': {visual_lead_in:.1f}, 'end_sec': {visual_lead_in + 3.0:.1f}, 'text': '...'}}]) matching the spoken phrasing.\n"
         f"3. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
         f"4. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
@@ -1078,8 +1147,9 @@ def infer_video_script_and_mood(
         f"If visual description guidance is provided, align these highlights directly with the key property areas described.\n"
         f"{montage_cut_guidance}"
         f"8. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
-        f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n\n"
-        f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text'."
+        f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n"
+        f"10. 'scene_scripts': Array of chronological time-locked scene voiceover objects matching the visual timeline: [{{'start_sec': 0.0, 'end_sec': 4.0, 'room_or_subject': 'المدخل', 'text': 'جملة قصيرة تصف هذا المشهد فقط'}}]. Every spoken sentence MUST stay under ~1.5 words per second of (end_sec - start_sec) so the voice never lags behind the visuals.\n\n"
+        f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text', 'scene_scripts'."
     )
 
     frame_parts: List[Dict[str, Any]] = [{"text": prompt}]
@@ -1249,11 +1319,29 @@ def infer_video_script_and_mood(
                                     video_duration=video_duration,
                                     quality_segments=quality_segments,
                                 )
+                                normalized_scenes = _normalize_scene_scripts(
+                                    parsed.get("scene_scripts"),
+                                    video_duration=video_duration,
+                                )
+                                if not normalized_scenes and normalized_cuts:
+                                    cut_lines = [
+                                        {
+                                            "scene_index": idx + 1,
+                                            "start_sec": c["start_sec"],
+                                            "end_sec": c["end_sec"],
+                                            "text": c["narration_line"],
+                                            "title": c.get("title", ""),
+                                        }
+                                        for idx, c in enumerate(normalized_cuts)
+                                        if c.get("narration_line")
+                                    ]
+                                    normalized_scenes = cut_lines or None
 
                                 return {
                                     "script": inferred_script,
                                     "subtitles": valid_subs,
                                     "shot_timeline": shot_timeline,
+                                    "scene_scripts": normalized_scenes,
                                     "videographer_speech": videographer_speech,
                                     "emotional_tone": emotional_tone,
                                     "emotional_prompt": emotional_prompt,
