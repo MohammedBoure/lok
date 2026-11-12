@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from web.video_editor import (
+    _compute_output_segments,
     _select_preferred_segments,
     assemble_shot_segments,
     auto_smart_montage,
@@ -84,8 +85,8 @@ def test_1080p_trim_and_smooth_xfade_montage(tmp_path: Path):
         dissolved,
         target_duration=6.0,
         preferred_scenes=[
-            {"start_sec": 0.5, "end_sec": 3.5, "score": 0.9},
-            {"start_sec": 4.5, "end_sec": 7.5, "score": 0.95},
+            {"start_sec": 0.5, "end_sec": 3.5, "score": 0.9, "title": "مدخل", "narration_line": "رانا فالدخلة"},
+            {"start_sec": 4.5, "end_sec": 7.5, "score": 0.95, "title": "حمام", "narration_line": "وهادا الحمام"},
         ],
         target_w=1080,
         target_h=1920,
@@ -93,7 +94,25 @@ def test_1080p_trim_and_smooth_xfade_montage(tmp_path: Path):
         transition_dur=0.3,
     )
     assert d_res["status"] == "success"
+    out_segs = d_res.get("output_segments", [])
+    assert len(out_segs) == 2
+    assert out_segs[0]["start_sec"] == 0.0
+    assert out_segs[0]["narration_line"] == "رانا فالدخلة"
+    assert out_segs[1]["narration_line"] == "وهادا الحمام"
+    assert out_segs[0]["end_sec"] == out_segs[1]["start_sec"]
     d_meta = probe_video_stream(dissolved)
     assert d_meta["width"] == 1080 and d_meta["height"] == 1920
     assert d_meta["has_audio"] is True
     assert 5.0 <= d_meta["duration"] <= 6.2
+
+
+def test_compute_output_segments_accounts_for_xfade_overlap():
+    raw_segs = [(2.0, 6.0), (10.0, 15.0)]
+    concat_map = _compute_output_segments(raw_segs, used_xfade=False, transition_dur=0.4)
+    assert concat_map[0]["start_sec"] == 0.0 and concat_map[0]["end_sec"] == 4.0
+    assert concat_map[1]["start_sec"] == 4.0 and concat_map[1]["end_sec"] == 9.0
+
+    xfade_map = _compute_output_segments(raw_segs, used_xfade=True, transition_dur=0.4)
+    assert xfade_map[0]["start_sec"] == 0.0 and xfade_map[0]["end_sec"] == 3.8
+    assert xfade_map[1]["start_sec"] == 3.8 and xfade_map[1]["end_sec"] == 8.6
+

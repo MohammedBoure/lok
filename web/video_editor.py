@@ -214,15 +214,86 @@ def trim_video_clip(
         raise RuntimeError(f"Trimmed video was not created: {out_file}")
 
     out_meta = probe_video_stream(out_file)
+    out_dur = float(out_meta["duration"] or round(end - start, 3))
     return {
         "status": "success",
         "output_path": str(out_file),
         "start_sec": start,
         "end_sec": end,
-        "duration": out_meta["duration"],
+        "duration": out_dur,
         "original_duration": src_dur,
         "file_size": out_file.stat().st_size,
+        "output_segments": [
+            {
+                "scene_index": 1,
+                "src_start_sec": start,
+                "src_end_sec": end,
+                "start_sec": 0.0,
+                "end_sec": round(out_dur, 3),
+                "duration": round(out_dur, 3),
+            }
+        ],
     }
+
+
+def _compute_output_segments(
+    valid_segments: List[Tuple[float, float]],
+    used_xfade: bool,
+    transition_dur: float,
+    preferred_scenes: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Compute the exact output timeline window ``[start_sec, end_sec]`` for each assembled
+    source segment, compensating cleanly for any ``xfade`` overlap offsets and preserving
+    attached scene titles / narration lines.
+    """
+    eff_td = max(0.15, min(0.8, float(transition_dur or 0.35))) if used_xfade else 0.0
+    raw_windows: List[Tuple[float, float]] = []
+
+    if used_xfade and len(valid_segments) >= 2:
+        offsets: List[float] = [0.0]
+        acc_dur = valid_segments[0][1] - valid_segments[0][0]
+        for st, en in valid_segments[1:]:
+            off = max(0.05, round(acc_dur - eff_td, 3))
+            offsets.append(off)
+            acc_dur = off + (en - st)
+        for i in range(len(valid_segments)):
+            st_out = 0.0 if i == 0 else round(offsets[i] + eff_td * 0.5, 3)
+            en_out = round(acc_dur, 3) if i == len(valid_segments) - 1 else round(offsets[i + 1] + eff_td * 0.5, 3)
+            raw_windows.append((st_out, max(st_out + 0.2, en_out)))
+    else:
+        cursor = 0.0
+        for st, en in valid_segments:
+            dur = round(en - st, 3)
+            raw_windows.append((round(cursor, 3), round(cursor + dur, 3)))
+            cursor += dur
+
+    output_segments: List[Dict[str, Any]] = []
+    for idx, ((src_st, src_en), (out_st, out_en)) in enumerate(zip(valid_segments, raw_windows)):
+        entry: Dict[str, Any] = {
+            "scene_index": idx + 1,
+            "src_start_sec": src_st,
+            "src_end_sec": src_en,
+            "start_sec": out_st,
+            "end_sec": out_en,
+            "duration": round(out_en - out_st, 3),
+        }
+        if preferred_scenes:
+            mid = (src_st + src_en) * 0.5
+            matched = next(
+                (
+                    sc for sc in preferred_scenes
+                    if float(sc.get("start_sec", -1)) - 0.5 <= mid <= float(sc.get("end_sec", -1)) + 0.5
+                ),
+                None,
+            )
+            if matched:
+                if matched.get("title"):
+                    entry["title"] = str(matched["title"]).strip()
+                if matched.get("narration_line"):
+                    entry["narration_line"] = str(matched["narration_line"]).strip()
+        output_segments.append(entry)
+    return output_segments
 
 
 def assemble_shot_segments(
@@ -346,9 +417,11 @@ def assemble_shot_segments(
     can_xfade = wants_smooth and num_seg >= 2 and all((en - st) >= max(0.8, float(transition_dur or 0.35) * 2.4) for st, en in valid_segments)
 
     logger.info("Assembling %d shot segments from '%s' -> '%s' (xfade=%s)", num_seg, in_file.name, out_file.name, can_xfade)
+    used_xfade = False
     if can_xfade:
         try:
             _run_assemble(use_xfade=True)
+            used_xfade = True
         except subprocess.CalledProcessError as xf_err:
             logger.warning("Smooth xfade failed (%s); falling back to clean concat.", xf_err.stderr[-180:] if xf_err.stderr else xf_err)
             _run_assemble(use_xfade=False)
@@ -356,10 +429,14 @@ def assemble_shot_segments(
         _run_assemble(use_xfade=False)
 
     out_meta = probe_video_stream(out_file)
+    eff_td = max(0.15, min(0.8, float(transition_dur or 0.35)))
+    output_segments = _compute_output_segments(valid_segments, used_xfade=used_xfade, transition_dur=eff_td)
     return {
         "status": "success",
         "output_path": str(out_file),
         "segments": valid_segments,
+        "output_segments": output_segments,
+        "used_xfade": used_xfade,
         "segment_count": len(valid_segments),
         "duration": out_meta["duration"],
         "original_duration": src_dur,
@@ -561,7 +638,7 @@ def auto_smart_montage(
             quality_segments=quality_segments,
         )
 
-    return assemble_shot_segments(
+    res = assemble_shot_segments(
         input_path=in_file,
         output_path=output_path,
         segments=segments,
@@ -570,3 +647,11 @@ def auto_smart_montage(
         target_w=target_w,
         target_h=target_h,
     )
+    if preferred_scenes and res.get("segments"):
+        res["output_segments"] = _compute_output_segments(
+            res["segments"],
+            used_xfade=bool(res.get("used_xfade", False)),
+            transition_dur=transition_dur,
+            preferred_scenes=preferred_scenes,
+        )
+    return res
