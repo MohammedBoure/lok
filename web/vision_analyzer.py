@@ -505,7 +505,7 @@ def _generate_dynamic_darja_script(
         hook = hook_tpl.format(subject=clean_topic)
         pool = list(GENERAL_SHOWCASE_TEMPLATES)
         random.shuffle(pool)
-        tour_segments = [pool[0]]
+        tour_segments = [pool[0]] if (speech_duration >= 12.0 and pool) else []
         if speech_duration >= 18.0 and len(pool) > 1:
             tour_segments.append(pool[1])
         if speech_duration >= 28.0 and len(pool) > 2:
@@ -513,7 +513,8 @@ def _generate_dynamic_darja_script(
         if speech_duration >= 40.0 and len(pool) > 3:
             tour_segments.append(pool[3])
         cta = random.choice(GENERAL_CTA_TEMPLATES)
-        return f"{hook} {' '.join(tour_segments)} {cta}"
+        parts = [hook, *tour_segments, cta]
+        return " ".join(p for p in parts if p)
 
     unit = prop_feats.get("unit")
     has_sea_view = prop_feats.get("sea_view", False)
@@ -532,7 +533,9 @@ def _generate_dynamic_darja_script(
         hook = f"{hook} {clean_topic}."
 
     # Phase 2: Walkthrough progression scaled dynamically to available duration
-    tour_segments = [random.choice(SALON_TEMPLATES)]
+    tour_segments: List[str] = []
+    if speech_duration >= 12.0:
+        tour_segments.append(random.choice(SALON_TEMPLATES))
 
     if speech_duration >= 18.0:
         tour_segments.append(random.choice(ROOMS_TEMPLATES))
@@ -544,7 +547,8 @@ def _generate_dynamic_darja_script(
     # Phase 3: Closing Call to Action (CTA)
     cta = random.choice(CTA_TEMPLATES)
 
-    return f"{hook} {' '.join(tour_segments)} {cta}"
+    parts = [hook, *tour_segments, cta]
+    return " ".join(p for p in parts if p)
 
 
 def _upload_video_to_gemini_files(

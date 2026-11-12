@@ -586,9 +586,28 @@ def extract_frames(
         try:
             subprocess.run(cmd, capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(
-                f"FFmpeg failed extracting frame at {ts}s to '{frame_dest}': {e.stderr.strip()}"
-            ) from e
+            # Low-fps analysis proxies (e.g. 2fps) may have their final frame PTS slightly before
+            # trailing timestamps like 0.95 * duration; retry from EOF when near the end of the clip.
+            recovered = False
+            if duration > 0 and ts >= max(0.0, duration - 1.0):
+                sseof_val = f"-{min(1.0, max(0.25, duration * 0.25)):.2f}"
+                retry_cmd = [
+                    ffmpeg_bin,
+                    "-y",
+                    "-sseof", sseof_val,
+                    "-i", str(path),
+                    "-frames:v", "1",
+                ]
+                if clean_format in ("jpg", "jpeg"):
+                    retry_cmd.extend(["-q:v", str(quality)])
+                retry_cmd.append(str(frame_dest))
+                retry_proc = subprocess.run(retry_cmd, capture_output=True, text=True)
+                if retry_proc.returncode == 0 and frame_dest.is_file() and frame_dest.stat().st_size > 0:
+                    recovered = True
+            if not recovered:
+                raise RuntimeError(
+                    f"FFmpeg failed extracting frame at {ts}s to '{frame_dest}': {e.stderr.strip()}"
+                ) from e
 
         if not frame_dest.is_file() or frame_dest.stat().st_size == 0:
             raise RuntimeError(f"Extracted frame file is empty or missing: {frame_dest}")
