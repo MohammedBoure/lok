@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "12653cbca4b98d426b89fec0c444bf24b4ed81ce",
-  "generatedAt": "2026-11-13T10:25:14.121Z",
+  "gitCommitHash": "9648c4f6df5c2f97e45ccb34c7328a21b0ceb7b9",
+  "generatedAt": "2026-11-13T10:32:11.749Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -8986,7 +8986,7 @@
     },
     "web/pipeline_bridge.py": {
       "filePath": "web/pipeline_bridge.py",
-      "contentHash": "84568f8455ccc248b1291f752072ab28b0e267dc6c86dff952074eb198b1b864",
+      "contentHash": "c2af38cd637aaae1710974303633bac04b01b2d05472840f84399e7bdf034e45",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9055,7 +9055,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 66
+          "lineCount": 68
         },
         {
           "name": "analyze_source_audio_for_speech",
@@ -9103,11 +9103,29 @@
           "lineCount": 3
         },
         {
+          "name": "_build_music_catalog",
+          "params": [],
+          "returnType": "Dict[str, Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "resolve_music_track",
+          "params": [
+            "track_id",
+            "fallback_id",
+            "strict"
+          ],
+          "returnType": "Optional[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
           "name": "get_music_tracks_list",
           "params": [],
           "returnType": "List[Dict[str, str]]",
           "exported": true,
-          "lineCount": 12
+          "lineCount": 14
         },
         {
           "name": "get_voice_profiles_list",
@@ -9372,11 +9390,13 @@
             "edited_cuts",
             "edited_script",
             "output_dir",
-            "voice"
+            "voice",
+            "music_track",
+            "enable_music"
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 209
+          "lineCount": 231
         },
         {
           "name": "_extract_formatted_keyframes",
@@ -9422,7 +9442,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 1035
+          "lineCount": 1043
         }
       ],
       "classes": [],
@@ -9545,6 +9565,8 @@
         "extract_directives",
         "sanitize_script_against_meta_prompts",
         "get_presets_list",
+        "_build_music_catalog",
+        "resolve_music_track",
         "get_music_tracks_list",
         "get_voice_profiles_list",
         "resolve_voice_profile",
@@ -9571,7 +9593,7 @@
         "_extract_formatted_keyframes",
         "process_mobile_video"
       ],
-      "totalLines": 3279,
+      "totalLines": 3368,
       "hasStructuralAnalysis": true
     },
     "web/prompt_db.py": {
@@ -9797,7 +9819,7 @@
     },
     "web/server.py": {
       "filePath": "web/server.py",
-      "contentHash": "02f228eba14d3d4efc2f839794a0b4a046946f0f01bc39e329f0758c8339c8a5",
+      "contentHash": "6a379b86ceb80bc18ce06eec2ca48de6fded07614eb53e616f6331d03b82fbc8",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9831,6 +9853,15 @@
           "returnType": "JSONResponse",
           "exported": true,
           "lineCount": 3
+        },
+        {
+          "name": "music_track_audio_endpoint",
+          "params": [
+            "request"
+          ],
+          "returnType": "Response",
+          "exported": true,
+          "lineCount": 11
         },
         {
           "name": "_extract_candidate_tokens",
@@ -9963,7 +9994,7 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 79
+          "lineCount": 89
         },
         {
           "name": "get_mobile_cut_endpoint",
@@ -10339,6 +10370,7 @@
             "is_meta_prompt",
             "parse_prompt_instructions",
             "process_mobile_video",
+            "resolve_music_track",
             "resolve_voice_profile",
             "sanitize_and_validate_prompt",
             "update_cuts_text_and_rerender"
@@ -10402,6 +10434,7 @@
         "health_check",
         "get_presets",
         "get_music_tracks",
+        "music_track_audio_endpoint",
         "_extract_candidate_tokens",
         "_get_authenticated_user_and_session",
         "_get_authenticated_user_from_form_or_header",
@@ -10441,7 +10474,7 @@
         "admin_account_logs_endpoint",
         "admin_stats_endpoint"
       ],
-      "totalLines": 2251,
+      "totalLines": 2286,
       "hasStructuralAnalysis": true
     },
     "web/static/README.md": {
@@ -11261,6 +11294,125 @@
         "infer_video_script_and_mood"
       ],
       "totalLines": 1445,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_music_selection_and_enable_fix.py": {
+      "filePath": "tests/test_music_selection_and_enable_fix.py",
+      "contentHash": "0390a763fb8de8f06ccdd1fb53a84e65ecc8a87b9879a3936b03c96c10eb1cf7",
+      "functions": [
+        {
+          "name": "test_parse_music_directives_distinguishes_default_from_explicit_mute",
+          "params": [],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_enable_music_flag_activates_music_even_without_prompt_keywords",
+          "params": [
+            "mock_meta",
+            "mock_kf",
+            "mock_subp",
+            "mock_synth",
+            "mock_annot",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "test_explicit_mute_in_prompt_still_overrides_enable_music",
+          "params": [
+            "mock_meta",
+            "mock_kf",
+            "mock_subp",
+            "mock_synth",
+            "mock_annot",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "test_dynamic_assets_music_discovery_and_audio_endpoint",
+          "params": [
+            "tmp_path",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "test_update_cuts_text_updates_music_selection",
+          "params": [
+            "mock_meta",
+            "mock_subp",
+            "mock_synth",
+            "mock_annot",
+            "tmp_path",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 56
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "unittest.mock",
+          "specifiers": [
+            "MagicMock",
+            "patch"
+          ]
+        },
+        {
+          "source": "starlette.testclient",
+          "specifiers": [
+            "TestClient"
+          ]
+        },
+        {
+          "source": "web.pipeline_bridge",
+          "specifiers": [
+            "get_music_tracks_list",
+            "parse_music_directives",
+            "process_mobile_video",
+            "resolve_music_track",
+            "update_cuts_text_and_rerender"
+          ]
+        },
+        {
+          "source": "web.server",
+          "specifiers": [
+            "app"
+          ]
+        }
+      ],
+      "exports": [
+        "test_parse_music_directives_distinguishes_default_from_explicit_mute",
+        "test_enable_music_flag_activates_music_even_without_prompt_keywords",
+        "test_explicit_mute_in_prompt_still_overrides_enable_music",
+        "test_dynamic_assets_music_discovery_and_audio_endpoint",
+        "test_update_cuts_text_updates_music_selection"
+      ],
+      "totalLines": 238,
       "hasStructuralAnalysis": true
     }
   }
