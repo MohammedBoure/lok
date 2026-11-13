@@ -70,9 +70,10 @@ def test_enable_music_flag_activates_music_even_without_prompt_keywords(
     def fake_ffmpeg(cmd, *args, **kwargs):
         if isinstance(cmd, list) and cmd:
             captured_cmds.append(cmd)
-            out_p = Path(cmd[-1])
-            out_p.parent.mkdir(parents=True, exist_ok=True)
-            out_p.write_bytes(b"mock_mp4_bytes")
+            if cmd[-1] not in ("-", "/dev/null", "NUL"):
+                out_p = Path(cmd[-1])
+                out_p.parent.mkdir(parents=True, exist_ok=True)
+                out_p.write_bytes(b"mock_mp4_bytes")
         return MagicMock(returncode=0, stdout="", stderr="")
 
     mock_subp.side_effect = fake_ffmpeg
@@ -235,3 +236,39 @@ def test_update_cuts_text_updates_music_selection(
     assert updated["music_muted"] is False
     assert updated["music_track"]["id"] == "ambient_meditation"
     assert updated["music_track"]["muted"] is False
+
+
+def test_compact_ui_music_selector_and_collapsible_sections_contract():
+    html = (REPO_ROOT / "web" / "static" / "index.html").read_text(encoding="utf-8")
+    js = (REPO_ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    css = (REPO_ROOT / "web" / "static" / "style.css").read_text(encoding="utf-8")
+
+    # Music track selector & preview button
+    assert 'id="musicTrackPickerWrap"' in html
+    assert 'id="musicTrackSelect"' in html
+    assert 'id="btnPreviewMusic"' in html
+    assert "/api/music-tracks" in js
+    assert 'formData.append("music_track"' in js
+
+    # Collapsible CapCut text presets (collapsed by default)
+    assert 'id="btnToggleCapcutPresets"' in html
+    assert 'id="capcutPresetsBody"' in html
+    assert 'aria-expanded="false"' in html
+    assert "setCapcutPanelOpen" in js
+
+    # Collapsible timestamps & timeline breakdown (collapsed by default)
+    assert 'id="btnToggleTimelinePanel"' in html
+    assert 'id="shotsTimelineBody"' in html
+    assert 'id="timelineCountPill"' in html
+    assert "setTimelinePanelOpen" in js
+
+    # Styling rules
+    assert ".music-track-picker-wrap" in css
+    assert ".btn-collapse-panel" in css
+    assert ".capcut-presets-body" in css
+    assert ".shots-timeline-body" in css
+
+    # Forbidden character guard
+    for content in (html, js, css):
+        assert "\u0669" not in content
+

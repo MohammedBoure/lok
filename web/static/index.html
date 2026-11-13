@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261112_editable_cuts">
+  <link rel="stylesheet" href="/static/style.css?v=20261113_music_compact">
 </head>
 <body>
 
@@ -195,6 +195,20 @@
               </button>
             </div>
 
+            <!-- Music Track Picker (shown when Background Music Opt-In is active) -->
+            <div class="music-track-picker-wrap" id="musicTrackPickerWrap" style="display: none;">
+              <label for="musicTrackSelect" class="music-picker-label">🎵 اختر موسيقى الخلفية (من assets/music):</label>
+              <div class="music-picker-controls">
+                <select id="musicTrackSelect" class="lok-select-sm music-track-select" aria-label="اختر موسيقى الخلفية">
+                  <option value="luxury_piano">بيانو كلاسيكي راقي (Gymnopédie) - للعقارات الفاخرة</option>
+                </select>
+                <button type="button" class="btn-bw-secondary btn-music-preview" id="btnPreviewMusic" title="معاينة المقطوعة المختارة">
+                  <span>▶ استمع</span>
+                </button>
+              </div>
+              <span class="music-track-license" id="musicTrackLicenseBadge">Public Domain / CC0</span>
+            </div>
+
             <div class="prompt-textarea-wrapper">
               <textarea 
                 id="promptTextarea" 
@@ -222,17 +236,31 @@
             </div>
           </div>
 
-          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates -->
-          <div class="studio-section capcut-studio-section" id="capcutStudioSection">
-            <div class="capcut-header-row">
-              <div>
-                <label class="section-label mb-0">3. قوالب النصوص المتحركة بأسلوب CapCut (Custom Text &amp; Animations):</label>
-                <p class="capcut-sub-hint">اختر قالب التحريك المفضل لديك، واكتب النص الذي تريد ظهوره على الفيديو ليقوم الذكاء الاصطناعي بتقسيمه وتوقيته تلقائياً بدون الحاجة لاكتشاف الصوت.</p>
-              </div>
-              <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
-            </div>
+          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates (Collapsible at bottom of form) -->
+          <div class="studio-section capcut-studio-section is-collapsed" id="capcutStudioSection">
+            <button
+              type="button"
+              class="btn-collapse-panel"
+              id="btnToggleCapcutPresets"
+              aria-expanded="false"
+              aria-controls="capcutPresetsBody"
+            >
+              <span class="collapse-btn-main">
+                <span>🎨 3. قوالب النصوص المتحركة والكتابة (CapCut Text Presets)</span>
+                <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
+              </span>
+              <span class="collapse-chevron" id="capcutPresetsChevron">▾ عرض القوالب</span>
+            </button>
 
-            <!-- 7 Animated Templates Grid + None Option -->
+            <div class="capcut-presets-body" id="capcutPresetsBody" style="display: none;">
+              <div class="capcut-header-row">
+                <div>
+                  <label class="section-label mb-0">3. قوالب النصوص المتحركة بأسلوب CapCut (Custom Text &amp; Animations):</label>
+                  <p class="capcut-sub-hint">اختر قالب التحريك المفضل لديك، واكتب النص الذي تريد ظهوره على الفيديو ليقوم الذكاء الاصطناعي بتقسيمه وتوقيته تلقائياً بدون الحاجة لاكتشاف الصوت.</p>
+                </div>
+              </div>
+
+              <!-- 7 Animated Templates Grid + None Option -->
             <div class="capcut-templates-grid" id="captionTemplatesGrid" role="radiogroup" aria-label="قوالب النصوص المتحركة">
               <button type="button" class="capcut-tpl-card active" data-template="" aria-pressed="true">
                 <div class="tpl-preview tpl-preview-none">
@@ -370,6 +398,7 @@
                 <div class="split-chunks-list" id="splitChunksList"></div>
               </div>
             </div>
+            </div>
           </div>
 
           <!-- CONTROL 4: Produce Video Action Button -->
@@ -478,21 +507,36 @@
                   <p class="script-content-text" id="generatedScriptText"></p>
                 </div>
 
-                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts -->
-                <div class="shots-timeline-section" id="shotsTimelineSection" style="display: none;">
-                  <div class="timeline-header">
-                    <div class="timeline-title-group">
-                      <span class="timeline-icon">✂️</span>
-                      <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
+                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts (Collapsible) -->
+                <div class="shots-timeline-section is-collapsed" id="shotsTimelineSection" style="display: none;">
+                  <button
+                    type="button"
+                    class="btn-collapse-panel btn-collapse-timeline"
+                    id="btnToggleTimelinePanel"
+                    aria-expanded="false"
+                    aria-controls="shotsTimelineBody"
+                  >
+                    <span class="collapse-btn-main">
+                      <span>⏱️ عرض التوقيت الزمني والمشاهد والنص — التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</span>
+                      <span class="timeline-count-pill" id="timelineCountPill">0 لقطات</span>
+                    </span>
+                    <span class="collapse-chevron" id="timelinePanelChevron">▾ عرض التفاصيل</span>
+                  </button>
+                  <div class="shots-timeline-body" id="shotsTimelineBody" style="display: none;">
+                    <div class="timeline-header">
+                      <div class="timeline-title-group">
+                        <span class="timeline-icon">✂️</span>
+                        <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
+                      </div>
+                      <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
                     </div>
-                    <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
-                  </div>
-                  <div class="shots-timeline-list" id="shotsTimelineList"></div>
-                  <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
-                    <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
-                    <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
-                      <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
-                    </button>
+                    <div class="shots-timeline-list" id="shotsTimelineList"></div>
+                    <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
+                      <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
+                      <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
+                        <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -800,6 +844,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261112_editable_cuts" defer></script>
+  <script src="/static/app.js?v=20261113_music_compact" defer></script>
 </body>
 </html>

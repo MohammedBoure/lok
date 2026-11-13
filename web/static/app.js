@@ -190,6 +190,11 @@
       music: false,
       timeline: false
     },
+    selectedMusicTrack: "luxury_piano",
+    musicTracksCatalog: [],
+    musicPreviewAudio: null,
+    isCapcutPanelOpen: false,
+    isTimelinePanelOpen: false,
     selectedCaptionTemplate: "",
     captionPosition: "",
     captionSize: "medium"
@@ -295,6 +300,18 @@
     statusMusicOptIn: document.getElementById("statusMusicOptIn"),
     btnToggleTimelineOptIn: document.getElementById("btnToggleTimelineOptIn"),
     statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
+    musicTrackPickerWrap: document.getElementById("musicTrackPickerWrap"),
+    musicTrackSelect: document.getElementById("musicTrackSelect"),
+    btnPreviewMusic: document.getElementById("btnPreviewMusic"),
+    musicTrackLicenseBadge: document.getElementById("musicTrackLicenseBadge"),
+    capcutStudioSection: document.getElementById("capcutStudioSection"),
+    btnToggleCapcutPresets: document.getElementById("btnToggleCapcutPresets"),
+    capcutPresetsBody: document.getElementById("capcutPresetsBody"),
+    capcutPresetsChevron: document.getElementById("capcutPresetsChevron"),
+    btnToggleTimelinePanel: document.getElementById("btnToggleTimelinePanel"),
+    shotsTimelineBody: document.getElementById("shotsTimelineBody"),
+    timelinePanelChevron: document.getElementById("timelinePanelChevron"),
+    timelineCountPill: document.getElementById("timelineCountPill"),
     sectionOptInPreferences: document.getElementById("sectionOptInPreferences"),
     settingToggleCaptions: document.getElementById("settingToggleCaptions"),
     settingToggleMusic: document.getElementById("settingToggleMusic"),
@@ -1156,6 +1173,163 @@
     if (dom.settingToggleTimeline) {
       dom.settingToggleTimeline.checked = state.optIn.timeline;
     }
+    if (dom.musicTrackPickerWrap) {
+      dom.musicTrackPickerWrap.style.display = state.optIn.music ? "flex" : "none";
+      if (!state.optIn.music) {
+        stopMusicPreview();
+      }
+    }
+  }
+
+  const MUSIC_TRACK_STORAGE_KEY = "lok_selected_music_track";
+
+  function stopMusicPreview() {
+    if (state.musicPreviewAudio) {
+      try {
+        state.musicPreviewAudio.pause();
+        state.musicPreviewAudio.currentTime = 0;
+      } catch (e) {}
+      state.musicPreviewAudio = null;
+    }
+    if (dom.btnPreviewMusic) {
+      dom.btnPreviewMusic.classList.remove("is-playing");
+      dom.btnPreviewMusic.innerHTML = "<span>▶ استمع</span>";
+    }
+  }
+
+  function updateMusicLicenseBadge() {
+    if (!dom.musicTrackLicenseBadge) return;
+    const active = (state.musicTracksCatalog || []).find((t) => t.id === state.selectedMusicTrack);
+    if (active) {
+      dom.musicTrackLicenseBadge.textContent = `${active.style || "Music"} — ${active.license || "Free"}`;
+    }
+  }
+
+  async function loadMusicTracks() {
+    if (!dom.musicTrackSelect) return;
+    try {
+      const savedTrack = localStorage.getItem(MUSIC_TRACK_STORAGE_KEY);
+      if (savedTrack) {
+        state.selectedMusicTrack = savedTrack;
+      }
+    } catch (e) {}
+
+    try {
+      const res = await fetch("/api/music-tracks");
+      if (!res.ok) return;
+      const tracks = await res.json();
+      if (!Array.isArray(tracks) || tracks.length === 0) return;
+      state.musicTracksCatalog = tracks;
+
+      const currentVal = state.selectedMusicTrack;
+      dom.musicTrackSelect.innerHTML = "";
+      let foundSelected = false;
+      tracks.forEach((tr) => {
+        const opt = document.createElement("option");
+        opt.value = tr.id;
+        opt.textContent = tr.title_ar || tr.title || tr.id;
+        if (tr.id === currentVal) {
+          opt.selected = true;
+          foundSelected = true;
+        }
+        dom.musicTrackSelect.appendChild(opt);
+      });
+
+      if (!foundSelected && tracks[0]) {
+        state.selectedMusicTrack = tracks[0].id;
+        dom.musicTrackSelect.value = tracks[0].id;
+      }
+      updateMusicLicenseBadge();
+    } catch (err) {
+      console.warn("Failed to load music tracks:", err);
+    }
+  }
+
+  function setupMusicTrackPicker() {
+    if (dom.musicTrackSelect) {
+      dom.musicTrackSelect.addEventListener("change", (e) => {
+        state.selectedMusicTrack = e.target.value || "luxury_piano";
+        try {
+          localStorage.setItem(MUSIC_TRACK_STORAGE_KEY, state.selectedMusicTrack);
+        } catch (err) {}
+        stopMusicPreview();
+        updateMusicLicenseBadge();
+      });
+    }
+    if (dom.btnPreviewMusic) {
+      dom.btnPreviewMusic.addEventListener("click", () => {
+        if (state.musicPreviewAudio && !state.musicPreviewAudio.paused) {
+          stopMusicPreview();
+          return;
+        }
+        stopMusicPreview();
+        const trackId = state.selectedMusicTrack || (dom.musicTrackSelect && dom.musicTrackSelect.value) || "luxury_piano";
+        const active = (state.musicTracksCatalog || []).find((t) => t.id === trackId);
+        const audioUrl = (active && active.audio_url) || `/api/music-tracks/${encodeURIComponent(trackId)}/audio`;
+        const audio = new Audio(audioUrl);
+        state.musicPreviewAudio = audio;
+        dom.btnPreviewMusic.classList.add("is-playing");
+        dom.btnPreviewMusic.innerHTML = "<span>⏹ إيقاف</span>";
+        audio.addEventListener("ended", stopMusicPreview);
+        audio.addEventListener("error", () => {
+          stopMusicPreview();
+          showToast("تعذر تشغيل معاينة المقطوعة الموسيقية.");
+        });
+        audio.play().catch(() => {
+          stopMusicPreview();
+          showToast("تعذر تشغيل المعاينة الصوتية حالياً.");
+        });
+      });
+    }
+  }
+
+  function setCapcutPanelOpen(open) {
+    const isOpen = Boolean(open);
+    state.isCapcutPanelOpen = isOpen;
+    if (dom.capcutPresetsBody) {
+      dom.capcutPresetsBody.style.display = isOpen ? "block" : "none";
+    }
+    if (dom.capcutStudioSection) {
+      dom.capcutStudioSection.classList.toggle("is-collapsed", !isOpen);
+    }
+    if (dom.btnToggleCapcutPresets) {
+      dom.btnToggleCapcutPresets.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+    if (dom.capcutPresetsChevron) {
+      dom.capcutPresetsChevron.textContent = isOpen ? "▴ إخفاء القوالب" : "▾ عرض القوالب";
+    }
+  }
+
+  function setTimelinePanelOpen(open) {
+    const isOpen = Boolean(open);
+    state.isTimelinePanelOpen = isOpen;
+    if (dom.shotsTimelineBody) {
+      dom.shotsTimelineBody.style.display = isOpen ? "block" : "none";
+    }
+    if (dom.shotsTimelineSection) {
+      dom.shotsTimelineSection.classList.toggle("is-collapsed", !isOpen);
+    }
+    if (dom.btnToggleTimelinePanel) {
+      dom.btnToggleTimelinePanel.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+    if (dom.timelinePanelChevron) {
+      dom.timelinePanelChevron.textContent = isOpen ? "▴ إخفاء التفاصيل" : "▾ عرض التفاصيل";
+    }
+  }
+
+  function setupCollapsiblePanels() {
+    setCapcutPanelOpen(false);
+    setTimelinePanelOpen(false);
+    if (dom.btnToggleCapcutPresets) {
+      dom.btnToggleCapcutPresets.addEventListener("click", () => {
+        setCapcutPanelOpen(!state.isCapcutPanelOpen);
+      });
+    }
+    if (dom.btnToggleTimelinePanel) {
+      dom.btnToggleTimelinePanel.addEventListener("click", () => {
+        setTimelinePanelOpen(!state.isTimelinePanelOpen);
+      });
+    }
   }
 
   function setupOptInToggles() {
@@ -1379,6 +1553,9 @@
       formData.append("music_muted", "true");
     } else {
       formData.append("enable_music", "true");
+      if (state.selectedMusicTrack) {
+        formData.append("music_track", state.selectedMusicTrack);
+      }
     }
 
     if (isTimelineOpted) {
@@ -1906,7 +2083,8 @@
         }
       }
 
-      // 6. Display Shot-by-Shot Synchronized Timeline in Script Inspection Card
+      // 6. Display Shot-by-Shot Synchronized Timeline in Script Inspection Card (collapsed until user clicks)
+      state.isTimelinePanelOpen = false;
       renderShotTimeline(data);
 
       if (dom.resultContainer) {
@@ -2146,12 +2324,18 @@
         dom.shotsTimelineList.appendChild(el);
       });
 
+      if (dom.timelineCountPill) {
+        const renderedCount = dom.shotsTimelineList ? dom.shotsTimelineList.children.length : state.editableCuts.length;
+        dom.timelineCountPill.textContent = `${renderedCount} لقطات`;
+      }
       dom.shotsTimelineSection.style.display = "block";
       if (dom.cutsEditActions && state.activeJobId) {
         dom.cutsEditActions.style.display = "flex";
       }
+      setTimelinePanelOpen(state.isTimelinePanelOpen);
     } else {
       dom.shotsTimelineSection.style.display = "none";
+      setTimelinePanelOpen(false);
     }
   }
 
@@ -2188,7 +2372,13 @@
             "Content-Type": "application/json",
             ...(token ? { "Authorization": `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ cuts: state.editableCuts }),
+          body: JSON.stringify({
+            cuts: state.editableCuts,
+            enable_music: Boolean(state.optIn && state.optIn.music),
+            ...(state.optIn && state.optIn.music && state.selectedMusicTrack
+              ? { music_track: state.selectedMusicTrack }
+              : {}),
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -2232,6 +2422,9 @@
     if (dom.generatedScriptText) dom.generatedScriptText.textContent = "";
     if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
     if (dom.shotsTimelineList) dom.shotsTimelineList.innerHTML = "";
+    setTimelinePanelOpen(false);
+    setCapcutPanelOpen(false);
+    stopMusicPreview();
     if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
     if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
     if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
@@ -2381,7 +2574,10 @@
     setupVideoUpload();
     setupPromptTextarea();
     setupOptInToggles();
+    setupMusicTrackPicker();
+    setupCollapsiblePanels();
     setupCaptionTemplatesStudio();
+    loadMusicTracks();
     setupRecommendationsManager();
     setupVoiceoverPicker();
     setupSettingsModal();

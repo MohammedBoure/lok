@@ -2034,3 +2034,117 @@ body {
   font-weight: 800;
   text-decoration: underline;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Music Track Picker & Collapsible Compact Panels                            */
+/* -------------------------------------------------------------------------- */
+
+.music-track-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-md);
+}
+
+.music-picker-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--lok-white);
+}
+
+.music-picker-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.music-track-select {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.btn-music-preview {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  border-radius: var(--lok-radius-pill);
+  white-space: nowrap;
+}
+
+.btn-music-preview.is-playing {
+  background-color: var(--lok-white);
+  color: var(--lok-black);
+}
+
+.music-track-license {
+  font-size: 0.72rem;
+  color: var(--lok-text-muted);
+}
+
+.btn-collapse-panel {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-md);
+  color: var(--lok-white);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: right;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-collapse-panel:hover {
+  background-color: rgba(255, 255, 255, 0.09);
+  border-color: var(--lok-white);
+}
+
+.collapse-btn-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.collapse-chevron {
+  font-size: 0.8rem;
+  color: var(--lok-text-muted);
+  white-space: nowrap;
+}
+
+.capcut-presets-body {
+  margin-top: 14px;
+}
+
+.capcut-studio-section.is-collapsed {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.shots-timeline-section.is-collapsed {
+  padding: 12px 14px;
+}
+
+.shots-timeline-body {
+  margin-top: 12px;
+}
+
+.timeline-count-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: var(--lok-radius-pill);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--lok-white);
+}
