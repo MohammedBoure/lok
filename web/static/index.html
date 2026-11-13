@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261113_screen_overlay">
+  <link rel="stylesheet" href="/static/style.css?v=20261113_user_guide">
 </head>
 <body>
 
@@ -28,6 +28,13 @@
     <!-- 1. GATED LOGIN VIEW (Unauthenticated First Visit)                    -->
     <!-- ===================================================================== -->
     <section id="loginView" class="lok-gated-login" style="display: none;">
+      <div class="login-guide-corner">
+        <button type="button" class="btn-bw-settings btn-user-guide" id="btnLoginUserGuide" title="عرض دليل استخدام المنصة خطوة بخطوة">
+          <span class="guide-icon">📖</span>
+          <span class="guide-label">دليل الاستخدام</span>
+          <span class="guide-new-dot" aria-hidden="true"></span>
+        </button>
+      </div>
       <div class="login-card-wrapper">
         <div class="login-card">
           <!-- Brand Header -->
@@ -101,6 +108,17 @@
       <header class="lok-header">
         <div class="header-inner">
           <div class="header-brand-group">
+            <div class="user-guide-btn-wrap" id="userGuideBtnWrap">
+              <button type="button" class="btn-bw-settings btn-user-guide" id="btnOpenUserGuide" aria-haspopup="dialog" aria-controls="userGuideModal" title="عرض دليل استخدام الاستوديو خطوة بخطوة">
+                <span class="guide-icon">📖</span>
+                <span class="guide-label">دليل الاستخدام</span>
+                <span class="guide-new-dot" aria-hidden="true"></span>
+              </button>
+              <div class="user-guide-highlight-tip" id="userGuideHighlightTip" style="display: none;" role="status">
+                <span>✨ أول زيارة؟ اضغط هنا لدليل الاستخدام السريع</span>
+                <button type="button" class="btn-dismiss-guide-tip" id="btnDismissGuideTip" aria-label="إخفاء التلميح">✕</button>
+              </div>
+            </div>
             <div class="lok-header-logo">lok</div>
             <div class="header-user-status" id="headerUserStatus">
               <span class="user-role-icon" id="userRoleIcon">🏢</span>
@@ -924,6 +942,94 @@
       </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- 3C. INTERACTIVE USER GUIDE MODAL (Opened on demand from top-right btn)-->
+    <!-- ===================================================================== -->
+    <div id="userGuideModal" class="lok-settings-overlay user-guide-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="userGuideModalTitle">
+      <div class="settings-modal-dialog user-guide-dialog">
+        <div class="settings-modal-content user-guide-content">
+
+          <div class="settings-header user-guide-header">
+            <div>
+              <h2 class="settings-main-title" id="userGuideModalTitle">📖 دليل استخدام استوديو lok خطوة بخطوة</h2>
+              <p class="overlay-modal-subtitle">كل ما تحتاجه لإنتاج فيديو تسويقي احترافي بالدارجة مع النصوص والموسيقى في أقل من دقيقتين</p>
+            </div>
+            <button type="button" class="btn-bw-secondary" id="btnCloseUserGuideModal">✕ إغلاق</button>
+          </div>
+
+          <div class="user-guide-steps-grid">
+            <article class="guide-step-card">
+              <div class="guide-step-badge">1</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">🔐 تسجيل الدخول (`دخول الاستوديو`)</h3>
+                <p class="guide-step-desc">أدخل اسم المستخدم وكلمة المرور أو استخدم أزرار الدخول السريع بنقرة واحدة للوصول إلى مساحة عملك.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">2</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">⚙️ إعداد الصوت والتوصيات (إعداد لمرة واحدة)</h3>
+                <p class="guide-step-desc">من زر <strong>الإعدادات</strong>، جرّب أصوات المعلقين بالدارجة (عائشة، أمين، كريم، مريم)، عيّن صوتك المفضل، واحفظ قوالب توجيهاتك المفضلة مع متابعة رصيدك اليومي والأسبوعي.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">3</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">📹 رفع الفيديو المسجل</h3>
+                <p class="guide-step-desc">اسحب مقطع الفيديو الجاهز (MP4 / MOV / WebM) وأفلته في منطقة الرفع أو اختره من جهازك عبر <strong>تصفح واختيار الفيديو</strong>.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">4</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">⚡ الميزات الاختيارية (Opt-In)</h3>
+                <ul class="guide-sub-list">
+                  <li><strong>💬 ترجمة متزامنة:</strong> إظهار كلام المعلق متزامناً على الشاشة.</li>
+                  <li><strong>🎵 موسيقى خلفية:</strong> اختيار مقطوعة ومعاينتها قبل الدمج (الصوت نقي 100% عند التعطيل).</li>
+                  <li><strong>⏱️ مخطط المشاهد:</strong> تفصيل كل مشهد زمنياً مع إمكانية تعديل نصه لاحقاً.</li>
+                  <li><strong>📱 ملاحظة / رقم ثابت:</strong> نافذة تفاعلية لكتابة رقمك أو ملاحظتك، <strong>سحبها باليد لأي مكان على الشاشة</strong>، وتغيير الخط واللون والحجم والمؤثرات الحركية.</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">5</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">✍️ التوجيهات + 🎨 قوالب CapCut</h3>
+                <p class="guide-step-desc">اكتب تفاصيل العرض واللهجة وسرعة الإلقاء في مربع التوجيهات. ويمكنك اختيارياً فتح <strong>قوالب النصوص المتحركة</strong> لإضافة نصوص تيك توك وريلز مقسمة بالذكاء الاصطناعي.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">6</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">✨ الإنتاج والتعديل السريع والتحميل</h3>
+                <p class="guide-step-desc">اضغط <strong>إنتاج الفيديو التسويقي بنقرة واحدة</strong>. بعد النتيجة يمكنك نسخ السيناريو، أو تعديل جملة أي لقطة في المخطط وتحديث الصوت فوراً، ثم تحميل ملف MP4 النهائي.</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="guide-pro-tips-box">
+            <div class="guide-tips-title">💡 نصائح سريعة لأفضل نتيجة:</div>
+            <ul class="guide-tips-list">
+              <li>ارفع الفيديو أولاً قبل فتح <strong>📱 ملاحظة / رقم ثابت</strong> حتى تشاهد الفيديو يعمل خلف النص أثناء سحبه وتحديد مكانه.</li>
+              <li>لإبقاء التعليق الصوتي طبيعياً، ضع رقم الهاتف في <strong>📱 ملاحظة / رقم ثابت</strong> بدلاً من إجبار المعلق على قراءة الأرقام.</li>
+              <li>اذكر الحقائق المهمة (المساحة، السعر، الحي) في التوجيهات ليدمجها الذكاء الاصطناعي بدقة مع اللقطات.</li>
+            </ul>
+          </div>
+
+          <div class="overlay-modal-footer user-guide-footer">
+            <span class="guide-footer-note">يمكنك فتح هذا الدليل في أي وقت من زر «📖 دليل الاستخدام» أعلى اليمين.</span>
+            <button type="button" class="btn-bw-primary" id="btnAcknowledgeUserGuide">✅ فهمت، لنبدأ الإنتاج</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- Feedback Toast -->
     <div class="lok-toast" id="appToast" role="alert" aria-live="polite"></div>
 
@@ -977,6 +1083,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261113_screen_overlay" defer></script>
+  <script src="/static/app.js?v=20261113_user_guide" defer></script>
 </body>
 </html>

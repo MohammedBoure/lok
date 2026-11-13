@@ -327,7 +327,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert 'id="draggableOverlayNode"' in html
     assert 'id="overlayFontList"' in html
     assert 'id="overlayEffectList"' in html
-    assert '20261113_screen_overlay' in html
+    assert '20261113_user_guide' in html
 
     # JS handlers & API integration
     assert "/api/overlay-options" in js
@@ -342,6 +342,35 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert ".draggable-overlay-node" in css
     assert "@keyframes lokOverlaySlideUp" in css
     assert "@keyframes lokOverlayPulse" in css
+
+    for content in (html, js, css):
+        assert "\u0669" not in content
+
+
+def test_top_right_user_guide_button_and_first_visit_highlight_contract():
+    html = (REPO_ROOT / "web" / "static" / "index.html").read_text(encoding="utf-8")
+    js = (REPO_ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    css = (REPO_ROOT / "web" / "static" / "style.css").read_text(encoding="utf-8")
+
+    # Top-right header guide button & login guide button; modal hidden on load (no forced auto-open)
+    assert 'id="btnOpenUserGuide"' in html
+    assert 'id="btnLoginUserGuide"' in html
+    assert 'id="userGuideHighlightTip"' in html
+    assert 'id="userGuideModal"' in html
+    assert 'id="userGuideModal" class="lok-settings-overlay user-guide-modal" style="display: none;"' in html
+    assert html.index('class="header-brand-group"') < html.index('id="btnOpenUserGuide"') < html.index('class="lok-header-logo"')
+
+    # First-visit highlight without auto-opening modal
+    assert 'lok_user_guide_seen' in js
+    assert 'setupUserGuide' in js
+    assert 'is-first-visit-highlight' in js
+    assert 'openUserGuideModal' in js
+    assert 'clearUserGuideHighlight' in js
+
+    # Highlight & modal styling
+    assert '@keyframes lokGuidePulse' in css
+    assert '.btn-user-guide.is-first-visit-highlight' in css
+    assert '.user-guide-modal' in css
 
     for content in (html, js, css):
         assert "\u0669" not in content

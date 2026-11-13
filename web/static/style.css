@@ -2714,3 +2714,229 @@ body {
   align-items: center;
   gap: 10px;
 }
+
+
+/* ==========================================================================
+   Top-Right User Guide Button, First-Visit Highlight & Modal Styles
+   ========================================================================== */
+.login-guide-corner {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  z-index: 60;
+}
+
+.user-guide-btn-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-user-guide {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.guide-new-dot {
+  display: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffd166;
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.95);
+}
+
+@keyframes lokGuidePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.72), 0 0 14px rgba(255, 209, 102, 0.35);
+    border-color: #ffd166;
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(255, 209, 102, 0), 0 0 22px rgba(255, 209, 102, 0.55);
+    border-color: #ffe599;
+  }
+}
+
+.btn-user-guide.is-first-visit-highlight {
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.18), rgba(255, 255, 255, 0.08));
+  color: #fff6d6;
+  border-color: #ffd166;
+  animation: lokGuidePulse 1.9s ease-in-out infinite;
+}
+
+.btn-user-guide.is-first-visit-highlight .guide-new-dot {
+  display: inline-block;
+}
+
+.user-guide-highlight-tip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 75;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--lok-radius-md);
+  background-color: #18181f;
+  border: 1px solid #ffd166;
+  color: #fff6d6;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
+}
+
+.user-guide-highlight-tip::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 22px;
+  width: 10px;
+  height: 10px;
+  background-color: #18181f;
+  border-top: 1px solid #ffd166;
+  border-right: 1px solid #ffd166;
+  transform: rotate(-45deg);
+}
+
+.btn-dismiss-guide-tip {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff6d6;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-dismiss-guide-tip:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 640px) {
+  .btn-user-guide .guide-label {
+    font-size: 0.78rem;
+  }
+  .user-guide-highlight-tip {
+    max-width: 240px;
+    white-space: normal;
+  }
+}
+
+.user-guide-modal {
+  z-index: 125;
+}
+
+.user-guide-dialog {
+  max-width: 860px;
+  margin: 18px auto 36px;
+}
+
+.user-guide-header {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+}
+
+.user-guide-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.guide-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-md);
+}
+
+.guide-step-badge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--lok-white);
+  color: var(--lok-black);
+  font-family: var(--lok-font-latin);
+  font-weight: 900;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-step-body {
+  min-width: 0;
+}
+
+.guide-step-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--lok-white);
+  margin-bottom: 6px;
+}
+
+.guide-step-desc {
+  font-size: 0.81rem;
+  line-height: 1.6;
+  color: var(--lok-text-secondary);
+  margin: 0;
+}
+
+.guide-sub-list {
+  margin: 0;
+  padding-right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--lok-text-secondary);
+}
+
+.guide-pro-tips-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--lok-radius-md);
+  background-color: rgba(255, 209, 102, 0.07);
+  border: 1px solid rgba(255, 209, 102, 0.28);
+}
+
+.guide-tips-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffe599;
+  margin-bottom: 6px;
+}
+
+.guide-tips-list {
+  margin: 0;
+  padding-right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--lok-text-secondary);
+}
+
+.user-guide-footer {
+  margin-top: 18px;
+}
+
+.guide-footer-note {
+  font-size: 0.78rem;
+  color: var(--lok-text-muted);
+}

@@ -360,6 +360,15 @@
     overlaySizePills: document.getElementById("overlaySizePills"),
     overlayColorSwatches: document.getElementById("overlayColorSwatches"),
 
+    // Interactive User Guide Modal (Top-Right Opt-In + First-Open Highlight)
+    btnOpenUserGuide: document.getElementById("btnOpenUserGuide"),
+    btnLoginUserGuide: document.getElementById("btnLoginUserGuide"),
+    userGuideModal: document.getElementById("userGuideModal"),
+    btnCloseUserGuideModal: document.getElementById("btnCloseUserGuideModal"),
+    btnAcknowledgeUserGuide: document.getElementById("btnAcknowledgeUserGuide"),
+    userGuideHighlightTip: document.getElementById("userGuideHighlightTip"),
+    btnDismissGuideTip: document.getElementById("btnDismissGuideTip"),
+
     // CapCut-Style Animated Caption Studio
     captionTemplatesGrid: document.getElementById("captionTemplatesGrid"),
     capcutActiveBadge: document.getElementById("capcutActiveBadge"),
@@ -1813,6 +1822,80 @@
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 5C. Interactive User Guide (Top-Right Button + First-Visit Highlight Only)
+  // ---------------------------------------------------------------------------
+  const USER_GUIDE_SEEN_KEY = "lok_user_guide_seen";
+
+  function clearUserGuideHighlight() {
+    try {
+      localStorage.setItem(USER_GUIDE_SEEN_KEY, "1");
+    } catch (e) {}
+    if (dom.btnOpenUserGuide) dom.btnOpenUserGuide.classList.remove("is-first-visit-highlight");
+    if (dom.btnLoginUserGuide) dom.btnLoginUserGuide.classList.remove("is-first-visit-highlight");
+    if (dom.userGuideHighlightTip) dom.userGuideHighlightTip.style.display = "none";
+  }
+
+  function openUserGuideModal() {
+    clearUserGuideHighlight();
+    if (!dom.userGuideModal) return;
+    dom.userGuideModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeUserGuideModal() {
+    if (!dom.userGuideModal) return;
+    dom.userGuideModal.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  function setupUserGuide() {
+    let seen = false;
+    try {
+      seen = localStorage.getItem(USER_GUIDE_SEEN_KEY) === "1";
+    } catch (e) {
+      seen = false;
+    }
+
+    // Never auto-open the modal on first visit — only highlight the top-right button
+    if (!seen) {
+      if (dom.btnOpenUserGuide) dom.btnOpenUserGuide.classList.add("is-first-visit-highlight");
+      if (dom.btnLoginUserGuide) dom.btnLoginUserGuide.classList.add("is-first-visit-highlight");
+      if (dom.userGuideHighlightTip) dom.userGuideHighlightTip.style.display = "flex";
+    }
+
+    if (dom.btnOpenUserGuide) {
+      dom.btnOpenUserGuide.addEventListener("click", openUserGuideModal);
+    }
+    if (dom.btnLoginUserGuide) {
+      dom.btnLoginUserGuide.addEventListener("click", openUserGuideModal);
+    }
+    if (dom.btnDismissGuideTip) {
+      dom.btnDismissGuideTip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        clearUserGuideHighlight();
+      });
+    }
+    if (dom.btnCloseUserGuideModal) {
+      dom.btnCloseUserGuideModal.addEventListener("click", closeUserGuideModal);
+    }
+    if (dom.btnAcknowledgeUserGuide) {
+      dom.btnAcknowledgeUserGuide.addEventListener("click", closeUserGuideModal);
+    }
+    if (dom.userGuideModal) {
+      dom.userGuideModal.addEventListener("click", (e) => {
+        if (e.target === dom.userGuideModal) {
+          closeUserGuideModal();
+        }
+      });
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && dom.userGuideModal && dom.userGuideModal.style.display !== "none") {
+        closeUserGuideModal();
+      }
+    });
+  }
+
   function setupOptInToggles() {
     loadOptInSettings();
 
@@ -3093,6 +3176,7 @@
     setupVideoUpload();
     setupPromptTextarea();
     setupOptInToggles();
+    setupUserGuide();
     setupScreenOverlayDesigner();
     loadOverlayCatalog();
     setupMusicTrackPicker();
