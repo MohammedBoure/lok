@@ -21,8 +21,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-13T11:20:30.732Z",
-    "gitCommitHash": "949070ba65f9c0b5774947c1a390f1a6e2834cd1"
+    "analyzedAt": "2026-11-13T11:57:10.063Z",
+    "gitCommitHash": "ea4cb08a434871d8300b891605ba9d5d01b9794e"
   },
   "nodes": [
     {
@@ -10159,30 +10159,95 @@
       "complexity": "simple"
     },
     {
-      "id": "file:web/static/index.html",
+      "id": "file:tts/gemini_speech/__init__.py",
       "type": "file",
-      "name": "index.html",
-      "filePath": "web/static/index.html",
-      "summary": "Main Lok AI Studio RTL Arabic single-page HTML interface for upload, prompt directives, opt-in toggles, timeline editor, and preview.",
+      "name": "__init__.py",
+      "filePath": "tts/gemini_speech/__init__.py",
+      "summary": "Google Gemini Speech Client Library for production Text-to-Speech.",
       "tags": [
-        "frontend",
-        "html",
-        "ui",
-        "rtl-arabic"
+        "tts",
+        "gemini-speech",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tts/gemini_speech/client.py",
+      "type": "file",
+      "name": "client.py",
+      "filePath": "tts/gemini_speech/client.py",
+      "summary": "Gemini Speech Client: Production-ready modular client for Google Gemini Text-to-Speech.",
+      "tags": [
+        "tts",
+        "gemini-speech",
+        "python",
+        "tested"
       ],
       "complexity": "complex"
     },
     {
-      "id": "file:web/static/style.css",
-      "type": "file",
-      "name": "style.css",
-      "filePath": "web/static/style.css",
-      "summary": "High-contrast black-and-white RTL studio stylesheet with timeline cards, opt-in pills, CapCut template grid, and mobile responsiveness.",
+      "id": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "function",
+      "name": "strip_tts_vocal_tags",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        47,
+        55
+      ],
+      "summary": "Remove inline TTS vocal cues (<breath>, <short pause>, etc.) for captions and legacy models.",
       "tags": [
-        "frontend",
-        "css",
-        "styling",
-        "responsive"
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "function",
+      "name": "_pcm_to_wav",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        68,
+        97
+      ],
+      "summary": "Convert raw PCM audio bytes to standard WAV format if missing header.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "class",
+      "name": "_HttpResponse",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        60,
+        65
+      ],
+      "summary": "Class _HttpResponse in client.py with 1 method(s).",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "class",
+      "name": "GeminiSpeechClient",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        100,
+        504
+      ],
+      "summary": "High-level client for Google Gemini speech synthesis and model discovery. Supports multi-key rotation, automatic quota failover, rich acoustic prompts, preset voice profiles, and flexible output destinations.",
+      "tags": [
+        "class",
+        "python"
       ],
       "complexity": "complex"
     },
@@ -10610,15 +10675,49 @@
       "complexity": "simple"
     },
     {
+      "id": "function:web/pipeline_bridge.py:_soften_theatrical_punctuation",
+      "type": "function",
+      "name": "_soften_theatrical_punctuation",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1212,
+        1219
+      ],
+      "summary": "Dampen excessive exclamation/ellipsis marks so Gemini TTS does not over-act.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
+      "type": "function",
+      "name": "_pick_semantic_scene_title",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1222,
+        1233
+      ],
+      "summary": "Return the first non-generic Arabic scene/room name, stripping bracketed timestamps.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
       "id": "function:web/pipeline_bridge.py:format_natural_speech_text",
       "type": "function",
       "name": "format_natural_speech_text",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1216,
-        1260
+        1236,
+        1271
       ],
-      "summary": "Enrich any plain prompt/script with subtle Gemini 3.8 vocal cues for natural human cadence.",
+      "summary": "Keep speech script clean, calm, and naturally paced with subtle <short pause> cues when helpful.",
       "tags": [
         "function",
         "python",
@@ -10632,10 +10731,10 @@
       "name": "build_scene_delivery_style",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1263,
-        1304
+        1274,
+        1315
       ],
-      "summary": "Build per-scene vocal style metadata with hook/tour/closing arc and scene-budget pacing.",
+      "summary": "Build grounded, anti-theatrical vocal style metadata synchronized to each visual cut.",
       "tags": [
         "function",
         "python",
@@ -10649,8 +10748,8 @@
       "name": "synthesize_narration",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1307,
-        1413
+        1318,
+        1424
       ],
       "summary": "Synthesize narration audio using GeminiSpeechClient via official Google Gemini API, or gracefully fall back to local synthetic audio engine if API is unreachable. Supports emotional tone steering, acoustic style...",
       "tags": [
@@ -10666,8 +10765,8 @@
       "name": "get_media_duration",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1416,
-        1431
+        1427,
+        1442
       ],
       "summary": "Probe duration of an audio or video file using ffprobe.",
       "tags": [
@@ -10683,8 +10782,8 @@
       "name": "_trim_wav_silence",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1434,
-        1491
+        1445,
+        1502
       ],
       "summary": "Strip leading and trailing dead silence from a PCM WAV file in pure Python, preserving brief ``pad_sec`` margins so consonants never clip. Returns updated WAV duration in seconds.",
       "tags": [
@@ -10700,8 +10799,8 @@
       "name": "_build_atempo_chain",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1494,
-        1502
+        1505,
+        1513
       ],
       "summary": "Build a valid FFmpeg pitch-preserving ``atempo`` filter chain for any speed >= 0.5.",
       "tags": [
@@ -10717,8 +10816,8 @@
       "name": "_fit_audio_tempo",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1505,
-        1554
+        1516,
+        1565
       ],
       "summary": "Adjust WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch): compresses when audio exceeds ``max_duration``, and gently relaxes down to ``min_tempo`` when ``min_duration > 0`` and audio finishes...",
       "tags": [
@@ -10734,8 +10833,8 @@
       "name": "synthesize_scene_aligned_narration",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1557,
-        1718
+        1568,
+        1741
       ],
       "summary": "Synthesize each visual scene's spoken sentence separately (in parallel) and place it onto its exact visual window ``[start_sec, end_sec]``, fitting per-scene speed cleanly so cumulative drift cannot push later...",
       "tags": [
@@ -10751,8 +10850,8 @@
       "name": "_compute_timeline_fit",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1721,
-        1761
+        1744,
+        1784
       ],
       "summary": "Trim silence, fit overflowing audio with pitch-safe tempo, and cap last-frame freeze.",
       "tags": [
@@ -10768,8 +10867,8 @@
       "name": "_render_mixed_cut",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1764,
-        1891
+        1787,
+        1914
       ],
       "summary": "Mux visual track with narration WAV and optional ducked music via FFmpeg.",
       "tags": [
@@ -10785,8 +10884,8 @@
       "name": "_apply_subtitles_and_annotations",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        1894,
-        2039
+        1917,
+        2062
       ],
       "summary": "Build synced subtitles + CapCut ASS caption track and burn overlays onto ``final_cut_path``.",
       "tags": [
@@ -10802,8 +10901,8 @@
       "name": "_mirror_outputs",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2042,
-        2066
+        2065,
+        2089
       ],
       "summary": "Copy finalized video cut and WAV narration into shared outputs and atomic legacy target.",
       "tags": [
@@ -10819,8 +10918,8 @@
       "name": "_pick_closest_thumb",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2069,
-        2084
+        2092,
+        2107
       ],
       "summary": "Return URL of the keyframe nearest to ``mid_sec``.",
       "tags": [
@@ -10836,8 +10935,8 @@
       "name": "_split_script_across_slots",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2087,
-        2105
+        2110,
+        2128
       ],
       "summary": "Split a continuous script cleanly into ``count`` balanced spoken phrases.",
       "tags": [
@@ -10853,8 +10952,8 @@
       "name": "_build_editable_cuts",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2108,
-        2174
+        2131,
+        2208
       ],
       "summary": "Build normalized per-cut cards pairing timestamps, titles, thumbnails, and editable spoken text.",
       "tags": [
@@ -10870,8 +10969,8 @@
       "name": "update_cuts_text_and_rerender",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2177,
-        2407
+        2211,
+        2451
       ],
       "summary": "Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's already-cut visual track without re-running Gemini Vision or re-cutting raw footage.",
       "tags": [
@@ -10887,8 +10986,8 @@
       "name": "_extract_formatted_keyframes",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2414,
-        2453
+        2458,
+        2497
       ],
       "summary": "Extract dense keyframes and format sandbox/legacy URL entries.",
       "tags": [
@@ -10904,8 +11003,8 @@
       "name": "process_mobile_video",
       "filePath": "web/pipeline_bridge.py",
       "lineRange": [
-        2456,
-        3498
+        2500,
+        3580
       ],
       "summary": "Process smartphone video recording into a polished marketing promo cut. Workflow: 1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9). 2. Extract visual keyframes into per-job isolated...",
       "tags": [
@@ -10914,6 +11013,138 @@
         "exported"
       ],
       "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_natural_tts_prosody.py",
+      "type": "file",
+      "name": "test_natural_tts_prosody.py",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "summary": "Tests for Gemini 3.8 TTS speechMetadata, automatic natural prosody, and clean caption stripping.",
+      "tags": [
+        "test",
+        "pytest",
+        "verification"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "function",
+      "name": "_write_pcm_wav",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        31,
+        37
+      ],
+      "summary": "Function _write_pcm_wav in test_natural_tts_prosody.py (7 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "function",
+      "name": "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        40,
+        93
+      ],
+      "summary": "Function test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models in test_natural_tts_prosody.py (54 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "function",
+      "name": "test_format_natural_speech_text_and_clean_subtitles",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        96,
+        119
+      ],
+      "summary": "Function test_format_natural_speech_text_and_clean_subtitles in test_natural_tts_prosody.py (24 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "function",
+      "name": "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        122,
+        153
+      ],
+      "summary": "Function test_build_scene_delivery_style_adapts_to_scene_arc_and_budget in test_natural_tts_prosody.py (32 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "function",
+      "name": "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        157,
+        208
+      ],
+      "summary": "Function test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions in test_natural_tts_prosody.py (52 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+      "type": "function",
+      "name": "test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        212,
+        246
+      ],
+      "summary": "Function test_room_cuts_zero_spillover_between_living_room_hallway_bathroom in test_natural_tts_prosody.py (35 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag",
+      "type": "function",
+      "name": "test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        249,
+        291
+      ],
+      "summary": "Function test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag in test_natural_tts_prosody.py (43 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
     },
     {
       "id": "file:web/vision_analyzer.py",
@@ -10999,13 +11230,64 @@
       "complexity": "moderate"
     },
     {
+      "id": "function:web/vision_analyzer.py:_is_generic_scene_title",
+      "type": "function",
+      "name": "_is_generic_scene_title",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        222,
+        226
+      ],
+      "summary": "Function _is_generic_scene_title in vision_analyzer.py (5 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_clean_ai_scene_title",
+      "type": "function",
+      "name": "_clean_ai_scene_title",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        229,
+        231
+      ],
+      "summary": "Function _clean_ai_scene_title in vision_analyzer.py (3 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
+      "type": "function",
+      "name": "enrich_shot_timeline_with_ai_scenes",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        234,
+        301
+      ],
+      "summary": "Replace generic 'Scene N [0.0s - 4.0s]' intervals with AI-detected semantic room/scene cuts and concise Arabic room names whenever Gemini Vision supplies scene_scripts or titled cuts. Leaves bare-keyframe timelines...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
       "id": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
       "type": "function",
       "name": "generate_synchronized_subtitles",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        216,
-        328
+        304,
+        416
       ],
       "summary": "Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching the natural spoken phrasing of the narration script across the audio duration, with character-weighted phonetic duration and...",
       "tags": [
@@ -11021,8 +11303,8 @@
       "name": "_extract_clean_user_topic",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        437,
-        469
+        519,
+        551
       ],
       "summary": "Strip meta-directive instructions (phone numbers, overlay commands, trimming commands, music commands) from user descriptions, returning the core subject/topic that the customer actually wants spoken about.",
       "tags": [
@@ -11038,8 +11320,8 @@
       "name": "_is_real_estate_context",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        472,
-        482
+        554,
+        564
       ],
       "summary": "Determine if the user's request or preset is explicitly about real estate.",
       "tags": [
@@ -11055,8 +11337,8 @@
       "name": "_generate_dynamic_darja_script",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        485,
-        552
+        567,
+        634
       ],
       "summary": "Generate an engaging, continuous Algerian Darja script scaled dynamically to cover the net speaking window without abrupt silence. Adapts to general customer topics (restaurants, cars, fashion, tech, services) as...",
       "tags": [
@@ -11072,8 +11354,8 @@
       "name": "_upload_video_to_gemini_files",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        555,
-        646
+        637,
+        728
       ],
       "summary": "Upload a lightweight analysis proxy video to the Gemini Files API via resumable upload and wait until its processing state becomes ACTIVE.",
       "tags": [
@@ -11089,8 +11371,8 @@
       "name": "_delete_gemini_file",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        649,
-        659
+        731,
+        741
       ],
       "summary": "Best-effort deletion of a temporary Gemini Files API resource.",
       "tags": [
@@ -11106,8 +11388,8 @@
       "name": "_normalize_recommended_cuts",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        662,
-        734
+        744,
+        816
       ],
       "summary": "Validate, clamp, deduplicate, and chronologically order Vision-recommended cuts. Falls back to top-scoring local ``quality_segments`` when raw cuts are absent for longer clips.",
       "tags": [
@@ -11123,8 +11405,8 @@
       "name": "_normalize_scene_scripts",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        737,
-        774
+        819,
+        856
       ],
       "summary": "Validate and chronologically normalize per-scene narration segments returned by Gemini Vision so each spoken line stays locked to its visual time window.",
       "tags": [
@@ -11140,8 +11422,8 @@
       "name": "_get_smart_fallback",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        777,
-        921
+        859,
+        1003
       ],
       "summary": "Provide intelligent fallback when Gemini Vision API is offline or unreachable.",
       "tags": [
@@ -11157,8 +11439,8 @@
       "name": "infer_video_script_and_mood",
       "filePath": "web/vision_analyzer.py",
       "lineRange": [
-        928,
-        1445
+        1010,
+        1538
       ],
       "summary": "Analyze extracted video keyframes (and/or a lightweight full-video analysis proxy via Gemini Files API) to infer: 1. An engaging Arabic real estate voiceover script matched to video length. 2. Timestamp-anchored...",
       "tags": [
@@ -11169,193 +11451,30 @@
       "complexity": "complex"
     },
     {
-      "id": "file:tests/test_natural_tts_prosody.py",
+      "id": "file:web/static/index.html",
       "type": "file",
-      "name": "test_natural_tts_prosody.py",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "summary": "Tests for Gemini 3.8 TTS speechMetadata, automatic natural prosody, and clean caption stripping.",
+      "name": "index.html",
+      "filePath": "web/static/index.html",
+      "summary": "Main Lok AI Studio RTL Arabic single-page HTML interface for upload, prompt directives, opt-in toggles, timeline editor, and preview.",
       "tags": [
-        "test",
-        "pytest",
-        "verification"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
-      "type": "function",
-      "name": "_write_pcm_wav",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "lineRange": [
-        25,
-        31
-      ],
-      "summary": "Function _write_pcm_wav in test_natural_tts_prosody.py (7 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
-      "type": "function",
-      "name": "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "lineRange": [
-        34,
-        87
-      ],
-      "summary": "Function test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models in test_natural_tts_prosody.py (54 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
-      "type": "function",
-      "name": "test_format_natural_speech_text_and_clean_subtitles",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "lineRange": [
-        90,
-        110
-      ],
-      "summary": "Function test_format_natural_speech_text_and_clean_subtitles in test_natural_tts_prosody.py (21 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
-      "type": "function",
-      "name": "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "lineRange": [
-        113,
-        138
-      ],
-      "summary": "Function test_build_scene_delivery_style_adapts_to_scene_arc_and_budget in test_natural_tts_prosody.py (26 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
-      "type": "function",
-      "name": "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
-      "filePath": "tests/test_natural_tts_prosody.py",
-      "lineRange": [
-        142,
-        184
-      ],
-      "summary": "Function test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions in test_natural_tts_prosody.py (43 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tts/gemini_speech/__init__.py",
-      "type": "file",
-      "name": "__init__.py",
-      "filePath": "tts/gemini_speech/__init__.py",
-      "summary": "Google Gemini Speech Client Library for production Text-to-Speech.",
-      "tags": [
-        "tts",
-        "gemini-speech",
-        "python"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tts/gemini_speech/client.py",
-      "type": "file",
-      "name": "client.py",
-      "filePath": "tts/gemini_speech/client.py",
-      "summary": "Gemini Speech Client: Production-ready modular client for Google Gemini Text-to-Speech.",
-      "tags": [
-        "tts",
-        "gemini-speech",
-        "python",
-        "tested"
+        "frontend",
+        "html",
+        "ui",
+        "rtl-arabic"
       ],
       "complexity": "complex"
     },
     {
-      "id": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
-      "type": "function",
-      "name": "strip_tts_vocal_tags",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        47,
-        55
-      ],
-      "summary": "Remove inline TTS vocal cues (<breath>, <short pause>, etc.) for captions and legacy models.",
+      "id": "file:web/static/style.css",
+      "type": "file",
+      "name": "style.css",
+      "filePath": "web/static/style.css",
+      "summary": "High-contrast black-and-white RTL studio stylesheet with timeline cards, opt-in pills, CapCut template grid, and mobile responsiveness.",
       "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "function",
-      "name": "_pcm_to_wav",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        68,
-        97
-      ],
-      "summary": "Convert raw PCM audio bytes to standard WAV format if missing header.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "class",
-      "name": "_HttpResponse",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        60,
-        65
-      ],
-      "summary": "Class _HttpResponse in client.py with 1 method(s).",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
-      "type": "class",
-      "name": "GeminiSpeechClient",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        100,
-        504
-      ],
-      "summary": "High-level client for Google Gemini speech synthesis and model discovery. Supports multi-key rotation, automatic quota failover, rich acoustic prompts, preset voice profiles, and flexible output destinations.",
-      "tags": [
-        "class",
-        "python"
+        "frontend",
+        "css",
+        "styling",
+        "responsive"
       ],
       "complexity": "complex"
     }
@@ -20049,18 +20168,812 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/app.js",
-      "type": "depends_on",
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "contains",
       "direction": "forward",
-      "weight": 0.6
+      "weight": 1
     },
     {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/style.css",
-      "type": "depends_on",
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "exports",
       "direction": "forward",
-      "weight": 0.6
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_admin_portal_and_security.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_admin_portal_and_security.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_ai_video_montage.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_ai_video_montage.py",
+      "target": "file:web/video_montage_mcp.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_analysis_proxy_and_quality.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_assemble_video.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_caption_templates.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_caption_templates.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_clean_studio_and_session_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_delivery.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_frame_extractor.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_frontend_assets.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_saas_platform.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_job_id_consistency_and_delivery.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_minimal_lok_and_admin_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_api.py",
+      "target": "file:web/run_server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_api.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_enhancements.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_verification.py",
+      "target": "file:web/run_server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_verification.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_production_principles.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_production_principles.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_descriptions_and_agent.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_saas_auth_and_quotas.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_saas_dashboard_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_session_auth_and_tts_samples.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_unified_auth_and_pipeline.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_unified_auth_and_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/video_annotator_mcp.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_editor_proxy_montage.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/__init__.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/create_story_voices.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/generate_speech_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/list_models_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/list_voices_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/config.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/voices.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_cli.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_key_manager.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_key_manager.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/prompt_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_annotator_mcp.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_montage_mcp.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_montage_mcp.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
     },
     {
       "source": "file:web/pipeline_bridge.py",
@@ -20394,6 +21307,34 @@
     {
       "source": "file:web/pipeline_bridge.py",
       "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_soften_theatrical_punctuation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_soften_theatrical_punctuation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
@@ -20777,6 +21718,13 @@
       "weight": 0.8
     },
     {
+      "source": "function:web/pipeline_bridge.py:format_natural_speech_text",
+      "target": "function:web/pipeline_bridge.py:_soften_theatrical_punctuation",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
       "source": "function:web/pipeline_bridge.py:synthesize_narration",
       "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
       "type": "calls",
@@ -20855,6 +21803,13 @@
     },
     {
       "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
       "target": "function:web/pipeline_bridge.py:synthesize_narration",
       "type": "calls",
       "direction": "forward",
@@ -20883,6 +21838,13 @@
     },
     {
       "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
       "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
       "type": "calls",
       "direction": "forward",
@@ -20905,6 +21867,13 @@
     {
       "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
       "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
       "type": "calls",
       "direction": "forward",
       "weight": 0.8
@@ -21023,6 +21992,13 @@
     },
     {
       "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_pick_semantic_scene_title",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
       "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
       "type": "calls",
       "direction": "forward",
@@ -21051,6 +22027,13 @@
     },
     {
       "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
       "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
       "type": "calls",
       "direction": "forward",
@@ -21071,6 +22054,132 @@
       "weight": 0.8
     },
     {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:config/production_principles_manager.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
       "source": "file:web/vision_analyzer.py",
       "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
       "type": "contains",
@@ -21122,6 +22231,48 @@
     {
       "source": "file:web/vision_analyzer.py",
       "target": "function:web/vision_analyzer.py:build_shot_timeline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_is_generic_scene_title",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_is_generic_scene_title",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_clean_ai_scene_title",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_clean_ai_scene_title",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
@@ -21263,6 +22414,20 @@
       "source": "file:web/vision_analyzer.py",
       "target": "function:web/vision_analyzer.py:infer_video_script_and_mood",
       "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
+      "target": "function:web/vision_analyzer.py:_is_generic_scene_title",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
+      "target": "function:web/vision_analyzer.py:_clean_ai_scene_title",
+      "type": "calls",
       "direction": "forward",
       "weight": 0.8
     },
@@ -21408,177 +22573,35 @@
     },
     {
       "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:enrich_shot_timeline_with_ai_scenes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
       "target": "function:web/vision_analyzer.py:_delete_gemini_file",
       "type": "calls",
       "direction": "forward",
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
-      "type": "contains",
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/app.js",
+      "type": "depends_on",
       "direction": "forward",
-      "weight": 1
+      "weight": 0.6
     },
     {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
-      "type": "exports",
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/style.css",
+      "type": "depends_on",
       "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tests/test_natural_tts_prosody.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:tests/test_natural_tts_prosody.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_natural_tts_prosody.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_admin_portal_and_security.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
+      "weight": 0.6
     },
     {
       "source": "file:tests/test_admin_portal_and_security.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_admin_portal_and_security.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21593,56 +22616,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_ai_video_montage.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_ai_video_montage.py",
-      "target": "file:web/video_montage_mcp.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_analysis_proxy_and_quality.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_assemble_video.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_audio_sync_and_dense_vision.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21665,48 +22640,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_caption_templates.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_caption_templates.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_clean_studio_and_session_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_delivery.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_dynamic_video_delivery.py",
       "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_pipeline.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21721,22 +22656,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -21745,32 +22664,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_five_user_issues_verification.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21793,30 +22688,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_frame_extractor.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_frontend_assets.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -21825,32 +22696,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21874,22 +22721,6 @@
     },
     {
       "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
       "target": "file:web/vision_analyzer.py",
       "type": "imports",
       "direction": "forward",
@@ -21906,22 +22737,6 @@
     },
     {
       "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
       "target": "file:web/vision_analyzer.py",
       "type": "imports",
       "direction": "forward",
@@ -21931,22 +22746,6 @@
     {
       "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21963,14 +22762,6 @@
     {
       "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -21993,24 +22784,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_gatekeeper_saas_platform.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22025,40 +22800,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_job_id_consistency_and_delivery.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_minimal_lok_and_admin_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_mobile_api.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_api.py",
-      "target": "file:web/run_server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_api.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22073,32 +22816,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_mobile_enhancements.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_mobile_verification.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_verification.py",
-      "target": "file:web/run_server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_verification.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22107,38 +22826,6 @@
     {
       "source": "file:tests/test_music_selection_and_enable_fix.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:web/vision_analyzer.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22161,30 +22848,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_pipeline.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_pipeline_latency_and_telemetry.py",
       "target": "file:web/vision_analyzer.py",
       "type": "imports",
@@ -22193,32 +22856,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_production_principles.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_production_principles.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_prompt_customizations_and_dynamism.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22242,14 +22881,6 @@
     },
     {
       "source": "file:tests/test_prompt_descriptions_and_agent.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_descriptions_and_agent.py",
       "target": "file:web/vision_analyzer.py",
       "type": "imports",
       "direction": "forward",
@@ -22259,22 +22890,6 @@
     {
       "source": "file:tests/test_prompt_intent_and_overlays.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22297,22 +22912,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_saas_auth_and_quotas.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_saas_dashboard_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_session_auth_and_tts_samples.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -22321,32 +22920,8 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_session_auth_and_tts_samples.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22355,54 +22930,6 @@
     {
       "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
       "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_unified_auth_and_pipeline.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_unified_auth_and_pipeline.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/video_annotator_mcp.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_editor_proxy_montage.py",
-      "target": "file:web/video_editor.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22418,31 +22945,7 @@
     },
     {
       "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:app.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22457,230 +22960,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tts/__init__.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/create_story_voices.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/generate_speech_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/list_models_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/list_voices_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/config.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/voices.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_cli.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_key_manager.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_key_manager.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:web/server.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -22689,31 +22968,39 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/server.py",
-      "target": "file:web/prompt_db.py",
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:config/production_principles_manager.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/server.py",
-      "target": "file:web/video_annotator.py",
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:tts/gemini_speech/client.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/video_annotator_mcp.py",
-      "target": "file:web/video_annotator.py",
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/pipeline_bridge.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/video_montage_mcp.py",
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
       "target": "file:frame_extractor.py",
       "type": "imports",
       "direction": "forward",
@@ -22721,8 +23008,16 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/video_montage_mcp.py",
-      "target": "file:web/video_editor.py",
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,

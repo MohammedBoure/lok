@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "949070ba65f9c0b5774947c1a390f1a6e2834cd1",
-  "generatedAt": "2026-11-13T11:20:32.915Z",
+  "gitCommitHash": "ea4cb08a434871d8300b891605ba9d5d01b9794e",
+  "generatedAt": "2026-11-13T11:57:12.292Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -371,7 +371,7 @@
     },
     "config/production_principles_manager.py": {
       "filePath": "config/production_principles_manager.py",
-      "contentHash": "a8491b5968c5e5c5ae9668b6e0c392d86c5f922cc26cbe360cc64350aaa48ec7",
+      "contentHash": "5a8818f676ea9a49e15feb2f4b72d4deb55b92119396564253cb55678c6c2d26",
       "functions": [
         {
           "name": "load_principles",
@@ -410,7 +410,7 @@
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 29
+          "lineCount": 33
         }
       ],
       "classes": [],
@@ -448,7 +448,7 @@
         "build_vision_prompt_principles",
         "build_tts_style_principles"
       ],
-      "totalLines": 195,
+      "totalLines": 199,
       "hasStructuralAnalysis": true
     },
     "frame_extractor.py": {
@@ -8998,7 +8998,7 @@
     },
     "web/pipeline_bridge.py": {
       "filePath": "web/pipeline_bridge.py",
-      "contentHash": "ceb41d895758ecea41937d6269e078b6826f31c2c20b02315e1239cd88215c0b",
+      "contentHash": "76e5ba1716050d02f725d6760f788213c1e8839a0b9c1602900f6d27d9b01815",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9220,6 +9220,24 @@
           "lineCount": 15
         },
         {
+          "name": "_soften_theatrical_punctuation",
+          "params": [
+            "text"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "_pick_semantic_scene_title",
+          "params": [
+            "fallback"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
           "name": "format_natural_speech_text",
           "params": [
             "text",
@@ -9228,7 +9246,7 @@
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 45
+          "lineCount": 36
         },
         {
           "name": "build_scene_delivery_style",
@@ -9311,7 +9329,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 162
+          "lineCount": 174
         },
         {
           "name": "_compute_timeline_fit",
@@ -9418,7 +9436,7 @@
           ],
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 67
+          "lineCount": 78
         },
         {
           "name": "update_cuts_text_and_rerender",
@@ -9433,7 +9451,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 231
+          "lineCount": 241
         },
         {
           "name": "_extract_formatted_keyframes",
@@ -9479,7 +9497,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 1043
+          "lineCount": 1081
         }
       ],
       "classes": [],
@@ -9619,6 +9637,8 @@
         "generate_synthetic_voice",
         "_split_tts_chunks",
         "_concatenate_wav_files",
+        "_soften_theatrical_punctuation",
+        "_pick_semantic_scene_title",
         "format_natural_speech_text",
         "build_scene_delivery_style",
         "synthesize_narration",
@@ -9638,7 +9658,7 @@
         "_extract_formatted_keyframes",
         "process_mobile_video"
       ],
-      "totalLines": 3499,
+      "totalLines": 3581,
       "hasStructuralAnalysis": true
     },
     "web/prompt_db.py": {
@@ -10544,17 +10564,17 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "5dc657d94256dc50d2fd5885ec8bf8580511277d42fdccf88148326e1273fa1d",
+      "contentHash": "6274d22e6b04ac7bf446685264404eb789d11cd28d33606255a27b5019540afa",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2596,
+      "totalLines": 2608,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "dbc097beabbd124fe7ab0bf4faa2f1b342e1507609042abd61cf5e4e519d3734",
+      "contentHash": "afa2bebcfce62016c3e792c5b33dff17e740b0e422b23bce396a96b09382d0f6",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -10564,12 +10584,12 @@
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "57b47e56fd5b8c1c97a5ba2a52eabe99698345ed3cc6d50b4e592b5c7de184d5",
+      "contentHash": "7c9bd5f1e645010fa72717fb21e65a1afe0dd503e8890e6edee8f8ca05b967e4",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2151,
+      "totalLines": 2172,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -11075,7 +11095,7 @@
     },
     "web/vision_analyzer.py": {
       "filePath": "web/vision_analyzer.py",
-      "contentHash": "6c49b474420d52b2aa89525dd20ffb422a3b37027d94a287d79039d14c85d6fe",
+      "contentHash": "132a7602bba204945c37956fef2dd6a8a6adb2e5f72369d444aa4ed18287ad62",
       "functions": [
         {
           "name": "_discover_vision_api_keys",
@@ -11112,6 +11132,37 @@
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
           "lineCount": 59
+        },
+        {
+          "name": "_is_generic_scene_title",
+          "params": [
+            "title"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_clean_ai_scene_title",
+          "params": [
+            "raw_title"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "enrich_shot_timeline_with_ai_scenes",
+          "params": [
+            "base_timeline",
+            "scene_scripts",
+            "recommended_cuts",
+            "keyframe_records",
+            "video_duration"
+          ],
+          "returnType": "List[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 68
         },
         {
           "name": "generate_synchronized_subtitles",
@@ -11241,7 +11292,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 518
+          "lineCount": 529
         }
       ],
       "classes": [],
@@ -11328,6 +11379,9 @@
         "_ensure_env_loaded",
         "extract_keyframe_records",
         "build_shot_timeline",
+        "_is_generic_scene_title",
+        "_clean_ai_scene_title",
+        "enrich_shot_timeline_with_ai_scenes",
         "generate_synchronized_subtitles",
         "_extract_clean_user_topic",
         "_is_real_estate_context",
@@ -11339,7 +11393,7 @@
         "_get_smart_fallback",
         "infer_video_script_and_mood"
       ],
-      "totalLines": 1446,
+      "totalLines": 1539,
       "hasStructuralAnalysis": true
     },
     "tests/test_music_selection_and_enable_fix.py": {
@@ -11470,7 +11524,7 @@
     },
     "tests/test_natural_tts_prosody.py": {
       "filePath": "tests/test_natural_tts_prosody.py",
-      "contentHash": "fd47a364c54c934a4eac99157bf4e9ff56c68c3661eeb1819cea293b34140eb2",
+      "contentHash": "66e2a44b1541b128a892a3606a7aaa62fa9801a59e462f2670292d8290e30ae8",
       "functions": [
         {
           "name": "_write_pcm_wav",
@@ -11495,13 +11549,13 @@
           "name": "test_format_natural_speech_text_and_clean_subtitles",
           "params": [],
           "exported": true,
-          "lineCount": 21
+          "lineCount": 24
         },
         {
           "name": "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
           "params": [],
           "exported": true,
-          "lineCount": 26
+          "lineCount": 32
         },
         {
           "name": "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
@@ -11509,6 +11563,21 @@
             "tmp_path",
             "monkeypatch"
           ],
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+          "params": [
+            "tmp_path",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag",
+          "params": [],
           "exported": true,
           "lineCount": 43
         }
@@ -11566,8 +11635,15 @@
           ]
         },
         {
+          "source": "config.production_principles_manager",
+          "specifiers": [
+            "build_tts_style_principles"
+          ]
+        },
+        {
           "source": "web.pipeline_bridge",
           "specifiers": [
+            "_build_editable_cuts",
             "build_scene_delivery_style",
             "format_natural_speech_text",
             "synthesize_narration",
@@ -11577,6 +11653,8 @@
         {
           "source": "web.vision_analyzer",
           "specifiers": [
+            "build_shot_timeline",
+            "enrich_shot_timeline_with_ai_scenes",
             "generate_synchronized_subtitles"
           ]
         }
@@ -11586,9 +11664,11 @@
         "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
         "test_format_natural_speech_text_and_clean_subtitles",
         "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
-        "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions"
+        "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+        "test_room_cuts_zero_spillover_between_living_room_hallway_bathroom",
+        "test_enrich_shot_timeline_and_editable_cuts_name_scenes_and_ui_renders_tag"
       ],
-      "totalLines": 186,
+      "totalLines": 293,
       "hasStructuralAnalysis": true
     }
   }
