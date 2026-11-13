@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261113_scene_sync">
+  <link rel="stylesheet" href="/static/style.css?v=20261113_screen_overlay">
 </head>
 <body>
 
@@ -193,6 +193,24 @@
                 <span class="optin-text">مخطط المشاهد</span>
                 <span class="optin-status" id="statusTimelineOptIn">معطل</span>
               </button>
+              <button type="button" class="btn-optin-toggle" id="btnToggleScreenNoteOptIn" data-feature="screen_note" aria-pressed="false" title="إضافة رقم هاتف أو ملاحظة ثابتة على الشاشة مع سحبها واختيار الخط والمؤثرات">
+                <span class="optin-icon">📱</span>
+                <span class="optin-text">ملاحظة / رقم ثابت</span>
+                <span class="optin-status" id="statusScreenNoteOptIn">إضافة</span>
+              </button>
+            </div>
+
+            <!-- Persistent Screen Note / Phone Summary Bar -->
+            <div class="screen-overlay-summary-bar" id="screenOverlaySummaryBar" style="display: none;">
+              <div class="overlay-summary-info">
+                <span class="overlay-summary-badge">📌 نص ثابت على الشاشة</span>
+                <span class="overlay-summary-text" id="overlaySummaryTextPreview">—</span>
+                <span class="overlay-summary-meta" id="overlaySummaryMetaPreview"></span>
+              </div>
+              <div class="overlay-summary-actions">
+                <button type="button" class="btn-bw-secondary btn-sm-pill" id="btnEditScreenOverlay">✏️ تعديل الموضع والخط</button>
+                <button type="button" class="btn-bw-secondary btn-sm-pill btn-danger-ghost" id="btnClearScreenOverlay">✖️ إزالة</button>
+              </div>
             </div>
 
             <!-- Music Track Picker (shown when Background Music Opt-In is active) -->
@@ -791,6 +809,121 @@
       </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- 3B. INTERACTIVE PERSISTENT SCREEN NOTE / PHONE DESIGNER MODAL         -->
+    <!-- ===================================================================== -->
+    <div id="screenOverlayModal" class="lok-settings-overlay screen-overlay-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="screenOverlayModalTitle">
+      <div class="settings-modal-dialog screen-overlay-dialog">
+        <div class="settings-modal-content screen-overlay-content">
+
+          <div class="settings-header overlay-modal-header">
+            <div>
+              <h2 class="settings-main-title" id="screenOverlayModalTitle">📱 تصميم الملاحظة / رقم الهاتف الثابت على الشاشة</h2>
+              <p class="overlay-modal-subtitle">اسحب النص مباشرة فوق الشاشة لتحديد موقعه بدقة، ثم اختر الخط والمؤثر المناسبين</p>
+            </div>
+            <button type="button" class="btn-bw-secondary" id="btnCloseScreenOverlayModal">✕ إغلاق</button>
+          </div>
+
+          <div class="overlay-designer-layout">
+
+            <!-- Left / Visual Interactive Phone Stage -->
+            <div class="overlay-stage-column">
+              <div class="overlay-stage-toolbar">
+                <span class="overlay-coords-badge" id="overlayCoordsBadge">X: 50% | Y: 92%</span>
+                <div class="overlay-quick-snaps">
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.10" title="أعلى المنتصف">أعلى</button>
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.50" title="وسط الشاشة">وسط</button>
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.92" title="أسفل المنتصف">أسفل</button>
+                </div>
+              </div>
+
+              <div class="overlay-screen-stage" id="overlayScreenStage">
+                <video id="overlayPreviewVideo" class="overlay-preview-video" playsinline muted loop autoplay style="display: none;"></video>
+                <div class="overlay-stage-placeholder" id="overlayStagePlaceholder">
+                  <span class="stage-placeholder-icon">🎬</span>
+                  <span class="stage-placeholder-text">ارفع فيديو لمعاينته هنا أو اسحب النص مباشرة على الشاشة</span>
+                </div>
+                <div class="overlay-stage-grid" aria-hidden="true"></div>
+                <div id="draggableOverlayNode" class="draggable-overlay-node overlay-fx-solid_dark overlay-size-medium" tabindex="0" role="application" aria-label="النص الثابت القابل للسحب">
+                  <span id="draggableOverlayNodeText">0550 12 34 56</span>
+                </div>
+              </div>
+              <p class="overlay-drag-hint">💡 اضغط واسحب النص بالماوس أو الإصبع لأي نقطة في الشاشة — تبقى هذه الإحداثيات ثابتة طوال الفيديو.</p>
+            </div>
+
+            <!-- Right / Controls: Text, Fonts, Effects, Size & Colors -->
+            <div class="overlay-controls-column">
+
+              <div class="overlay-control-group">
+                <label for="overlayTextInput" class="overlay-control-label">✍️ نص الملاحظة أو رقم الهاتف (يبقى ظاهراً طوال الفيديو)</label>
+                <input
+                  type="text"
+                  id="overlayTextInput"
+                  class="lok-input overlay-text-input"
+                  maxlength="90"
+                  placeholder="مثال: للتواصل: 0550123456 أو اسم الشركة / السعر"
+                  autocomplete="off"
+                >
+              </div>
+
+              <div class="overlay-control-group">
+                <div class="overlay-group-header">
+                  <label class="overlay-control-label">🔤 اختر الخط (Font)</label>
+                  <span class="overlay-selected-pill" id="overlaySelectedFontLabel">Tahoma Bold</span>
+                </div>
+                <div class="overlay-fonts-grid" id="overlayFontList">
+                  <!-- Populated dynamically from /api/overlay-options -->
+                </div>
+              </div>
+
+              <div class="overlay-control-group">
+                <div class="overlay-group-header">
+                  <label class="overlay-control-label">✨ اختر المؤثر (Effect)</label>
+                  <button type="button" class="btn-bw-secondary btn-xs-replay" id="btnReplayOverlayEffect" title="إعادة تشغيل معاينة الحركة">↻ معاينة الحركة</button>
+                </div>
+                <div class="overlay-effects-grid" id="overlayEffectList">
+                  <!-- Populated dynamically from /api/overlay-options -->
+                </div>
+              </div>
+
+              <div class="overlay-control-row-split">
+                <div class="overlay-control-group">
+                  <label class="overlay-control-label">📏 حجم الخط</label>
+                  <div class="overlay-size-pills" id="overlaySizePills">
+                    <button type="button" class="btn-overlay-size" data-size="small">صغير</button>
+                    <button type="button" class="btn-overlay-size active" data-size="medium">متوسط</button>
+                    <button type="button" class="btn-overlay-size" data-size="large">كبير</button>
+                  </div>
+                </div>
+
+                <div class="overlay-control-group">
+                  <label class="overlay-control-label">🎨 لون النص</label>
+                  <div class="overlay-color-swatches" id="overlayColorSwatches">
+                    <button type="button" class="overlay-color-swatch active" data-color="default" title="تلقائي حسب المؤثر" style="background: linear-gradient(135deg, #ffffff 50%, #f5c542 50%);"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="white" title="أبيض" style="background: #ffffff;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="gold" title="ذهبي" style="background: #ffd166;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="cyan" title="سماوي" style="background: #4cc9f0;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="emerald" title="أخضر زمردي" style="background: #38d399;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="rose" title="وردي/أحمر" style="background: #ff6b8b;"></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="overlay-modal-footer">
+            <button type="button" class="btn-bw-secondary btn-danger-ghost" id="btnDisableScreenOverlay">🗑️ تعطيل وإزالة النص</button>
+            <div class="overlay-footer-right">
+              <button type="button" class="btn-bw-secondary" id="btnCancelScreenOverlayModal">إلغاء</button>
+              <button type="button" class="btn-bw-primary" id="btnSaveScreenOverlay">✅ حفظ وتطبيق على الفيديو</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- Feedback Toast -->
     <div class="lok-toast" id="appToast" role="alert" aria-live="polite"></div>
 
@@ -844,6 +977,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261113_scene_sync" defer></script>
+  <script src="/static/app.js?v=20261113_screen_overlay" defer></script>
 </body>
 </html>
