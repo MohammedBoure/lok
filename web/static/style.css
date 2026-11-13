@@ -1067,6 +1067,11 @@ body {
 
 .shot-time-col {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 96px;
 }
 
 .shot-timestamp {
@@ -1080,6 +1085,22 @@ body {
   padding: 3px 8px;
   border-radius: 4px;
   direction: ltr;
+}
+
+.shot-scene-name-tag {
+  display: inline-block;
+  max-width: 132px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--lok-white);
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--lok-border);
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .shot-thumb-col {

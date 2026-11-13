@@ -2185,6 +2185,14 @@
       return;
     }
 
+    const cleanSceneTitle = (rawTitle, idx) => {
+      const stripped = String(rawTitle || "")
+        .replace(/\s*\[[^\]]*\d+\.\d+s\s*-\s*\d+\.\d+s[^\]]*\]\s*$/i, "")
+        .trim()
+        .replace(/^[-:\s]+|[-:\s]+$/g, "");
+      return stripped || `المشهد ${idx + 1}`;
+    };
+
     let itemsToRender = [];
 
     if (hasEditableCuts) {
@@ -2193,7 +2201,7 @@
         start_sec: Number(item.start_sec ?? 0),
         end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
-        title: item.title || `اللقطة ${idx + 1}`,
+        title: cleanSceneTitle(item.title || item.room_or_subject, idx),
         description: item.text || "",
         thumb: item.thumb || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2203,7 +2211,7 @@
         start_sec: Number(item.start_sec ?? item.timestamp ?? (idx * 3)),
         end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? item.timestamp ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
-        title: item.title || item.room || item.label || `المشهد ${idx + 1}`,
+        title: cleanSceneTitle(item.title || item.room_or_subject || item.room || item.label, idx),
         description: item.narration_line || item.description || item.text || item.details || "",
         thumb: item.thumbnail || item.url || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2213,7 +2221,7 @@
         start_sec: Number(cap.start_sec ?? 0),
         end_sec: Number(cap.end_sec ?? 3),
         timeRange: formatTimestampRange(cap.start_sec, cap.end_sec),
-        title: `اللقطة ${idx + 1}`,
+        title: cleanSceneTitle(cap.title || cap.room_or_subject, idx),
         description: cap.text || cap.caption || "",
         thumb: (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2223,8 +2231,8 @@
         start_sec: Number(kf.timestamp ?? 0),
         end_sec: Number((rawKeyframes[idx + 1]?.timestamp) || ((kf.timestamp || 0) + 3.0)),
         timeRange: formatTimestampRange(kf.timestamp, (rawKeyframes[idx + 1]?.timestamp) || (kf.timestamp + 3.0)),
-        title: kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `لقطة ${idx + 1}`,
-        description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا العقار",
+        title: kf.title || (kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `المشهد ${idx + 1}`),
+        description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا المكان",
         thumb: kf.url || "",
       }));
     } else {
@@ -2265,7 +2273,11 @@
         const tsSpan = document.createElement("span");
         tsSpan.className = "shot-timestamp";
         tsSpan.textContent = item.timeRange;
+        const sceneTag = document.createElement("span");
+        sceneTag.className = "shot-scene-name-tag";
+        sceneTag.textContent = item.title;
         timeCol.appendChild(tsSpan);
+        timeCol.appendChild(sceneTag);
         el.appendChild(timeCol);
 
         if (item.thumb) {
