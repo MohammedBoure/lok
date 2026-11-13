@@ -21,8 +21,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-13T10:40:10.861Z",
-    "gitCommitHash": "436770783537b3a95723ecbd447bce8a884016ff"
+    "analyzedAt": "2026-11-13T11:20:30.732Z",
+    "gitCommitHash": "949070ba65f9c0b5774947c1a390f1a6e2834cd1"
   },
   "nodes": [
     {
@@ -2205,259 +2205,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:web/vision_analyzer.py",
-      "type": "file",
-      "name": "vision_analyzer.py",
-      "filePath": "web/vision_analyzer.py",
-      "summary": "Gemini Multimodal Vision analyzer extracting property visuals, Arabic dialogue scripts, mood themes, and voice tone guidance from keyframes.",
-      "tags": [
-        "ai-vision",
-        "gemini",
-        "script-generation",
-        "service",
-        "tested"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_discover_vision_api_keys",
-      "type": "function",
-      "name": "_discover_vision_api_keys",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        53,
-        70
-      ],
-      "summary": "Return deduplicated individual Gemini API keys from GEMINI_API_KEY / GEMINI_API_KEYS.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_ensure_env_loaded",
-      "type": "function",
-      "name": "_ensure_env_loaded",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        72,
-        93
-      ],
-      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:extract_keyframe_records",
-      "type": "function",
-      "name": "extract_keyframe_records",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        102,
-        151
-      ],
-      "summary": "Normalize keyframe inputs into structured records with precise timestamp_sec. Extracts timestamps from metadata dicts, embedded timestamp fields, or filenames.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:build_shot_timeline",
-      "type": "function",
-      "name": "build_shot_timeline",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        154,
-        212
-      ],
-      "summary": "Construct an explicit shot-by-shot timeline interval grounded to real scene cuts when available (or keyframe timestamps otherwise).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
-      "type": "function",
-      "name": "generate_synchronized_subtitles",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        215,
-        327
-      ],
-      "summary": "Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching the natural spoken phrasing of the narration script across the audio duration, with character-weighted phonetic duration and...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "function",
-      "name": "_extract_clean_user_topic",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        436,
-        468
-      ],
-      "summary": "Strip meta-directive instructions (phone numbers, overlay commands, trimming commands, music commands) from user descriptions, returning the core subject/topic that the customer actually wants spoken about.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "function",
-      "name": "_is_real_estate_context",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        471,
-        481
-      ],
-      "summary": "Determine if the user's request or preset is explicitly about real estate.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "type": "function",
-      "name": "_generate_dynamic_darja_script",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        484,
-        551
-      ],
-      "summary": "Generate an engaging, continuous Algerian Darja script scaled dynamically to cover the net speaking window without abrupt silence. Adapts to general customer topics (restaurants, cars, fashion, tech, services) as...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
-      "type": "function",
-      "name": "_upload_video_to_gemini_files",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        554,
-        645
-      ],
-      "summary": "Upload a lightweight analysis proxy video to the Gemini Files API via resumable upload and wait until its processing state becomes ACTIVE.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_delete_gemini_file",
-      "type": "function",
-      "name": "_delete_gemini_file",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        648,
-        658
-      ],
-      "summary": "Best-effort deletion of a temporary Gemini Files API resource.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
-      "type": "function",
-      "name": "_normalize_recommended_cuts",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        661,
-        733
-      ],
-      "summary": "Validate, clamp, deduplicate, and chronologically order Vision-recommended cuts. Falls back to top-scoring local ``quality_segments`` when raw cuts are absent for longer clips.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_normalize_scene_scripts",
-      "type": "function",
-      "name": "_normalize_scene_scripts",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        736,
-        773
-      ],
-      "summary": "Validate and chronologically normalize per-scene narration segments returned by Gemini Vision so each spoken line stays locked to its visual time window.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "type": "function",
-      "name": "_get_smart_fallback",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        776,
-        920
-      ],
-      "summary": "Provide intelligent fallback when Gemini Vision API is offline or unreachable.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "type": "function",
-      "name": "infer_video_script_and_mood",
-      "filePath": "web/vision_analyzer.py",
-      "lineRange": [
-        927,
-        1444
-      ],
-      "summary": "Analyze extracted video keyframes (and/or a lightweight full-video analysis proxy via Gemini Files API) to infer: 1. An engaging Arabic real estate voiceover script matched to video length. 2. Timestamp-anchored...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:app.py",
       "type": "file",
       "name": "app.py",
@@ -2855,82 +2602,6 @@
         "exported"
       ],
       "complexity": "simple"
-    },
-    {
-      "id": "file:tts/gemini_speech/__init__.py",
-      "type": "file",
-      "name": "__init__.py",
-      "filePath": "tts/gemini_speech/__init__.py",
-      "summary": "Google Gemini Speech Client Library for production Text-to-Speech.",
-      "tags": [
-        "tts",
-        "gemini-speech",
-        "python"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "file:tts/gemini_speech/client.py",
-      "type": "file",
-      "name": "client.py",
-      "filePath": "tts/gemini_speech/client.py",
-      "summary": "Gemini Speech Client: Production-ready modular client for Google Gemini Text-to-Speech.",
-      "tags": [
-        "tts",
-        "gemini-speech",
-        "python",
-        "tested"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "function",
-      "name": "_pcm_to_wav",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        52,
-        81
-      ],
-      "summary": "Convert raw PCM audio bytes to standard WAV format if missing header.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "class",
-      "name": "_HttpResponse",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        44,
-        49
-      ],
-      "summary": "Class _HttpResponse in client.py with 1 method(s).",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
-      "type": "class",
-      "name": "GeminiSpeechClient",
-      "filePath": "tts/gemini_speech/client.py",
-      "lineRange": [
-        84,
-        472
-      ],
-      "summary": "High-level client for Google Gemini speech synthesis and model discovery. Supports multi-key rotation, automatic quota failover, rich acoustic prompts, preset voice profiles, and flexible output destinations.",
-      "tags": [
-        "class",
-        "python"
-      ],
-      "complexity": "complex"
     },
     {
       "id": "file:tts/gemini_speech/config.py",
@@ -9627,701 +9298,6 @@
       "complexity": "complex"
     },
     {
-      "id": "file:web/pipeline_bridge.py",
-      "type": "file",
-      "name": "pipeline_bridge.py",
-      "filePath": "web/pipeline_bridge.py",
-      "summary": "End-to-end async video production bridge coordinating vision analysis, continuous narration TTS, synced SRT/ASS captions, music mixing, and editable shot re-rendering.",
-      "tags": [
-        "orchestration",
-        "pipeline",
-        "tts",
-        "video-montage",
-        "tested"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_ensure_env_loaded",
-      "type": "function",
-      "name": "_ensure_env_loaded",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        34,
-        55
-      ],
-      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
-      "type": "function",
-      "name": "sanitize_and_validate_prompt",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        124,
-        149
-      ],
-      "summary": "Prompt Security Guardrail: Inspect prompt for dangerous injection patterns. Rejects directory traversal (../), shell command substitution ($(), ``), and system binary executions (rm, curl, wget, bash, sh, eval,...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:parse_prompt_instructions",
-      "type": "function",
-      "name": "parse_prompt_instructions",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        152,
-        199
-      ],
-      "summary": "Safely parse user prompt instructions (speech speed, tone, descriptions) without permitting shell execution.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:extract_algerian_phone",
-      "type": "function",
-      "name": "extract_algerian_phone",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        226,
-        241
-      ],
-      "summary": "Extract and standardize Algerian mobile phone number (10 digits starting with 05, 06, or 07).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:parse_time_directive",
-      "type": "function",
-      "name": "parse_time_directive",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        244,
-        253
-      ],
-      "summary": "Parse time string in seconds or MM:SS format to float seconds.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "type": "function",
-      "name": "parse_montage_directives",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        256,
-        359
-      ],
-      "summary": "Parse video montage, trimming, and shot selection directives from user prompt. Supports Arabic, Algerian Darja, English, and French natural language formats.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:extract_property_features",
-      "type": "function",
-      "name": "extract_property_features",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        362,
-        409
-      ],
-      "summary": "Extract property specifications and selling points from user prompt. Captures: - unit: e.g. F1, F2, F3, F4, F5, F6, duplex, studio - sea_view: True if mentions overlooking sea / coastal view - property_type: 'منزل',...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:parse_music_directives",
-      "type": "function",
-      "name": "parse_music_directives",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        412,
-        479
-      ],
-      "summary": "Parse soundtrack directives from user prompt: - Strict Opt-In Architecture: Music is OFF / muted by default. - mute_music: True by default; False ONLY if music is explicitly requested. - music_requested: True if user...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
-      "type": "function",
-      "name": "analyze_source_audio_for_speech",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        482,
-        587
-      ],
-      "summary": "Inspect source video audio stream for speech or spoken remarks by the videographer. If speech is detected, transcribes and summarizes remarks using Gemini API.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "function",
-      "name": "is_meta_prompt",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        590,
-        625
-      ],
-      "summary": "Determine whether input represents meta-directions (instructions, phone overlay, Darja narration request, trimming/montage commands, music preferences, font styling) rather than a literal voiceover script to be read...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:extract_directives",
-      "type": "function",
-      "name": "extract_directives",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        628,
-        729
-      ],
-      "summary": "Parse freeform creative user instructions, extracting meta-intent flags, phone number, persistent bottom overlay text, styling preferences, music controls, voice preferences, highlight badge opt-in, orientation, and...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "type": "function",
-      "name": "sanitize_script_against_meta_prompts",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        732,
-        763
-      ],
-      "summary": "Ensure the synthesized script does not leak user instructions, meta-prompts, or LLM labeling prefixes (e.g. 'السيناريو:', 'التعليق الصوتي:'). If the script itself is a meta-prompt, returns a clean marketing narration...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:get_presets_list",
-      "type": "function",
-      "name": "get_presets_list",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        766,
-        768
-      ],
-      "summary": "Return catalog of presets formatted for API responses.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_build_music_catalog",
-      "type": "function",
-      "name": "_build_music_catalog",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        806,
-        835
-      ],
-      "summary": "Combine curated built-in tracks with any extra audio files placed in assets/music/.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:resolve_music_track",
-      "type": "function",
-      "name": "resolve_music_track",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        838,
-        855
-      ],
-      "summary": "Resolve a track ID or filename against the built-in library and assets/music/ files.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:get_music_tracks_list",
-      "type": "function",
-      "name": "get_music_tracks_list",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        858,
-        871
-      ],
-      "summary": "Return catalog of available background music tracks (built-in + assets/music).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:get_voice_profiles_list",
-      "type": "function",
-      "name": "get_voice_profiles_list",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        936,
-        938
-      ],
-      "summary": "Return catalog of supported real estate voice profiles.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "function",
-      "name": "resolve_voice_profile",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        941,
-        971
-      ],
-      "summary": "Resolve user voice input to a tuple of (standard_voice_id, gemini_persona). Supports standard ar-XA-Standard-A/B/C/D identifiers, Gemini personas, or custom strings.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "type": "function",
-      "name": "get_or_create_voice_sample",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        998,
-        1017
-      ],
-      "summary": "Return path to an audio reference sample file for voice audition preview, generating it via TTS speech synthesizer if not yet cached or if force_regenerate is True.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
-      "type": "function",
-      "name": "generate_all_voice_reference_samples",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1020,
-        1033
-      ],
-      "summary": "Pre-generate realistic, high-fidelity promotional reference monologue audio clips for all 4 supported standard personas (ar-XA-Standard-A/B/C/D) via the TTS library.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
-      "type": "function",
-      "name": "compute_dense_keyframe_timestamps",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1036,
-        1052
-      ],
-      "summary": "Compute 8 to 16 uniformly distributed keyframe sampling timestamps across duration. Samples at representative percentages (e.g., 5%, 15%, 25%, ..., 95%) across video walkthrough.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:generate_synthetic_voice",
-      "type": "function",
-      "name": "generate_synthetic_voice",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1059,
-        1154
-      ],
-      "summary": "Generate harmonic formant-based voiceover audio when external TTS is unavailable. Produces spoken-word syllabic envelope with persona-specific fundamental frequency (F0), formant resonance, emotional cadence, and...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_split_tts_chunks",
-      "type": "function",
-      "name": "_split_tts_chunks",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1157,
-        1179
-      ],
-      "summary": "Split long narration scripts at natural sentence pauses for reliable TTS calls.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_concatenate_wav_files",
-      "type": "function",
-      "name": "_concatenate_wav_files",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1182,
-        1196
-      ],
-      "summary": "Concatenate PCM WAV narration chunks with brief natural pauses.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "function",
-      "name": "synthesize_narration",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1199,
-        1297
-      ],
-      "summary": "Synthesize narration audio using GeminiSpeechClient via official Google Gemini API, or gracefully fall back to local synthetic audio engine if API is unreachable. Supports emotional tone steering, acoustic style...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "function",
-      "name": "get_media_duration",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1300,
-        1315
-      ],
-      "summary": "Probe duration of an audio or video file using ffprobe.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_trim_wav_silence",
-      "type": "function",
-      "name": "_trim_wav_silence",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1318,
-        1375
-      ],
-      "summary": "Strip leading and trailing dead silence from a PCM WAV file in pure Python, preserving brief ``pad_sec`` margins so consonants never clip. Returns updated WAV duration in seconds.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_build_atempo_chain",
-      "type": "function",
-      "name": "_build_atempo_chain",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1378,
-        1386
-      ],
-      "summary": "Build a valid FFmpeg pitch-preserving ``atempo`` filter chain for any speed >= 0.5.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "type": "function",
-      "name": "_fit_audio_tempo",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1389,
-        1438
-      ],
-      "summary": "Adjust WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch): compresses when audio exceeds ``max_duration``, and gently relaxes down to ``min_tempo`` when ``min_duration > 0`` and audio finishes...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "type": "function",
-      "name": "synthesize_scene_aligned_narration",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1441,
-        1587
-      ],
-      "summary": "Synthesize each visual scene's spoken sentence separately (in parallel) and place it onto its exact visual window ``[start_sec, end_sec]``, fitting per-scene speed cleanly so cumulative drift cannot push later...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "type": "function",
-      "name": "_compute_timeline_fit",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1590,
-        1630
-      ],
-      "summary": "Trim silence, fit overflowing audio with pitch-safe tempo, and cap last-frame freeze.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_render_mixed_cut",
-      "type": "function",
-      "name": "_render_mixed_cut",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1633,
-        1760
-      ],
-      "summary": "Mux visual track with narration WAV and optional ducked music via FFmpeg.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
-      "type": "function",
-      "name": "_apply_subtitles_and_annotations",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1763,
-        1908
-      ],
-      "summary": "Build synced subtitles + CapCut ASS caption track and burn overlays onto ``final_cut_path``.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_mirror_outputs",
-      "type": "function",
-      "name": "_mirror_outputs",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1911,
-        1935
-      ],
-      "summary": "Copy finalized video cut and WAV narration into shared outputs and atomic legacy target.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_pick_closest_thumb",
-      "type": "function",
-      "name": "_pick_closest_thumb",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1938,
-        1953
-      ],
-      "summary": "Return URL of the keyframe nearest to ``mid_sec``.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_split_script_across_slots",
-      "type": "function",
-      "name": "_split_script_across_slots",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1956,
-        1974
-      ],
-      "summary": "Split a continuous script cleanly into ``count`` balanced spoken phrases.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "type": "function",
-      "name": "_build_editable_cuts",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        1977,
-        2043
-      ],
-      "summary": "Build normalized per-cut cards pairing timestamps, titles, thumbnails, and editable spoken text.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "type": "function",
-      "name": "update_cuts_text_and_rerender",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        2046,
-        2276
-      ],
-      "summary": "Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's already-cut visual track without re-running Gemini Vision or re-cutting raw footage.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
-      "type": "function",
-      "name": "_extract_formatted_keyframes",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        2283,
-        2322
-      ],
-      "summary": "Extract dense keyframes and format sandbox/legacy URL entries.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/pipeline_bridge.py:process_mobile_video",
-      "type": "function",
-      "name": "process_mobile_video",
-      "filePath": "web/pipeline_bridge.py",
-      "lineRange": [
-        2325,
-        3367
-      ],
-      "summary": "Process smartphone video recording into a polished marketing promo cut. Workflow: 1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9). 2. Extract visual keyframes into per-job isolated...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:web/server.py",
       "type": "file",
       "name": "server.py",
@@ -11209,6 +10185,1179 @@
         "responsive"
       ],
       "complexity": "complex"
+    },
+    {
+      "id": "file:web/pipeline_bridge.py",
+      "type": "file",
+      "name": "pipeline_bridge.py",
+      "filePath": "web/pipeline_bridge.py",
+      "summary": "End-to-end async video production bridge coordinating vision analysis, continuous narration TTS, synced SRT/ASS captions, music mixing, and editable shot re-rendering.",
+      "tags": [
+        "orchestration",
+        "pipeline",
+        "tts",
+        "video-montage",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_ensure_env_loaded",
+      "type": "function",
+      "name": "_ensure_env_loaded",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        34,
+        55
+      ],
+      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
+      "type": "function",
+      "name": "sanitize_and_validate_prompt",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        125,
+        150
+      ],
+      "summary": "Prompt Security Guardrail: Inspect prompt for dangerous injection patterns. Rejects directory traversal (../), shell command substitution ($(), ``), and system binary executions (rm, curl, wget, bash, sh, eval,...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:parse_prompt_instructions",
+      "type": "function",
+      "name": "parse_prompt_instructions",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        153,
+        200
+      ],
+      "summary": "Safely parse user prompt instructions (speech speed, tone, descriptions) without permitting shell execution.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:extract_algerian_phone",
+      "type": "function",
+      "name": "extract_algerian_phone",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        227,
+        242
+      ],
+      "summary": "Extract and standardize Algerian mobile phone number (10 digits starting with 05, 06, or 07).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:parse_time_directive",
+      "type": "function",
+      "name": "parse_time_directive",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        245,
+        254
+      ],
+      "summary": "Parse time string in seconds or MM:SS format to float seconds.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "type": "function",
+      "name": "parse_montage_directives",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        257,
+        360
+      ],
+      "summary": "Parse video montage, trimming, and shot selection directives from user prompt. Supports Arabic, Algerian Darja, English, and French natural language formats.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:extract_property_features",
+      "type": "function",
+      "name": "extract_property_features",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        363,
+        410
+      ],
+      "summary": "Extract property specifications and selling points from user prompt. Captures: - unit: e.g. F1, F2, F3, F4, F5, F6, duplex, studio - sea_view: True if mentions overlooking sea / coastal view - property_type: 'منزل',...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:parse_music_directives",
+      "type": "function",
+      "name": "parse_music_directives",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        413,
+        480
+      ],
+      "summary": "Parse soundtrack directives from user prompt: - Strict Opt-In Architecture: Music is OFF / muted by default. - mute_music: True by default; False ONLY if music is explicitly requested. - music_requested: True if user...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
+      "type": "function",
+      "name": "analyze_source_audio_for_speech",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        483,
+        588
+      ],
+      "summary": "Inspect source video audio stream for speech or spoken remarks by the videographer. If speech is detected, transcribes and summarizes remarks using Gemini API.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "function",
+      "name": "is_meta_prompt",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        591,
+        626
+      ],
+      "summary": "Determine whether input represents meta-directions (instructions, phone overlay, Darja narration request, trimming/montage commands, music preferences, font styling) rather than a literal voiceover script to be read...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:extract_directives",
+      "type": "function",
+      "name": "extract_directives",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        629,
+        730
+      ],
+      "summary": "Parse freeform creative user instructions, extracting meta-intent flags, phone number, persistent bottom overlay text, styling preferences, music controls, voice preferences, highlight badge opt-in, orientation, and...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "function",
+      "name": "sanitize_script_against_meta_prompts",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        733,
+        764
+      ],
+      "summary": "Ensure the synthesized script does not leak user instructions, meta-prompts, or LLM labeling prefixes (e.g. 'السيناريو:', 'التعليق الصوتي:'). If the script itself is a meta-prompt, returns a clean marketing narration...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:get_presets_list",
+      "type": "function",
+      "name": "get_presets_list",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        767,
+        769
+      ],
+      "summary": "Return catalog of presets formatted for API responses.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_build_music_catalog",
+      "type": "function",
+      "name": "_build_music_catalog",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        807,
+        836
+      ],
+      "summary": "Combine curated built-in tracks with any extra audio files placed in assets/music/.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:resolve_music_track",
+      "type": "function",
+      "name": "resolve_music_track",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        839,
+        856
+      ],
+      "summary": "Resolve a track ID or filename against the built-in library and assets/music/ files.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:get_music_tracks_list",
+      "type": "function",
+      "name": "get_music_tracks_list",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        859,
+        872
+      ],
+      "summary": "Return catalog of available background music tracks (built-in + assets/music).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:get_voice_profiles_list",
+      "type": "function",
+      "name": "get_voice_profiles_list",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        937,
+        939
+      ],
+      "summary": "Return catalog of supported real estate voice profiles.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "function",
+      "name": "resolve_voice_profile",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        942,
+        972
+      ],
+      "summary": "Resolve user voice input to a tuple of (standard_voice_id, gemini_persona). Supports standard ar-XA-Standard-A/B/C/D identifiers, Gemini personas, or custom strings.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "type": "function",
+      "name": "get_or_create_voice_sample",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        999,
+        1018
+      ],
+      "summary": "Return path to an audio reference sample file for voice audition preview, generating it via TTS speech synthesizer if not yet cached or if force_regenerate is True.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
+      "type": "function",
+      "name": "generate_all_voice_reference_samples",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1021,
+        1034
+      ],
+      "summary": "Pre-generate realistic, high-fidelity promotional reference monologue audio clips for all 4 supported standard personas (ar-XA-Standard-A/B/C/D) via the TTS library.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
+      "type": "function",
+      "name": "compute_dense_keyframe_timestamps",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1037,
+        1053
+      ],
+      "summary": "Compute 8 to 16 uniformly distributed keyframe sampling timestamps across duration. Samples at representative percentages (e.g., 5%, 15%, 25%, ..., 95%) across video walkthrough.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:generate_synthetic_voice",
+      "type": "function",
+      "name": "generate_synthetic_voice",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1060,
+        1155
+      ],
+      "summary": "Generate harmonic formant-based voiceover audio when external TTS is unavailable. Produces spoken-word syllabic envelope with persona-specific fundamental frequency (F0), formant resonance, emotional cadence, and...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_split_tts_chunks",
+      "type": "function",
+      "name": "_split_tts_chunks",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1158,
+        1180
+      ],
+      "summary": "Split long narration scripts at natural sentence pauses for reliable TTS calls.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_concatenate_wav_files",
+      "type": "function",
+      "name": "_concatenate_wav_files",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1183,
+        1197
+      ],
+      "summary": "Concatenate PCM WAV narration chunks with brief natural pauses.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:format_natural_speech_text",
+      "type": "function",
+      "name": "format_natural_speech_text",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1216,
+        1260
+      ],
+      "summary": "Enrich any plain prompt/script with subtle Gemini 3.8 vocal cues for natural human cadence.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:build_scene_delivery_style",
+      "type": "function",
+      "name": "build_scene_delivery_style",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1263,
+        1304
+      ],
+      "summary": "Build per-scene vocal style metadata with hook/tour/closing arc and scene-budget pacing.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "function",
+      "name": "synthesize_narration",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1307,
+        1413
+      ],
+      "summary": "Synthesize narration audio using GeminiSpeechClient via official Google Gemini API, or gracefully fall back to local synthetic audio engine if API is unreachable. Supports emotional tone steering, acoustic style...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "function",
+      "name": "get_media_duration",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1416,
+        1431
+      ],
+      "summary": "Probe duration of an audio or video file using ffprobe.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_trim_wav_silence",
+      "type": "function",
+      "name": "_trim_wav_silence",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1434,
+        1491
+      ],
+      "summary": "Strip leading and trailing dead silence from a PCM WAV file in pure Python, preserving brief ``pad_sec`` margins so consonants never clip. Returns updated WAV duration in seconds.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_build_atempo_chain",
+      "type": "function",
+      "name": "_build_atempo_chain",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1494,
+        1502
+      ],
+      "summary": "Build a valid FFmpeg pitch-preserving ``atempo`` filter chain for any speed >= 0.5.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "type": "function",
+      "name": "_fit_audio_tempo",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1505,
+        1554
+      ],
+      "summary": "Adjust WAV playback speed cleanly via FFmpeg ``atempo`` (without changing pitch): compresses when audio exceeds ``max_duration``, and gently relaxes down to ``min_tempo`` when ``min_duration > 0`` and audio finishes...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "type": "function",
+      "name": "synthesize_scene_aligned_narration",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1557,
+        1718
+      ],
+      "summary": "Synthesize each visual scene's spoken sentence separately (in parallel) and place it onto its exact visual window ``[start_sec, end_sec]``, fitting per-scene speed cleanly so cumulative drift cannot push later...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "type": "function",
+      "name": "_compute_timeline_fit",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1721,
+        1761
+      ],
+      "summary": "Trim silence, fit overflowing audio with pitch-safe tempo, and cap last-frame freeze.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_render_mixed_cut",
+      "type": "function",
+      "name": "_render_mixed_cut",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1764,
+        1891
+      ],
+      "summary": "Mux visual track with narration WAV and optional ducked music via FFmpeg.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
+      "type": "function",
+      "name": "_apply_subtitles_and_annotations",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        1894,
+        2039
+      ],
+      "summary": "Build synced subtitles + CapCut ASS caption track and burn overlays onto ``final_cut_path``.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_mirror_outputs",
+      "type": "function",
+      "name": "_mirror_outputs",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2042,
+        2066
+      ],
+      "summary": "Copy finalized video cut and WAV narration into shared outputs and atomic legacy target.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_pick_closest_thumb",
+      "type": "function",
+      "name": "_pick_closest_thumb",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2069,
+        2084
+      ],
+      "summary": "Return URL of the keyframe nearest to ``mid_sec``.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_split_script_across_slots",
+      "type": "function",
+      "name": "_split_script_across_slots",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2087,
+        2105
+      ],
+      "summary": "Split a continuous script cleanly into ``count`` balanced spoken phrases.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "type": "function",
+      "name": "_build_editable_cuts",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2108,
+        2174
+      ],
+      "summary": "Build normalized per-cut cards pairing timestamps, titles, thumbnails, and editable spoken text.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "type": "function",
+      "name": "update_cuts_text_and_rerender",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2177,
+        2407
+      ],
+      "summary": "Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's already-cut visual track without re-running Gemini Vision or re-cutting raw footage.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
+      "type": "function",
+      "name": "_extract_formatted_keyframes",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2414,
+        2453
+      ],
+      "summary": "Extract dense keyframes and format sandbox/legacy URL entries.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/pipeline_bridge.py:process_mobile_video",
+      "type": "function",
+      "name": "process_mobile_video",
+      "filePath": "web/pipeline_bridge.py",
+      "lineRange": [
+        2456,
+        3498
+      ],
+      "summary": "Process smartphone video recording into a polished marketing promo cut. Workflow: 1. Probe input video properties and resolve target aspect ratio (9:16 or 16:9). 2. Extract visual keyframes into per-job isolated...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/vision_analyzer.py",
+      "type": "file",
+      "name": "vision_analyzer.py",
+      "filePath": "web/vision_analyzer.py",
+      "summary": "Gemini Multimodal Vision analyzer extracting property visuals, Arabic dialogue scripts, mood themes, and voice tone guidance from keyframes.",
+      "tags": [
+        "ai-vision",
+        "gemini",
+        "script-generation",
+        "service",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_discover_vision_api_keys",
+      "type": "function",
+      "name": "_discover_vision_api_keys",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        54,
+        71
+      ],
+      "summary": "Return deduplicated individual Gemini API keys from GEMINI_API_KEY / GEMINI_API_KEYS.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_ensure_env_loaded",
+      "type": "function",
+      "name": "_ensure_env_loaded",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        73,
+        94
+      ],
+      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:extract_keyframe_records",
+      "type": "function",
+      "name": "extract_keyframe_records",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        103,
+        152
+      ],
+      "summary": "Normalize keyframe inputs into structured records with precise timestamp_sec. Extracts timestamps from metadata dicts, embedded timestamp fields, or filenames.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:build_shot_timeline",
+      "type": "function",
+      "name": "build_shot_timeline",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        155,
+        213
+      ],
+      "summary": "Construct an explicit shot-by-shot timeline interval grounded to real scene cuts when available (or keyframe timestamps otherwise).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
+      "type": "function",
+      "name": "generate_synchronized_subtitles",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        216,
+        328
+      ],
+      "summary": "Generate timestamp-synchronized subtitle segments (start_sec, end_sec, text) matching the natural spoken phrasing of the narration script across the audio duration, with character-weighted phonetic duration and...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "function",
+      "name": "_extract_clean_user_topic",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        437,
+        469
+      ],
+      "summary": "Strip meta-directive instructions (phone numbers, overlay commands, trimming commands, music commands) from user descriptions, returning the core subject/topic that the customer actually wants spoken about.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "function",
+      "name": "_is_real_estate_context",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        472,
+        482
+      ],
+      "summary": "Determine if the user's request or preset is explicitly about real estate.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "type": "function",
+      "name": "_generate_dynamic_darja_script",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        485,
+        552
+      ],
+      "summary": "Generate an engaging, continuous Algerian Darja script scaled dynamically to cover the net speaking window without abrupt silence. Adapts to general customer topics (restaurants, cars, fashion, tech, services) as...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
+      "type": "function",
+      "name": "_upload_video_to_gemini_files",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        555,
+        646
+      ],
+      "summary": "Upload a lightweight analysis proxy video to the Gemini Files API via resumable upload and wait until its processing state becomes ACTIVE.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_delete_gemini_file",
+      "type": "function",
+      "name": "_delete_gemini_file",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        649,
+        659
+      ],
+      "summary": "Best-effort deletion of a temporary Gemini Files API resource.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
+      "type": "function",
+      "name": "_normalize_recommended_cuts",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        662,
+        734
+      ],
+      "summary": "Validate, clamp, deduplicate, and chronologically order Vision-recommended cuts. Falls back to top-scoring local ``quality_segments`` when raw cuts are absent for longer clips.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_normalize_scene_scripts",
+      "type": "function",
+      "name": "_normalize_scene_scripts",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        737,
+        774
+      ],
+      "summary": "Validate and chronologically normalize per-scene narration segments returned by Gemini Vision so each spoken line stays locked to its visual time window.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "type": "function",
+      "name": "_get_smart_fallback",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        777,
+        921
+      ],
+      "summary": "Provide intelligent fallback when Gemini Vision API is offline or unreachable.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "type": "function",
+      "name": "infer_video_script_and_mood",
+      "filePath": "web/vision_analyzer.py",
+      "lineRange": [
+        928,
+        1445
+      ],
+      "summary": "Analyze extracted video keyframes (and/or a lightweight full-video analysis proxy via Gemini Files API) to infer: 1. An engaging Arabic real estate voiceover script matched to video length. 2. Timestamp-anchored...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_natural_tts_prosody.py",
+      "type": "file",
+      "name": "test_natural_tts_prosody.py",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "summary": "Tests for Gemini 3.8 TTS speechMetadata, automatic natural prosody, and clean caption stripping.",
+      "tags": [
+        "test",
+        "pytest",
+        "verification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "function",
+      "name": "_write_pcm_wav",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        25,
+        31
+      ],
+      "summary": "Function _write_pcm_wav in test_natural_tts_prosody.py (7 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "function",
+      "name": "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        34,
+        87
+      ],
+      "summary": "Function test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models in test_natural_tts_prosody.py (54 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "function",
+      "name": "test_format_natural_speech_text_and_clean_subtitles",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        90,
+        110
+      ],
+      "summary": "Function test_format_natural_speech_text_and_clean_subtitles in test_natural_tts_prosody.py (21 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "function",
+      "name": "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        113,
+        138
+      ],
+      "summary": "Function test_build_scene_delivery_style_adapts_to_scene_arc_and_budget in test_natural_tts_prosody.py (26 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "function",
+      "name": "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "lineRange": [
+        142,
+        184
+      ],
+      "summary": "Function test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions in test_natural_tts_prosody.py (43 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tts/gemini_speech/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tts/gemini_speech/__init__.py",
+      "summary": "Google Gemini Speech Client Library for production Text-to-Speech.",
+      "tags": [
+        "tts",
+        "gemini-speech",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tts/gemini_speech/client.py",
+      "type": "file",
+      "name": "client.py",
+      "filePath": "tts/gemini_speech/client.py",
+      "summary": "Gemini Speech Client: Production-ready modular client for Google Gemini Text-to-Speech.",
+      "tags": [
+        "tts",
+        "gemini-speech",
+        "python",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "function",
+      "name": "strip_tts_vocal_tags",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        47,
+        55
+      ],
+      "summary": "Remove inline TTS vocal cues (<breath>, <short pause>, etc.) for captions and legacy models.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "function",
+      "name": "_pcm_to_wav",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        68,
+        97
+      ],
+      "summary": "Convert raw PCM audio bytes to standard WAV format if missing header.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "class",
+      "name": "_HttpResponse",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        60,
+        65
+      ],
+      "summary": "Class _HttpResponse in client.py with 1 method(s).",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "class",
+      "name": "GeminiSpeechClient",
+      "filePath": "tts/gemini_speech/client.py",
+      "lineRange": [
+        100,
+        504
+      ],
+      "summary": "High-level client for Google Gemini speech synthesis and model discovery. Supports multi-key rotation, automatic quota failover, rich acoustic prompts, preset voice profiles, and flexible output destinations.",
+      "tags": [
+        "class",
+        "python"
+      ],
+      "complexity": "complex"
     }
   ],
   "edges": [
@@ -11381,13 +11530,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_dynamic_video_delivery.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_dynamic_video_pipeline.py",
       "target": "function:tests/test_dynamic_video_pipeline.py:test_no_forbidden_arabic_character_in_repository",
       "type": "contains",
@@ -11442,13 +11584,6 @@
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_dynamic_video_pipeline.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/test_five_user_issues_verification.py",
@@ -11535,13 +11670,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_five_user_issues_verification.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
       "target": "class:tests/test_gatekeeper_captions_and_shot_grounding.py:TestGatekeeperSynchronizedCaptionsFilters",
       "type": "contains",
@@ -11627,13 +11755,6 @@
     },
     {
       "source": "file:web/video_annotator.py",
-      "target": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
       "target": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
       "type": "tested_by",
       "direction": "forward",
@@ -11745,13 +11866,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
       "target": "class:tests/test_gatekeeper_prompt_intent_and_overlays.py:TestGatekeeperPromptIntentExtractionAndDisentanglement",
       "type": "contains",
@@ -11837,13 +11951,6 @@
     },
     {
       "source": "file:web/video_annotator.py",
-      "target": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
       "target": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
       "type": "tested_by",
       "direction": "forward",
@@ -12074,13 +12181,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
       "target": "class:tests/test_optin_sandboxing_and_creative_variety.py:TestStrictOptInArchitecture",
       "type": "contains",
@@ -12121,13 +12221,6 @@
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_optin_sandboxing_and_creative_variety.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/test_pipeline_latency_and_telemetry.py",
@@ -12184,13 +12277,6 @@
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_pipeline_latency_and_telemetry.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:tests/test_production_principles.py",
@@ -12403,13 +12489,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_prompt_customizations_and_dynamism.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_prompt_descriptions_and_agent.py",
       "target": "function:tests/test_prompt_descriptions_and_agent.py:temp_db",
       "type": "contains",
@@ -12564,13 +12643,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_prompt_descriptions_and_agent.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_prompt_intent_and_overlays.py",
       "target": "function:tests/test_prompt_intent_and_overlays.py:test_no_forbidden_arabic_character_in_repository",
       "type": "contains",
@@ -12648,13 +12720,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_prompt_intent_and_overlays.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
       "target": "function:tests/test_synchronized_captions_and_shot_grounding.py:test_no_forbidden_arabic_character_in_repository",
       "type": "contains",
@@ -12726,13 +12791,6 @@
     },
     {
       "source": "file:web/video_annotator.py",
-      "target": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
       "target": "file:tests/test_synchronized_captions_and_shot_grounding.py",
       "type": "tested_by",
       "direction": "forward",
@@ -12891,13 +12949,6 @@
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_vision_proxy_and_cuts.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:web/video_annotator.py",
@@ -13096,349 +13147,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:build_shot_timeline",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:build_shot_timeline",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
-      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:build_shot_timeline",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
-      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:app.py",
       "target": "function:app.py:_ensure_env_loaded",
       "type": "contains",
@@ -13656,20 +13364,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tests/test_vision_script_and_app.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_vision_script_and_app.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tts/create_story_voices.py",
       "target": "function:tts/create_story_voices.py:main",
       "type": "contains",
@@ -13721,48 +13415,6 @@
     {
       "source": "file:tts/examples/list_voices_demo.py",
       "target": "function:tts/examples/list_voices_demo.py:main",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
@@ -17625,13 +17277,6 @@
       "weight": 0.5
     },
     {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:tests/test_audio_sync_and_dense_vision.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
       "source": "file:tests/test_frame_extractor.py",
       "target": "function:tests/test_frame_extractor.py:test_get_video_metadata_success",
       "type": "contains",
@@ -17850,13 +17495,6 @@
     },
     {
       "source": "file:assemble_video.py",
-      "target": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
       "target": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
       "type": "tested_by",
       "direction": "forward",
@@ -19634,972 +19272,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_prompt_instructions",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_prompt_instructions",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_time_directive",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_time_directive",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_property_features",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_property_features",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_music_directives",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:parse_music_directives",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_directives",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:extract_directives",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_presets_list",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_presets_list",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:resolve_music_track",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:resolve_music_track",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_music_tracks_list",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_music_tracks_list",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_voice_profiles_list",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_voice_profiles_list",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:process_mobile_video",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "function:web/pipeline_bridge.py:process_mobile_video",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:parse_prompt_instructions",
-      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:parse_prompt_instructions",
-      "target": "function:web/pipeline_bridge.py:extract_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "target": "function:web/pipeline_bridge.py:parse_time_directive",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "target": "function:web/pipeline_bridge.py:parse_music_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "target": "function:web/pipeline_bridge.py:extract_property_features",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:extract_directives",
-      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:extract_directives",
-      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:extract_directives",
-      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:extract_directives",
-      "target": "function:web/pipeline_bridge.py:parse_music_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:extract_directives",
-      "target": "function:web/pipeline_bridge.py:extract_property_features",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:resolve_music_track",
-      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:get_music_tracks_list",
-      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
-      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:generate_synthetic_voice",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_narration",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_trim_wav_silence",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "target": "function:web/pipeline_bridge.py:get_media_duration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:resolve_music_track",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
-      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
-      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:extract_directives",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:resolve_music_track",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:synthesize_narration",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/pipeline_bridge.py:process_mobile_video",
-      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:web/server.py",
       "target": "function:web/server.py:_ensure_env_loaded",
       "type": "contains",
@@ -21286,6 +19958,1609 @@
       "weight": 0.7
     },
     {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_parse_music_directives_distinguishes_default_from_explicit_mute",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_parse_music_directives_distinguishes_default_from_explicit_mute",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_enable_music_flag_activates_music_even_without_prompt_keywords",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_enable_music_flag_activates_music_even_without_prompt_keywords",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_explicit_mute_in_prompt_still_overrides_enable_music",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_explicit_mute_in_prompt_still_overrides_enable_music",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_dynamic_assets_music_discovery_and_audio_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_dynamic_assets_music_discovery_and_audio_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_update_cuts_text_updates_music_selection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_update_cuts_text_updates_music_selection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_compact_ui_music_selector_and_collapsible_sections_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "function:tests/test_music_selection_and_enable_fix.py:test_compact_ui_music_selector_and_collapsible_sections_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:tests/test_music_selection_and_enable_fix.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/app.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/style.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_prompt_instructions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_prompt_instructions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_time_directive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_time_directive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_property_features",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_property_features",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_music_directives",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:parse_music_directives",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_directives",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:extract_directives",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_presets_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_presets_list",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:resolve_music_track",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:resolve_music_track",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_music_tracks_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_music_tracks_list",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_voice_profiles_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_voice_profiles_list",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:format_natural_speech_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:format_natural_speech_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:build_scene_delivery_style",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:build_scene_delivery_style",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:process_mobile_video",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "function:web/pipeline_bridge.py:process_mobile_video",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:parse_prompt_instructions",
+      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:parse_prompt_instructions",
+      "target": "function:web/pipeline_bridge.py:extract_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "target": "function:web/pipeline_bridge.py:parse_time_directive",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "target": "function:web/pipeline_bridge.py:parse_music_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "target": "function:web/pipeline_bridge.py:extract_property_features",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:extract_directives",
+      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:extract_directives",
+      "target": "function:web/pipeline_bridge.py:extract_algerian_phone",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:extract_directives",
+      "target": "function:web/pipeline_bridge.py:parse_montage_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:extract_directives",
+      "target": "function:web/pipeline_bridge.py:parse_music_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:extract_directives",
+      "target": "function:web/pipeline_bridge.py:extract_property_features",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:resolve_music_track",
+      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:get_music_tracks_list",
+      "target": "function:web/pipeline_bridge.py:_build_music_catalog",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:generate_all_voice_reference_samples",
+      "target": "function:web/pipeline_bridge.py:get_or_create_voice_sample",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:generate_synthetic_voice",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:_ensure_env_loaded",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:format_natural_speech_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:build_scene_delivery_style",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:_split_tts_chunks",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:_concatenate_wav_files",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:generate_synthetic_voice",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_narration",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_trim_wav_silence",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "target": "function:web/pipeline_bridge.py:_build_atempo_chain",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "target": "function:web/pipeline_bridge.py:get_media_duration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "target": "function:web/pipeline_bridge.py:_trim_wav_silence",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "target": "function:web/pipeline_bridge.py:_fit_audio_tempo",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "target": "function:web/pipeline_bridge.py:_pick_closest_thumb",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "target": "function:web/pipeline_bridge.py:_split_script_across_slots",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:resolve_music_track",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:update_cuts_text_and_rerender",
+      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
+      "target": "function:web/pipeline_bridge.py:compute_dense_keyframe_timestamps",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:sanitize_and_validate_prompt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:extract_directives",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:is_meta_prompt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_extract_formatted_keyframes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:analyze_source_audio_for_speech",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:sanitize_script_against_meta_prompts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:resolve_music_track",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:resolve_voice_profile",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:synthesize_scene_aligned_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:synthesize_narration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_compute_timeline_fit",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_render_mixed_cut",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_apply_subtitles_and_annotations",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_mirror_outputs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/pipeline_bridge.py:process_mobile_video",
+      "target": "function:web/pipeline_bridge.py:_build_editable_cuts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:build_shot_timeline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:build_shot_timeline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
+      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_ensure_env_loaded",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_discover_vision_api_keys",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:extract_keyframe_records",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:build_shot_timeline",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_get_smart_fallback",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_extract_clean_user_topic",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_is_real_estate_context",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_upload_video_to_gemini_files",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_generate_dynamic_darja_script",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:generate_synchronized_subtitles",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_normalize_recommended_cuts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_normalize_scene_scripts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/vision_analyzer.py:infer_video_script_and_mood",
+      "target": "function:web/vision_analyzer.py:_delete_gemini_file",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:_write_pcm_wav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_format_natural_speech_text_and_clean_subtitles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "function:tests/test_natural_tts_prosody.py:test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "file:tests/test_natural_tts_prosody.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:strip_tts_vocal_tags",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "function:tts/gemini_speech/client.py:_pcm_to_wav",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:_HttpResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "class:tts/gemini_speech/client.py:GeminiSpeechClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
       "source": "file:tests/test_admin_portal_and_security.py",
       "target": "file:web/auth_db.py",
       "type": "imports",
@@ -21830,6 +22105,46 @@
       "recoveredFromImportMap": true
     },
     {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
       "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -22327,6 +22642,14 @@
     },
     {
       "source": "file:web/pipeline_bridge.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
       "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
@@ -22416,134 +22739,6 @@
     {
       "source": "file:web/vision_analyzer.py",
       "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_parse_music_directives_distinguishes_default_from_explicit_mute",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_parse_music_directives_distinguishes_default_from_explicit_mute",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_enable_music_flag_activates_music_even_without_prompt_keywords",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_enable_music_flag_activates_music_even_without_prompt_keywords",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_explicit_mute_in_prompt_still_overrides_enable_music",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_explicit_mute_in_prompt_still_overrides_enable_music",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_dynamic_assets_music_discovery_and_audio_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_dynamic_assets_music_discovery_and_audio_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_update_cuts_text_updates_music_selection",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_update_cuts_text_updates_music_selection",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_compact_ui_music_selector_and_collapsible_sections_contract",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "function:tests/test_music_selection_and_enable_fix.py:test_compact_ui_music_selector_and_collapsible_sections_contract",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:tests/test_music_selection_and_enable_fix.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:tests/test_music_selection_and_enable_fix.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/app.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/style.css",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "file:web/server.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
@@ -22674,7 +22869,8 @@
         "file:tests/test_music_and_overlay_ui.py",
         "file:tests/test_optin_toggles_and_sandboxed_ux.py",
         "file:tests/test_polling_resilience_and_progress_ux.py",
-        "file:tests/test_music_selection_and_enable_fix.py"
+        "file:tests/test_music_selection_and_enable_fix.py",
+        "file:tests/test_natural_tts_prosody.py"
       ]
     },
     {

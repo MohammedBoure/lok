@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "436770783537b3a95723ecbd447bce8a884016ff",
-  "generatedAt": "2026-11-13T10:40:11.713Z",
+  "gitCommitHash": "949070ba65f9c0b5774947c1a390f1a6e2834cd1",
+  "generatedAt": "2026-11-13T11:20:32.915Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -7450,14 +7450,15 @@
     },
     "tts/gemini_speech/__init__.py": {
       "filePath": "tts/gemini_speech/__init__.py",
-      "contentHash": "3569150a048e2a28081b71fb0f74aab185ffa191aadf4ea7239faa4102c464bd",
+      "contentHash": "31ccf06119229a449e187777a43ac9aa569975c2a26f8f906c321927d23439e4",
       "functions": [],
       "classes": [],
       "imports": [
         {
           "source": ".client",
           "specifiers": [
-            "GeminiSpeechClient"
+            "GeminiSpeechClient",
+            "strip_tts_vocal_tags"
           ]
         },
         {
@@ -7502,8 +7503,17 @@
     },
     "tts/gemini_speech/client.py": {
       "filePath": "tts/gemini_speech/client.py",
-      "contentHash": "297d65b91edce044a7b23441ee0b25b5d47e758fe0ca0c8c16ddcf1828580493",
+      "contentHash": "9ea06c67cf512bf5b6935ae8908c189474f6b0de6dbbb48065169706a91feb5a",
       "functions": [
+        {
+          "name": "strip_tts_vocal_tags",
+          "params": [
+            "text"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 9
+        },
         {
           "name": "_pcm_to_wav",
           "params": [
@@ -7538,12 +7548,13 @@
             "_execute_with_failover",
             "list_speech_models",
             "list_available_voices",
+            "_build_speech_request_body",
             "generate_speech",
             "_extract_audio_payload"
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 389
+          "lineCount": 405
         }
       ],
       "imports": [
@@ -7670,11 +7681,12 @@
         }
       ],
       "exports": [
+        "strip_tts_vocal_tags",
         "_HttpResponse",
         "_pcm_to_wav",
         "GeminiSpeechClient"
       ],
-      "totalLines": 473,
+      "totalLines": 505,
       "hasStructuralAnalysis": true
     },
     "tts/gemini_speech/config.py": {
@@ -8986,7 +8998,7 @@
     },
     "web/pipeline_bridge.py": {
       "filePath": "web/pipeline_bridge.py",
-      "contentHash": "c2af38cd637aaae1710974303633bac04b01b2d05472840f84399e7bdf034e45",
+      "contentHash": "ceb41d895758ecea41937d6269e078b6826f31c2c20b02315e1239cd88215c0b",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9208,6 +9220,31 @@
           "lineCount": 15
         },
         {
+          "name": "format_natural_speech_text",
+          "params": [
+            "text",
+            "scene_index",
+            "total_scenes"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "build_scene_delivery_style",
+          "params": [
+            "base_style",
+            "emotional_tone",
+            "scene_index",
+            "total_scenes",
+            "slot_text",
+            "slot_budget_sec"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 42
+        },
+        {
           "name": "synthesize_narration",
           "params": [
             "script_text",
@@ -9218,7 +9255,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 99
+          "lineCount": 107
         },
         {
           "name": "get_media_duration",
@@ -9274,7 +9311,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 147
+          "lineCount": 162
         },
         {
           "name": "_compute_timeline_fit",
@@ -9544,6 +9581,12 @@
           ]
         },
         {
+          "source": "tts.gemini_speech.client",
+          "specifiers": [
+            "strip_tts_vocal_tags"
+          ]
+        },
+        {
           "source": "web.video_annotator",
           "specifiers": [
             "annotate_video",
@@ -9576,6 +9619,8 @@
         "generate_synthetic_voice",
         "_split_tts_chunks",
         "_concatenate_wav_files",
+        "format_natural_speech_text",
+        "build_scene_delivery_style",
         "synthesize_narration",
         "get_media_duration",
         "_trim_wav_silence",
@@ -9593,7 +9638,7 @@
         "_extract_formatted_keyframes",
         "process_mobile_video"
       ],
-      "totalLines": 3368,
+      "totalLines": 3499,
       "hasStructuralAnalysis": true
     },
     "web/prompt_db.py": {
@@ -11030,7 +11075,7 @@
     },
     "web/vision_analyzer.py": {
       "filePath": "web/vision_analyzer.py",
-      "contentHash": "77300df40f629002a1119a8d9d86a51477bb970f3d6ed11541f352bd2e766ed3",
+      "contentHash": "6c49b474420d52b2aa89525dd20ffb422a3b37027d94a287d79039d14c85d6fe",
       "functions": [
         {
           "name": "_discover_vision_api_keys",
@@ -11273,7 +11318,8 @@
             "is_meta_prompt",
             "extract_directives",
             "sanitize_script_against_meta_prompts",
-            "extract_property_features"
+            "extract_property_features",
+            "strip_tts_vocal_tags"
           ]
         }
       ],
@@ -11293,7 +11339,7 @@
         "_get_smart_fallback",
         "infer_video_script_and_mood"
       ],
-      "totalLines": 1445,
+      "totalLines": 1446,
       "hasStructuralAnalysis": true
     },
     "tests/test_music_selection_and_enable_fix.py": {
@@ -11420,6 +11466,129 @@
         "test_compact_ui_music_selector_and_collapsible_sections_contract"
       ],
       "totalLines": 275,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_natural_tts_prosody.py": {
+      "filePath": "tests/test_natural_tts_prosody.py",
+      "contentHash": "fd47a364c54c934a4eac99157bf4e9ff56c68c3661eeb1819cea293b34140eb2",
+      "functions": [
+        {
+          "name": "_write_pcm_wav",
+          "params": [
+            "path",
+            "dur_s",
+            "sr"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 54
+        },
+        {
+          "name": "test_format_natural_speech_text_and_clean_subtitles",
+          "params": [],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+          "params": [],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions",
+          "params": [
+            "tmp_path",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "wave",
+          "specifiers": [
+            "wave"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "unittest.mock",
+          "specifiers": [
+            "patch"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "tts.gemini_speech.client",
+          "specifiers": [
+            "DEFAULT_TTS_MODEL",
+            "GeminiSpeechClient",
+            "strip_tts_vocal_tags"
+          ]
+        },
+        {
+          "source": "web.pipeline_bridge",
+          "specifiers": [
+            "build_scene_delivery_style",
+            "format_natural_speech_text",
+            "synthesize_narration",
+            "synthesize_scene_aligned_narration"
+          ]
+        },
+        {
+          "source": "web.vision_analyzer",
+          "specifiers": [
+            "generate_synchronized_subtitles"
+          ]
+        }
+      ],
+      "exports": [
+        "_write_pcm_wav",
+        "test_gemini_38_uses_speech_metadata_and_no_deprecated_25_models",
+        "test_format_natural_speech_text_and_clean_subtitles",
+        "test_build_scene_delivery_style_adapts_to_scene_arc_and_budget",
+        "test_scene_aligned_narration_enriches_audio_but_keeps_clean_captions"
+      ],
+      "totalLines": 186,
       "hasStructuralAnalysis": true
     }
   }
