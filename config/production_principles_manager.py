@@ -191,4 +191,8 @@ def build_tts_style_principles(emotional_tone: str | None = None) -> str:
     if pacing:
         parts.append(f"الإيقاع: {pacing}.")
 
+    hyped_tokens = ("حماس", "مشوق", "مثير", "صاخب", "عالي الطاقة")
+    if not any(tok in str(tone or "") for tok in hyped_tokens):
+        parts.append("الأداء المطلوب: نبرة واقعية هادئة ومباشرة، كشخص يصف المكان ببساطة وصدق بدون مبالغة مسرحية أو تصنع.")
+
     return " ".join(parts)

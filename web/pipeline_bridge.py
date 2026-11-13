@@ -1203,14 +1203,34 @@ _NATURAL_CUE_PATTERNS = (
     (re.compile(r"\[sigh\]|\(sigh\)", re.IGNORECASE), "<sigh>"),
     (re.compile(r"\[laugh\]|\(laugh\)", re.IGNORECASE), "<laugh>"),
 )
-_REVEAL_WORDS = frozenset({
-    "شوفوا", "شوفو", "تخيلوا", "والأهم", "المفاجأة", "لاحظوا", "وهنا",
-    "look", "imagine", "plus", "wait", "actually", "regarde", "regardez",
-})
-_CONNECTOR_WORDS = frozenset({
-    "أما", "لكن", "باش", "يعني", "وحتى", "حيث", "بينما",
-    "and", "with", "where", "because", "while", "et", "avec", "puis",
-})
+_GENERIC_TIMELINE_TITLE_RE = re.compile(
+    r"^(?:Scene\s+\d+|لقطة\s+مختارة|لقطة\s+عالية\s+الوضوح|اللقطة\s+\d+|لقطة\s+\d+|المشهد\s+\d+)",
+    re.IGNORECASE,
+)
+
+
+def _soften_theatrical_punctuation(text: str) -> str:
+    """Dampen excessive exclamation/ellipsis marks so Gemini TTS does not over-act."""
+    cleaned = re.sub(r"[!]{2,}", ".", text)
+    cleaned = re.sub(r"[؟?]{2,}", "؟", cleaned)
+    cleaned = re.sub(r"\.{3,}|…+", "،", cleaned)
+    # Replace excited trailing exclamation marks with a calm period unless question
+    cleaned = re.sub(r"!", ".", cleaned)
+    return re.sub(r"\s+([.،؟])", r"\1", cleaned).strip()
+
+
+def _pick_semantic_scene_title(*candidates: Any, fallback: str) -> str:
+    """Return the first non-generic Arabic scene/room name, stripping bracketed timestamps."""
+    first_non_empty = ""
+    for cand in candidates:
+        raw = re.sub(r"\s*\[[^\]]*\d+\.\d+s\s*-\s*\d+\.\d+s[^\]]*\]\s*$", "", str(cand or "").strip()).strip(" -:")
+        if not raw:
+            continue
+        if not first_non_empty:
+            first_non_empty = raw
+        if not _GENERIC_TIMELINE_TITLE_RE.match(raw):
+            return raw
+    return first_non_empty or fallback
 
 
 def format_natural_speech_text(
@@ -1219,12 +1239,13 @@ def format_natural_speech_text(
     scene_index: int = 0,
     total_scenes: int = 1,
 ) -> str:
-    """Enrich any plain prompt/script with subtle Gemini 3.8 vocal cues for natural human cadence."""
+    """Keep speech script clean, calm, and naturally paced with subtle <short pause> cues when helpful."""
     normalized = " ".join(str(text or "").split()).strip()
     if not normalized:
         return ""
     for pattern, tag in _NATURAL_CUE_PATTERNS:
         normalized = pattern.sub(tag, normalized)
+    normalized = _soften_theatrical_punctuation(normalized)
     if re.search(r"<(?:breath|short\s+pause|sigh|gasp|laugh|chuckle|cough|whisper)>", normalized, re.IGNORECASE):
         return normalized
 
@@ -1232,32 +1253,22 @@ def format_natural_speech_text(
     if len(words) < 9:
         return normalized
 
-    # Multi-sentence input: place a natural breath/pause between the opening thought and follow-up
+    # Multi-sentence input: add one calm, subtle <short pause> instead of a dramatic breath
     sentences = [s.strip() for s in re.split(r"(?<=[.!؟?])\s+", normalized) if s.strip()]
     if len(sentences) >= 2:
-        cue = "<breath>" if len(sentences[0].split()) >= 4 else "<short pause>"
         if len(sentences) == 2:
-            return f"{sentences[0]} {cue} {sentences[1]}"
-        return f"{sentences[0]} {cue} {sentences[1]} <short pause> " + " ".join(sentences[2:])
+            return f"{sentences[0]} <short pause> {sentences[1]}"
+        return f"{sentences[0]} <short pause> " + " ".join(sentences[1:])
 
-    # Single long sentence: insert one subtle breath/pause at a mid-sentence reveal, comma, or connector
-    start_idx = max(3, len(words) // 3)
-    end_idx = min(len(words) - 2, (3 * len(words)) // 4)
-    insert_at: Optional[int] = None
-    chosen_cue = "<short pause>"
-
-    for idx in range(start_idx, end_idx + 1):
-        bare = re.sub(r"^[,،.!?؟—…]+|[,،.!?؟—…]+$", "", words[idx]).lower()
-        if bare in _REVEAL_WORDS:
-            insert_at, chosen_cue = idx, "<breath>"
-            break
-        if words[idx - 1].endswith(("،", ",", "—", "…")) or bare in _CONNECTOR_WORDS:
-            insert_at = idx
-            break
-
-    if insert_at is None:
+    # Long single run (>= 12 words): place at most one gentle <short pause> on a comma
+    if len(words) < 12:
         return normalized
-    return " ".join([*words[:insert_at], chosen_cue, *words[insert_at:]]).strip()
+    start_idx = max(4, len(words) // 3)
+    end_idx = min(len(words) - 3, (2 * len(words)) // 3)
+    for idx in range(start_idx, end_idx + 1):
+        if words[idx - 1].endswith(("،", ",")):
+            return " ".join([*words[:idx], "<short pause>", *words[idx:]]).strip()
+    return normalized
 
 
 def build_scene_delivery_style(
@@ -1269,37 +1280,37 @@ def build_scene_delivery_style(
     slot_text: str = "",
     slot_budget_sec: Optional[float] = None,
 ) -> str:
-    """Build per-scene vocal style metadata with hook/tour/closing arc and scene-budget pacing."""
+    """Build grounded, anti-theatrical vocal style metadata synchronized to each visual cut."""
     clean_text = strip_tts_vocal_tags(slot_text)
-    arc_marker = "افتتاحية جاذبة"
     segments: List[str] = []
     if base_style and base_style.strip():
         segments.append(base_style.strip())
 
-    # Avoid duplicating arc directives when synthesize_narration calls this idempotently
+    # Avoid duplicating delivery directives when synthesize_narration calls this idempotently
     already_styled = bool(base_style and any(tok in base_style for tok in (
-        "افتتاحية جاذبة", "خاتمة واثقة", "سرد متجول", "نبرة حية ودافئة", "تفاعل معبّر",
+        "أداء هادئ وطبيعي", "افتتاحية هادئة", "خاتمة هادئة", "سرد واقعي هادئ", "نبرة حيوية صادقة",
     )))
+    wants_hype = any(tok in str(emotional_tone or "") for tok in ("متحمس", "حماسي", "مشوق", "مثير", "عالي الطاقة"))
     if not already_styled:
-        if total_scenes <= 1:
-            arc_hint = "نبرة حية ودافئة ومتفاعلة مع المشاهد، إيقاع بشري طبيعي وتنفس واضح"
+        if wants_hype and scene_index == 0:
+            arc_hint = "نبرة حيوية صادقة ومباشرة بدون صراخ أو تصنع مسرحي"
+        elif total_scenes <= 1:
+            arc_hint = "أداء هادئ وطبيعي بنبرة إنسان يتحدث بعفوية وصدق، بدون مبالغة مسرحية أو تصنع"
         elif scene_index == 0:
-            arc_hint = f"{arc_marker} بنبرة دافئة وحماس طبيعي، بداية سلسلة بدون تصنع"
+            arc_hint = "افتتاحية هادئة وطبيعية بدون تكلف أو ارتفاع مبالغ في الصوت"
         elif scene_index >= total_scenes - 1:
-            arc_hint = "خاتمة واثقة ومريحة بنبرة دعوة لطيفة وواضحة"
-        elif any(ch in clean_text for ch in ("!", "؟", "?")):
-            arc_hint = "تفاعل معبّر ونبرة شغف وتشويق لطيف عند إبراز التفاصيل"
+            arc_hint = "خاتمة هادئة ومريحة بنبرة واضحة وبسيطة بدون تشديد مسرحي"
         else:
-            arc_hint = "سرد متجول عفوي وطبيعي كأنك تتحدث مع مشاهد مباشرة"
+            arc_hint = "سرد واقعي هادئ ومتزن بكلام بسيط وقريب من المستمع"
         segments.append(arc_hint)
 
     word_count = len(clean_text.split())
     if slot_budget_sec and slot_budget_sec > 0 and word_count > 0:
         wps = word_count / float(slot_budget_sec)
-        if wps > 2.5 and "إيقاع سريع" not in (base_style or ""):
-            segments.append("إيقاع سريع واضح ومباشر بدون إطالة")
-        elif wps < 1.3 and word_count >= 3 and "إيقاع هادئ متأنٍ" not in (base_style or ""):
-            segments.append("إيقاع هادئ متأنٍ ومريح مع وقفات تنفس طبيعية")
+        if wps > 2.35 and "إيقاع متماسك" not in (base_style or ""):
+            segments.append("إيقاع متماسك وواضح ينتهي قبل تغير اللقطة مباشرة")
+        elif wps < 1.25 and word_count >= 3 and "إيقاع مريح" not in (base_style or ""):
+            segments.append("إيقاع مريح وهادئ مع فواصل طبيعية خفيفة")
 
     return ". ".join(s.rstrip(".") for s in segments if s).strip()
 
@@ -1583,7 +1594,12 @@ def synthesize_scene_aligned_narration(
             en = max(st + 0.8, float(item.get("end_sec", st + 2.5)))
         except (TypeError, ValueError):
             continue
-        valid_slots.append({"start_sec": st, "end_sec": en, "text": raw_line, "clean_text": clean_line})
+        clean_title = _pick_semantic_scene_title(
+            item.get("title"),
+            item.get("room_or_subject"),
+            fallback="",
+        )
+        valid_slots.append({"start_sec": st, "end_sec": en, "title": clean_title, "text": raw_line, "clean_text": clean_line})
 
     combined_script = " ".join(s["clean_text"] for s in valid_slots)
     has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
@@ -1599,13 +1615,16 @@ def synthesize_scene_aligned_narration(
     chunk_paths: List[Path] = [out_file.parent / f"{out_file.stem}_scene_{idx}.wav" for idx in range(len(valid_slots))]
     scene_results: Dict[int, Dict[str, Any]] = {}
     total_slots = len(valid_slots)
+    base_lead = max(0.0, float(visual_lead_in))
 
     def _synth_one(idx: int) -> Dict[str, Any]:
         slot = valid_slots[idx]
         c_path = chunk_paths[idx]
-        slot_budget = max(0.8, (slot["end_sec"] - slot["start_sec"]) - 0.08)
-        if idx == 0 and slot["start_sec"] < visual_lead_in:
-            slot_budget = max(0.8, (slot["end_sec"] - visual_lead_in) - 0.08)
+        slot_start = slot["start_sec"]
+        slot_end = slot["end_sec"]
+        eff_start = max(base_lead, slot_start) if (idx == 0 and slot_start < base_lead) else (slot_start if idx == 0 else slot_start + 0.04)
+        end_guard = 0.14 if idx < total_slots - 1 else 0.06
+        slot_budget = max(0.55, (slot_end - end_guard) - eff_start)
         spoken_text = format_natural_speech_text(
             slot["text"],
             scene_index=idx,
@@ -1630,9 +1649,9 @@ def synthesize_scene_aligned_narration(
         fitted_dur = _fit_audio_tempo(
             c_path,
             max_duration=slot_budget,
-            max_tempo=1.55,
-            min_duration=slot_budget * 0.85,
-            min_tempo=0.92,
+            max_tempo=1.72,
+            min_duration=slot_budget * 0.60,
+            min_tempo=0.95,
         )
         res["duration"] = fitted_dur
         return res
@@ -1669,9 +1688,10 @@ def synthesize_scene_aligned_narration(
                     raw_frames = w_chunk.readframes(w_chunk.getnframes())
                     c_dur = w_chunk.getnframes() / float(params.framerate)
 
-                # Allow Scene N+1 to cue smoothly up to 0.14s inside the crossfade edge with a minimal 0.06s breath
-                # so the narrator keeps talking continuously without choppy dead silence.
-                target_rel = 0.0 if idx == 0 else max(cursor_sec + 0.06, (slot["start_sec"] - base_offset) - 0.14)
+                # Lock Scene 1 cleanly and cue each subsequent cut +0.04s after its visual transition
+                # so room dialogue never leaks prematurely or carries over into the next space.
+                desired_abs = base_offset if (idx == 0 and slot["start_sec"] < base_offset) else (slot["start_sec"] if idx == 0 else slot["start_sec"] + 0.04)
+                target_rel = max(0.0, desired_abs - base_offset) if idx == 0 else max(cursor_sec + 0.04, desired_abs - base_offset)
                 gap_sec = max(0.0, target_rel - cursor_sec)
                 if gap_sec >= 0.02:
                     gap_frames = int(round(gap_sec * params.framerate))
@@ -1682,13 +1702,16 @@ def synthesize_scene_aligned_narration(
                 actual_start = round(base_offset + cursor_sec, 2)
                 cursor_sec += c_dur
                 actual_end = round(base_offset + cursor_sec, 2)
-                scene_timings.append({
+                timing_entry: Dict[str, Any] = {
                     "segment_index": idx + 1,
                     "start_sec": actual_start,
                     "end_sec": actual_end,
                     "text": slot["clean_text"],
                     "scene_index": idx + 1,
-                })
+                }
+                if slot.get("title"):
+                    timing_entry["title"] = slot["title"]
+                scene_timings.append(timing_entry)
 
         total_dur = get_media_duration(out_file)
         first_meta = scene_results.get(0, {})
@@ -2122,18 +2145,21 @@ def _build_editable_cuts(
         for idx, slot in enumerate(aligned_scene_plan):
             st = round(float(slot.get("start_sec", 0.0)), 2)
             en = round(max(st + 0.5, float(slot.get("end_sec", st + 2.5))), 2)
-            title = ""
-            if idx < len(out_segs):
-                title = str(out_segs[idx].get("title") or "")
-            if not title and idx < len(shot_timeline_data):
-                title = str(shot_timeline_data[idx].get("title") or "")
-            if not title:
-                title = str(slot.get("room_or_subject") or f"اللقطة {idx + 1}")
+            out_title = out_segs[idx].get("title") if idx < len(out_segs) else ""
+            tl_title = shot_timeline_data[idx].get("title") if idx < len(shot_timeline_data) else ""
+            title = _pick_semantic_scene_title(
+                slot.get("title"),
+                slot.get("room_or_subject"),
+                out_title,
+                tl_title,
+                fallback=f"المشهد {idx + 1}",
+            )
             cuts.append({
                 "scene_index": idx + 1,
                 "start_sec": st,
                 "end_sec": en,
                 "title": title,
+                "room_or_subject": title,
                 "text": strip_tts_vocal_tags(str(slot.get("text") or "").strip()),
                 "thumb": _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
             })
@@ -2145,11 +2171,19 @@ def _build_editable_cuts(
         for idx, seg in enumerate(base_slots):
             st = round(float(seg.get("start_sec", seg.get("timestamp", idx * 3.0))), 2)
             en = round(max(st + 0.5, float(seg.get("end_sec", st + 3.0))), 2)
+            tl_title = shot_timeline_data[idx].get("title") if idx < len(shot_timeline_data) else ""
+            title = _pick_semantic_scene_title(
+                seg.get("title"),
+                seg.get("room_or_subject"),
+                tl_title,
+                fallback=f"المشهد {idx + 1}",
+            )
             cuts.append({
                 "scene_index": idx + 1,
                 "start_sec": st,
                 "end_sec": en,
-                "title": str(seg.get("title") or f"اللقطة {idx + 1}"),
+                "title": title,
+                "room_or_subject": title,
                 "text": texts[idx] if idx < len(texts) else str(seg.get("narration_line") or seg.get("description") or "").strip(),
                 "thumb": str(seg.get("thumbnail") or "") or _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
             })
@@ -2245,13 +2279,19 @@ def update_cuts_text_and_rerender(
             en = max(st + 0.5, float(item.get("end_sec") if item.get("end_sec") is not None else base.get("end_sec", st + 3.0)))
         except (TypeError, ValueError):
             st, en = 0.0, max(1.0, src_duration)
-        title = str(item.get("title") or base.get("title") or f"اللقطة {idx + 1}").strip()
+        title = _pick_semantic_scene_title(
+            item.get("title"),
+            item.get("room_or_subject"),
+            base.get("title"),
+            fallback=f"المشهد {idx + 1}",
+        )
         thumb = str(item.get("thumb") or base.get("thumb") or "")
         normalized_cuts.append({
             "scene_index": idx + 1,
             "start_sec": round(st, 2),
             "end_sec": round(en, 2),
             "title": title,
+            "room_or_subject": title,
             "text": txt,
             "thumb": thumb,
         })
@@ -2264,7 +2304,7 @@ def update_cuts_text_and_rerender(
 
     narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
     if len(non_empty_slots) >= 2:
-        scene_lead_in = min(max(0.0, visual_lead_in), 0.35) if visual_lead_in > 0 else 0.0
+        scene_lead_in = min(max(0.0, visual_lead_in), 0.12) if visual_lead_in > 0 else 0.0
         narration_info = synthesize_scene_aligned_narration(
             scene_segments=non_empty_slots,
             output_path=narration_wav,
@@ -2336,9 +2376,13 @@ def update_cuts_text_and_rerender(
 
     shot_timeline_data = list(summary.get("shot_timeline") or [])
     for idx, c in enumerate(normalized_cuts):
-        if idx < len(shot_timeline_data) and c.get("text"):
-            shot_timeline_data[idx]["description"] = c["text"]
-            shot_timeline_data[idx]["narration_line"] = c["text"]
+        if idx < len(shot_timeline_data):
+            if c.get("title"):
+                shot_timeline_data[idx]["title"] = c["title"]
+                shot_timeline_data[idx]["room_or_subject"] = c["title"]
+            if c.get("text"):
+                shot_timeline_data[idx]["description"] = c["text"]
+                shot_timeline_data[idx]["narration_line"] = c["text"]
 
     subtitles_opt_in = bool(cfg.get("subtitles_enabled") if "subtitles_enabled" in cfg else summary.get("subtitles_enabled", False))
     caption_options = cfg.get("caption_options")
@@ -2932,8 +2976,8 @@ def process_mobile_video(
                         scene_cuts=proxy_scene_cuts,
                         quality_segments=proxy_quality_segments,
                         proxy_path=proxy_path,
-                        transition="fade",
-                        transition_dur=0.35,
+                        transition="cut" if ai_recommended_cuts else "fade",
+                        transition_dur=0.0 if ai_recommended_cuts else 0.35,
                     )
                     montage_applied = True
                     montage_details = {
@@ -3005,7 +3049,7 @@ def process_mobile_video(
             "rental_apartment": "دافئ ومريح للعائلات",
         }
         resolved_tone = emotional_tone or preset_tones.get(selected_preset or "", principles_voice.get("active_tone_bias", "فاخر وهادئ"))
-        resolved_style_prompt = style_prompt or f"Warm and prestigious real estate presentation in {resolved_tone}"
+        resolved_style_prompt = style_prompt or f"Calm, genuine everyday conversational voiceover in {resolved_tone}, grounded human delivery without theatrical exaggeration"
 
     # Resolve background music track and user music directives (Strict Opt-In Architecture)
     music_directives = parsed_dirs.get("music_directives", {})
@@ -3059,20 +3103,36 @@ def process_mobile_video(
     if is_auto_mode and not (script and script.strip()):
         out_segs = montage_details.get("output_segments") if montage_applied else None
         if out_segs:
-            for o_seg in out_segs:
+            for seg_idx, o_seg in enumerate(out_segs):
                 line = str(o_seg.get("narration_line") or "").strip()
-                if not line and vision_scene_scripts:
-                    mid_src = (float(o_seg.get("src_start_sec", 0.0)) + float(o_seg.get("src_end_sec", 0.0))) * 0.5
+                matched_sc = None
+                mid_src = (float(o_seg.get("src_start_sec", 0.0)) + float(o_seg.get("src_end_sec", 0.0))) * 0.5
+                if vision_scene_scripts:
                     matched_sc = next(
                         (vs for vs in vision_scene_scripts if float(vs["start_sec"]) <= mid_src <= float(vs["end_sec"])),
                         None,
                     )
-                    if matched_sc:
+                    if not line and matched_sc:
                         line = str(matched_sc.get("text") or "").strip()
+                matched_cut = None
+                if ai_recommended_cuts:
+                    matched_cut = next(
+                        (rc for rc in ai_recommended_cuts if float(rc["start_sec"]) <= mid_src <= float(rc["end_sec"])),
+                        None,
+                    )
+                scene_title = _pick_semantic_scene_title(
+                    o_seg.get("title"),
+                    matched_sc.get("title") if matched_sc else "",
+                    matched_sc.get("room_or_subject") if matched_sc else "",
+                    matched_cut.get("title") if matched_cut else "",
+                    fallback=f"المشهد {seg_idx + 1}",
+                )
                 if line:
                     aligned_scene_plan.append({
                         "start_sec": o_seg["start_sec"],
                         "end_sec": o_seg["end_sec"],
+                        "title": scene_title,
+                        "room_or_subject": scene_title,
                         "text": line,
                     })
         elif vision_scene_scripts:
@@ -3081,7 +3141,7 @@ def process_mobile_video(
     narration_wav = job_sandbox_dir / f"narration_{job_id}.wav"
     if len(aligned_scene_plan) >= 2:
         raw_lead = max(0.0, float(visual_lead_in if visual_lead_in is not None else 1.2))
-        scene_lead_in = min(raw_lead, 0.35) if raw_lead > 0 else 0.0
+        scene_lead_in = min(raw_lead, 0.12) if raw_lead > 0 else 0.0
         narration_info = synthesize_scene_aligned_narration(
             scene_segments=aligned_scene_plan,
             output_path=narration_wav,
@@ -3189,7 +3249,25 @@ def process_mobile_video(
 
     # Compile shot timeline prior to annotations & subtitle synchronization
     shot_timeline_data: List[Dict[str, Any]] = []
-    if is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("shot_timeline"):
+    if montage_applied and aligned_scene_plan:
+        shot_timeline_data = [
+            {
+                "scene_index": idx + 1,
+                "start_sec": round(float(slot.get("start_sec", 0.0)), 2),
+                "end_sec": round(float(slot.get("end_sec", 0.0)), 2),
+                "duration": round(max(0.5, float(slot.get("end_sec", 0.0)) - float(slot.get("start_sec", 0.0))), 2),
+                "title": _pick_semantic_scene_title(slot.get("title"), slot.get("room_or_subject"), fallback=f"المشهد {idx + 1}"),
+                "room_or_subject": _pick_semantic_scene_title(slot.get("title"), slot.get("room_or_subject"), fallback=f"المشهد {idx + 1}"),
+                "description": strip_tts_vocal_tags(str(slot.get("text") or "").strip()),
+                "narration_line": strip_tts_vocal_tags(str(slot.get("text") or "").strip()),
+                "thumbnail": _pick_closest_thumb(
+                    formatted_keyframes,
+                    (float(slot.get("start_sec", 0.0)) + float(slot.get("end_sec", 0.0))) * 0.5,
+                ),
+            }
+            for idx, slot in enumerate(aligned_scene_plan)
+        ]
+    elif is_auto_mode and "vision_result" in locals() and isinstance(vision_result, dict) and vision_result.get("shot_timeline"):
         shot_timeline_data = vision_result["shot_timeline"]
     elif is_auto_mode and "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("shot_timeline"):
         shot_timeline_data = fb_res["shot_timeline"]
@@ -3319,9 +3397,13 @@ def process_mobile_video(
         src_duration=src_duration,
     )
     for idx, ec in enumerate(editable_cuts):
-        if idx < len(shot_timeline_data) and ec.get("text"):
-            shot_timeline_data[idx]["description"] = ec["text"]
-            shot_timeline_data[idx]["narration_line"] = ec["text"]
+        if idx < len(shot_timeline_data):
+            if ec.get("title"):
+                shot_timeline_data[idx]["title"] = ec["title"]
+                shot_timeline_data[idx]["room_or_subject"] = ec["title"]
+            if ec.get("text"):
+                shot_timeline_data[idx]["description"] = ec["text"]
+                shot_timeline_data[idx]["narration_line"] = ec["text"]
 
     # 9. Compile Complete Execution Summary
     video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
