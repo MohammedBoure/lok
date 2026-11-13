@@ -17,8 +17,13 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Standard fallback font paths on Linux
+# Cross-platform fallback font paths (Windows + Linux + macOS) supporting Arabic & Latin scripts
 FONT_CANDIDATES = [
+    "C:/Windows/Fonts/arialbd.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+    "C:/Windows/Fonts/tahomabd.ttf",
+    "C:/Windows/Fonts/tahoma.ttf",
+    "C:/Windows/Fonts/segoeui.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
@@ -35,6 +40,39 @@ def find_system_font() -> Optional[str]:
     return None
 
 
+def wrap_annotation_text(text: str, max_chars_per_line: int = 38) -> str:
+    """
+    Wrap long text onto multiple balanced lines so it never overflows horizontal video bounds.
+    Preserves short phrases on a single line.
+    """
+    raw = str(text or "").strip()
+    if not raw or len(raw) <= max_chars_per_line or "\n" in raw:
+        return raw
+
+    words = raw.split()
+    if len(words) <= 1:
+        return raw
+
+    lines: List[str] = []
+    current_words: List[str] = []
+    current_len = 0
+
+    for w in words:
+        w_len = len(w)
+        if current_words and (current_len + 1 + w_len > max_chars_per_line):
+            lines.append(" ".join(current_words))
+            current_words = [w]
+            current_len = w_len
+        else:
+            current_words.append(w)
+            current_len = current_len + (1 if current_len > 0 else 0) + w_len
+
+    if current_words:
+        lines.append(" ".join(current_words))
+
+    return "\n".join(lines[:3])
+
+
 def escape_ffmpeg_drawtext(text: str) -> str:
     """
     Escape text for FFmpeg drawtext filter syntax.
@@ -47,6 +85,12 @@ def escape_ffmpeg_drawtext(text: str) -> str:
     return escaped
 
 
+def _escape_ffmpeg_fontfile_path(font_path: str) -> str:
+    """Escape Windows drive colons and backslashes in fontfile path for FFmpeg filter syntax."""
+    norm = font_path.replace("\\", "/")
+    return norm.replace(":", "\\:")
+
+
 def _build_drawtext_filter(
     annotation: Dict[str, Any],
     font_file: Optional[str] = None,
@@ -54,8 +98,10 @@ def _build_drawtext_filter(
     video_height: int = 1920
 ) -> str:
     """Build a single FFmpeg drawtext filter string for an annotation."""
-    text = annotation.get("text", "").strip()
-    escaped_text = escape_ffmpeg_drawtext(text)
+    raw_text = annotation.get("text", "").strip()
+    max_line_chars = 34 if video_width <= 1080 else 46
+    wrapped_text = wrap_annotation_text(raw_text, max_chars_per_line=max_line_chars) if annotation.get("wrap", True) else raw_text
+    escaped_text = escape_ffmpeg_drawtext(wrapped_text)
     start_sec = max(0.0, float(annotation.get("start_sec", 0.0)))
     raw_end = annotation.get("end_sec")
     end_sec = max(start_sec + 0.5, float(raw_end)) if raw_end is not None else None
@@ -70,7 +116,7 @@ def _build_drawtext_filter(
     if position in ("subtitle", "captions") or style in ("subtitle", "caption", "synchronized_caption"):
         font_color = "white"
         box_color = annotation.get("box_color", "black@0.72")
-        boxborderw = int(annotation.get("boxborderw", 8))
+        boxborderw = int(annotation.get("boxborderw", 10))
         if is_large:
             default_fs = max(40, min(54, int(video_height * 0.035)))
         elif "font_size" in annotation:
@@ -98,38 +144,50 @@ def _build_drawtext_filter(
         safe_margin = int(annotation.get("safe_margin", max(110, int(video_height * 0.085))))
         coord_y = f"h-text_h-{safe_margin}"
     elif style == "emerald_badge":
-        font_color = "0x10B981"
-        box_color = "0x064E3B@0.85"
+        font_color = "0xECFDF5"
+        box_color = "0x064E3B@0.88"
+        boxborderw = int(annotation.get("boxborderw", 14))
         coord_x = "(w-text_w)/2"
-        coord_y = "h*0.75"
+        coord_y = "h*0.72"
     elif style == "price_tag":
-        font_color = "0xF59E0B"
-        box_color = "0x1E1B4B@0.88"
+        font_color = "0xFEF3C7"
+        box_color = "0x1E1B4B@0.90"
+        boxborderw = int(annotation.get("boxborderw", 14))
         coord_x = "(w-text_w)/2"
-        coord_y = "h*0.75"
+        coord_y = "h*0.72"
     elif style == "modern_white":
         font_color = "0xFFFFFF"
-        box_color = "0x0F172A@0.80"
+        box_color = "0x0F172A@0.84"
+        boxborderw = int(annotation.get("boxborderw", 14))
         coord_x = "(w-text_w)/2"
         coord_y = "h*0.75"
     elif style == "commercial_red":
         font_color = "0xFFFFFF"
-        box_color = "0xDC2626@0.90"
+        box_color = "0xB91C1C@0.90"
+        boxborderw = int(annotation.get("boxborderw", 14))
         coord_x = "(w-text_w)/2"
         coord_y = "h*0.75"
+    elif style == "highlight_badge":
+        font_color = "0xF8FAFC"
+        box_color = "0x09090B@0.82"
+        boxborderw = int(annotation.get("boxborderw", 12))
+        font_size = int(annotation.get("font_size", max(30, min(42, int(video_height * 0.025)))))
+        coord_x = "(w-text_w)/2"
+        coord_y = "max(68,h*0.07)"
     else:  # luxury_gold
         font_color = "0xFBBF24"
-        box_color = "0x18181B@0.85"
+        box_color = "0x18181B@0.86"
+        boxborderw = int(annotation.get("boxborderw", 14))
         coord_x = "(w-text_w)/2"
         coord_y = "h*0.75"
 
     # Explicit position override if not handled in theme
     if position == "top_banner":
         coord_x = "(w-text_w)/2"
-        coord_y = "60"
+        coord_y = "max(64,h*0.065)"
     elif position == "badge":
-        coord_x = "40"
-        coord_y = "50"
+        coord_x = "(w-text_w)/2"
+        coord_y = "max(68,h*0.07)"
     elif position == "center":
         coord_x = "(w-text_w)/2"
         coord_y = "(h-text_h)/2"
@@ -151,7 +209,8 @@ def _build_drawtext_filter(
         filter_parts.append(f"enable='gte(t,{start_sec:.2f})'")
 
     if font_file:
-        filter_parts.append(f"fontfile='{font_file}'")
+        escaped_font = _escape_ffmpeg_fontfile_path(font_file)
+        filter_parts.append(f"fontfile='{escaped_font}'")
 
     return "drawtext=" + ":".join(filter_parts)
 
@@ -181,8 +240,14 @@ def annotate_video(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    valid_annotations = [a for a in annotations if isinstance(a, dict) and a.get("text", "").strip()]
-    if not valid_annotations:
+    # Optional animated caption track (.ass rendered by libass) burned on top of drawtext overlays
+    ass_file = kwargs.get("ass_file") or kwargs.get("captions_ass")
+    ass_path: Optional[Path] = Path(ass_file).resolve() if ass_file else None
+    if ass_path is not None and not ass_path.is_file():
+        ass_path = None
+
+    valid_annotations = [a for a in (annotations or []) if isinstance(a, dict) and str(a.get("text", "")).strip()]
+    if not valid_annotations and ass_path is None:
         shutil.copy2(input_path, output_path)
         return {
             "status": "ok",
@@ -212,28 +277,39 @@ def annotate_video(
             vh = 1920
 
     font_file = find_system_font()
-    filter_chain = ",".join(
+    filters = [
         _build_drawtext_filter(a, font_file=font_file, video_width=vw, video_height=vh)
         for a in valid_annotations
-    )
+    ]
+    run_cwd: Optional[str] = None
+    if ass_path is not None:
+        # Run FFmpeg from the subtitle directory so the filter argument needs no path escaping
+        run_cwd = str(ass_path.parent)
+        filters.append(f"ass=filename={ass_path.name}")
+    filter_chain = ",".join(filters)
 
     cmd = [
         "ffmpeg", "-y",
         "-i", str(input_path),
         "-vf", filter_chain,
         "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-crf", "22",
+        "-preset", "ultrafast",
+        "-crf", "23",
+        "-threads", "0",
         "-c:a", "copy",
         "-movflags", "+faststart",
         str(output_path)
     ]
 
     try:
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        res = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", errors="replace", check=True, cwd=run_cwd,
+        )
         return {
             "status": "ok",
             "annotations_applied": len(valid_annotations),
+            "captions_applied": ass_path is not None,
             "output_video": str(output_path),
             "filtergraph": filter_chain
         }

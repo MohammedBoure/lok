@@ -80,6 +80,7 @@ from web.pipeline_bridge import (
     process_mobile_video,
     resolve_voice_profile,
     sanitize_and_validate_prompt,
+    update_cuts_text_and_rerender,
 )
 from web.prompt_db import (
     delete_prompt,
@@ -112,6 +113,13 @@ from web.auth_db import (
     verify_password,
 )
 from web.video_annotator import annotate_video
+from web.caption_templates import (
+    DEFAULT_TEMPLATE as DEFAULT_CAPTION_TEMPLATE,
+    assign_timings as assign_caption_timings,
+    list_caption_templates,
+    normalize_template as normalize_caption_template,
+    smart_split_text as smart_split_caption_text,
+)
 
 logger = logging.getLogger("mobile_api_server")
 if not logger.handlers:
@@ -246,6 +254,67 @@ def _get_authenticated_user_from_form_or_header(
     return user
 
 
+def _parse_caption_options(form: Any) -> Optional[Dict[str, Any]]:
+    """
+    Parse CapCut-style animated caption options from the production form.
+    Returns None when the customer did not pick a caption template.
+    Raises ValueError if the custom caption text fails the prompt security guardrails.
+    """
+    def _str_field(*names: str) -> Optional[str]:
+        for n in names:
+            val = form.get(n)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+        return None
+
+    template = _str_field("caption_template", "captions_template")
+    custom_text = _str_field("custom_caption_text", "caption_text", "custom_captions")
+    if not template and not custom_text:
+        return None
+    if custom_text:
+        custom_text = sanitize_and_validate_prompt(custom_text)[:1500]
+    return {
+        "template": normalize_caption_template(template),
+        "custom_text": custom_text,
+        "position": _str_field("caption_position"),
+        "size": _str_field("caption_size"),
+    }
+
+
+async def get_caption_templates_endpoint(request: Request) -> JSONResponse:
+    """GET /api/captions/templates - Catalogue of animated caption templates."""
+    return JSONResponse({"status": "ok", "templates": list_caption_templates(), "default": DEFAULT_CAPTION_TEMPLATE})
+
+
+async def split_captions_endpoint(request: Request) -> JSONResponse:
+    """POST /api/captions/split - Preview how the AI splits custom caption text into chunks."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"status": "error", "error": "Invalid JSON body."}, status_code=400)
+    text = str(body.get("text") or "").strip()
+    if not text:
+        return JSONResponse({"status": "error", "error": "Missing text."}, status_code=400)
+    try:
+        text = sanitize_and_validate_prompt(text)[:1500]
+    except ValueError as sec_err:
+        return JSONResponse({"status": "error", "error": "security_violation", "message": str(sec_err)}, status_code=400)
+    try:
+        duration = float(body.get("duration") or 15.0)
+    except (TypeError, ValueError):
+        duration = 15.0
+    duration = max(3.0, min(600.0, duration))
+    result = await asyncio.to_thread(smart_split_caption_text, text, body.get("template"), duration)
+    timed = assign_caption_timings(result["chunks"], duration)
+    return JSONResponse({
+        "status": "ok",
+        "engine": result["engine"],
+        "template": result["template"],
+        "duration": duration,
+        "chunks": [{k: v for k, v in c.items() if k != "words"} for c in timed],
+    })
+
+
 def _execute_processing_job(
     job_id: str,
     saved_video_path: Path,
@@ -269,6 +338,7 @@ def _execute_processing_job(
     phone_number: Optional[str] = None,
     enable_subtitles: Optional[bool] = None,
     enable_music: Optional[bool] = None,
+    caption_options: Optional[Dict[str, Any]] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -353,6 +423,7 @@ def _execute_processing_job(
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
             job_id=job_id,
+            caption_options=caption_options,
         )
 
         # Record video generation in SaaS audit history
@@ -668,6 +739,14 @@ async def create_job_async(request: Request) -> JSONResponse:
     else:
         video_orientation = None
 
+    try:
+        caption_options = _parse_caption_options(form)
+    except ValueError as cap_err:
+        return JSONResponse(
+            {"status": "error", "error": "security_violation", "message": str(cap_err)},
+            status_code=400,
+        )
+
     # Save uploaded file
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
@@ -746,6 +825,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             phone_number,
             enable_subtitles,
             enable_music,
+            caption_options,
         ),
         daemon=True,
     )
@@ -967,6 +1047,14 @@ async def upload_and_process(request: Request) -> JSONResponse:
     else:
         video_orientation = None
 
+    try:
+        caption_options = _parse_caption_options(form)
+    except ValueError as cap_err:
+        return JSONResponse(
+            {"status": "error", "error": "security_violation", "message": str(cap_err)},
+            status_code=400,
+        )
+
     original_filename = Path(video_field.filename).name
     clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -1075,6 +1163,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             enable_subtitles=enable_subtitles,
             enable_music=enable_music,
             job_id=job_id,
+            caption_options=caption_options,
         )
 
         # Record video generation in SaaS audit history
@@ -1282,6 +1371,7 @@ async def get_job_status(request: Request) -> JSONResponse:
             res_dict.setdefault("auto_mode", p_data.get("auto_mode", False))
             res_dict.setdefault("subtitles", p_data.get("subtitles") or [])
             res_dict.setdefault("shot_timeline", p_data.get("shot_timeline") or [])
+            res_dict.setdefault("editable_cuts", p_data.get("editable_cuts") or [])
             res_dict.setdefault("videographer_speech", p_data.get("videographer_speech"))
             res_dict.setdefault("customer_specifications", p_data.get("customer_specifications") or {})
             res_dict["job_id"] = job_id
@@ -1388,6 +1478,87 @@ async def get_job_status(request: Request) -> JSONResponse:
         },
         status_code=404,
     )
+
+
+async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/jobs/{job_id}/update-cuts-text
+    Re-synthesize edited cut-by-cut narration text and re-render audio + captions onto
+    the job's already-cut visual track without re-running Gemini Vision or re-cutting 1080p.
+    """
+    job_id = (request.path_params.get("job_id") or "").strip()
+    if not job_id:
+        return JSONResponse({"error": "Missing job_id parameter."}, status_code=400)
+
+    user = _get_authenticated_user_from_form_or_header(request)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب تعديل النص تسجيل دخول نشط.",
+            },
+            status_code=401,
+        )
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body."}, status_code=400)
+
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "JSON object expected."}, status_code=400)
+
+    cuts = body.get("cuts")
+    edited_script = body.get("script")
+    voice = body.get("voice")
+
+    if cuts is not None and not isinstance(cuts, list):
+        return JSONResponse({"error": "'cuts' must be a list of cut objects."}, status_code=400)
+
+    has_cut_text = bool(cuts and any(isinstance(c, dict) and str(c.get("text") or "").strip() for c in cuts))
+    has_script_text = bool(isinstance(edited_script, str) and edited_script.strip())
+    if not has_cut_text and not has_script_text:
+        return JSONResponse(
+            {"error": "Provide at least one non-empty cut text or script."},
+            status_code=400,
+        )
+
+    try:
+        updated_summary = await asyncio.to_thread(
+            update_cuts_text_and_rerender,
+            job_id=job_id,
+            edited_cuts=cuts,
+            edited_script=edited_script if isinstance(edited_script, str) else None,
+            output_dir=OUTPUTS_DIR / "mobile_cuts",
+            voice=voice if isinstance(voice, str) and voice.strip() else None,
+        )
+    except FileNotFoundError as exc:
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": "تعذر العثور على ملفات هذه المهمة."},
+            status_code=404,
+        )
+    except Exception as exc:
+        logger.exception("Failed updating cuts text for job %s: %s", job_id, exc)
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": f"تعذر إعادة تصدير الصوت المعدّل: {exc}"},
+            status_code=500,
+        )
+
+    version_ts = int(datetime.now(timezone.utc).timestamp() * 1000)
+    updated_summary["video_url_versioned"] = f"{updated_summary.get('video_url', '')}?v={version_ts}"
+    JOBS_STORE[job_id] = dict(updated_summary)
+    if job_id in PROGRESS_STORE:
+        p_curr = dict(PROGRESS_STORE[job_id])
+        p_curr["result"] = dict(updated_summary)
+        p_curr["script"] = updated_summary.get("script")
+        p_curr["editable_cuts"] = updated_summary.get("editable_cuts")
+        p_curr["shot_timeline"] = updated_summary.get("shot_timeline")
+        p_curr["subtitles"] = updated_summary.get("subtitles")
+        p_curr["updated_at"] = updated_summary.get("updated_at")
+        PROGRESS_STORE[job_id] = p_curr
+
+    return JSONResponse(updated_summary, status_code=200)
 
 
 async def get_mobile_cut_endpoint(request: Request) -> Response:
@@ -2019,6 +2190,8 @@ routes = [
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
     Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),
     Route("/api/video/annotate", annotate_video_endpoint, methods=["POST"]),
+    Route("/api/captions/templates", get_caption_templates_endpoint, methods=["GET"]),
+    Route("/api/captions/split", split_captions_endpoint, methods=["POST"]),
     Route("/api/prompts/history", get_prompts_history_endpoint, methods=["GET"]),
     Route("/api/prompts", create_prompt_endpoint, methods=["POST"]),
     Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),
@@ -2044,6 +2217,7 @@ routes = [
     Route("/api/admin/stats", admin_stats_endpoint, methods=["GET"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
+    Route("/api/jobs/{job_id}/update-cuts-text", update_job_cuts_text_endpoint, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),
     Route("/admin", admin_page, methods=["GET"]),
     Route("/style.css", style_css_endpoint, methods=["GET"]),

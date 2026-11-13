@@ -1802,16 +1802,30 @@
         localStorage.setItem(ADMIN_SESSION_KEY, `tok_admin_${username}_${Date.now()}`);
         localStorage.setItem(ADMIN_USER_KEY, username);
         if (dom.activeAdminUserDisplay) dom.activeAdminUserDisplay.textContent = username;
-        if (dom.adminLoginSection) dom.adminLoginSection.style.display = "none";
-        if (dom.adminDashboardSection) dom.adminDashboardSection.style.display = "block";
+        if (dom.adminLoginSection) {
+          dom.adminLoginSection.classList.remove("d-flex");
+          dom.adminLoginSection.classList.add("d-none");
+          dom.adminLoginSection.style.display = "none";
+        }
+        if (dom.adminDashboardSection) {
+          dom.adminDashboardSection.classList.remove("d-none");
+          dom.adminDashboardSection.style.display = "block";
+        }
         loadAccounts();
       }
 
       function setAdminLoggedOut() {
         localStorage.removeItem(ADMIN_SESSION_KEY);
         localStorage.removeItem(ADMIN_USER_KEY);
-        if (dom.adminDashboardSection) dom.adminDashboardSection.style.display = "none";
-        if (dom.adminLoginSection) dom.adminLoginSection.style.display = "flex";
+        if (dom.adminDashboardSection) {
+          dom.adminDashboardSection.classList.add("d-none");
+          dom.adminDashboardSection.style.display = "none";
+        }
+        if (dom.adminLoginSection) {
+          dom.adminLoginSection.classList.remove("d-none");
+          dom.adminLoginSection.classList.add("d-flex");
+          dom.adminLoginSection.style.display = "flex";
+        }
       }
 
       if (dom.btnAdminLogout) {

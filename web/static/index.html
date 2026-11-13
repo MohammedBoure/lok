@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=20261112_editable_cuts">
 </head>
 <body>
 
@@ -108,8 +108,12 @@
             </div>
           </div>
 
-          <!-- Simple Settings Button -->
-          <div class="header-actions">
+          <!-- Simple Settings & Admin Buttons -->
+          <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
+            <a href="/admin" class="btn-bw-settings" id="btnHeaderAdminPortal" title="لوحة التحكم الإدارية" style="text-decoration: none;">
+              <span class="settings-icon">👑</span>
+              <span class="settings-label">لوحة الإدارة</span>
+            </a>
             <button type="button" class="btn-bw-settings" id="btnOpenSettings" title="إعدادات الحساب والتوصيات والرصيد">
               <span class="settings-icon">⚙️</span>
               <span class="settings-label">الإعدادات</span>
@@ -214,7 +218,157 @@
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً لتوفير صوت نقي 100% وفيديو سريع. يمكنك تفعيل ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق كلمة بكلمة، أو تشغيل الموسيقى الخلفية (الافتراضي: 'بدون موسيقى' لصوت نقي 100% وكتم الموسيقى)، أو ضبط مستوى الصوت، أو إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، أو تحديد مواصفات العقار (مثل F5 أو مطل على البحر)، وفهم المشاهد واللقطات، وقص المشاهد والمونتاج الذكي. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+              💡 بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً لتوفير صوت نقي 100% وفيديو سريع. يمكنك تفعيل ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق كلمة بكلمة، أو تشغيل الموسيقى الخلفية (الافتراضي: 'بدون موسيقى' لصوت نقي 100% وكتم الموسيقى)، أو ضبط مستوى الصوت، أو إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، أو كتابة نص مخصص مع قوالب الكابشن المتحركة أدناه. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+            </div>
+          </div>
+
+          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates -->
+          <div class="studio-section capcut-studio-section" id="capcutStudioSection">
+            <div class="capcut-header-row">
+              <div>
+                <label class="section-label mb-0">3. قوالب النصوص المتحركة بأسلوب CapCut (Custom Text &amp; Animations):</label>
+                <p class="capcut-sub-hint">اختر قالب التحريك المفضل لديك، واكتب النص الذي تريد ظهوره على الفيديو ليقوم الذكاء الاصطناعي بتقسيمه وتوقيته تلقائياً بدون الحاجة لاكتشاف الصوت.</p>
+              </div>
+              <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
+            </div>
+
+            <!-- 7 Animated Templates Grid + None Option -->
+            <div class="capcut-templates-grid" id="captionTemplatesGrid" role="radiogroup" aria-label="قوالب النصوص المتحركة">
+              <button type="button" class="capcut-tpl-card active" data-template="" aria-pressed="true">
+                <div class="tpl-preview tpl-preview-none">
+                  <span class="tpl-demo-word">بدون قالب</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">إيقاف القالب</span>
+                  <span class="tpl-desc">بدون كابشن متحرك</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="karaoke_highlight" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-karaoke">
+                  <span class="tpl-demo-word">أفضل</span>
+                  <span class="tpl-demo-word is-accent">عرض</span>
+                  <span class="tpl-demo-word">اليوم</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">كاريوكي مُبرز</span>
+                  <span class="tpl-desc">إضاءة الكلمة الحالية بالأصفر</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="pop_bounce" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-pop">
+                  <span class="tpl-demo-word is-pop">نطّة</span>
+                  <span class="tpl-demo-word is-accent">مرحة</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">نطّة مرحة (Pop)</span>
+                  <span class="tpl-desc">تكبير مرن مع إبراز الكلمة</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="typewriter" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-typewriter">
+                  <span class="tpl-demo-word">آلة كاتبة</span><span class="tpl-caret">|</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">آلة كاتبة</span>
+                  <span class="tpl-desc">ظهور تدريجي كلمة بكلمة</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="fade_slide_up" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-slide">
+                  <span class="tpl-demo-word">ظهور</span>
+                  <span class="tpl-demo-word">منزلق</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">ظهور منزلق</span>
+                  <span class="tpl-desc">تلاشٍ ناعم مع انزلاق للأعلى</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="box_caption" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-box">
+                  <span class="tpl-box-pill">
+                    <span class="tpl-demo-word">صندوق</span>
+                    <span class="tpl-demo-word is-green">تيك توك</span>
+                  </span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">صندوق تيك توك</span>
+                  <span class="tpl-desc">خلفية داكنة مع إبراز أخضر</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="bold_outline" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-outline">
+                  <span class="tpl-demo-word">خط</span>
+                  <span class="tpl-demo-word is-accent">عريض</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">خط عريض بإطار</span>
+                  <span class="tpl-desc">إطار أسود سميك وظل واضح</span>
+                </div>
+              </button>
+
+              <button type="button" class="capcut-tpl-card" data-template="single_word" aria-pressed="false">
+                <div class="tpl-preview tpl-preview-single">
+                  <span class="tpl-demo-word is-single">كلمة!</span>
+                </div>
+                <div class="tpl-meta">
+                  <span class="tpl-title">كلمة بكلمة</span>
+                  <span class="tpl-desc">كلمة واحدة كبيرة بأسلوب الريلز</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Custom Caption Text & Controls -->
+            <div class="capcut-custom-controls" id="capcutCustomControls">
+              <div class="capcut-Controls-row">
+                <div class="capcut-field-group">
+                  <label for="captionPositionSelect" class="capcut-mini-label">موقع النص على الشاشة:</label>
+                  <select id="captionPositionSelect" class="lok-select-sm">
+                    <option value="">تلقائي حسب القالب</option>
+                    <option value="bottom">أسفل الفيديو</option>
+                    <option value="center">وسط الشاشة</option>
+                    <option value="top">أعلى الفيديو</option>
+                  </select>
+                </div>
+                <div class="capcut-field-group">
+                  <label for="captionSizeSelect" class="capcut-mini-label">حجم الخط:</label>
+                  <select id="captionSizeSelect" class="lok-select-sm">
+                    <option value="medium" selected>متوسط (موصى به)</option>
+                    <option value="large">كبير وبارز</option>
+                    <option value="small">صغير وأنيق</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="capcut-textarea-wrap">
+                <div class="capcut-textarea-header">
+                  <label for="customCaptionTextarea" class="capcut-mini-label">النص المخصص للكابشن المتحرك (اختياري — يقسمه الذكاء الاصطناعي تلقائياً):</label>
+                  <button type="button" class="btn-bw-secondary btn-preview-split" id="btnPreviewSmartSplit">
+                    <span>✂️ معاينة التقسيم الذكي (AI)</span>
+                  </button>
+                </div>
+                <textarea
+                  id="customCaptionTextarea"
+                  class="lok-prompt-textarea capcut-textarea"
+                  rows="3"
+                  placeholder="اكتب هنا النص الذي تريد عرضه ككابشن متحرك على الفيديو (أو اتركه فارغاً لاستخدام نص التعليق الصوتي عند تفعيل الترجمة)...
+مثال: أفضل بيتزا في المدينة، توصيل سريع لباب الدار! اتصل الآن 0558815453 واستمتع بعرض خاص اليوم"
+                ></textarea>
+              </div>
+
+              <!-- Smart Split Preview Chips Container -->
+              <div class="capcut-split-preview" id="capcutSplitPreview" style="display: none;">
+                <div class="split-preview-header">
+                  <span class="split-preview-title" id="splitPreviewTitle">✨ معاينة تقسيم المقاطع الزمنية:</span>
+                  <span class="split-preview-engine" id="splitPreviewEngine">AI</span>
+                </div>
+                <div class="split-chunks-list" id="splitChunksList"></div>
+              </div>
             </div>
           </div>
 
@@ -324,16 +478,22 @@
                   <p class="script-content-text" id="generatedScriptText"></p>
                 </div>
 
-                <!-- Shot-by-Shot Synchronized Timeline -->
+                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts -->
                 <div class="shots-timeline-section" id="shotsTimelineSection" style="display: none;">
                   <div class="timeline-header">
                     <div class="timeline-title-group">
-                      <span class="timeline-icon">⏱️</span>
-                      <h5 class="timeline-title">التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</h5>
+                      <span class="timeline-icon">✂️</span>
+                      <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
                     </div>
                     <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
                   </div>
                   <div class="shots-timeline-list" id="shotsTimelineList"></div>
+                  <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
+                    <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
+                    <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
+                      <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -640,6 +800,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=20261112_editable_cuts" defer></script>
 </body>
 </html>

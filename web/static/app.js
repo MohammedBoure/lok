@@ -184,11 +184,15 @@
     activeJobId: null,
     isProcessing: false,
     pollTimer: null,
+    editableCuts: [],
     optIn: {
       captions: false,
       music: false,
       timeline: false
-    }
+    },
+    selectedCaptionTemplate: "",
+    captionPosition: "",
+    captionSize: "medium"
   };
 
   // ---------------------------------------------------------------------------
@@ -280,6 +284,8 @@
     shotsTimelineSection: document.getElementById("shotsTimelineSection"),
     timelineBadge: document.getElementById("timelineBadge"),
     shotsTimelineList: document.getElementById("shotsTimelineList"),
+    cutsEditActions: document.getElementById("cutsEditActions"),
+    btnApplyCutsEdit: document.getElementById("btnApplyCutsEdit"),
 
     // Opt-In Features Toggles
     optInQuickBar: document.getElementById("optInQuickBar"),
@@ -293,6 +299,17 @@
     settingToggleCaptions: document.getElementById("settingToggleCaptions"),
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
+
+    // CapCut-Style Animated Caption Studio
+    captionTemplatesGrid: document.getElementById("captionTemplatesGrid"),
+    capcutActiveBadge: document.getElementById("capcutActiveBadge"),
+    captionPositionSelect: document.getElementById("captionPositionSelect"),
+    captionSizeSelect: document.getElementById("captionSizeSelect"),
+    customCaptionTextarea: document.getElementById("customCaptionTextarea"),
+    btnPreviewSmartSplit: document.getElementById("btnPreviewSmartSplit"),
+    capcutSplitPreview: document.getElementById("capcutSplitPreview"),
+    splitPreviewEngine: document.getElementById("splitPreviewEngine"),
+    splitChunksList: document.getElementById("splitChunksList"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -1339,6 +1356,24 @@
       formData.append("enable_subtitles", "true");
     }
 
+    // CapCut-Style Animated Caption Template & Custom Text
+    const customCaptionText = (dom.customCaptionTextarea?.value || "").trim();
+    const chosenTemplate = state.selectedCaptionTemplate || (customCaptionText ? "karaoke_highlight" : "");
+    if (chosenTemplate) {
+      formData.append("caption_template", chosenTemplate);
+      if (customCaptionText) {
+        formData.append("custom_caption_text", customCaptionText);
+      } else if (!isCaptionsOpted) {
+        // When user picks an animated template without custom text, style the narration captions
+        formData.append("enable_captions", "true");
+        formData.append("enable_subtitles", "true");
+      }
+      const posVal = (dom.captionPositionSelect?.value || state.captionPosition || "").trim();
+      const sizeVal = (dom.captionSizeSelect?.value || state.captionSize || "medium").trim();
+      if (posVal) formData.append("caption_position", posVal);
+      if (sizeVal) formData.append("caption_size", sizeVal);
+    }
+
     if (!isMusicOpted || (promptText && (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى")))) {
       formData.append("mute_music", "true");
       formData.append("music_muted", "true");
@@ -1527,9 +1562,9 @@
 
   async function pollJobStatus(jobId) {
     let attempts = 0;
-    const maxAttempts = 160; // Extended timeout ceiling (~240-300 seconds total)
+    const maxAttempts = 1800; // Extended timeout ceiling (~60 minutes total)
     let consecutiveNetworkErrors = 0;
-    const maxNetworkErrors = 6;
+    const maxNetworkErrors = 10;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -1547,9 +1582,10 @@
       try {
         const token = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
         const headers = token ? { "Authorization": `Bearer ${token}` } : {};
-        const resp = await fetch(`/api/status/${jobId}`, {
+        const resp = await fetch(`/api/status/${jobId}?t=${Date.now()}`, {
           headers: headers,
-          credentials: "include"
+          credentials: "include",
+          cache: "no-store"
         });
 
         // 404 grace period for just-spawned jobs
@@ -1845,8 +1881,18 @@
         ))
       )) || 0;
 
+      const animCaptions = (data && (data.animated_captions || (data.result && data.result.animated_captions))) || null;
+
       if (dom.resultCaptionsPill && dom.resultCaptionsText) {
-        if (captionsApplied || captionsCount > 0) {
+        if (animCaptions && animCaptions.chunks_count > 0) {
+          const tplLabel = animCaptions.template_name_ar || animCaptions.template || "قالب متحرك";
+          dom.resultCaptionsText.textContent = `كابشن متحرك (${tplLabel}) — مقسم بذكاء`;
+          if (dom.resultCaptionsBadge) {
+            dom.resultCaptionsBadge.textContent = `${animCaptions.chunks_count} مقاطع متحركة`;
+            dom.resultCaptionsBadge.style.display = "inline-block";
+          }
+          dom.resultCaptionsPill.style.display = "inline-flex";
+        } else if (captionsApplied || captionsCount > 0) {
           dom.resultCaptionsText.textContent = "ترجمة الكلام متزامنة بدقة عالية مع المشاهد (كلمة بكلمة)";
           if (dom.resultCaptionsBadge) {
             dom.resultCaptionsBadge.textContent = captionsCount > 0 ? `${captionsCount} جمل متزامنة` : "متزامن 100%";
@@ -1909,6 +1955,13 @@
     if (!dom.shotsTimelineSection || !dom.shotsTimelineList) return;
 
     dom.shotsTimelineList.innerHTML = "";
+    state.editableCuts = [];
+    if (dom.cutsEditActions) dom.cutsEditActions.style.display = "none";
+
+    const rawEditableCuts = (data && (
+      data.editable_cuts ||
+      (data.result && data.result.editable_cuts)
+    )) || [];
 
     const rawTimeline = (data && (
       data.shot_timeline ||
@@ -1930,7 +1983,9 @@
       (data.result && data.result.keyframes)
     )) || [];
 
+    const hasEditableCuts = Array.isArray(rawEditableCuts) && rawEditableCuts.length > 0;
     const isTimelineOptedIn = Boolean(data && (
+      hasEditableCuts ||
       data.timeline_applied === true ||
       data.timeline_enabled === true ||
       data.shots_timeline_applied === true ||
@@ -1954,15 +2009,31 @@
 
     let itemsToRender = [];
 
-    if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
+    if (hasEditableCuts) {
+      itemsToRender = rawEditableCuts.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: Number(item.start_sec ?? 0),
+        end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
+        timeRange: formatTimestampRange(item.start_sec ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
+        title: item.title || `اللقطة ${idx + 1}`,
+        description: item.text || "",
+        thumb: item.thumb || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
+      }));
+    } else if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
       itemsToRender = rawTimeline.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: Number(item.start_sec ?? item.timestamp ?? (idx * 3)),
+        end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? item.timestamp ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
         title: item.title || item.room || item.label || `المشهد ${idx + 1}`,
-        description: item.description || item.text || item.details || "",
+        description: item.narration_line || item.description || item.text || item.details || "",
         thumb: item.thumbnail || item.url || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
     } else if (Array.isArray(rawCaptions) && rawCaptions.length > 0) {
       itemsToRender = rawCaptions.map((cap, idx) => ({
+        scene_index: idx + 1,
+        start_sec: Number(cap.start_sec ?? 0),
+        end_sec: Number(cap.end_sec ?? 3),
         timeRange: formatTimestampRange(cap.start_sec, cap.end_sec),
         title: `اللقطة ${idx + 1}`,
         description: cap.text || cap.caption || "",
@@ -1970,6 +2041,9 @@
       }));
     } else if (Array.isArray(rawKeyframes) && rawKeyframes.length > 0) {
       itemsToRender = rawKeyframes.slice(0, 8).map((kf, idx) => ({
+        scene_index: idx + 1,
+        start_sec: Number(kf.timestamp ?? 0),
+        end_sec: Number((rawKeyframes[idx + 1]?.timestamp) || ((kf.timestamp || 0) + 3.0)),
         timeRange: formatTimestampRange(kf.timestamp, (rawKeyframes[idx + 1]?.timestamp) || (kf.timestamp + 3.0)),
         title: kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `لقطة ${idx + 1}`,
         description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا العقار",
@@ -1983,6 +2057,9 @@
         const phaseDur = dur / Math.min(sentences.length, 3);
         const labels = ["المقدمة والإطلالة البصرية", "الجولة البصرية والتفاصيل المعمارية", "الخاتمة والدعوة للتواصل"];
         itemsToRender = sentences.slice(0, 3).map((sent, idx) => ({
+          scene_index: idx + 1,
+          start_sec: idx * phaseDur,
+          end_sec: (idx + 1) * phaseDur,
           timeRange: formatTimestampRange(idx * phaseDur, (idx + 1) * phaseDur),
           title: labels[idx] || `المشهد ${idx + 1}`,
           description: sent,
@@ -1992,31 +2069,151 @@
     }
 
     if (itemsToRender.length > 0) {
-      itemsToRender.forEach(item => {
+      state.editableCuts = itemsToRender.map((item, idx) => ({
+        scene_index: item.scene_index || (idx + 1),
+        start_sec: item.start_sec,
+        end_sec: item.end_sec,
+        title: item.title,
+        text: item.description || "",
+        thumb: item.thumb || "",
+      }));
+
+      itemsToRender.forEach((item, idx) => {
         const el = document.createElement("div");
         el.className = "shot-timeline-item";
 
-        let thumbHtml = "";
+        const timeCol = document.createElement("div");
+        timeCol.className = "shot-time-col";
+        const tsSpan = document.createElement("span");
+        tsSpan.className = "shot-timestamp";
+        tsSpan.textContent = item.timeRange;
+        timeCol.appendChild(tsSpan);
+        el.appendChild(timeCol);
+
         if (item.thumb) {
-          thumbHtml = `<div class="shot-thumb-col"><img src="${item.thumb}" alt="${item.title}" class="shot-thumb-img" loading="lazy" onerror="this.style.display='none'"></div>`;
+          const thumbCol = document.createElement("div");
+          thumbCol.className = "shot-thumb-col";
+          const img = document.createElement("img");
+          img.src = item.thumb;
+          img.alt = item.title;
+          img.className = "shot-thumb-img";
+          img.loading = "lazy";
+          img.onerror = function() { this.style.display = "none"; };
+          thumbCol.appendChild(img);
+          el.appendChild(thumbCol);
         }
 
-        el.innerHTML = `
-          <div class="shot-time-col">
-            <span class="shot-timestamp">${item.timeRange}</span>
-          </div>
-          ${thumbHtml}
-          <div class="shot-details-col">
-            <div class="shot-title">${item.title}</div>
-            <p class="shot-desc">${item.description}</p>
-          </div>
-        `;
+        const detailsCol = document.createElement("div");
+        detailsCol.className = "shot-details-col";
+
+        const metaRow = document.createElement("div");
+        metaRow.className = "shot-meta-row";
+        const titleEl = document.createElement("div");
+        titleEl.className = "shot-title";
+        titleEl.textContent = item.title;
+
+        const wcBadge = document.createElement("span");
+        wcBadge.className = "shot-word-count";
+        const initWords = (item.description || "").trim().split(/\s+/).filter(Boolean).length;
+        wcBadge.textContent = `${initWords} كلمة`;
+        metaRow.appendChild(titleEl);
+        metaRow.appendChild(wcBadge);
+        detailsCol.appendChild(metaRow);
+
+        const editor = document.createElement("textarea");
+        editor.className = "cut-text-editor";
+        editor.rows = 2;
+        editor.dir = "rtl";
+        editor.dataset.cutIndex = String(idx);
+        editor.value = item.description || "";
+        editor.placeholder = "اكتب نص التعليق الصوتي لهذه اللقطة...";
+        editor.addEventListener("input", () => {
+          const val = editor.value;
+          if (state.editableCuts[idx]) {
+            state.editableCuts[idx].text = val;
+          }
+          const wc = val.trim().split(/\s+/).filter(Boolean).length;
+          wcBadge.textContent = `${wc} كلمة`;
+          if (dom.generatedScriptText) {
+            dom.generatedScriptText.textContent = state.editableCuts
+              .map(c => String(c.text || "").trim())
+              .filter(Boolean)
+              .join(" ");
+          }
+        });
+        detailsCol.appendChild(editor);
+        el.appendChild(detailsCol);
         dom.shotsTimelineList.appendChild(el);
       });
+
       dom.shotsTimelineSection.style.display = "block";
+      if (dom.cutsEditActions && state.activeJobId) {
+        dom.cutsEditActions.style.display = "flex";
+      }
     } else {
       dom.shotsTimelineSection.style.display = "none";
     }
+  }
+
+  function setupCutsTextEditor() {
+    if (!dom.btnApplyCutsEdit) return;
+    dom.btnApplyCutsEdit.addEventListener("click", async () => {
+      if (!state.activeJobId) {
+        showToast("لم يتم العثور على معرف الفيديو لتعديله.");
+        return;
+      }
+      const editors = dom.shotsTimelineList ? dom.shotsTimelineList.querySelectorAll(".cut-text-editor") : [];
+      editors.forEach((ed) => {
+        const idx = Number(ed.dataset.cutIndex);
+        if (!Number.isNaN(idx) && state.editableCuts[idx]) {
+          state.editableCuts[idx].text = ed.value;
+        }
+      });
+
+      const hasAnyText = state.editableCuts.some(c => String(c.text || "").trim().length > 0);
+      if (!hasAnyText) {
+        showToast("يرجى إدخال نص لقطة واحدة على الأقل قبل التحديث.");
+        return;
+      }
+
+      const token = getStoredSessionToken();
+      const origHtml = dom.btnApplyCutsEdit.innerHTML;
+      dom.btnApplyCutsEdit.disabled = true;
+      dom.btnApplyCutsEdit.innerHTML = "<span>⏳ جاري إعادة توليد الصوت وتحديث الفيديو...</span>";
+
+      try {
+        const res = await fetch(`/api/jobs/${encodeURIComponent(state.activeJobId)}/update-cuts-text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ cuts: state.editableCuts }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || data.error || "تعذر تحديث الصوت على الفيديو.");
+        }
+
+        const refreshedSrc = data.video_url_versioned || `${data.video_url || `/outputs/mobile_cuts/cut_${state.activeJobId}.mp4`}?v=${Date.now()}`;
+        if (dom.resultVideo) {
+          dom.resultVideo.src = refreshedSrc;
+          dom.resultVideo.load();
+        }
+        if (dom.btnDownloadVideo) dom.btnDownloadVideo.href = refreshedSrc;
+        if (dom.btnShareVideo) dom.btnShareVideo.href = refreshedSrc;
+        if (dom.generatedScriptText && data.script) {
+          dom.generatedScriptText.textContent = String(data.script).trim();
+        }
+        renderShotTimeline(data);
+        showToast("تم تحديث الصوت والكلام على الفيديو بنجاح! 🎙️✨");
+      } catch (err) {
+        showToast(err.message || "حدث خطأ أثناء تحديث نص المشاهد.");
+      } finally {
+        dom.btnApplyCutsEdit.disabled = false;
+        dom.btnApplyCutsEdit.innerHTML = origHtml;
+      }
+    });
   }
 
   function resetToNewProduction() {
@@ -2050,9 +2247,130 @@
     if (dom.resultMontageText) dom.resultMontageText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
+    if (dom.customCaptionTextarea) dom.customCaptionTextarea.value = "";
+    if (dom.capcutSplitPreview) dom.capcutSplitPreview.style.display = "none";
+    if (dom.splitChunksList) dom.splitChunksList.innerHTML = "";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
     dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
     showToast("جاهز لإنتاج فيديو جديد 📹");
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7b. CapCut-Style Animated Caption Studio & AI Smart Split Preview
+  // ---------------------------------------------------------------------------
+  function setupCaptionTemplatesStudio() {
+    if (dom.captionTemplatesGrid) {
+      const cards = dom.captionTemplatesGrid.querySelectorAll(".capcut-tpl-card");
+      cards.forEach((card) => {
+        card.addEventListener("click", () => {
+          const tpl = card.getAttribute("data-template") || "";
+          state.selectedCaptionTemplate = tpl;
+          cards.forEach((c) => {
+            const isSel = c === card;
+            c.classList.toggle("active", isSel);
+            c.setAttribute("aria-pressed", isSel ? "true" : "false");
+          });
+          if (dom.capcutActiveBadge) {
+            const titleEl = card.querySelector(".tpl-title");
+            if (tpl) {
+              dom.capcutActiveBadge.textContent = `✨ القالب: ${titleEl ? titleEl.textContent : tpl}`;
+              dom.capcutActiveBadge.classList.add("is-enabled");
+            } else {
+              dom.capcutActiveBadge.textContent = "بدون قالب متحرك";
+              dom.capcutActiveBadge.classList.remove("is-enabled");
+            }
+          }
+        });
+      });
+    }
+
+    if (dom.captionPositionSelect) {
+      dom.captionPositionSelect.addEventListener("change", () => {
+        state.captionPosition = dom.captionPositionSelect.value || "";
+      });
+    }
+    if (dom.captionSizeSelect) {
+      dom.captionSizeSelect.addEventListener("change", () => {
+        state.captionSize = dom.captionSizeSelect.value || "medium";
+      });
+    }
+
+    // Auto-select Karaoke Highlight when user starts typing custom caption text if no template is active
+    if (dom.customCaptionTextarea && dom.captionTemplatesGrid) {
+      dom.customCaptionTextarea.addEventListener("input", () => {
+        const val = dom.customCaptionTextarea.value.trim();
+        if (val && !state.selectedCaptionTemplate) {
+          const defaultCard = dom.captionTemplatesGrid.querySelector('[data-template="karaoke_highlight"]');
+          if (defaultCard) defaultCard.click();
+        }
+      });
+    }
+
+    if (dom.btnPreviewSmartSplit) {
+      dom.btnPreviewSmartSplit.addEventListener("click", async () => {
+        const text = (dom.customCaptionTextarea?.value || dom.promptTextarea?.value || "").trim();
+        if (!text) {
+          showToast("اكتب نص الكابشن أولاً لمعاينة التقسيم الذكي ✍️");
+          dom.customCaptionTextarea?.focus();
+          return;
+        }
+        const tpl = state.selectedCaptionTemplate || "karaoke_highlight";
+        const origLabel = dom.btnPreviewSmartSplit.innerHTML;
+        dom.btnPreviewSmartSplit.disabled = true;
+        dom.btnPreviewSmartSplit.innerHTML = "<span>⏳ جاري التقسيم الذكي...</span>";
+        try {
+          const resp = await fetch("/api/captions/split", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, template: tpl, duration: 15.0 }),
+          });
+          const data = await resp.json();
+          if (!resp.ok || data.status !== "ok") {
+            throw new Error(data.message || data.error || "تعذر تقسيم النص.");
+          }
+          if (dom.splitPreviewEngine) {
+            dom.splitPreviewEngine.textContent = data.engine === "gemini" ? "Gemini AI ✨" : "تقسيم ذكي فوري ⚡";
+          }
+          if (dom.splitChunksList) {
+            dom.splitChunksList.innerHTML = "";
+            (data.chunks || []).forEach((chunk) => {
+              const chip = document.createElement("div");
+              chip.className = "split-chunk-chip";
+              const st = Number(chunk.start_sec || 0).toFixed(1);
+              const et = Number(chunk.end_sec || 0).toFixed(1);
+              const timeSpan = document.createElement("span");
+              timeSpan.className = "split-chunk-time";
+              timeSpan.textContent = `${st}s–${et}s`;
+              const textSpan = document.createElement("span");
+              const words = String(chunk.text || "").split(/\s+/);
+              words.forEach((w, i) => {
+                if (i > 0) textSpan.appendChild(document.createTextNode(" "));
+                if (chunk.emphasis && w === chunk.emphasis) {
+                  const em = document.createElement("span");
+                  em.className = "split-chunk-emph";
+                  em.textContent = w;
+                  textSpan.appendChild(em);
+                } else {
+                  textSpan.appendChild(document.createTextNode(w));
+                }
+              });
+              chip.appendChild(timeSpan);
+              chip.appendChild(textSpan);
+              dom.splitChunksList.appendChild(chip);
+            });
+          }
+          if (dom.capcutSplitPreview) {
+            dom.capcutSplitPreview.style.display = "block";
+          }
+          showToast(`تم تقسيم النص بذكاء إلى ${(data.chunks || []).length} مقاطع متناسقة ✨`);
+        } catch (err) {
+          showToast(err.message || "حدث خطأ أثناء معاينة التقسيم.");
+        } finally {
+          dom.btnPreviewSmartSplit.disabled = false;
+          dom.btnPreviewSmartSplit.innerHTML = origLabel;
+        }
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -2063,10 +2381,12 @@
     setupVideoUpload();
     setupPromptTextarea();
     setupOptInToggles();
+    setupCaptionTemplatesStudio();
     setupRecommendationsManager();
     setupVoiceoverPicker();
     setupSettingsModal();
     setupProductionAction();
+    setupCutsTextEditor();
     await checkExistingSession();
   }
 
