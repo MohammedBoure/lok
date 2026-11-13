@@ -13,3 +13,8 @@ outputs/
 
 *.db
 *.mp4
+
+# Understand-Anything intermediate & scratch state
+.ua/intermediate/
+.ua/diff-overlay.json
+.ua/.trash-*/
