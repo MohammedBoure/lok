@@ -78,6 +78,7 @@ from web.pipeline_bridge import (
     is_meta_prompt,
     parse_prompt_instructions,
     process_mobile_video,
+    resolve_music_track,
     resolve_voice_profile,
     sanitize_and_validate_prompt,
     update_cuts_text_and_rerender,
@@ -161,8 +162,31 @@ async def get_presets(request: Request) -> JSONResponse:
 
 
 async def get_music_tracks(request: Request) -> JSONResponse:
-    """GET /api/music-tracks - Returns catalog of available open-source background music."""
+    """GET /api/music-tracks - Returns catalog of available open-source and local assets/music tracks."""
     return JSONResponse(get_music_tracks_list())
+
+
+_AUDIO_MEDIA_TYPES = {
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".m4a": "audio/mp4",
+    ".aac": "audio/aac",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+}
+
+
+async def music_track_audio_endpoint(request: Request) -> Response:
+    """GET /api/music-tracks/{track_id}/audio - Stream selected background music track for preview."""
+    track_id = request.path_params.get("track_id", "")
+    track_meta = resolve_music_track(track_id, strict=True)
+    if not track_meta:
+        return JSONResponse({"status": "error", "message": f"Music track '{track_id}' not found"}, status_code=404)
+    audio_path = Path(track_meta["file"]).resolve()
+    if not audio_path.is_file() or audio_path.stat().st_size == 0:
+        return JSONResponse({"status": "error", "message": f"Audio file missing for '{track_id}'"}, status_code=404)
+    media_type = _AUDIO_MEDIA_TYPES.get(audio_path.suffix.lower(), "application/octet-stream")
+    return FileResponse(str(audio_path), media_type=media_type, filename=audio_path.name)
 
 
 def _extract_candidate_tokens(request: Request, form: Optional[Any] = None) -> List[str]:
@@ -1512,6 +1536,14 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
     cuts = body.get("cuts")
     edited_script = body.get("script")
     voice = body.get("voice")
+    music_track = body.get("music_track") or body.get("music")
+    enable_music_raw = body.get("enable_music")
+    enable_music = None
+    if enable_music_raw is not None:
+        if isinstance(enable_music_raw, str):
+            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_music = bool(enable_music_raw)
 
     if cuts is not None and not isinstance(cuts, list):
         return JSONResponse({"error": "'cuts' must be a list of cut objects."}, status_code=400)
@@ -1532,6 +1564,8 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
             edited_script=edited_script if isinstance(edited_script, str) else None,
             output_dir=OUTPUTS_DIR / "mobile_cuts",
             voice=voice if isinstance(voice, str) and voice.strip() else None,
+            music_track=music_track if isinstance(music_track, str) and music_track.strip() else None,
+            enable_music=enable_music,
         )
     except FileNotFoundError as exc:
         return JSONResponse(
@@ -2186,6 +2220,7 @@ routes = [
     Route("/api/voices", get_voices_endpoint, methods=["GET"]),
     Route("/api/voices/{voice_id}/sample", voice_sample_endpoint, methods=["GET"]),
     Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
+    Route("/api/music-tracks/{track_id}/audio", music_track_audio_endpoint, methods=["GET"]),
     Route("/api/principles", get_principles_endpoint, methods=["GET"]),
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
     Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),

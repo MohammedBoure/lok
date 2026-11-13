@@ -420,6 +420,7 @@ def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
     """
     res: Dict[str, Any] = {
         "mute_music": True,
+        "explicit_mute": False,
         "music_requested": False,
         "music_track": None,
         "music_volume": None,
@@ -439,6 +440,7 @@ def parse_music_directives(text: Optional[str]) -> Dict[str, Any]:
     is_explicitly_muted = any(k in text_l for k in mute_keywords)
     if is_explicitly_muted:
         res["mute_music"] = True
+        res["explicit_mute"] = True
         res["music_requested"] = False
         return res
 
@@ -798,16 +800,73 @@ MUSIC_LIBRARY: Dict[str, Dict[str, Any]] = {
 }
 
 
+MUSIC_AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
+
+
+def _build_music_catalog() -> Dict[str, Dict[str, Any]]:
+    """Combine curated built-in tracks with any extra audio files placed in assets/music/."""
+    catalog: Dict[str, Dict[str, Any]] = {}
+    for mid, meta in MUSIC_LIBRARY.items():
+        file_path = Path(meta["file"])
+        entry = dict(meta)
+        entry["filename"] = file_path.name
+        entry["audio_url"] = f"/api/music-tracks/{mid}/audio"
+        catalog[mid] = entry
+
+    music_dir = REPO_ROOT / "assets" / "music"
+    if music_dir.is_dir():
+        for audio_file in sorted(music_dir.iterdir(), key=lambda p: p.name.lower()):
+            if not audio_file.is_file() or audio_file.suffix.lower() not in MUSIC_AUDIO_EXTENSIONS:
+                continue
+            track_id = audio_file.stem
+            if track_id in catalog:
+                continue
+            pretty_title = track_id.replace("_", " ").replace("-", " ").strip().title() or audio_file.name
+            catalog[track_id] = {
+                "id": track_id,
+                "title": pretty_title,
+                "title_ar": f"مقطوعة محلية: {pretty_title}",
+                "style": "Local track (assets/music)",
+                "license": "Local Asset",
+                "file": audio_file,
+                "filename": audio_file.name,
+                "audio_url": f"/api/music-tracks/{track_id}/audio",
+            }
+    return catalog
+
+
+def resolve_music_track(
+    track_id: Optional[str],
+    fallback_id: str = "luxury_piano",
+    strict: bool = False,
+) -> Optional[Dict[str, Any]]:
+    """Resolve a track ID or filename against the built-in library and assets/music/ files."""
+    catalog = _build_music_catalog()
+    key = str(track_id or "").strip()
+    if key:
+        if key in catalog:
+            return catalog[key]
+        key_lower = key.lower()
+        for cid, entry in catalog.items():
+            if cid.lower() == key_lower or str(entry.get("filename", "")).lower() == key_lower:
+                return entry
+    if strict:
+        return None
+    return catalog.get(fallback_id) or next(iter(catalog.values()), MUSIC_LIBRARY["luxury_piano"])
+
+
 def get_music_tracks_list() -> List[Dict[str, str]]:
-    """Return catalog of available open-source background music tracks."""
+    """Return catalog of available background music tracks (built-in + assets/music)."""
     tracks = []
-    for m in MUSIC_LIBRARY.values():
+    for m in _build_music_catalog().values():
         tracks.append({
             "id": m["id"],
             "title": m["title"],
             "title_ar": m["title_ar"],
             "style": m["style"],
             "license": m["license"],
+            "filename": m.get("filename", Path(m["file"]).name),
+            "audio_url": m.get("audio_url", f"/api/music-tracks/{m['id']}/audio"),
         })
     return tracks
 
@@ -1990,6 +2049,8 @@ def update_cuts_text_and_rerender(
     edited_script: Optional[str] = None,
     output_dir: Union[str, Path] = "outputs/mobile_cuts",
     voice: Optional[str] = None,
+    music_track: Optional[str] = None,
+    enable_music: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's
@@ -2106,10 +2167,21 @@ def update_cuts_text_and_rerender(
     pad_needed = timeline_fit["pad_needed"]
     fade_out_start = timeline_fit["fade_out_start"]
 
-    music_key = str(cfg.get("music_track_id") or (summary.get("music_track") or {}).get("id") or "luxury_piano")
-    music_meta = MUSIC_LIBRARY.get(music_key, MUSIC_LIBRARY["luxury_piano"])
-    mute_music = bool(cfg.get("mute_music") if "mute_music" in cfg else summary.get("music_muted", True))
+    requested_track = (
+        str(music_track).strip()
+        if music_track and str(music_track).strip().lower() not in ("none", "null", "false", "")
+        else None
+    )
+    music_key = str(requested_track or cfg.get("music_track_id") or (summary.get("music_track") or {}).get("id") or "luxury_piano")
+    music_meta = resolve_music_track(music_key)
+    music_key = music_meta["id"]
+    if enable_music is not None:
+        mute_music = not bool(enable_music)
+    else:
+        mute_music = bool(cfg.get("mute_music") if "mute_music" in cfg else summary.get("music_muted", True))
     ambient_volume = float(cfg.get("ambient_volume") if "ambient_volume" in cfg else summary.get("music_volume", 0.16))
+    cfg["music_track_id"] = music_key
+    cfg["mute_music"] = mute_music
 
     final_cut_path = job_sandbox_dir / f"cut_{job_id}.mp4"
     render_seconds = _render_mixed_cut(
@@ -2176,6 +2248,15 @@ def update_cuts_text_and_rerender(
     summary["file_size_bytes"] = final_cut_path.stat().st_size
     summary["output_path"] = str(mirror_cut_path)
     summary["absolute_output_path"] = str(mirror_cut_path.resolve())
+    summary["music_muted"] = mute_music
+    summary["music_track"] = {
+        "id": music_meta["id"],
+        "title": music_meta["title"],
+        "license": music_meta["license"],
+        "muted": mute_music,
+        "volume": ambient_volume,
+    }
+    summary["render_config"] = cfg
     summary["updated_at"] = datetime.now(timezone.utc).isoformat()
     if isinstance(summary.get("metadata"), dict):
         summary["metadata"]["narration_duration"] = narration_duration
@@ -2797,27 +2878,35 @@ def process_mobile_video(
 
     # Resolve background music track and user music directives (Strict Opt-In Architecture)
     music_directives = parsed_dirs.get("music_directives", {})
+    clean_music_arg = (
+        str(music_track).strip()
+        if music_track and str(music_track).strip().lower() not in ("none", "null", "false", "")
+        else ""
+    )
     user_requested_music = bool(
         enable_music is True
         or music_directives.get("music_requested", False)
-        or (music_track and str(music_track).strip().lower() not in ("none", "null", "false", ""))
+        or (enable_music is not False and bool(clean_music_arg))
     )
-    explicitly_muted = bool(music_directives.get("mute_music", True) and not music_directives.get("music_requested", False))
+    explicitly_muted = bool(music_directives.get("explicit_mute", False)) or (
+        enable_music is False and not music_directives.get("music_requested", False)
+    )
     mute_music = explicitly_muted or (not user_requested_music)
     resolved_music_key = principles_visual.get("selected_music_theme", "luxury_piano")
 
-    if music_directives.get("music_track") and music_directives["music_track"] in MUSIC_LIBRARY:
-        resolved_music_key = music_directives["music_track"]
-    elif music_track and music_track in MUSIC_LIBRARY:
-        resolved_music_key = music_track
-    elif is_auto_mode and inferred_music and inferred_music in MUSIC_LIBRARY:
-        resolved_music_key = inferred_music
+    if music_directives.get("music_track") and resolve_music_track(music_directives["music_track"], strict=True):
+        resolved_music_key = resolve_music_track(music_directives["music_track"])["id"]
+    elif clean_music_arg and resolve_music_track(clean_music_arg, strict=True):
+        resolved_music_key = resolve_music_track(clean_music_arg)["id"]
+    elif is_auto_mode and inferred_music and resolve_music_track(inferred_music, strict=True):
+        resolved_music_key = resolve_music_track(inferred_music)["id"]
     elif selected_preset and "recommended_music" in ALGERIAN_REAL_ESTATE_PRESETS.get(selected_preset, {}):
         resolved_music_key = ALGERIAN_REAL_ESTATE_PRESETS[selected_preset]["recommended_music"]
     elif parsed_dirs.get("property_features", {}).get("sea_view"):
         resolved_music_key = "ambient_meditation"
 
-    music_meta = MUSIC_LIBRARY.get(resolved_music_key, MUSIC_LIBRARY["luxury_piano"])
+    music_meta = resolve_music_track(resolved_music_key)
+    resolved_music_key = music_meta["id"]
     music_audio_file = music_meta["file"]
 
     # 4. Synthesize Narration Audio with Emotional Tone Steering
