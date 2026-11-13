@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "90052a85229a54290714d44528c5731e7ceba60a",
-  "generatedAt": "2026-11-13T14:13:16.926Z",
+  "gitCommitHash": "7c7237388e13edc2c69970fdb87e2cedc882d708",
+  "generatedAt": "2026-11-13T15:16:06.776Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -10623,32 +10623,32 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "6e8719f80ceeec83f083fdc343ceb9fdef1f8eb6f64f47fecabe6dd690ac46b9",
+      "contentHash": "f6b5827a7854ac1916364d5852634f49f6e6de84b9ace7a9450d9c15f90a4553",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3117,
+      "totalLines": 3201,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "7e8aa2c938d6fcfe80a777741adc399272a83f72361e9ae5a7ed6832a76327be",
+      "contentHash": "404042641c7ae4fc298560d9acbda673826fbc2d80c248f644428c5b27687b15",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 983,
+      "totalLines": 1089,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "3d50465fa0614c1d2ae0da0412b7704dd47309f9a4c22657e3734f5b9a60f5b9",
+      "contentHash": "3ef52089caa494287ad0393d2d7d8c9932a2cebdef5030eae679f0387ed6fb23",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2717,
+      "totalLines": 2943,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -11758,7 +11758,7 @@
     },
     "tests/test_screen_overlay_designer.py": {
       "filePath": "tests/test_screen_overlay_designer.py",
-      "contentHash": "39f711e98c33caf3a3c3af0acc24484f0366a701eef70f8d34c19d4874dbea99",
+      "contentHash": "d6d62ddf9d66cd54ded7b20c3661ace0e9d408fbe13f72f597cd5b80906c77f4",
       "functions": [
         {
           "name": "test_overlay_fonts_and_effects_catalogs",
@@ -11800,6 +11800,12 @@
           "params": [],
           "exported": true,
           "lineCount": 31
+        },
+        {
+          "name": "test_top_right_user_guide_button_and_first_visit_highlight_contract",
+          "params": [],
+          "exported": true,
+          "lineCount": 27
         }
       ],
       "classes": [],
@@ -11881,9 +11887,10 @@
         "test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
         "test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
         "test_server_overlay_endpoints_and_form_parser",
-        "test_screen_overlay_ui_dom_js_css_contract"
+        "test_screen_overlay_ui_dom_js_css_contract",
+        "test_top_right_user_guide_button_and_first_visit_highlight_contract"
       ],
-      "totalLines": 349,
+      "totalLines": 378,
       "hasStructuralAnalysis": true
     }
   }

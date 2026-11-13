@@ -21,8 +21,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-13T14:13:13.764Z",
-    "gitCommitHash": "90052a85229a54290714d44528c5731e7ceba60a"
+    "analyzedAt": "2026-11-13T15:16:05.841Z",
+    "gitCommitHash": "7c7237388e13edc2c69970fdb87e2cedc882d708"
   },
   "nodes": [
     {
@@ -10622,121 +10622,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:tests/test_screen_overlay_designer.py",
-      "type": "file",
-      "name": "test_screen_overlay_designer.py",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "summary": "Tests for the interactive persistent screen note / phone overlay designer: - Font & effect catalogs and TTF font resolution - Custom (x_pct, y_pct) FFmpeg drawtext filter generation and animated effects - Real FFmpeg...",
-      "tags": [
-        "test",
-        "pytest",
-        "verification"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
-      "type": "function",
-      "name": "test_overlay_fonts_and_effects_catalogs",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        44,
-        72
-      ],
-      "summary": "Function test_overlay_fonts_and_effects_catalogs in test_screen_overlay_designer.py (29 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
-      "type": "function",
-      "name": "test_build_drawtext_filter_custom_coords_and_effects",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        75,
-        132
-      ],
-      "summary": "Function test_build_drawtext_filter_custom_coords_and_effects in test_screen_overlay_designer.py (58 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
-      "type": "function",
-      "name": "test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        135,
-        180
-      ],
-      "summary": "Function test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects in test_screen_overlay_designer.py (46 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
-      "type": "function",
-      "name": "test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        183,
-        277
-      ],
-      "summary": "Function test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay in test_screen_overlay_designer.py (95 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
-      "type": "function",
-      "name": "test_server_overlay_endpoints_and_form_parser",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        280,
-        314
-      ],
-      "summary": "Function test_server_overlay_endpoints_and_form_parser in test_screen_overlay_designer.py (35 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
-      "type": "function",
-      "name": "test_screen_overlay_ui_dom_js_css_contract",
-      "filePath": "tests/test_screen_overlay_designer.py",
-      "lineRange": [
-        317,
-        347
-      ],
-      "summary": "Function test_screen_overlay_ui_dom_js_css_contract in test_screen_overlay_designer.py (31 lines).",
-      "tags": [
-        "test",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
       "id": "file:web/pipeline_bridge.py",
       "type": "file",
       "name": "pipeline_bridge.py",
@@ -11700,6 +11585,138 @@
         "exported"
       ],
       "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_screen_overlay_designer.py",
+      "type": "file",
+      "name": "test_screen_overlay_designer.py",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "summary": "Tests for the interactive persistent screen note / phone overlay designer: - Font & effect catalogs and TTF font resolution - Custom (x_pct, y_pct) FFmpeg drawtext filter generation and animated effects - Real FFmpeg...",
+      "tags": [
+        "test",
+        "pytest",
+        "verification"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
+      "type": "function",
+      "name": "test_overlay_fonts_and_effects_catalogs",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        44,
+        72
+      ],
+      "summary": "Function test_overlay_fonts_and_effects_catalogs in test_screen_overlay_designer.py (29 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
+      "type": "function",
+      "name": "test_build_drawtext_filter_custom_coords_and_effects",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        75,
+        132
+      ],
+      "summary": "Function test_build_drawtext_filter_custom_coords_and_effects in test_screen_overlay_designer.py (58 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
+      "type": "function",
+      "name": "test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        135,
+        180
+      ],
+      "summary": "Function test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects in test_screen_overlay_designer.py (46 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
+      "type": "function",
+      "name": "test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        183,
+        277
+      ],
+      "summary": "Function test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay in test_screen_overlay_designer.py (95 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
+      "type": "function",
+      "name": "test_server_overlay_endpoints_and_form_parser",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        280,
+        314
+      ],
+      "summary": "Function test_server_overlay_endpoints_and_form_parser in test_screen_overlay_designer.py (35 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
+      "type": "function",
+      "name": "test_screen_overlay_ui_dom_js_css_contract",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        317,
+        347
+      ],
+      "summary": "Function test_screen_overlay_ui_dom_js_css_contract in test_screen_overlay_designer.py (31 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_top_right_user_guide_button_and_first_visit_highlight_contract",
+      "type": "function",
+      "name": "test_top_right_user_guide_button_and_first_visit_highlight_contract",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        350,
+        376
+      ],
+      "summary": "Function test_top_right_user_guide_button_and_first_visit_highlight_contract in test_screen_overlay_designer.py (27 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
     },
     {
       "id": "file:web/static/index.html",
@@ -20868,122 +20885,10 @@
     },
     {
       "source": "file:web/server.py",
-      "target": "file:web/static/index.html",
-      "type": "serves",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:web/server.py",
       "target": "file:web/static/admin.html",
       "type": "serves",
       "direction": "forward",
       "weight": 0.7
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:tests/test_screen_overlay_designer.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:tests/test_screen_overlay_designer.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "file:web/video_annotator.py",
-      "target": "file:tests/test_screen_overlay_designer.py",
-      "type": "tested_by",
-      "direction": "forward",
-      "weight": 0.5
     },
     {
       "source": "file:web/pipeline_bridge.py",
@@ -22309,20 +22214,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/app.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:web/static/index.html",
-      "target": "file:web/static/style.css",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
       "source": "file:tests/test_admin_portal_and_security.py",
       "target": "file:web/auth_db.py",
       "type": "imports",
@@ -23083,30 +22974,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_screen_overlay_designer.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_session_auth_and_tts_samples.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -23533,6 +23400,163 @@
     {
       "source": "file:web/vision_analyzer.py",
       "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_build_drawtext_filter_custom_coords_and_effects",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_real_ffmpeg_burns_dragged_arabic_overlay_with_font_and_effects",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_server_overlay_endpoints_and_form_parser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_screen_overlay_ui_dom_js_css_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_top_right_user_guide_button_and_first_visit_highlight_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_top_right_user_guide_button_and_first_visit_highlight_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:tests/test_screen_overlay_designer.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:tests/test_screen_overlay_designer.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/video_annotator.py",
+      "target": "file:tests/test_screen_overlay_designer.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/app.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:web/static/index.html",
+      "target": "file:web/static/style.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,
