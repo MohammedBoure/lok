@@ -31,6 +31,154 @@ FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
 ]
 
+OVERLAY_FONTS: List[Dict[str, Any]] = [
+    {
+        "id": "arial_bold",
+        "name_ar": "أريال عريض (واضح وعصري)",
+        "name_en": "Arial Bold",
+        "sample_ar": "0558 81 54 53 • عرض خاص",
+        "candidates": [
+            "C:/Windows/Fonts/arialbd.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ],
+    },
+    {
+        "id": "tahoma_bold",
+        "name_ar": "تاهوما (كلاسيكي للريلز)",
+        "name_en": "Tahoma Bold",
+        "sample_ar": "0558 81 54 53 • تاهوما",
+        "candidates": [
+            "C:/Windows/Fonts/tahomabd.ttf",
+            "C:/Windows/Fonts/tahoma.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        ],
+    },
+    {
+        "id": "segoe_bold",
+        "name_ar": "سيغوي ناعم (عصري وخفيف)",
+        "name_en": "Segoe UI Bold",
+        "sample_ar": "0558 81 54 53 • خط عصري",
+        "candidates": [
+            "C:/Windows/Fonts/segoeuib.ttf",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+        ],
+    },
+    {
+        "id": "sakkal_majalla",
+        "name_ar": "صقل مجلة (أنيق للعقارات)",
+        "name_en": "Sakkal Majalla",
+        "sample_ar": "0558 81 54 53 • خط مجلة",
+        "candidates": [
+            "C:/Windows/Fonts/majallab.ttf",
+            "C:/Windows/Fonts/majalla.ttf",
+            "C:/Windows/Fonts/arialbd.ttf",
+        ],
+    },
+    {
+        "id": "arabic_typesetting",
+        "name_ar": "نسخ عربي كلاسيكي (فاخر)",
+        "name_en": "Arabic Typesetting",
+        "sample_ar": "0558 81 54 53 • خط كلاسيكي",
+        "candidates": [
+            "C:/Windows/Fonts/arabtype.ttf",
+            "C:/Windows/Fonts/trado.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+        ],
+    },
+    {
+        "id": "simplified_arabic",
+        "name_ar": "عربي مبسط (رسمي مرتب)",
+        "name_en": "Simplified Arabic",
+        "sample_ar": "0558 81 54 53 • عربي مبسط",
+        "candidates": [
+            "C:/Windows/Fonts/simpo.ttf",
+            "C:/Windows/Fonts/trado.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+        ],
+    },
+    {
+        "id": "times_bold",
+        "name_ar": "تايمز عريض (رقمي فخم)",
+        "name_en": "Times Bold",
+        "sample_ar": "0558 81 54 53 • تايمز",
+        "candidates": [
+            "C:/Windows/Fonts/timesbd.ttf",
+            "C:/Windows/Fonts/times.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+        ],
+    },
+]
+
+OVERLAY_EFFECTS: List[Dict[str, Any]] = [
+    {
+        "id": "solid_dark",
+        "name_ar": "شريط داكن أنيق",
+        "name_en": "Dark Pill",
+        "description_ar": "خلفية سوداء شفافة واضحة مع ظل خفيف",
+        "animated": False,
+    },
+    {
+        "id": "luxury_gold",
+        "name_ar": "ذهبي فاخر",
+        "name_en": "Luxury Gold",
+        "description_ar": "خط ذهبي داخل صندوق داكن مع حدود بارزة",
+        "animated": False,
+    },
+    {
+        "id": "clean_outline",
+        "name_ar": "نص حر بإطار أسود",
+        "name_en": "Clean Outline",
+        "description_ar": "نص شفاف بدون خلفية مع إطار أسود واضح",
+        "animated": False,
+    },
+    {
+        "id": "neon_glow",
+        "name_ar": "توهج نيون سماوي",
+        "name_en": "Neon Glow",
+        "description_ar": "إضاءة سماوية محيطة للنصوص والأرقام",
+        "animated": False,
+    },
+    {
+        "id": "fade_in",
+        "name_ar": "ظهور متدرج ناعم",
+        "name_en": "Smooth Fade-In",
+        "description_ar": "يدخل النص بنعومة في بداية الفيديو",
+        "animated": True,
+    },
+    {
+        "id": "pulse_glow",
+        "name_ar": "نبض ولفت الانتباه",
+        "name_en": "Soft Pulse",
+        "description_ar": "توهج متكرر خفيف يلفت النظر لرقم الهاتف",
+        "animated": True,
+    },
+    {
+        "id": "slide_up",
+        "name_ar": "انزلاق من الأسفل",
+        "name_en": "Slide Up",
+        "description_ar": "ينزلق النص للأعلى ويستقر في موضعه",
+        "animated": True,
+    },
+    {
+        "id": "urgent_red",
+        "name_ar": "شارة عرض مميز",
+        "name_en": "Promo Badge",
+        "description_ar": "شارة حمراء واضحة للأسعار والعروض",
+        "animated": False,
+    },
+]
+
+OVERLAY_COLOR_PRESETS: Dict[str, str] = {
+    "default": "",
+    "white": "0xFFFFFF",
+    "gold": "0xFBBF24",
+    "cyan": "0x38BDF8",
+    "emerald": "0x34D399",
+    "rose": "0xFB7185",
+}
+
 
 def find_system_font() -> Optional[str]:
     """Find an available system TrueType font for FFmpeg drawtext."""
@@ -38,6 +186,43 @@ def find_system_font() -> Optional[str]:
         if os.path.isfile(font_path):
             return font_path
     return None
+
+
+def resolve_overlay_font(font_id: Optional[str] = None) -> Dict[str, Any]:
+    """Resolve an allowlisted overlay font entry to an existing local TrueType file path."""
+    wanted = str(font_id or "").strip().lower()
+    entry = next((f for f in OVERLAY_FONTS if f["id"] == wanted), OVERLAY_FONTS[0])
+    resolved_file = next((p for p in entry["candidates"] if os.path.isfile(p)), None)
+    if not resolved_file:
+        resolved_file = find_system_font()
+    return {
+        "id": entry["id"],
+        "name_ar": entry["name_ar"],
+        "name_en": entry["name_en"],
+        "sample_ar": entry["sample_ar"],
+        "file": resolved_file,
+    }
+
+
+def get_overlay_fonts_list() -> List[Dict[str, Any]]:
+    """Return available overlay fonts with API preview URLs (without exposing internal paths directly)."""
+    items: List[Dict[str, Any]] = []
+    for entry in OVERLAY_FONTS:
+        resolved = resolve_overlay_font(entry["id"])
+        items.append({
+            "id": entry["id"],
+            "name_ar": entry["name_ar"],
+            "name_en": entry["name_en"],
+            "sample_ar": entry["sample_ar"],
+            "available": bool(resolved.get("file")),
+            "font_url": f"/api/overlay-fonts/{entry['id']}/file",
+        })
+    return items
+
+
+def get_overlay_effects_list() -> List[Dict[str, Any]]:
+    """Return supported visual & animated overlay effects for the placement designer."""
+    return [dict(item) for item in OVERLAY_EFFECTS]
 
 
 def wrap_annotation_text(text: str, max_chars_per_line: int = 38) -> str:
@@ -111,6 +296,18 @@ def _build_drawtext_filter(
     boxborderw = int(annotation.get("boxborderw", 12))
     is_persistent = bool(annotation.get("persistent") or annotation.get("is_persistent") or style == "persistent_bottom")
     is_large = bool(annotation.get("large_font"))
+    effect = str(annotation.get("effect") or "").strip().lower()
+    size_key = str(annotation.get("size") or "").strip().lower()
+    color_key = str(annotation.get("text_color") or "").strip().lower()
+
+    use_box = 1
+    border_w = 0
+    border_color = "0x000000@0.85"
+    shadow_x = 0
+    shadow_y = 0
+    shadow_color = "0x000000@0.65"
+    alpha_expr: Optional[str] = None
+    has_custom_box_or_effect = bool(effect or color_key or size_key in ("small", "medium", "large"))
 
     # Color themes and positioning
     if position in ("subtitle", "captions") or style in ("subtitle", "caption", "synchronized_caption"):
@@ -128,12 +325,14 @@ def _build_drawtext_filter(
         # Subtitles sit cleanly elevated above the persistent bottom badge
         safe_margin = int(annotation.get("safe_margin", max(185, int(video_height * 0.145))))
         coord_y = f"h-text_h-{safe_margin}"
-    elif position in ("bottom_banner", "persistent_bottom", "bottom") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
+    elif position in ("bottom_banner", "persistent_bottom", "bottom", "custom_xy") or style in ("persistent_bottom", "bottom_box", "phone_overlay"):
         font_color = "white"
         box_color = annotation.get("box_color", "black@0.78")
         boxborderw = int(annotation.get("boxborderw", 16 if is_large else 14))
-        if is_large:
+        if is_large or size_key == "large":
             default_fs = max(48, min(64, int(video_height * 0.042)))
+        elif size_key == "small":
+            default_fs = max(28, min(38, int(video_height * 0.024)))
         elif "font_size" in annotation:
             default_fs = int(annotation["font_size"])
         else:
@@ -181,7 +380,7 @@ def _build_drawtext_filter(
         coord_x = "(w-text_w)/2"
         coord_y = "h*0.75"
 
-    # Explicit position override if not handled in theme
+    # Explicit position preset override if not handled in theme
     if position == "top_banner":
         coord_x = "(w-text_w)/2"
         coord_y = "max(64,h*0.065)"
@@ -192,16 +391,105 @@ def _build_drawtext_filter(
         coord_x = "(w-text_w)/2"
         coord_y = "(h-text_h)/2"
 
+    # Visual & animation effect overrides (preserving legacy behavior when effect is unset)
+    if effect == "solid_dark":
+        font_color = "0xFFFFFF"
+        box_color = "0x09090B@0.80"
+        shadow_x, shadow_y = 0, 2
+    elif effect == "luxury_gold":
+        font_color = "0xFBBF24"
+        box_color = "0x111827@0.88"
+        border_w = 2
+        border_color = "0x000000@0.85"
+        shadow_x, shadow_y = 1, 2
+    elif effect == "clean_outline":
+        use_box = 0
+        font_color = "0xFFFFFF"
+        border_w = 3
+        border_color = "0x000000@0.95"
+        shadow_x, shadow_y = 2, 2
+        shadow_color = "0x000000@0.80"
+    elif effect == "neon_glow":
+        use_box = 1
+        font_color = "0xE0F2FE"
+        box_color = "0x0F172A@0.58"
+        border_w = 2
+        border_color = "0x0284C7@0.90"
+        shadow_x, shadow_y = 0, 0
+        shadow_color = "0x38BDF8@0.90"
+    elif effect == "fade_in":
+        font_color = "0xFFFFFF"
+        box_color = "0x09090B@0.78"
+        shadow_x, shadow_y = 0, 2
+        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.55)'"
+    elif effect == "pulse_glow":
+        font_color = "0xFFFFFF"
+        box_color = "0x09090B@0.82"
+        border_w = 2
+        border_color = "0xFBBF24@0.85"
+        alpha_expr = "'0.76+0.24*sin(2*PI*t/1.8)'"
+    elif effect == "slide_up":
+        font_color = "0xFFFFFF"
+        box_color = "0x09090B@0.82"
+        shadow_x, shadow_y = 0, 2
+        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.35)'"
+    elif effect == "urgent_red":
+        font_color = "0xFFFFFF"
+        box_color = "0xB91C1C@0.92"
+        border_w = 1
+        border_color = "0x7F1D1D@0.90"
+        shadow_x, shadow_y = 1, 2
+
+    if color_key in OVERLAY_COLOR_PRESETS and OVERLAY_COLOR_PRESETS[color_key]:
+        font_color = OVERLAY_COLOR_PRESETS[color_key]
+    elif re.fullmatch(r"#?[0-9a-f]{6}", color_key):
+        font_color = f"0x{color_key.lstrip('#').upper()}"
+
+    # Custom normalized drag placement (0.0..1.0) clamped safely inside frame boundaries
+    raw_xp = annotation.get("x_pct")
+    raw_yp = annotation.get("y_pct")
+    if raw_xp is not None and raw_yp is not None:
+        try:
+            xp = max(0.05, min(0.95, float(raw_xp)))
+            yp = max(0.05, min(0.95, float(raw_yp)))
+            coord_x = f"max(16\\,min(w-text_w-16\\,w*{xp:.4f}-text_w/2))"
+            if effect == "slide_up":
+                coord_y = (
+                    f"max(16\\,min(h-text_h-16\\,"
+                    f"(h*{yp:.4f}-text_h/2)+max(0\\,1-(t-{start_sec:.2f})/0.50)*48))"
+                )
+            else:
+                coord_y = f"max(16\\,min(h-text_h-16\\,h*{yp:.4f}-text_h/2))"
+        except (TypeError, ValueError):
+            pass
+    elif effect == "slide_up":
+        coord_y = f"({coord_y})+max(0\\,1-(t-{start_sec:.2f})/0.50)*48"
+
     filter_parts = [
         f"text='{escaped_text}'",
         f"fontsize={font_size}",
         f"fontcolor={font_color}",
-        f"box=1",
-        f"boxcolor={box_color}",
-        f"boxborderw={boxborderw}",
+        f"box={use_box}",
+    ]
+    if use_box:
+        filter_parts.append(f"boxcolor={box_color}")
+        filter_parts.append(f"boxborderw={boxborderw}")
+    if border_w > 0:
+        filter_parts.append(f"borderw={border_w}")
+        filter_parts.append(f"bordercolor={border_color}")
+    if shadow_x or shadow_y or effect == "neon_glow":
+        filter_parts.append(f"shadowx={shadow_x}")
+        filter_parts.append(f"shadowy={shadow_y}")
+        filter_parts.append(f"shadowcolor={shadow_color}")
+    if alpha_expr:
+        filter_parts.append(f"alpha={alpha_expr}")
+    if has_custom_box_or_effect or (raw_xp is not None and raw_yp is not None):
+        filter_parts.append("fix_bounds=1")
+
+    filter_parts.extend([
         f"x={coord_x}",
         f"y={coord_y}",
-    ]
+    ])
 
     if end_sec is not None:
         filter_parts.append(f"enable='between(t,{start_sec:.2f},{end_sec:.2f})'")
@@ -276,11 +564,12 @@ def annotate_video(
             vw = 1080
             vh = 1920
 
-    font_file = find_system_font()
-    filters = [
-        _build_drawtext_filter(a, font_file=font_file, video_width=vw, video_height=vh)
-        for a in valid_annotations
-    ]
+    default_font_file = find_system_font()
+    filters = []
+    for a in valid_annotations:
+        ann_font_id = a.get("font_id") or a.get("font")
+        ann_font_file = resolve_overlay_font(ann_font_id)["file"] if ann_font_id else default_font_file
+        filters.append(_build_drawtext_filter(a, font_file=ann_font_file, video_width=vw, video_height=vh))
     run_cwd: Optional[str] = None
     if ass_path is not None:
         # Run FFmpeg from the subtitle directory so the filter argument needs no path escaping

@@ -2216,6 +2216,7 @@ def update_cuts_text_and_rerender(
     voice: Optional[str] = None,
     music_track: Optional[str] = None,
     enable_music: Optional[bool] = None,
+    screen_overlay: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's
@@ -2387,6 +2388,29 @@ def update_cuts_text_and_rerender(
     subtitles_opt_in = bool(cfg.get("subtitles_enabled") if "subtitles_enabled" in cfg else summary.get("subtitles_enabled", False))
     caption_options = cfg.get("caption_options")
     base_annotations = list(cfg.get("base_annotations") or [])
+    effective_screen_overlay = (
+        normalize_screen_overlay_options(screen_overlay)
+        if screen_overlay is not None
+        else cfg.get("screen_overlay")
+    )
+    if screen_overlay is not None:
+        base_annotations = [a for a in base_annotations if not a.get("is_screen_overlay")]
+        if effective_screen_overlay:
+            base_annotations.insert(
+                0,
+                build_screen_overlay_annotation(
+                    effective_screen_overlay,
+                    total_duration=total_duration,
+                    target_h=target_h,
+                ),
+            )
+            cfg["screen_overlay"] = effective_screen_overlay
+            summary["screen_overlay"] = effective_screen_overlay
+            summary["bottom_text"] = effective_screen_overlay["text"]
+        else:
+            cfg["screen_overlay"] = None
+            summary["screen_overlay"] = None
+    cfg["base_annotations"] = base_annotations
 
     subtitles_list, caption_track_meta, applied_annotations_count = _apply_subtitles_and_annotations(
         final_cut_path=final_cut_path,
@@ -2497,6 +2521,80 @@ def _extract_formatted_keyframes(
     return keyframe_files, formatted_keyframes
 
 
+def normalize_screen_overlay_options(
+    screen_overlay: Optional[Dict[str, Any]],
+    *,
+    fallback_text: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Normalize interactive persistent screen overlay text, coordinates, font, and effect."""
+    if not isinstance(screen_overlay, dict):
+        return None
+    if screen_overlay.get("enabled") is False:
+        return None
+    raw_text = sanitize_and_validate_prompt(str(screen_overlay.get("text") or fallback_text or "").strip())
+    if not raw_text:
+        return None
+    try:
+        x_pct = float(screen_overlay.get("x_pct") if screen_overlay.get("x_pct") is not None else 0.5)
+    except (TypeError, ValueError):
+        x_pct = 0.5
+    try:
+        y_pct = float(screen_overlay.get("y_pct") if screen_overlay.get("y_pct") is not None else 0.84)
+    except (TypeError, ValueError):
+        y_pct = 0.84
+    size = str(screen_overlay.get("size") or "medium").strip().lower()
+    if size not in ("small", "medium", "large"):
+        size = "medium"
+    return {
+        "enabled": True,
+        "text": raw_text[:220],
+        "x_pct": round(max(0.05, min(0.95, x_pct)), 4),
+        "y_pct": round(max(0.05, min(0.95, y_pct)), 4),
+        "font": str(screen_overlay.get("font") or screen_overlay.get("font_id") or "arial_bold").strip().lower(),
+        "effect": str(screen_overlay.get("effect") or "solid_dark").strip().lower(),
+        "size": size,
+        "text_color": str(screen_overlay.get("text_color") or screen_overlay.get("color") or "default").strip().lower(),
+    }
+
+
+def build_screen_overlay_annotation(
+    overlay_cfg: Dict[str, Any],
+    *,
+    total_duration: float,
+    target_h: int,
+) -> Dict[str, Any]:
+    """Convert normalized screen overlay config into an FFmpeg drawtext annotation dictionary."""
+    size_key = overlay_cfg.get("size", "medium")
+    is_large = size_key == "large"
+    if is_large:
+        font_size = max(48, min(64, int(target_h * 0.042)))
+        box_border = 16
+    elif size_key == "small":
+        font_size = max(28, min(38, int(target_h * 0.024)))
+        box_border = 10
+    else:
+        font_size = max(38, min(50, int(target_h * 0.034)))
+        box_border = 14
+    return {
+        "text": overlay_cfg["text"],
+        "start_sec": 0.0,
+        "end_sec": total_duration,
+        "position": "custom_xy",
+        "style": "persistent_bottom",
+        "font_id": overlay_cfg.get("font", "arial_bold"),
+        "effect": overlay_cfg.get("effect", "solid_dark"),
+        "size": size_key,
+        "text_color": overlay_cfg.get("text_color", "default"),
+        "x_pct": overlay_cfg.get("x_pct", 0.5),
+        "y_pct": overlay_cfg.get("y_pct", 0.84),
+        "font_size": font_size,
+        "boxborderw": box_border,
+        "large_font": is_large,
+        "persistent": True,
+        "is_screen_overlay": True,
+    }
+
+
 def process_mobile_video(
     video_path: Union[str, Path],
     script: Optional[str] = None,
@@ -2523,6 +2621,7 @@ def process_mobile_video(
     enable_music: Optional[bool] = None,
     job_id: Optional[str] = None,
     caption_options: Optional[Dict[str, Any]] = None,
+    screen_overlay: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -3282,9 +3381,25 @@ def process_mobile_video(
     applied_annotations_count = 0
     annotations_list: List[Dict[str, Any]] = []
 
-    # Insert persistent bottom text / phone number overlay ONLY if genuinely provided
-    effective_bottom = bottom_text or (phone_number if phone_number else None)
-    if effective_bottom and str(effective_bottom).strip():
+    # Insert interactive drag-placed screen overlay OR legacy persistent bottom text / phone overlay
+    normalized_screen_overlay = normalize_screen_overlay_options(
+        screen_overlay,
+        fallback_text=bottom_text or phone_number or fixed_text,
+    )
+    effective_bottom = (
+        normalized_screen_overlay["text"]
+        if normalized_screen_overlay
+        else (bottom_text or (phone_number if phone_number else None))
+    )
+    if normalized_screen_overlay:
+        annotations_list.append(
+            build_screen_overlay_annotation(
+                normalized_screen_overlay,
+                total_duration=total_duration,
+                target_h=target_h,
+            )
+        )
+    elif effective_bottom and str(effective_bottom).strip():
         is_large_font = bool(parsed_dirs.get("large_font", False))
         target_overlay_pos = parsed_dirs.get("overlay_position") or "bottom_banner"
 
@@ -3431,6 +3546,7 @@ def process_mobile_video(
         "fixed_text": fixed_text,
         "bottom_text": effective_bottom,
         "phone_number": phone_number,
+        "screen_overlay": normalized_screen_overlay,
         "subtitles": subtitles_list,
         "subtitles_count": len(subtitles_list),
         "subtitles_enabled": subtitles_opt_in,
@@ -3457,6 +3573,7 @@ def process_mobile_video(
             "ambient_volume": ambient_volume,
             "subtitles_enabled": subtitles_opt_in,
             "caption_options": caption_options,
+            "screen_overlay": normalized_screen_overlay,
             "base_annotations": base_annotations,
         },
         "videographer_speech": videographer_speech,
