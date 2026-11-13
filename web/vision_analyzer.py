@@ -32,6 +32,7 @@ from web.pipeline_bridge import (
     extract_directives,
     sanitize_script_against_meta_prompts,
     extract_property_features,
+    strip_tts_vocal_tags,
 )
 
 logger = logging.getLogger("vision_analyzer")
@@ -225,7 +226,7 @@ def generate_synchronized_subtitles(
     matching the natural spoken phrasing of the narration script across the audio duration,
     with character-weighted phonetic duration and optional shot_timeline scene anchoring.
     """
-    raw_script = str(script or "").strip()
+    raw_script = strip_tts_vocal_tags(str(script or "")).strip()
     if not raw_script:
         return []
 

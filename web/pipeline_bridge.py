@@ -57,6 +57,7 @@ def _ensure_env_loaded():
 _ensure_env_loaded()
 
 import frame_extractor
+from tts.gemini_speech.client import strip_tts_vocal_tags
 from web.video_annotator import annotate_video, find_system_font
 
 logger = logging.getLogger("mobile_pipeline_bridge")
@@ -1196,6 +1197,113 @@ def _concatenate_wav_files(chunk_paths: List[Path], output_path: Path, gap_sec: 
                 out_w.writeframes(in_w.readframes(in_w.getnframes()))
 
 
+_NATURAL_CUE_PATTERNS = (
+    (re.compile(r"\[(?:short[\s_-]*)?pause\]|\((?:short[\s_-]*)?pause\)", re.IGNORECASE), "<short pause>"),
+    (re.compile(r"\[breath\]|\(breath\)", re.IGNORECASE), "<breath>"),
+    (re.compile(r"\[sigh\]|\(sigh\)", re.IGNORECASE), "<sigh>"),
+    (re.compile(r"\[laugh\]|\(laugh\)", re.IGNORECASE), "<laugh>"),
+)
+_REVEAL_WORDS = frozenset({
+    "شوفوا", "شوفو", "تخيلوا", "والأهم", "المفاجأة", "لاحظوا", "وهنا",
+    "look", "imagine", "plus", "wait", "actually", "regarde", "regardez",
+})
+_CONNECTOR_WORDS = frozenset({
+    "أما", "لكن", "باش", "يعني", "وحتى", "حيث", "بينما",
+    "and", "with", "where", "because", "while", "et", "avec", "puis",
+})
+
+
+def format_natural_speech_text(
+    text: str,
+    *,
+    scene_index: int = 0,
+    total_scenes: int = 1,
+) -> str:
+    """Enrich any plain prompt/script with subtle Gemini 3.8 vocal cues for natural human cadence."""
+    normalized = " ".join(str(text or "").split()).strip()
+    if not normalized:
+        return ""
+    for pattern, tag in _NATURAL_CUE_PATTERNS:
+        normalized = pattern.sub(tag, normalized)
+    if re.search(r"<(?:breath|short\s+pause|sigh|gasp|laugh|chuckle|cough|whisper)>", normalized, re.IGNORECASE):
+        return normalized
+
+    words = normalized.split()
+    if len(words) < 9:
+        return normalized
+
+    # Multi-sentence input: place a natural breath/pause between the opening thought and follow-up
+    sentences = [s.strip() for s in re.split(r"(?<=[.!؟?])\s+", normalized) if s.strip()]
+    if len(sentences) >= 2:
+        cue = "<breath>" if len(sentences[0].split()) >= 4 else "<short pause>"
+        if len(sentences) == 2:
+            return f"{sentences[0]} {cue} {sentences[1]}"
+        return f"{sentences[0]} {cue} {sentences[1]} <short pause> " + " ".join(sentences[2:])
+
+    # Single long sentence: insert one subtle breath/pause at a mid-sentence reveal, comma, or connector
+    start_idx = max(3, len(words) // 3)
+    end_idx = min(len(words) - 2, (3 * len(words)) // 4)
+    insert_at: Optional[int] = None
+    chosen_cue = "<short pause>"
+
+    for idx in range(start_idx, end_idx + 1):
+        bare = re.sub(r"^[,،.!?؟—…]+|[,،.!?؟—…]+$", "", words[idx]).lower()
+        if bare in _REVEAL_WORDS:
+            insert_at, chosen_cue = idx, "<breath>"
+            break
+        if words[idx - 1].endswith(("،", ",", "—", "…")) or bare in _CONNECTOR_WORDS:
+            insert_at = idx
+            break
+
+    if insert_at is None:
+        return normalized
+    return " ".join([*words[:insert_at], chosen_cue, *words[insert_at:]]).strip()
+
+
+def build_scene_delivery_style(
+    base_style: Optional[str] = None,
+    *,
+    emotional_tone: Optional[str] = None,
+    scene_index: int = 0,
+    total_scenes: int = 1,
+    slot_text: str = "",
+    slot_budget_sec: Optional[float] = None,
+) -> str:
+    """Build per-scene vocal style metadata with hook/tour/closing arc and scene-budget pacing."""
+    clean_text = strip_tts_vocal_tags(slot_text)
+    arc_marker = "افتتاحية جاذبة"
+    segments: List[str] = []
+    if base_style and base_style.strip():
+        segments.append(base_style.strip())
+
+    # Avoid duplicating arc directives when synthesize_narration calls this idempotently
+    already_styled = bool(base_style and any(tok in base_style for tok in (
+        "افتتاحية جاذبة", "خاتمة واثقة", "سرد متجول", "نبرة حية ودافئة", "تفاعل معبّر",
+    )))
+    if not already_styled:
+        if total_scenes <= 1:
+            arc_hint = "نبرة حية ودافئة ومتفاعلة مع المشاهد، إيقاع بشري طبيعي وتنفس واضح"
+        elif scene_index == 0:
+            arc_hint = f"{arc_marker} بنبرة دافئة وحماس طبيعي، بداية سلسلة بدون تصنع"
+        elif scene_index >= total_scenes - 1:
+            arc_hint = "خاتمة واثقة ومريحة بنبرة دعوة لطيفة وواضحة"
+        elif any(ch in clean_text for ch in ("!", "؟", "?")):
+            arc_hint = "تفاعل معبّر ونبرة شغف وتشويق لطيف عند إبراز التفاصيل"
+        else:
+            arc_hint = "سرد متجول عفوي وطبيعي كأنك تتحدث مع مشاهد مباشرة"
+        segments.append(arc_hint)
+
+    word_count = len(clean_text.split())
+    if slot_budget_sec and slot_budget_sec > 0 and word_count > 0:
+        wps = word_count / float(slot_budget_sec)
+        if wps > 2.5 and "إيقاع سريع" not in (base_style or ""):
+            segments.append("إيقاع سريع واضح ومباشر بدون إطالة")
+        elif wps < 1.3 and word_count >= 3 and "إيقاع هادئ متأنٍ" not in (base_style or ""):
+            segments.append("إيقاع هادئ متأنٍ ومريح مع وقفات تنفس طبيعية")
+
+    return ". ".join(s.rstrip(".") for s in segments if s).strip()
+
+
 def synthesize_narration(
     script_text: str,
     output_path: Union[str, Path],
@@ -1221,6 +1329,14 @@ def synthesize_narration(
 
     # Check for Gemini API key
     has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
+    natural_script = format_natural_speech_text(script_text) or script_text
+    effective_style_prompt = build_scene_delivery_style(
+        style_prompt,
+        emotional_tone=emotional_tone,
+        scene_index=0,
+        total_scenes=1,
+        slot_text=script_text,
+    )
 
     if has_api_key:
         try:
@@ -1230,16 +1346,16 @@ def synthesize_narration(
                 resolved_voice_id,
                 gemini_voice,
                 emotional_tone,
-                style_prompt,
+                effective_style_prompt,
             )
             client = GeminiSpeechClient()
-            chunks = _split_tts_chunks(script_text, max_words_per_chunk=95)
+            chunks = _split_tts_chunks(natural_script, max_words_per_chunk=95)
             if len(chunks) <= 1:
                 client.generate_speech(
-                    text=script_text,
+                    text=natural_script,
                     voice_name=gemini_voice,
                     output_path=str(out_file),
-                    style_prompt=style_prompt,
+                    style_prompt=effective_style_prompt,
                     emotional_tone=emotional_tone,
                 )
             else:
@@ -1252,7 +1368,7 @@ def synthesize_narration(
                             text=chunk_text,
                             voice_name=gemini_voice,
                             output_path=str(chunk_wav),
-                            style_prompt=style_prompt,
+                            style_prompt=effective_style_prompt,
                             emotional_tone=emotional_tone,
                         )
                         if not chunk_wav.is_file() or chunk_wav.stat().st_size == 0:
@@ -1458,21 +1574,22 @@ def synthesize_scene_aligned_narration(
 
     valid_slots: List[Dict[str, Any]] = []
     for item in scene_segments:
-        txt = " ".join(str(item.get("text") or item.get("narration_line") or "").split()).strip()
-        if not txt:
+        raw_line = " ".join(str(item.get("text") or item.get("narration_line") or "").split()).strip()
+        clean_line = strip_tts_vocal_tags(raw_line)
+        if not raw_line or not clean_line:
             continue
         try:
             st = max(0.0, float(item.get("start_sec", 0.0)))
             en = max(st + 0.8, float(item.get("end_sec", st + 2.5)))
         except (TypeError, ValueError):
             continue
-        valid_slots.append({"start_sec": st, "end_sec": en, "text": txt})
+        valid_slots.append({"start_sec": st, "end_sec": en, "text": raw_line, "clean_text": clean_line})
 
-    combined_script = " ".join(s["text"] for s in valid_slots)
+    combined_script = " ".join(s["clean_text"] for s in valid_slots)
     has_api_key = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEYS"))
     if len(valid_slots) < 2 or not has_api_key:
         return synthesize_narration(
-            script_text=combined_script,
+            script_text=" ".join(s["text"] for s in valid_slots) or combined_script,
             output_path=out_file,
             voice=voice,
             style_prompt=style_prompt,
@@ -1481,27 +1598,41 @@ def synthesize_scene_aligned_narration(
 
     chunk_paths: List[Path] = [out_file.parent / f"{out_file.stem}_scene_{idx}.wav" for idx in range(len(valid_slots))]
     scene_results: Dict[int, Dict[str, Any]] = {}
+    total_slots = len(valid_slots)
 
     def _synth_one(idx: int) -> Dict[str, Any]:
         slot = valid_slots[idx]
         c_path = chunk_paths[idx]
-        res = synthesize_narration(
-            script_text=slot["text"],
-            output_path=c_path,
-            voice=voice,
-            style_prompt=style_prompt,
-            emotional_tone=emotional_tone,
-        )
-        _trim_wav_silence(c_path)
         slot_budget = max(0.8, (slot["end_sec"] - slot["start_sec"]) - 0.08)
         if idx == 0 and slot["start_sec"] < visual_lead_in:
             slot_budget = max(0.8, (slot["end_sec"] - visual_lead_in) - 0.08)
+        spoken_text = format_natural_speech_text(
+            slot["text"],
+            scene_index=idx,
+            total_scenes=total_slots,
+        )
+        scene_style = build_scene_delivery_style(
+            style_prompt,
+            emotional_tone=emotional_tone,
+            scene_index=idx,
+            total_scenes=total_slots,
+            slot_text=slot["text"],
+            slot_budget_sec=slot_budget,
+        )
+        res = synthesize_narration(
+            script_text=spoken_text,
+            output_path=c_path,
+            voice=voice,
+            style_prompt=scene_style,
+            emotional_tone=emotional_tone,
+        )
+        _trim_wav_silence(c_path)
         fitted_dur = _fit_audio_tempo(
             c_path,
             max_duration=slot_budget,
             max_tempo=1.55,
             min_duration=slot_budget * 0.85,
-            min_tempo=0.88,
+            min_tempo=0.92,
         )
         res["duration"] = fitted_dur
         return res
@@ -1555,7 +1686,7 @@ def synthesize_scene_aligned_narration(
                     "segment_index": idx + 1,
                     "start_sec": actual_start,
                     "end_sec": actual_end,
-                    "text": slot["text"],
+                    "text": slot["clean_text"],
                     "scene_index": idx + 1,
                 })
 
@@ -1831,7 +1962,7 @@ def _apply_subtitles_and_annotations(
 
     caption_track_meta: Optional[Dict[str, Any]] = None
     if caption_options:
-        custom_caption_text = (caption_options.get("custom_text") or "").strip() or None
+        custom_caption_text = strip_tts_vocal_tags(caption_options.get("custom_text") or "") or None
         narration_segments = subtitles_list if (not custom_caption_text and subtitles_list) else None
         if custom_caption_text or narration_segments:
             try:
@@ -2003,7 +2134,7 @@ def _build_editable_cuts(
                 "start_sec": st,
                 "end_sec": en,
                 "title": title,
-                "text": str(slot.get("text") or "").strip(),
+                "text": strip_tts_vocal_tags(str(slot.get("text") or "").strip()),
                 "thumb": _pick_closest_thumb(formatted_keyframes, (st + en) * 0.5),
             })
         return cuts

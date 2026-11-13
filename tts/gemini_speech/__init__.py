@@ -1,6 +1,6 @@
 """Google Gemini Speech Client Library for production Text-to-Speech."""
 
-from .client import GeminiSpeechClient
+from .client import GeminiSpeechClient, strip_tts_vocal_tags
 from .config import KeyManager, KeyState
 from .exceptions import (
     AuthenticationError,
