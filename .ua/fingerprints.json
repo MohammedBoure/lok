@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "9648c4f6df5c2f97e45ccb34c7328a21b0ceb7b9",
-  "generatedAt": "2026-11-13T10:32:11.749Z",
+  "gitCommitHash": "436770783537b3a95723ecbd447bce8a884016ff",
+  "generatedAt": "2026-11-13T10:40:11.713Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -10499,32 +10499,32 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "a328d09b628fca8eeb9827470e314df75dee8ff52f3e85ab885b750ea989d8d0",
+      "contentHash": "5dc657d94256dc50d2fd5885ec8bf8580511277d42fdccf88148326e1273fa1d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2400,
+      "totalLines": 2596,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "9a262bcd7dcf56666ca3eec4e54eadd315c7afd83df58802fb83847c7990cd85",
+      "contentHash": "dbc097beabbd124fe7ab0bf4faa2f1b342e1507609042abd61cf5e4e519d3734",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 806,
+      "totalLines": 850,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "000626b50f4d7c8c57289599f0fef078a15865ba880657992746d7a9d0774dff",
+      "contentHash": "57b47e56fd5b8c1c97a5ba2a52eabe99698345ed3cc6d50b4e592b5c7de184d5",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2037,
+      "totalLines": 2151,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -11298,7 +11298,7 @@
     },
     "tests/test_music_selection_and_enable_fix.py": {
       "filePath": "tests/test_music_selection_and_enable_fix.py",
-      "contentHash": "0390a763fb8de8f06ccdd1fb53a84e65ecc8a87b9879a3936b03c96c10eb1cf7",
+      "contentHash": "39a23c2fb66cd68a610be2436444ed7a6d1a8f3397a8edaac49123cccd6f21eb",
       "functions": [
         {
           "name": "test_parse_music_directives_distinguishes_default_from_explicit_mute",
@@ -11317,7 +11317,7 @@
             "tmp_path"
           ],
           "exported": true,
-          "lineCount": 52
+          "lineCount": 53
         },
         {
           "name": "test_explicit_mute_in_prompt_still_overrides_enable_music",
@@ -11353,6 +11353,12 @@
           ],
           "exported": true,
           "lineCount": 56
+        },
+        {
+          "name": "test_compact_ui_music_selector_and_collapsible_sections_contract",
+          "params": [],
+          "exported": true,
+          "lineCount": 33
         }
       ],
       "classes": [],
@@ -11410,9 +11416,10 @@
         "test_enable_music_flag_activates_music_even_without_prompt_keywords",
         "test_explicit_mute_in_prompt_still_overrides_enable_music",
         "test_dynamic_assets_music_discovery_and_audio_endpoint",
-        "test_update_cuts_text_updates_music_selection"
+        "test_update_cuts_text_updates_music_selection",
+        "test_compact_ui_music_selector_and_collapsible_sections_contract"
       ],
-      "totalLines": 238,
+      "totalLines": 275,
       "hasStructuralAnalysis": true
     }
   }
