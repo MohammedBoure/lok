@@ -32,6 +32,7 @@ from web.pipeline_bridge import (
     extract_directives,
     sanitize_script_against_meta_prompts,
     extract_property_features,
+    strip_tts_vocal_tags,
 )
 
 logger = logging.getLogger("vision_analyzer")
@@ -212,6 +213,94 @@ def build_shot_timeline(
     return timeline
 
 
+_GENERIC_SCENE_TITLE_RE = re.compile(
+    r"^(?:Scene\s+\d+|لقطة\s+مختارة|لقطة\s+عالية\s+الوضوح|اللقطة\s+\d+|لقطة\s+\d+|المشهد\s+\d+)",
+    re.IGNORECASE,
+)
+
+
+def _is_generic_scene_title(title: Optional[str]) -> bool:
+    txt = str(title or "").strip()
+    if not txt:
+        return True
+    return bool(_GENERIC_SCENE_TITLE_RE.match(txt))
+
+
+def _clean_ai_scene_title(raw_title: Optional[str]) -> str:
+    txt = re.sub(r"\s*\[[^\]]*\d+\.\d+s\s*-\s*\d+\.\d+s[^\]]*\]\s*$", "", str(raw_title or "").strip())
+    return txt.strip(" -:")
+
+
+def enrich_shot_timeline_with_ai_scenes(
+    base_timeline: List[Dict[str, Any]],
+    *,
+    scene_scripts: Optional[List[Dict[str, Any]]] = None,
+    recommended_cuts: Optional[List[Dict[str, Any]]] = None,
+    keyframe_records: Optional[List[Dict[str, Any]]] = None,
+    video_duration: float = 0.0,
+) -> List[Dict[str, Any]]:
+    """
+    Replace generic 'Scene N [0.0s - 4.0s]' intervals with AI-detected semantic room/scene cuts
+    and concise Arabic room names whenever Gemini Vision supplies scene_scripts or titled cuts.
+    Leaves bare-keyframe timelines intact when no AI scene segmentation is available.
+    """
+    source_items: List[Dict[str, Any]] = []
+    if scene_scripts and any(
+        not _is_generic_scene_title(_clean_ai_scene_title(s.get("title") or s.get("room_or_subject")))
+        for s in scene_scripts
+        if isinstance(s, dict)
+    ):
+        source_items = [s for s in scene_scripts if isinstance(s, dict)]
+    elif recommended_cuts and any(
+        not _is_generic_scene_title(_clean_ai_scene_title(c.get("title")))
+        for c in recommended_cuts
+        if isinstance(c, dict)
+    ):
+        source_items = [c for c in recommended_cuts if isinstance(c, dict)]
+
+    if not source_items:
+        return base_timeline
+
+    kf_list = list(keyframe_records or [])
+    enriched: List[Dict[str, Any]] = []
+    for idx, item in enumerate(source_items):
+        try:
+            st = round(max(0.0, float(item.get("start_sec", 0.0))), 2)
+            en = round(max(st + 0.5, float(item.get("end_sec", st + 3.0))), 2)
+        except (TypeError, ValueError):
+            continue
+        if video_duration and video_duration > 0.5:
+            en = min(round(float(video_duration), 2), en)
+            if en - st < 0.4:
+                continue
+
+        clean_name = _clean_ai_scene_title(item.get("title") or item.get("room_or_subject") or item.get("reason"))
+        if _is_generic_scene_title(clean_name):
+            clean_name = f"المشهد {len(enriched) + 1}"
+
+        mid = (st + en) * 0.5
+        nearest_kf = min(kf_list, key=lambda r: abs(float(r.get("timestamp_sec", 0.0)) - mid)) if kf_list else None
+        text_line = sanitize_script_against_meta_prompts(
+            str(item.get("text") or item.get("narration_line") or item.get("reason") or "").strip()
+        )
+        entry: Dict[str, Any] = {
+            "scene_index": len(enriched) + 1,
+            "start_sec": st,
+            "end_sec": en,
+            "duration": round(en - st, 2),
+            "keyframe_timestamp": nearest_kf["timestamp_sec"] if nearest_kf else round(mid, 2),
+            "keyframe_path": str(nearest_kf["path"]) if nearest_kf else "",
+            "title": clean_name,
+            "room_or_subject": clean_name,
+        }
+        if text_line:
+            entry["description"] = text_line
+            entry["narration_line"] = text_line
+        enriched.append(entry)
+
+    return enriched or base_timeline
+
+
 def generate_synchronized_subtitles(
     script: str,
     narration_duration: float,
@@ -225,7 +314,7 @@ def generate_synchronized_subtitles(
     matching the natural spoken phrasing of the narration script across the audio duration,
     with character-weighted phonetic duration and optional shot_timeline scene anchoring.
     """
-    raw_script = str(script or "").strip()
+    raw_script = strip_tts_vocal_tags(str(script or "")).strip()
     if not raw_script:
         return []
 
@@ -364,72 +453,66 @@ FALLBACK_PROFILES = [
 
 
 MARKETING_ANGLES = [
-    "Architectural Elegance & Luxury Finishes (الفخامة والتشطيبات المعمارية الراقية)",
-    "Family Sanctuary & Peaceful Living (السكينة والراحة العائلية الفائقة)",
-    "Prime Investment & Strategic Opportunity (الاستثمار الاستراتيجي والعائد المتميز)",
-    "Modern Mediterranean Flow & Panoramic Horizons (الحياة العصرية المشرقة والإطلالات البانورامية)",
-    "Warm Welcoming Living & Contemporary Prestige (الدفء والتميز المعاصر)",
+    "Clean Architecture & Natural Light (تصميم مرتب وإضاءة طبيعية مريحة)",
+    "Calm Everyday Comfort (الهدوء والراحة اليومية للعائلة)",
+    "Practical Layout & Useful Spaces (توزيع عملي ومساحات مستغلة بذكاء)",
+    "Bright Contemporary Living (بساطة عصرية وإطلالة مريحة)",
+    "Honest Direct Walkthrough (جولة واضحة وعفوية كما تبدو في الواقع)",
 ]
 
 HOOK_TEMPLATES = [
-    "شوفو معايا هاد الـ{prop_type}{unit_str}، {view_str}.",
-    "شوفو معايا هاد الجولة الحصرية لهاد الـ{prop_type}{unit_str}، {view_str}.",
-    "شوفو معايا هاد العقار الاستثنائي: {prop_type}{unit_str} {view_str} يلبي كل التطلعات.",
-    "شوفو معايا لعشاق التميز والراحة، هاد الـ{prop_type}{unit_str} {view_str} بمواصفات نادرة.",
-    "شوفو معايا هاد العرض الاستثنائي: {prop_type}{unit_str} فاخر ومتميز، {view_str}.",
+    "شوفو معايا هاد الـ{prop_type}{unit_str}، {view_str}، جولة خفيفة وبسيطة على كل غرفة في المكان.",
+    "ندخلو مع بعض نشوفو هاد الـ{prop_type}{unit_str}، {view_str}، وتوزيع المساحات فيها واضح ومريح.",
+    "اليوم رانا في {prop_type}{unit_str}، {view_str}، نوريلكم التفاصيل كما تبان قدامكم في الفيديو.",
 ]
 
 SALON_TEMPLATES = [
-    "رانا هنا ندخلو للصالون الواسع والمضيء، تشطيبات عصرية وفينيسيون متقونة توفر أقصى درجات الراحة.",
-    "أول ما يلفت انتباهنا هو الصالون الفسيح بإنارة طبيعية مبهجة وديكور راقي ومريح للغاية.",
-    "شوفو رحابة الصالون والمساحة المفتوحة، هندسة داخلية مدروسة بعناية لتمنح عائلتكم أجواء دافئة.",
-    "صالون استقبال ملكي بمساحة ممتازة وتنسيق أنيق، يجمع بين الفخامة والبساطة المعاصرة.",
+    "أول ما ندخلو، هنا الصالون مساحته واسعة ومرتبة، والضوء الطبيعي داخل مليح مع تهوية مريحة للدار.",
+    "هنا الصالون الرئيسي بمساحة عملية للجلسة العائلية واستقبال الضيوف، مع نوافذ تدخل الإضاءة الطبيعية نهار كامل.",
+    "شوفو الصالون كيفاش مفتوح والتهوية والإنارة فيه طبيعية، الأرضية والجدران مخدومة ببساطة ونظافة تريح العين.",
 ]
 
 ROOMS_TEMPLATES = [
-    "توزيع الغرف مدروس ومريح بزاف مع تهوية طبيعية ممتازة ومساحات واسعة تناسب كامل تطلعات العائلة.",
-    "غرف النوم مستقلة وهادئة بتصميم يوفر الخصوصية والسكينة التامة لجميع أفراد الأسرة.",
-    "المساحات المخصصة للنوم والاسترخاء رحبة ومخدومة بذكاء، مع إطلالات شرحة ومداخل إنارة طبيعية رائعة.",
+    "كي نكملو للغرف، التوزيع هادئ ومناسب للعائلة، كل غرفة عندها تهوية طبيعية ومساحة كافية للراحة اليومية.",
+    "هنا غرف النوم جاية معزولة شوية عن الصالون باش تمد خصوصية وهدوء، ومساحتها مرتبة للاستعمال اليومي.",
+    "الغرف مساحتها عملية، الأبواب والنوافذ مخدومين بنظافة والضوء الطبيعي يوصل لكل ركن بسهولة كبيرة.",
 ]
 
 KITCHEN_TEMPLATES = [
-    "المطبخ عصري ومجهز بالكامل بأحدث التجهيزات، وكل زاوية في هاد العقار مخدومة بإتقان واهتمام بأدق التفاصيل.",
-    "مطبخ أمريكي راقي مفتوح وعملي للغاية، مجهز بأجود المواد لتجربة طهي واستقبال عائلية ممتعة.",
-    "وفينيسيون المطبخ والحمامات على أعلى مستوى من الإتقان، جودة تدوم وتلبي أرقى الأذواق.",
+    "أما المطبخ، راه مجهز بمساحة حركة مريحة وخزائن عملية للطبخ وتخزين الحاجات اليومية بكل بساطة.",
+    "هنا المطبخ مفتوح ومرتب بلمسة عصرية مع حوض وخزائن متناسقة، وكل تفصيل مخدوم بشكل نظيف وعملي.",
+    "المطبخ والحمام مخدومين بنظافة، الترصيص والسيراميك نوعية مليحة وتصميم عملي يعيش مع العائلة مدة طويلة.",
 ]
 
 LOCATION_TEMPLATES = [
-    "الموقع هادئ وآمن ومثالي، مع إمكانية الوصول السريع لكافة الخدمات الأساسية والمحاور الرئيسية.",
-    "حي راقي ومجاور لكافة المرافق الضرورية من مدارس ونقل وتجارة، يضمن لكم حياة يومية مريحة.",
-    "موقع متميز يجمع بين السكينة وسهولة التنقل، موقع لا يعوض في قلب المنطقة.",
+    "الموقع هادئ ومخدوم مليح، قريب للمحلات، المدارس ووسائل النقل اللي تحتاجوها في تنقلاتكم اليومية.",
+    "الحي منظم وهادئ وقريب للمرافق الأساسية، يخلي الخروج والقضيان سهل على كامل أفراد العائلة كل يوم.",
+    "المكان يجمع بين الهدوء والبعد عن الضوضاء مع قرب سهل من الطرق الرئيسية وكامل الخدمات.",
 ]
 
 CTA_TEMPLATES = [
-    "فرصة استثنائية ونادرة للسكن أو الاستثمار، اتصلو بنا على الرقم الظاهر أسفل الشاشة لحجز موعد الزيارة والاستفسار.",
-    "ما تفوتوش هاد الفرصة الذهبية، للمزيد من التفاصيل والزيارة تواصلو معنا مباشرة عبر الرقم الظاهر أسفل الشاشة.",
-    "للمهتمين بهاد العقار الفاخر، فريقنا في خدمتكم، سارعو بالاتصال على الرقم الظاهر أسفل الشاشة للحجز.",
-    "عقار يضمن لكم قيمة عقارية ممتازة وراحة دائمة، لا تترددوا في الاتصال بالرقم الظاهر أسفل الشاشة.",
+    "إذا عجبكم العقار وحبيتو تشوفوه عن قرب، تواصلو معانا عبر الرقم الظاهر أسفل الشاشة للاستفسار.",
+    "لأي سؤال على السعر أو الوثائق ولا حجز زيارة للمكان، اتصلو عبر الرقم الظاهر أسفل الشاشة.",
+    "اللي مهتم بهذه الجولة وحاب معلومات أكثر، فريقنا راه في الاستماع عبر الرقم الظاهر أسفل الشاشة.",
 ]
 
 
 GENERAL_HOOK_TEMPLATES = [
-    "شوفو معايا هاد العرض المميز: {subject}، بتفاصيل احترافية وجودة عالية تلبي كل تطلعاتكم.",
-    "مرحبا بيكم في هاد الجولة الحصرية باش تكتشفو {subject} عن قرب وبأدق التفاصيل.",
-    "شوفو معايا روعة وإتقان {subject}، تجربة استثنائية تجمع بين الجودة والتميز.",
-    "لعشاق الجودة والإتقان، جيبنالكم اليوم {subject} بمواصفات رائعة ومميزة بزاف.",
+    "شوفو معايا {subject}، جولة خفيفة وبسيطة على أبرز التفاصيل الظاهرة.",
+    "اليوم نوريلكم {subject} عن قرب وبكل عفوية ووضوح.",
+    "مرحبا بيكم، نشوفو مع بعض تفاصيل {subject}.",
 ]
 
 GENERAL_SHOWCASE_TEMPLATES = [
-    "كل تفصيل هنا مخدوم بعناية فائقة واهتمام كبير بالجودة باش يضمن لكم أفضل تجربة ممكنة.",
-    "شوفو معايا الدقة والإتقان في كل زاوية، خدمة نظيفة واحترافية على أعلى مستوى.",
-    "تصميم عصري ولمسة متميزة تخلي هاد العرض فريد من نوعه ومناسب لكامل احتياجاتكم.",
-    "الجودة والأصالة تبان في كل لقطة، مع التزام تام بأعلى المعايير الي تبحثو عليها.",
+    "التفاصيل باينة قدامكم، خدمة نظيفة وجودة محترمة مناسبة للاستعمال اليومي.",
+    "كل حاجة محطوطة في بلاصتها بشكل مرتب وعملي يسهل الاستخدام.",
+    "النتيجة قدامكم واضحة وتناسب الاحتياج الفعلي بدون تعقيد.",
 ]
 
 GENERAL_CTA_TEMPLATES = [
-    "ما تفوتوش هاد الفرصة المميزة، تواصلو معنا مباشرة عبر الرقم الظاهر أسفل الشاشة للاستفسار والطلب.",
-    "للطلب أو الاستفسار والحجز، فريقنا في خدمتكم، اتصلو بنا على الرقم الظاهر أسفل الشاشة.",
-    "فرصة رائعة تستحق التجربة، سارعو بالتواصل معنا عبر الرقم الظاهر أسفل الشاشة.",
+    "للاستفسار أو الطلب، تواصلو معانا عبر الرقم الظاهر أسفل الشاشة.",
+    "إذا عجبتكم الفكرة وحبيتو تفاصيل أكثر، تواصلو عبر الرقم الظاهر أسفل الشاشة.",
+    "للحجز ولا لأي سؤال، اتصلو بينا عبر الرقم الظاهر أسفل الشاشة.",
 ]
 
 
@@ -522,9 +605,9 @@ def _generate_dynamic_darja_script(
 
     unit_str = f" {unit}" if unit else ""
     if has_sea_view:
-        view_str = "مطلة مباشرة على البحر وبإطلالة بانورامية ساحرة" if prop_type in ("فيلا", "شقة", "دار") else "مطل مباشرة على البحر وبإطلالة بانورامية ساحرة"
+        view_str = "تطل مباشرة على البحر وإطلالتها مفتوحة ومريحة" if prop_type in ("فيلا", "شقة", "دار") else "يطل مباشرة على البحر وبإطلالة مريحة"
     else:
-        view_str = "في موقع استراتيجي راقي وهادئ وقريب من كامل المرافق الحيوية"
+        view_str = "في حي هادئ وقريب من كامل الخدمات اليومية"
 
     # Phase 1: Dynamic Hook / Introduction
     hook_tpl = random.choice(HOOK_TEMPLATES)
@@ -832,9 +915,9 @@ def _get_smart_fallback(
         else:
             intent = (clean_user_topic or speech_description).strip().rstrip(".،")
             if is_re:
-                script = f"شوفو معايا هاد العقار الاستثنائي بمواصفات راقية، {intent}، فرصة فريدة تلبي أعلى معايير الرفاهية والتميز."
+                script = f"شوفو معايا هاد العقار المرتب، {intent}، بمساحات عملية ومريحة."
             else:
-                script = f"شوفو معايا هاد العرض المميز، {intent}، جودة عالية وإتقان يلبي كل تطلعاتكم."
+                script = f"شوفو معايا {intent}، تفاصيل واضحة وجودة عملية."
     elif preset_hint or is_darja_or_walkthrough:
         script = _generate_dynamic_darja_script(
             speech_duration=speech_duration,
@@ -994,11 +1077,11 @@ def infer_video_script_and_mood(
 
     selected_frames = [r["path"] for r in selected_records]
 
-    # Size narration script for final montage length using engaging, continuous Arabic Gemini TTS cadence (~1.75 words/sec)
-    # so speech flows briskly from cut to cut with zero awkward pauses while never overflowing the last frame.
+    # Size narration script for final montage length using calm, conversational Arabic Gemini TTS cadence (~1.45 words/sec)
+    # so speech finishes cleanly inside each visual room/scene window without bleeding into the next cut.
     narrative_video_duration = float(target_montage_duration) if (target_montage_duration and float(target_montage_duration) >= 3.0) else video_duration
     speech_duration = max(2.0, round(narrative_video_duration - visual_lead_in - outro_buffer, 2))
-    target_words = max(16, min(180, int(round(speech_duration * 1.75))))
+    target_words = max(14, min(155, int(round(speech_duration * 1.45))))
 
     # Construct multimodal parts
     parts: List[Dict[str, Any]] = []
@@ -1050,16 +1133,19 @@ def infer_video_script_and_mood(
     is_re_prompt = _is_real_estate_context(prop_feats, preset_hint, f"{speech_description or ''} {visual_description or ''}")
     p_type_label = prop_feats.get("property_type") or (clean_user_topic if (clean_user_topic and not is_re_prompt) else "المحتوى المعروض في الفيديو (أو العقار)")
     p_unit_label = f" {prop_feats['unit']}" if prop_feats.get("unit") else ""
-    p_view_label = "إطلالة بحرية ساحرة ومطل على البحر" if prop_feats.get("sea_view") else "أبرز المزايا ونقاط القوة الحقيقية الظاهرة"
+    p_view_label = "إطلالة مباشرة على البحر" if prop_feats.get("sea_view") else "أهم التفاصيل الواقعية الظاهرة"
     dynamic_pacing_guidance = (
-        f"\n--- CONTINUOUS DYNAMIC AUDIO PACING (تغطية كامل مدة الفيديو بتدفق مستمر وجذاب بدون ملل أو فراغات صمت) ---\n"
-        f"CRITICAL PACING MANDATE: The target video duration is {narrative_video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
-        f"Keep the narrator speaking continuously in lively, engaging Algerian Darja at ~1.75 words/sec (~{target_words} words total) — "
-        f"rich and informative enough that there are NO silent gaps or early stoppages between cuts, yet crisp and non-repetitive so the viewer never gets bored! "
-        f"Fill ~90% of each scene smoothly across 3 connected phases:\n"
-        f"  1. Immediate Hook (~20%): Introduce {p_type_label}{p_unit_label} and highlight its {p_view_label}.\n"
-        f"  2. Continuous Visual Walkthrough (~65%): Flow seamlessly from room to room strictly matching each visible cut timestamp.\n"
-        f"  3. Crisp CTA (~15%): Energetic closing inviting viewers to contact via the number shown on screen.\n"
+        f"\n--- CONTINUOUS AUDIO-VISUAL SCENE SYNC & GROUNDED TONE (مزامنة كل مشهد مع النص وأسلوب كلام واقعي هادئ) ---\n"
+        f"CRITICAL PACING & ROOM-CUT MANDATE: The target video duration is {narrative_video_duration:.1f}s (net speaking duration: {speech_duration:.1f}s). "
+        f"Speak calmly and concisely at ~1.45 words/sec (~{target_words} words total). "
+        f"CRITICAL VISUAL BOUNDARY RULE: Detect every distinct space/room transition in camera movement (e.g., living room / الصالون -> hallway / الممر -> bathroom / الحمام -> kitchen / المطبخ -> bedroom / غرفة النوم). "
+        f"Each room/space gets its OWN cut window and its OWN strictly isolated spoken text ending BEFORE the camera enters the next space — NEVER let a sentence spill across a room transition.\n"
+        f"NATURAL CONVERSATIONAL TONE (بدون مبالغة أو تصنع): Write like a real person calmly showing the space on their phone. "
+        f"Use everyday direct words and simple short sentences. DO NOT use exaggerated theatrical hype words (avoid 'استثنائي', 'ملكي', 'ساحرة', 'فائقة', 'أسطوري', 'الذهبية', 'لا يعوض') and DO NOT stack '!' marks.\n"
+        f"Structure cleanly across the visual cuts:\n"
+        f"  1. Opening Space (~20%): Calmly introduce {p_type_label}{p_unit_label} and {p_view_label} visible right at the start.\n"
+        f"  2. Room-by-Room Tour (~65%): Cut cleanly at each room/corridor/area change so audio finishes before jumping to the next scene.\n"
+        f"  3. Simple Closing (~15%): Relaxed invitation to call/message via the number on screen.\n"
     )
     intent_guidance += dynamic_pacing_guidance
 
@@ -1116,9 +1202,9 @@ def infer_video_script_and_mood(
         )
 
     montage_cut_guidance = (
-        f"7. 'recommended_cuts': Array of chronologically ordered highlight shots to keep"
+        f"7. 'recommended_cuts': Array of chronologically ordered distinct visual scenes/rooms to keep"
         + (f" (aiming for ~{float(target_montage_duration):.1f}s total cut duration)" if target_montage_duration else "")
-        + ". Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), 'title', brief 'reason', and a lively 'narration_line' (~1.75 words per second of that cut so the voice fills ~90% of the shot seamlessly without filler) describing ONLY what is seen in that cut.\n"
+        + ". Detect exact spatial transitions (living room -> hallway -> bathroom -> kitchen -> bedroom -> exterior). Each item MUST have numeric 'start_sec', 'end_sec', 'score' (0.0-1.0), concise Arabic scene name 'title' naming THAT visible space (e.g. 'الصالون الواسع', 'الممر الرئيسي', 'الحمام العصري' — never generic 'Scene 1'), brief 'reason', and a calm, concise 'narration_line' (~1.45 words/sec so speech finishes cleanly before the cut changes) describing ONLY what is shown inside that cut.\n"
     )
 
     visual_input_desc = (
@@ -1140,10 +1226,10 @@ def infer_video_script_and_mood(
         f"If the principles instruct that the videographer is speaking ('كأن الشخص الذي يصور هو من يتكلم'), write in the first-person live walkthrough style ('رانا هنا ندخلو للصالون...', 'شوفو معايا هاد الإطلالة...'). "
         f"CRITICAL: NEVER speak or repeat user meta-instructions, directions, or overlay requests (e.g. 'أريد', 'رقم الهاتف', 'يظهر أسفل الفيديو') in the script. The script is strictly voiceover narration of the visual tour. "
         f"CRITICAL AUDIO-VISUAL PACING: Narration begins after an initial visual establishing period of {visual_lead_in:.1f}s and concludes {outro_buffer:.1f}s before the end. "
-        f"The script duration MUST stay continuous without awkward pauses or overflowing: write ~{target_words} engaging words (~1.75 words/sec over {speech_duration:.1f}s) so speech carries smoothly across every shot.\n"
+        f"The script duration MUST stay synchronized without overflowing any visual cut: write ~{target_words} natural everyday words (~1.45 words/sec over {speech_duration:.1f}s) with zero theatrical hype or exaggerated adjectives.\n"
         f"2. 'subtitles': Array of synchronized subtitle segment objects (e.g. [{{'start_sec': {visual_lead_in:.1f}, 'end_sec': {visual_lead_in + 3.0:.1f}, 'text': '...'}}]) matching the spoken phrasing.\n"
-        f"3. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'فاخر وهادئ', 'متحمس وحيوي', 'دافئ وأنيق', 'هادئ ومطمئن', 'حيوي وعصري'.\n"
-        f"4. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance (e.g. 'Warm, luxurious, calm and prestigious tone with elegant cadence' or 'Bright, enthusiastic, welcoming real estate tour').\n"
+        f"3. 'emotional_tone': An emotional atmosphere / mood in Arabic (الحالة الشعورية), e.g. 'هادئ وواقعي', 'دافئ وطبيعي', 'مريح وعفوي', 'عملي ومباشر'.\n"
+        f"4. 'emotional_prompt': An acoustic style prompt in English for Gemini TTS guidance emphasizing genuine unforced speech (e.g. 'Calm, natural everyday conversational tone, grounded human voice without theatrical exaggeration' or 'Warm, unhurried walkthrough commentary').\n"
         f"5. 'recommended_music': The single best matching music track ID from this exact list:\n"
         f"   - 'luxury_piano' (best for luxury apartments, penthouses, high-end architecture, elegant finishes)\n"
         f"   - 'acoustic_guitar' (best for cozy family homes, bright apartments, cheerful or modern spaces)\n"
@@ -1153,7 +1239,7 @@ def infer_video_script_and_mood(
         f"{montage_cut_guidance}"
         f"8. 'phone_number': Any Algerian phone number requested by user (e.g. '0558815453') or null.\n"
         f"9. 'bottom_text': Any persistent bottom text requested by user (or null).\n"
-        f"10. 'scene_scripts': Array of chronological time-locked scene voiceover objects matching the visual timeline: [{{'start_sec': 0.0, 'end_sec': 4.0, 'room_or_subject': 'المدخل', 'text': 'جملة جذابة تغطي هذا المشهد بتدفق مستمر'}}]. Aim for ~1.75 words per second of (end_sec - start_sec) so every scene stays filled and flowing cleanly without long silence or lag.\n\n"
+        f"10. 'scene_scripts': Array of chronological room/scene-locked cut objects aligned 1:1 with visible transitions: [{{'start_sec': 0.0, 'end_sec': 4.0, 'room_or_subject': 'الصالون الواسع', 'text': 'جملة بسيطة وواضحة تصف هذا المكان فقط'}}]. Split cleanly every time the camera moves to a different room or area (e.g. 'الصالون' -> 'الممر' -> 'الحمام' -> 'المطبخ'), name every scene concisely in Arabic via 'room_or_subject' (shown beside each timestamp), and aim for ~1.45 words/sec of (end_sec - start_sec) so the voice ends cleanly before jumping to the next scene.\n\n"
         f"Return strictly valid JSON with keys: 'script', 'subtitles', 'emotional_tone', 'emotional_prompt', 'recommended_music', 'highlights', 'recommended_cuts', 'phone_number', 'bottom_text', 'scene_scripts'."
     )
 
@@ -1341,6 +1427,14 @@ def infer_video_script_and_mood(
                                         if c.get("narration_line")
                                     ]
                                     normalized_scenes = cut_lines or None
+
+                                shot_timeline = enrich_shot_timeline_with_ai_scenes(
+                                    shot_timeline,
+                                    scene_scripts=normalized_scenes,
+                                    recommended_cuts=normalized_cuts,
+                                    keyframe_records=keyframe_records,
+                                    video_duration=video_duration,
+                                )
 
                                 return {
                                     "script": inferred_script,

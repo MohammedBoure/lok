@@ -35,8 +35,24 @@ from .voices import get_voice_profile, list_preset_voices
 logger = logging.getLogger("gemini_speech.client")
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
-DEFAULT_TTS_MODEL = os.getenv("DEFAULT_SPEECH_MODEL", "gemini-3.1-flash-tts-preview")
+DEFAULT_TTS_MODEL = os.getenv("DEFAULT_SPEECH_MODEL", "gemini-3.8-flash-tts")
 DEFAULT_VOICE = os.getenv("DEFAULT_VOICE_NAME", "Puck")
+
+_TTS_VOCAL_TAG_RE = re.compile(
+    r"<(?:breath|short\s+pause|sigh|gasp|laugh|chuckle|cough|whisper)>|\|(?:mhm|uh-huh|aha|hmm)\|",
+    re.IGNORECASE,
+)
+
+
+def strip_tts_vocal_tags(text: str) -> str:
+    """Remove inline TTS vocal cues (<breath>, <short pause>, etc.) for captions and legacy models."""
+    raw = str(text or "")
+    if not raw:
+        return ""
+    cleaned = _TTS_VOCAL_TAG_RE.sub(" ", raw)
+    cleaned = re.sub(r"\s+([,،.!?؟;:])", r"\1", cleaned)
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    return "\n".join(line.strip() for line in cleaned.splitlines()).strip()
 
 
 
@@ -319,6 +335,39 @@ class GeminiSpeechClient:
         """Return the preset voice catalog containing vocal profiles and tone attributes."""
         return list_preset_voices()
 
+    @staticmethod
+    def _build_speech_request_body(
+        *,
+        candidate_model: str,
+        transcript_text: str,
+        voice_name: str,
+        style_direction: str = "",
+    ) -> Dict[str, Any]:
+        """Build REST generateContent payload; 3.8 uses structured speechMetadata while legacy 3.1 falls back inline."""
+        uses_speech_metadata = "3.8" in str(candidate_model)
+        if uses_speech_metadata:
+            part: Dict[str, Any] = {"text": transcript_text}
+            if style_direction:
+                part["speechMetadata"] = {"style": style_direction}
+        else:
+            legacy_clean = strip_tts_vocal_tags(transcript_text) or transcript_text
+            legacy_text = f"({style_direction})\n{legacy_clean}" if style_direction else legacy_clean
+            part = {"text": legacy_text}
+
+        return {
+            "contents": [{"parts": [part]}],
+            "generationConfig": {
+                "responseModalities": ["AUDIO"],
+                "speechConfig": {
+                    "voiceConfig": {
+                        "prebuiltVoiceConfig": {
+                            "voiceName": voice_name,
+                        }
+                    }
+                },
+            },
+        }
+
     def generate_speech(
         self,
         text: str,
@@ -366,42 +415,25 @@ class GeminiSpeechClient:
         if expressions:
             directives.append(f"Expressions: {expressions.strip()}")
 
-        # Build speech content with acoustic style steering
-        prompt_text = text.strip()
-        if directives:
-            prompt_text = f"({', '.join(directives)})\n{prompt_text}"
-
-        request_body: Dict[str, Any] = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": prompt_text}
-                    ]
-                }
-            ],
-            "generationConfig": {
-                "responseModalities": ["AUDIO"],
-                "speechConfig": {
-                    "voiceConfig": {
-                        "prebuiltVoiceConfig": {
-                            "voiceName": effective_voice_name
-                        }
-                    }
-                },
-            },
-        }
+        raw_prompt_text = text.strip()
+        style_direction = ", ".join(directives)
 
         fallback_models = [
-            "gemini-2.5-flash-preview-tts",
-            "gemini-3.1-flash-tts-preview",
-            "gemini-3.8-flash-lite-tts",
             "gemini-3.8-flash-tts",
+            "gemini-3.8-flash-lite-tts",
+            "gemini-3.1-flash-tts-preview",
         ]
         candidate_models = [clean_model_id] + [m for m in fallback_models if m != clean_model_id]
 
         last_error = None
         for candidate in candidate_models:
             endpoint_path = f"models/{candidate}:generateContent"
+            request_body = self._build_speech_request_body(
+                candidate_model=candidate,
+                transcript_text=raw_prompt_text,
+                voice_name=effective_voice_name,
+                style_direction=style_direction,
+            )
             logger.info(
                 "Synthesizing speech via '%s' (Voice: %s)...",
                 candidate,

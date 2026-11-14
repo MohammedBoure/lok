@@ -190,9 +190,30 @@
       music: false,
       timeline: false
     },
+    selectedMusicTrack: "luxury_piano",
+    musicTracksCatalog: [],
+    musicPreviewAudio: null,
+    isCapcutPanelOpen: false,
+    isTimelinePanelOpen: false,
     selectedCaptionTemplate: "",
     captionPosition: "",
-    captionSize: "medium"
+    captionSize: "medium",
+    screenOverlay: {
+      enabled: false,
+      text: "",
+      x_pct: 0.50,
+      y_pct: 0.92,
+      font: "tahoma_bold",
+      effect: "solid_dark",
+      size: "medium",
+      text_color: "default"
+    },
+    screenOverlayDirty: false,
+    overlayCatalog: {
+      fonts: [],
+      effects: []
+    },
+    overlayPreviewObjectUrl: null
   };
 
   // ---------------------------------------------------------------------------
@@ -295,10 +316,58 @@
     statusMusicOptIn: document.getElementById("statusMusicOptIn"),
     btnToggleTimelineOptIn: document.getElementById("btnToggleTimelineOptIn"),
     statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
+    musicTrackPickerWrap: document.getElementById("musicTrackPickerWrap"),
+    musicTrackSelect: document.getElementById("musicTrackSelect"),
+    btnPreviewMusic: document.getElementById("btnPreviewMusic"),
+    musicTrackLicenseBadge: document.getElementById("musicTrackLicenseBadge"),
+    capcutStudioSection: document.getElementById("capcutStudioSection"),
+    btnToggleCapcutPresets: document.getElementById("btnToggleCapcutPresets"),
+    capcutPresetsBody: document.getElementById("capcutPresetsBody"),
+    capcutPresetsChevron: document.getElementById("capcutPresetsChevron"),
+    btnToggleTimelinePanel: document.getElementById("btnToggleTimelinePanel"),
+    shotsTimelineBody: document.getElementById("shotsTimelineBody"),
+    timelinePanelChevron: document.getElementById("timelinePanelChevron"),
+    timelineCountPill: document.getElementById("timelineCountPill"),
     sectionOptInPreferences: document.getElementById("sectionOptInPreferences"),
     settingToggleCaptions: document.getElementById("settingToggleCaptions"),
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
+
+    // Persistent Screen Note / Phone Designer
+    btnToggleScreenNoteOptIn: document.getElementById("btnToggleScreenNoteOptIn"),
+    statusScreenNoteOptIn: document.getElementById("statusScreenNoteOptIn"),
+    screenOverlaySummaryBar: document.getElementById("screenOverlaySummaryBar"),
+    overlaySummaryTextPreview: document.getElementById("overlaySummaryTextPreview"),
+    overlaySummaryMetaPreview: document.getElementById("overlaySummaryMetaPreview"),
+    btnEditScreenOverlay: document.getElementById("btnEditScreenOverlay"),
+    btnClearScreenOverlay: document.getElementById("btnClearScreenOverlay"),
+    screenOverlayModal: document.getElementById("screenOverlayModal"),
+    btnCloseScreenOverlayModal: document.getElementById("btnCloseScreenOverlayModal"),
+    btnCancelScreenOverlayModal: document.getElementById("btnCancelScreenOverlayModal"),
+    btnSaveScreenOverlay: document.getElementById("btnSaveScreenOverlay"),
+    btnDisableScreenOverlay: document.getElementById("btnDisableScreenOverlay"),
+    overlayScreenStage: document.getElementById("overlayScreenStage"),
+    overlayPreviewVideo: document.getElementById("overlayPreviewVideo"),
+    overlayStagePlaceholder: document.getElementById("overlayStagePlaceholder"),
+    draggableOverlayNode: document.getElementById("draggableOverlayNode"),
+    draggableOverlayNodeText: document.getElementById("draggableOverlayNodeText"),
+    overlayCoordsBadge: document.getElementById("overlayCoordsBadge"),
+    overlayTextInput: document.getElementById("overlayTextInput"),
+    overlayFontList: document.getElementById("overlayFontList"),
+    overlaySelectedFontLabel: document.getElementById("overlaySelectedFontLabel"),
+    overlayEffectList: document.getElementById("overlayEffectList"),
+    btnReplayOverlayEffect: document.getElementById("btnReplayOverlayEffect"),
+    overlaySizePills: document.getElementById("overlaySizePills"),
+    overlayColorSwatches: document.getElementById("overlayColorSwatches"),
+
+    // Interactive User Guide Modal (Top-Right Opt-In + First-Open Highlight)
+    btnOpenUserGuide: document.getElementById("btnOpenUserGuide"),
+    btnLoginUserGuide: document.getElementById("btnLoginUserGuide"),
+    userGuideModal: document.getElementById("userGuideModal"),
+    btnCloseUserGuideModal: document.getElementById("btnCloseUserGuideModal"),
+    btnAcknowledgeUserGuide: document.getElementById("btnAcknowledgeUserGuide"),
+    userGuideHighlightTip: document.getElementById("userGuideHighlightTip"),
+    btnDismissGuideTip: document.getElementById("btnDismissGuideTip"),
 
     // CapCut-Style Animated Caption Studio
     captionTemplatesGrid: document.getElementById("captionTemplatesGrid"),
@@ -1156,6 +1225,675 @@
     if (dom.settingToggleTimeline) {
       dom.settingToggleTimeline.checked = state.optIn.timeline;
     }
+    if (dom.musicTrackPickerWrap) {
+      dom.musicTrackPickerWrap.style.display = state.optIn.music ? "flex" : "none";
+      if (!state.optIn.music) {
+        stopMusicPreview();
+      }
+    }
+
+    // 4. Persistent Screen Note / Phone
+    const hasOverlay = Boolean(state.screenOverlay && state.screenOverlay.enabled && String(state.screenOverlay.text || "").trim());
+    if (dom.btnToggleScreenNoteOptIn) {
+      dom.btnToggleScreenNoteOptIn.classList.toggle("active", hasOverlay);
+      dom.btnToggleScreenNoteOptIn.setAttribute("aria-pressed", hasOverlay ? "true" : "false");
+    }
+    if (dom.statusScreenNoteOptIn) {
+      dom.statusScreenNoteOptIn.textContent = hasOverlay ? "مفعل ✓" : "إضافة";
+    }
+    if (dom.screenOverlaySummaryBar) {
+      dom.screenOverlaySummaryBar.style.display = hasOverlay ? "flex" : "none";
+      if (hasOverlay) {
+        const so = state.screenOverlay;
+        if (dom.overlaySummaryTextPreview) {
+          dom.overlaySummaryTextPreview.textContent = so.text;
+        }
+        if (dom.overlaySummaryMetaPreview) {
+          const fontObj = (state.overlayCatalog.fonts || []).find((f) => f.id === so.font);
+          const fxObj = (state.overlayCatalog.effects || []).find((e) => e.id === so.effect);
+          const fontLabel = fontObj ? fontObj.name_ar : so.font;
+          const fxLabel = fxObj ? fxObj.name_ar : so.effect;
+          dom.overlaySummaryMetaPreview.textContent = `${fontLabel} • ${fxLabel} • (${Math.round(so.x_pct * 100)}%, ${Math.round(so.y_pct * 100)}%)`;
+        }
+      }
+    }
+  }
+
+  const MUSIC_TRACK_STORAGE_KEY = "lok_selected_music_track";
+
+  function stopMusicPreview() {
+    if (state.musicPreviewAudio) {
+      try {
+        state.musicPreviewAudio.pause();
+        state.musicPreviewAudio.currentTime = 0;
+      } catch (e) {}
+      state.musicPreviewAudio = null;
+    }
+    if (dom.btnPreviewMusic) {
+      dom.btnPreviewMusic.classList.remove("is-playing");
+      dom.btnPreviewMusic.innerHTML = "<span>▶ استمع</span>";
+    }
+  }
+
+  function updateMusicLicenseBadge() {
+    if (!dom.musicTrackLicenseBadge) return;
+    const active = (state.musicTracksCatalog || []).find((t) => t.id === state.selectedMusicTrack);
+    if (active) {
+      dom.musicTrackLicenseBadge.textContent = `${active.style || "Music"} — ${active.license || "Free"}`;
+    }
+  }
+
+  async function loadMusicTracks() {
+    if (!dom.musicTrackSelect) return;
+    try {
+      const savedTrack = localStorage.getItem(MUSIC_TRACK_STORAGE_KEY);
+      if (savedTrack) {
+        state.selectedMusicTrack = savedTrack;
+      }
+    } catch (e) {}
+
+    try {
+      const res = await fetch("/api/music-tracks");
+      if (!res.ok) return;
+      const tracks = await res.json();
+      if (!Array.isArray(tracks) || tracks.length === 0) return;
+      state.musicTracksCatalog = tracks;
+
+      const currentVal = state.selectedMusicTrack;
+      dom.musicTrackSelect.innerHTML = "";
+      let foundSelected = false;
+      tracks.forEach((tr) => {
+        const opt = document.createElement("option");
+        opt.value = tr.id;
+        opt.textContent = tr.title_ar || tr.title || tr.id;
+        if (tr.id === currentVal) {
+          opt.selected = true;
+          foundSelected = true;
+        }
+        dom.musicTrackSelect.appendChild(opt);
+      });
+
+      if (!foundSelected && tracks[0]) {
+        state.selectedMusicTrack = tracks[0].id;
+        dom.musicTrackSelect.value = tracks[0].id;
+      }
+      updateMusicLicenseBadge();
+    } catch (err) {
+      console.warn("Failed to load music tracks:", err);
+    }
+  }
+
+  function setupMusicTrackPicker() {
+    if (dom.musicTrackSelect) {
+      dom.musicTrackSelect.addEventListener("change", (e) => {
+        state.selectedMusicTrack = e.target.value || "luxury_piano";
+        try {
+          localStorage.setItem(MUSIC_TRACK_STORAGE_KEY, state.selectedMusicTrack);
+        } catch (err) {}
+        stopMusicPreview();
+        updateMusicLicenseBadge();
+      });
+    }
+    if (dom.btnPreviewMusic) {
+      dom.btnPreviewMusic.addEventListener("click", () => {
+        if (state.musicPreviewAudio && !state.musicPreviewAudio.paused) {
+          stopMusicPreview();
+          return;
+        }
+        stopMusicPreview();
+        const trackId = state.selectedMusicTrack || (dom.musicTrackSelect && dom.musicTrackSelect.value) || "luxury_piano";
+        const active = (state.musicTracksCatalog || []).find((t) => t.id === trackId);
+        const audioUrl = (active && active.audio_url) || `/api/music-tracks/${encodeURIComponent(trackId)}/audio`;
+        const audio = new Audio(audioUrl);
+        state.musicPreviewAudio = audio;
+        dom.btnPreviewMusic.classList.add("is-playing");
+        dom.btnPreviewMusic.innerHTML = "<span>⏹ إيقاف</span>";
+        audio.addEventListener("ended", stopMusicPreview);
+        audio.addEventListener("error", () => {
+          stopMusicPreview();
+          showToast("تعذر تشغيل معاينة المقطوعة الموسيقية.");
+        });
+        audio.play().catch(() => {
+          stopMusicPreview();
+          showToast("تعذر تشغيل المعاينة الصوتية حالياً.");
+        });
+      });
+    }
+  }
+
+  function setCapcutPanelOpen(open) {
+    const isOpen = Boolean(open);
+    state.isCapcutPanelOpen = isOpen;
+    if (dom.capcutPresetsBody) {
+      dom.capcutPresetsBody.style.display = isOpen ? "block" : "none";
+    }
+    if (dom.capcutStudioSection) {
+      dom.capcutStudioSection.classList.toggle("is-collapsed", !isOpen);
+    }
+    if (dom.btnToggleCapcutPresets) {
+      dom.btnToggleCapcutPresets.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+    if (dom.capcutPresetsChevron) {
+      dom.capcutPresetsChevron.textContent = isOpen ? "▴ إخفاء القوالب" : "▾ عرض القوالب";
+    }
+  }
+
+  function setTimelinePanelOpen(open) {
+    const isOpen = Boolean(open);
+    state.isTimelinePanelOpen = isOpen;
+    if (dom.shotsTimelineBody) {
+      dom.shotsTimelineBody.style.display = isOpen ? "block" : "none";
+    }
+    if (dom.shotsTimelineSection) {
+      dom.shotsTimelineSection.classList.toggle("is-collapsed", !isOpen);
+    }
+    if (dom.btnToggleTimelinePanel) {
+      dom.btnToggleTimelinePanel.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+    if (dom.timelinePanelChevron) {
+      dom.timelinePanelChevron.textContent = isOpen ? "▴ إخفاء التفاصيل" : "▾ عرض التفاصيل";
+    }
+  }
+
+  function setupCollapsiblePanels() {
+    setCapcutPanelOpen(false);
+    setTimelinePanelOpen(false);
+    if (dom.btnToggleCapcutPresets) {
+      dom.btnToggleCapcutPresets.addEventListener("click", () => {
+        setCapcutPanelOpen(!state.isCapcutPanelOpen);
+      });
+    }
+    if (dom.btnToggleTimelinePanel) {
+      dom.btnToggleTimelinePanel.addEventListener("click", () => {
+        setTimelinePanelOpen(!state.isTimelinePanelOpen);
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5B. Interactive Persistent Screen Note / Phone Designer Modal
+  // ---------------------------------------------------------------------------
+  const OVERLAY_COLOR_HEX = {
+    default: "",
+    white: "#ffffff",
+    gold: "#ffd166",
+    cyan: "#4cc9f0",
+    emerald: "#38d399",
+    rose: "#ff6b8b"
+  };
+
+  let overlayDraft = null;
+
+  function ensureOverlayFontFaces(fonts) {
+    let styleEl = document.getElementById("dynamicOverlayFontsStyle");
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "dynamicOverlayFontsStyle";
+      document.head.appendChild(styleEl);
+    }
+    const rules = [];
+    (fonts || []).forEach((f) => {
+      if (f && f.id && f.font_url) {
+        const family = `lokOverlayFont_${f.id}`;
+        rules.push(`@font-face { font-family: "${family}"; src: url("${f.font_url}") format("truetype"); font-display: swap; }`);
+      }
+    });
+    styleEl.textContent = rules.join("\n");
+  }
+
+  async function loadOverlayCatalog() {
+    try {
+      const res = await fetch("/api/overlay-options");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && Array.isArray(data.fonts)) {
+        state.overlayCatalog.fonts = data.fonts;
+        ensureOverlayFontFaces(data.fonts);
+      }
+      if (data && Array.isArray(data.effects)) {
+        state.overlayCatalog.effects = data.effects;
+      }
+      if (overlayDraft && dom.screenOverlayModal && dom.screenOverlayModal.style.display !== "none") {
+        renderOverlayFontCards();
+        renderOverlayEffectCards();
+        updateOverlayStagePreview();
+      }
+      syncOptInUI();
+    } catch (e) {
+      // Fallback silently if offline
+    }
+  }
+
+  function updateOverlayStagePreview(replayAnimation = false) {
+    if (!overlayDraft || !dom.draggableOverlayNode || !dom.draggableOverlayNodeText) return;
+
+    const previewTxt = (overlayDraft.text || "").trim() || "0550 12 34 56";
+    dom.draggableOverlayNodeText.textContent = previewTxt;
+    dom.draggableOverlayNode.classList.toggle("is-placeholder-sample", !(overlayDraft.text || "").trim());
+
+    const xp = Math.max(0.05, Math.min(0.95, Number(overlayDraft.x_pct ?? 0.5)));
+    const yp = Math.max(0.05, Math.min(0.95, Number(overlayDraft.y_pct ?? 0.92)));
+    dom.draggableOverlayNode.style.left = `${(xp * 100).toFixed(1)}%`;
+    dom.draggableOverlayNode.style.top = `${(yp * 100).toFixed(1)}%`;
+
+    if (dom.overlayCoordsBadge) {
+      const snappedCenter = Math.abs(xp - 0.5) < 0.015 ? " • منتصف" : "";
+      dom.overlayCoordsBadge.textContent = `X: ${Math.round(xp * 100)}% | Y: ${Math.round(yp * 100)}%${snappedCenter}`;
+    }
+
+    const chosenFont = (state.overlayCatalog.fonts || []).find((f) => f.id === overlayDraft.font);
+    if (chosenFont && chosenFont.font_url) {
+      dom.draggableOverlayNode.style.fontFamily = `"lokOverlayFont_${chosenFont.id}", "Cairo", sans-serif`;
+      if (dom.overlaySelectedFontLabel) {
+        dom.overlaySelectedFontLabel.textContent = chosenFont.name_ar || chosenFont.name_en || chosenFont.id;
+      }
+    } else {
+      dom.draggableOverlayNode.style.fontFamily = `"Cairo", sans-serif`;
+      if (dom.overlaySelectedFontLabel) {
+        dom.overlaySelectedFontLabel.textContent = overlayDraft.font || "Tahoma Bold";
+      }
+    }
+
+    const fxClasses = [
+      "overlay-fx-solid_dark",
+      "overlay-fx-luxury_gold",
+      "overlay-fx-clean_outline",
+      "overlay-fx-neon_glow",
+      "overlay-fx-fade_in",
+      "overlay-fx-pulse_glow",
+      "overlay-fx-slide_up",
+      "overlay-fx-urgent_red"
+    ];
+    dom.draggableOverlayNode.classList.remove(...fxClasses, "overlay-size-small", "overlay-size-medium", "overlay-size-large");
+    dom.draggableOverlayNode.classList.add(`overlay-fx-${overlayDraft.effect || "solid_dark"}`);
+    dom.draggableOverlayNode.classList.add(`overlay-size-${overlayDraft.size || "medium"}`);
+
+    const customHex = OVERLAY_COLOR_HEX[overlayDraft.text_color || "default"] || "";
+    dom.draggableOverlayNode.style.color = customHex;
+
+    if (replayAnimation) {
+      dom.draggableOverlayNode.classList.remove("fx-replay-anim");
+      void dom.draggableOverlayNode.offsetWidth;
+      dom.draggableOverlayNode.classList.add("fx-replay-anim");
+    }
+
+    if (dom.overlaySizePills) {
+      dom.overlaySizePills.querySelectorAll("[data-size]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-size") === (overlayDraft.size || "medium"));
+      });
+    }
+    if (dom.overlayColorSwatches) {
+      dom.overlayColorSwatches.querySelectorAll("[data-color]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-color") === (overlayDraft.text_color || "default"));
+      });
+    }
+  }
+
+  function renderOverlayFontCards() {
+    if (!dom.overlayFontList) return;
+    const fonts = state.overlayCatalog.fonts && state.overlayCatalog.fonts.length
+      ? state.overlayCatalog.fonts
+      : [
+          { id: "tahoma_bold", name_ar: "تاهوما عريض", name_en: "Tahoma Bold", sample_ar: "0550 12 34 56 • عرض حصري" },
+          { id: "arial_bold", name_ar: "أريال واضح", name_en: "Arial Bold", sample_ar: "0550 12 34 56 • شقة فاخرة" },
+          { id: "segoe_bold", name_ar: "سيغو حديث", name_en: "Segoe UI Bold", sample_ar: "0550 12 34 56 • تواصل معنا" }
+        ];
+    dom.overlayFontList.innerHTML = "";
+    fonts.forEach((f) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "overlay-choice-card overlay-font-card" + (overlayDraft && overlayDraft.font === f.id ? " active" : "");
+      card.setAttribute("data-font-id", f.id);
+      if (f.font_url) {
+        card.style.fontFamily = `"lokOverlayFont_${f.id}", "Cairo", sans-serif`;
+      }
+      card.innerHTML = `
+        <span class="overlay-choice-title">${f.name_ar || f.name_en}</span>
+        <span class="overlay-choice-sample">${f.sample_ar || "0550 12 34 56"}</span>
+      `;
+      card.addEventListener("click", () => {
+        if (!overlayDraft) return;
+        overlayDraft.font = f.id;
+        renderOverlayFontCards();
+        updateOverlayStagePreview(false);
+      });
+      dom.overlayFontList.appendChild(card);
+    });
+  }
+
+  function renderOverlayEffectCards() {
+    if (!dom.overlayEffectList) return;
+    const effects = state.overlayCatalog.effects && state.overlayCatalog.effects.length
+      ? state.overlayCatalog.effects
+      : [
+          { id: "solid_dark", name_ar: "شريط داكن أنيق", description_ar: "صندوق أسود شبه شفاف", animated: false },
+          { id: "luxury_gold", name_ar: "ذهبي فاخر", description_ar: "نص ذهبي للعقارات الراقية", animated: false },
+          { id: "clean_outline", name_ar: "حدود بدون خلفية", description_ar: "نص واضح بحدود سوداء", animated: false },
+          { id: "neon_glow", name_ar: "توهج نيون", description_ar: "توهج سماوي جذاب", animated: false },
+          { id: "fade_in", name_ar: "ظهور تدريجي", description_ar: "دخول ناعم في البداية", animated: true },
+          { id: "pulse_glow", name_ar: "نبض حيوي", description_ar: "تأثير نبض مستمر ملفت", animated: true },
+          { id: "slide_up", name_ar: "انزلاق للأعلى", description_ar: "حركة دخول من الأسفل", animated: true },
+          { id: "urgent_red", name_ar: "شريط عرض عاجل", description_ar: "خلفية حمراء لافتة", animated: false }
+        ];
+    dom.overlayEffectList.innerHTML = "";
+    effects.forEach((fx) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "overlay-choice-card overlay-effect-card" + (overlayDraft && overlayDraft.effect === fx.id ? " active" : "");
+      card.setAttribute("data-effect-id", fx.id);
+      const badge = fx.animated ? `<span class="overlay-fx-badge">متحرك ✨</span>` : `<span class="overlay-fx-badge static">ثابت</span>`;
+      card.innerHTML = `
+        <div class="overlay-fx-head">
+          <span class="overlay-choice-title">${fx.name_ar || fx.name_en}</span>
+          ${badge}
+        </div>
+        <span class="overlay-choice-desc">${fx.description_ar || ""}</span>
+      `;
+      card.addEventListener("click", () => {
+        if (!overlayDraft) return;
+        overlayDraft.effect = fx.id;
+        renderOverlayEffectCards();
+        updateOverlayStagePreview(true);
+      });
+      dom.overlayEffectList.appendChild(card);
+    });
+  }
+
+  function openScreenOverlayModal() {
+    if (!dom.screenOverlayModal) return;
+
+    const current = state.screenOverlay || {};
+    let seedText = String(current.text || "").trim();
+    if (!seedText && dom.promptTextarea) {
+      const match = (dom.promptTextarea.value || "").match(/(?:0|\+?213)[567][0-9]{8}/);
+      if (match) seedText = match[0];
+    }
+
+    overlayDraft = {
+      text: seedText,
+      x_pct: typeof current.x_pct === "number" ? current.x_pct : 0.50,
+      y_pct: typeof current.y_pct === "number" ? current.y_pct : 0.92,
+      font: current.font || "tahoma_bold",
+      effect: current.effect || "solid_dark",
+      size: current.size || "medium",
+      text_color: current.text_color || "default"
+    };
+
+    if (dom.overlayTextInput) {
+      dom.overlayTextInput.value = overlayDraft.text;
+    }
+
+    // Bind selected video preview if user already picked a file
+    if (dom.overlayPreviewVideo && dom.overlayStagePlaceholder) {
+      if (state.overlayPreviewObjectUrl) {
+        try { URL.revokeObjectURL(state.overlayPreviewObjectUrl); } catch (e) {}
+        state.overlayPreviewObjectUrl = null;
+      }
+      if (state.selectedFile) {
+        state.overlayPreviewObjectUrl = URL.createObjectURL(state.selectedFile);
+        dom.overlayPreviewVideo.src = state.overlayPreviewObjectUrl;
+        dom.overlayPreviewVideo.style.display = "block";
+        dom.overlayStagePlaceholder.style.display = "none";
+        dom.overlayPreviewVideo.play().catch(() => {});
+      } else {
+        dom.overlayPreviewVideo.removeAttribute("src");
+        dom.overlayPreviewVideo.style.display = "none";
+        dom.overlayStagePlaceholder.style.display = "flex";
+      }
+    }
+
+    renderOverlayFontCards();
+    renderOverlayEffectCards();
+    updateOverlayStagePreview(true);
+
+    dom.screenOverlayModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+    if (dom.overlayTextInput) {
+      setTimeout(() => dom.overlayTextInput.focus(), 60);
+    }
+  }
+
+  function closeScreenOverlayModal() {
+    if (!dom.screenOverlayModal) return;
+    dom.screenOverlayModal.style.display = "none";
+    document.body.style.overflow = "";
+    if (dom.overlayPreviewVideo) {
+      try { dom.overlayPreviewVideo.pause(); } catch (e) {}
+    }
+    if (state.overlayPreviewObjectUrl) {
+      try { URL.revokeObjectURL(state.overlayPreviewObjectUrl); } catch (e) {}
+      state.overlayPreviewObjectUrl = null;
+    }
+  }
+
+  function disableScreenOverlay() {
+    state.screenOverlay.enabled = false;
+    state.screenOverlay.text = "";
+    state.screenOverlayDirty = true;
+    syncOptInUI();
+    closeScreenOverlayModal();
+    showToast("تمت إزالة النص الثابت من الشاشة.");
+  }
+
+  function setupScreenOverlayDesigner() {
+    if (dom.btnToggleScreenNoteOptIn) {
+      dom.btnToggleScreenNoteOptIn.addEventListener("click", openScreenOverlayModal);
+    }
+    if (dom.btnEditScreenOverlay) {
+      dom.btnEditScreenOverlay.addEventListener("click", openScreenOverlayModal);
+    }
+    if (dom.btnClearScreenOverlay) {
+      dom.btnClearScreenOverlay.addEventListener("click", disableScreenOverlay);
+    }
+    if (dom.btnDisableScreenOverlay) {
+      dom.btnDisableScreenOverlay.addEventListener("click", disableScreenOverlay);
+    }
+    if (dom.btnCloseScreenOverlayModal) {
+      dom.btnCloseScreenOverlayModal.addEventListener("click", closeScreenOverlayModal);
+    }
+    if (dom.btnCancelScreenOverlayModal) {
+      dom.btnCancelScreenOverlayModal.addEventListener("click", closeScreenOverlayModal);
+    }
+    if (dom.screenOverlayModal) {
+      dom.screenOverlayModal.addEventListener("click", (e) => {
+        if (e.target === dom.screenOverlayModal) {
+          closeScreenOverlayModal();
+        }
+      });
+    }
+
+    if (dom.overlayTextInput) {
+      dom.overlayTextInput.addEventListener("input", () => {
+        if (!overlayDraft) return;
+        overlayDraft.text = dom.overlayTextInput.value;
+        updateOverlayStagePreview(false);
+      });
+    }
+
+    if (dom.btnReplayOverlayEffect) {
+      dom.btnReplayOverlayEffect.addEventListener("click", () => {
+        updateOverlayStagePreview(true);
+      });
+    }
+
+    if (dom.overlaySizePills) {
+      dom.overlaySizePills.querySelectorAll("[data-size]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!overlayDraft) return;
+          overlayDraft.size = btn.getAttribute("data-size") || "medium";
+          updateOverlayStagePreview(false);
+        });
+      });
+    }
+
+    if (dom.overlayColorSwatches) {
+      dom.overlayColorSwatches.querySelectorAll("[data-color]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!overlayDraft) return;
+          overlayDraft.text_color = btn.getAttribute("data-color") || "default";
+          updateOverlayStagePreview(false);
+        });
+      });
+    }
+
+    if (dom.screenOverlayModal) {
+      dom.screenOverlayModal.querySelectorAll("[data-snap-x][data-snap-y]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!overlayDraft) return;
+          overlayDraft.x_pct = parseFloat(btn.getAttribute("data-snap-x")) || 0.5;
+          overlayDraft.y_pct = parseFloat(btn.getAttribute("data-snap-y")) || 0.92;
+          updateOverlayStagePreview(false);
+        });
+      });
+    }
+
+    if (dom.btnSaveScreenOverlay) {
+      dom.btnSaveScreenOverlay.addEventListener("click", () => {
+        if (!overlayDraft) return;
+        const cleanText = String(overlayDraft.text || "").trim();
+        if (!cleanText) {
+          showToast("يرجى كتابة نص الملاحظة أو رقم الهاتف أولاً.");
+          if (dom.overlayTextInput) dom.overlayTextInput.focus();
+          return;
+        }
+        state.screenOverlay = {
+          enabled: true,
+          text: cleanText,
+          x_pct: Number((overlayDraft.x_pct ?? 0.5).toFixed(4)),
+          y_pct: Number((overlayDraft.y_pct ?? 0.92).toFixed(4)),
+          font: overlayDraft.font || "tahoma_bold",
+          effect: overlayDraft.effect || "solid_dark",
+          size: overlayDraft.size || "medium",
+          text_color: overlayDraft.text_color || "default"
+        };
+        state.screenOverlayDirty = true;
+        syncOptInUI();
+        closeScreenOverlayModal();
+        showToast("تم تثبيت النص وموضعه وخطه على الشاشة بنجاح! 📌");
+      });
+    }
+
+    // Free drag positioning inside the interactive preview stage (mouse + touch via Pointer Events)
+    if (dom.draggableOverlayNode && dom.overlayScreenStage) {
+      let dragging = false;
+      let activePointerId = null;
+
+      const updateCoordsFromClient = (clientX, clientY) => {
+        if (!overlayDraft || !dom.overlayScreenStage) return;
+        const rect = dom.overlayScreenStage.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        let xp = (clientX - rect.left) / rect.width;
+        let yp = (clientY - rect.top) / rect.height;
+        xp = Math.max(0.05, Math.min(0.95, xp));
+        yp = Math.max(0.05, Math.min(0.95, yp));
+        // Gentle magnetic snap near exact horizontal center
+        if (Math.abs(xp - 0.5) < 0.018) {
+          xp = 0.5;
+        }
+        overlayDraft.x_pct = Number(xp.toFixed(4));
+        overlayDraft.y_pct = Number(yp.toFixed(4));
+        updateOverlayStagePreview(false);
+      };
+
+      dom.draggableOverlayNode.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        dragging = true;
+        activePointerId = e.pointerId;
+        dom.draggableOverlayNode.classList.add("is-dragging");
+        try { dom.draggableOverlayNode.setPointerCapture(e.pointerId); } catch (err) {}
+        updateCoordsFromClient(e.clientX, e.clientY);
+      });
+
+      dom.draggableOverlayNode.addEventListener("pointermove", (e) => {
+        if (!dragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+        e.preventDefault();
+        updateCoordsFromClient(e.clientX, e.clientY);
+      });
+
+      const endDrag = (e) => {
+        if (!dragging) return;
+        dragging = false;
+        activePointerId = null;
+        dom.draggableOverlayNode.classList.remove("is-dragging");
+        try { dom.draggableOverlayNode.releasePointerCapture(e.pointerId); } catch (err) {}
+      };
+      dom.draggableOverlayNode.addEventListener("pointerup", endDrag);
+      dom.draggableOverlayNode.addEventListener("pointercancel", endDrag);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5C. Interactive User Guide (Top-Right Button + First-Visit Highlight Only)
+  // ---------------------------------------------------------------------------
+  const USER_GUIDE_SEEN_KEY = "lok_user_guide_seen";
+
+  function clearUserGuideHighlight() {
+    try {
+      localStorage.setItem(USER_GUIDE_SEEN_KEY, "1");
+    } catch (e) {}
+    if (dom.btnOpenUserGuide) dom.btnOpenUserGuide.classList.remove("is-first-visit-highlight");
+    if (dom.btnLoginUserGuide) dom.btnLoginUserGuide.classList.remove("is-first-visit-highlight");
+    if (dom.userGuideHighlightTip) dom.userGuideHighlightTip.style.display = "none";
+  }
+
+  function openUserGuideModal() {
+    clearUserGuideHighlight();
+    if (!dom.userGuideModal) return;
+    dom.userGuideModal.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeUserGuideModal() {
+    if (!dom.userGuideModal) return;
+    dom.userGuideModal.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  function setupUserGuide() {
+    let seen = false;
+    try {
+      seen = localStorage.getItem(USER_GUIDE_SEEN_KEY) === "1";
+    } catch (e) {
+      seen = false;
+    }
+
+    // Never auto-open the modal on first visit — only highlight the top-right button
+    if (!seen) {
+      if (dom.btnOpenUserGuide) dom.btnOpenUserGuide.classList.add("is-first-visit-highlight");
+      if (dom.btnLoginUserGuide) dom.btnLoginUserGuide.classList.add("is-first-visit-highlight");
+      if (dom.userGuideHighlightTip) dom.userGuideHighlightTip.style.display = "flex";
+    }
+
+    if (dom.btnOpenUserGuide) {
+      dom.btnOpenUserGuide.addEventListener("click", openUserGuideModal);
+    }
+    if (dom.btnLoginUserGuide) {
+      dom.btnLoginUserGuide.addEventListener("click", openUserGuideModal);
+    }
+    if (dom.btnDismissGuideTip) {
+      dom.btnDismissGuideTip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        clearUserGuideHighlight();
+      });
+    }
+    if (dom.btnCloseUserGuideModal) {
+      dom.btnCloseUserGuideModal.addEventListener("click", closeUserGuideModal);
+    }
+    if (dom.btnAcknowledgeUserGuide) {
+      dom.btnAcknowledgeUserGuide.addEventListener("click", closeUserGuideModal);
+    }
+    if (dom.userGuideModal) {
+      dom.userGuideModal.addEventListener("click", (e) => {
+        if (e.target === dom.userGuideModal) {
+          closeUserGuideModal();
+        }
+      });
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && dom.userGuideModal && dom.userGuideModal.style.display !== "none") {
+        closeUserGuideModal();
+      }
+    });
   }
 
   function setupOptInToggles() {
@@ -1379,10 +2117,24 @@
       formData.append("music_muted", "true");
     } else {
       formData.append("enable_music", "true");
+      if (state.selectedMusicTrack) {
+        formData.append("music_track", state.selectedMusicTrack);
+      }
     }
 
     if (isTimelineOpted) {
       formData.append("enable_timeline", "true");
+    }
+
+    // Custom Persistent Draggable Screen Note / Phone Overlay
+    if (state.screenOverlay && state.screenOverlay.enabled && String(state.screenOverlay.text || "").trim()) {
+      formData.append("overlay_text", String(state.screenOverlay.text).trim());
+      formData.append("overlay_x_pct", String(state.screenOverlay.x_pct ?? 0.5));
+      formData.append("overlay_y_pct", String(state.screenOverlay.y_pct ?? 0.92));
+      formData.append("overlay_font", state.screenOverlay.font || "tahoma_bold");
+      formData.append("overlay_effect", state.screenOverlay.effect || "solid_dark");
+      formData.append("overlay_size", state.screenOverlay.size || "medium");
+      formData.append("overlay_color", state.screenOverlay.text_color || "default");
     }
 
     if (activeToken) {
@@ -1906,7 +2658,8 @@
         }
       }
 
-      // 6. Display Shot-by-Shot Synchronized Timeline in Script Inspection Card
+      // 6. Display Shot-by-Shot Synchronized Timeline in Script Inspection Card (collapsed until user clicks)
+      state.isTimelinePanelOpen = false;
       renderShotTimeline(data);
 
       if (dom.resultContainer) {
@@ -2007,6 +2760,14 @@
       return;
     }
 
+    const cleanSceneTitle = (rawTitle, idx) => {
+      const stripped = String(rawTitle || "")
+        .replace(/\s*\[[^\]]*\d+\.\d+s\s*-\s*\d+\.\d+s[^\]]*\]\s*$/i, "")
+        .trim()
+        .replace(/^[-:\s]+|[-:\s]+$/g, "");
+      return stripped || `المشهد ${idx + 1}`;
+    };
+
     let itemsToRender = [];
 
     if (hasEditableCuts) {
@@ -2015,7 +2776,7 @@
         start_sec: Number(item.start_sec ?? 0),
         end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
-        title: item.title || `اللقطة ${idx + 1}`,
+        title: cleanSceneTitle(item.title || item.room_or_subject, idx),
         description: item.text || "",
         thumb: item.thumb || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2025,7 +2786,7 @@
         start_sec: Number(item.start_sec ?? item.timestamp ?? (idx * 3)),
         end_sec: Number(item.end_sec ?? ((idx + 1) * 3)),
         timeRange: formatTimestampRange(item.start_sec ?? item.timestamp ?? (idx * 3), item.end_sec ?? ((idx + 1) * 3)),
-        title: item.title || item.room || item.label || `المشهد ${idx + 1}`,
+        title: cleanSceneTitle(item.title || item.room_or_subject || item.room || item.label, idx),
         description: item.narration_line || item.description || item.text || item.details || "",
         thumb: item.thumbnail || item.url || (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2035,7 +2796,7 @@
         start_sec: Number(cap.start_sec ?? 0),
         end_sec: Number(cap.end_sec ?? 3),
         timeRange: formatTimestampRange(cap.start_sec, cap.end_sec),
-        title: `اللقطة ${idx + 1}`,
+        title: cleanSceneTitle(cap.title || cap.room_or_subject, idx),
         description: cap.text || cap.caption || "",
         thumb: (rawKeyframes[idx] && rawKeyframes[idx].url) || "",
       }));
@@ -2045,8 +2806,8 @@
         start_sec: Number(kf.timestamp ?? 0),
         end_sec: Number((rawKeyframes[idx + 1]?.timestamp) || ((kf.timestamp || 0) + 3.0)),
         timeRange: formatTimestampRange(kf.timestamp, (rawKeyframes[idx + 1]?.timestamp) || (kf.timestamp + 3.0)),
-        title: kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `لقطة ${idx + 1}`,
-        description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا العقار",
+        title: kf.title || (kf.is_scene_transition ? `انتقال مشهد ${idx + 1}` : `المشهد ${idx + 1}`),
+        description: kf.is_scene_transition ? "انتقال بصري بين زوايا التصوير" : "تركيز على تفاصيل وزوايا المكان",
         thumb: kf.url || "",
       }));
     } else {
@@ -2087,7 +2848,11 @@
         const tsSpan = document.createElement("span");
         tsSpan.className = "shot-timestamp";
         tsSpan.textContent = item.timeRange;
+        const sceneTag = document.createElement("span");
+        sceneTag.className = "shot-scene-name-tag";
+        sceneTag.textContent = item.title;
         timeCol.appendChild(tsSpan);
+        timeCol.appendChild(sceneTag);
         el.appendChild(timeCol);
 
         if (item.thumb) {
@@ -2146,12 +2911,18 @@
         dom.shotsTimelineList.appendChild(el);
       });
 
+      if (dom.timelineCountPill) {
+        const renderedCount = dom.shotsTimelineList ? dom.shotsTimelineList.children.length : state.editableCuts.length;
+        dom.timelineCountPill.textContent = `${renderedCount} لقطات`;
+      }
       dom.shotsTimelineSection.style.display = "block";
       if (dom.cutsEditActions && state.activeJobId) {
         dom.cutsEditActions.style.display = "flex";
       }
+      setTimelinePanelOpen(state.isTimelinePanelOpen);
     } else {
       dom.shotsTimelineSection.style.display = "none";
+      setTimelinePanelOpen(false);
     }
   }
 
@@ -2188,7 +2959,28 @@
             "Content-Type": "application/json",
             ...(token ? { "Authorization": `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ cuts: state.editableCuts }),
+          body: JSON.stringify({
+            cuts: state.editableCuts,
+            enable_music: Boolean(state.optIn && state.optIn.music),
+            ...(state.optIn && state.optIn.music && state.selectedMusicTrack
+              ? { music_track: state.selectedMusicTrack }
+              : {}),
+            ...(state.screenOverlay && (state.screenOverlay.enabled || state.screenOverlayDirty)
+              ? {
+                  screen_overlay: state.screenOverlay.enabled && String(state.screenOverlay.text || "").trim()
+                    ? {
+                        text: String(state.screenOverlay.text).trim(),
+                        x_pct: state.screenOverlay.x_pct ?? 0.5,
+                        y_pct: state.screenOverlay.y_pct ?? 0.92,
+                        font: state.screenOverlay.font || "tahoma_bold",
+                        effect: state.screenOverlay.effect || "solid_dark",
+                        size: state.screenOverlay.size || "medium",
+                        text_color: state.screenOverlay.text_color || "default"
+                      }
+                    : null
+                }
+              : {}),
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -2232,6 +3024,9 @@
     if (dom.generatedScriptText) dom.generatedScriptText.textContent = "";
     if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
     if (dom.shotsTimelineList) dom.shotsTimelineList.innerHTML = "";
+    setTimelinePanelOpen(false);
+    setCapcutPanelOpen(false);
+    stopMusicPreview();
     if (dom.resultOverlayPill) dom.resultOverlayPill.style.display = "none";
     if (dom.resultOverlayText) dom.resultOverlayText.textContent = "";
     if (dom.bottomTextBadge) dom.bottomTextBadge.textContent = "";
@@ -2381,7 +3176,13 @@
     setupVideoUpload();
     setupPromptTextarea();
     setupOptInToggles();
+    setupUserGuide();
+    setupScreenOverlayDesigner();
+    loadOverlayCatalog();
+    setupMusicTrackPicker();
+    setupCollapsiblePanels();
     setupCaptionTemplatesStudio();
+    loadMusicTracks();
     setupRecommendationsManager();
     setupVoiceoverPicker();
     setupSettingsModal();

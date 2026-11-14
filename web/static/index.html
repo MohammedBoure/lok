@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261112_editable_cuts">
+  <link rel="stylesheet" href="/static/style.css?v=20261113_user_guide">
 </head>
 <body>
 
@@ -28,6 +28,13 @@
     <!-- 1. GATED LOGIN VIEW (Unauthenticated First Visit)                    -->
     <!-- ===================================================================== -->
     <section id="loginView" class="lok-gated-login" style="display: none;">
+      <div class="login-guide-corner">
+        <button type="button" class="btn-bw-settings btn-user-guide" id="btnLoginUserGuide" title="عرض دليل استخدام المنصة خطوة بخطوة">
+          <span class="guide-icon">📖</span>
+          <span class="guide-label">دليل الاستخدام</span>
+          <span class="guide-new-dot" aria-hidden="true"></span>
+        </button>
+      </div>
       <div class="login-card-wrapper">
         <div class="login-card">
           <!-- Brand Header -->
@@ -101,6 +108,17 @@
       <header class="lok-header">
         <div class="header-inner">
           <div class="header-brand-group">
+            <div class="user-guide-btn-wrap" id="userGuideBtnWrap">
+              <button type="button" class="btn-bw-settings btn-user-guide" id="btnOpenUserGuide" aria-haspopup="dialog" aria-controls="userGuideModal" title="عرض دليل استخدام الاستوديو خطوة بخطوة">
+                <span class="guide-icon">📖</span>
+                <span class="guide-label">دليل الاستخدام</span>
+                <span class="guide-new-dot" aria-hidden="true"></span>
+              </button>
+              <div class="user-guide-highlight-tip" id="userGuideHighlightTip" style="display: none;" role="status">
+                <span>✨ أول زيارة؟ اضغط هنا لدليل الاستخدام السريع</span>
+                <button type="button" class="btn-dismiss-guide-tip" id="btnDismissGuideTip" aria-label="إخفاء التلميح">✕</button>
+              </div>
+            </div>
             <div class="lok-header-logo">lok</div>
             <div class="header-user-status" id="headerUserStatus">
               <span class="user-role-icon" id="userRoleIcon">🏢</span>
@@ -193,6 +211,38 @@
                 <span class="optin-text">مخطط المشاهد</span>
                 <span class="optin-status" id="statusTimelineOptIn">معطل</span>
               </button>
+              <button type="button" class="btn-optin-toggle" id="btnToggleScreenNoteOptIn" data-feature="screen_note" aria-pressed="false" title="إضافة رقم هاتف أو ملاحظة ثابتة على الشاشة مع سحبها واختيار الخط والمؤثرات">
+                <span class="optin-icon">📱</span>
+                <span class="optin-text">ملاحظة / رقم ثابت</span>
+                <span class="optin-status" id="statusScreenNoteOptIn">إضافة</span>
+              </button>
+            </div>
+
+            <!-- Persistent Screen Note / Phone Summary Bar -->
+            <div class="screen-overlay-summary-bar" id="screenOverlaySummaryBar" style="display: none;">
+              <div class="overlay-summary-info">
+                <span class="overlay-summary-badge">📌 نص ثابت على الشاشة</span>
+                <span class="overlay-summary-text" id="overlaySummaryTextPreview">—</span>
+                <span class="overlay-summary-meta" id="overlaySummaryMetaPreview"></span>
+              </div>
+              <div class="overlay-summary-actions">
+                <button type="button" class="btn-bw-secondary btn-sm-pill" id="btnEditScreenOverlay">✏️ تعديل الموضع والخط</button>
+                <button type="button" class="btn-bw-secondary btn-sm-pill btn-danger-ghost" id="btnClearScreenOverlay">✖️ إزالة</button>
+              </div>
+            </div>
+
+            <!-- Music Track Picker (shown when Background Music Opt-In is active) -->
+            <div class="music-track-picker-wrap" id="musicTrackPickerWrap" style="display: none;">
+              <label for="musicTrackSelect" class="music-picker-label">🎵 اختر موسيقى الخلفية (من assets/music):</label>
+              <div class="music-picker-controls">
+                <select id="musicTrackSelect" class="lok-select-sm music-track-select" aria-label="اختر موسيقى الخلفية">
+                  <option value="luxury_piano">بيانو كلاسيكي راقي (Gymnopédie) - للعقارات الفاخرة</option>
+                </select>
+                <button type="button" class="btn-bw-secondary btn-music-preview" id="btnPreviewMusic" title="معاينة المقطوعة المختارة">
+                  <span>▶ استمع</span>
+                </button>
+              </div>
+              <span class="music-track-license" id="musicTrackLicenseBadge">Public Domain / CC0</span>
             </div>
 
             <div class="prompt-textarea-wrapper">
@@ -222,17 +272,31 @@
             </div>
           </div>
 
-          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates -->
-          <div class="studio-section capcut-studio-section" id="capcutStudioSection">
-            <div class="capcut-header-row">
-              <div>
-                <label class="section-label mb-0">3. قوالب النصوص المتحركة بأسلوب CapCut (Custom Text &amp; Animations):</label>
-                <p class="capcut-sub-hint">اختر قالب التحريك المفضل لديك، واكتب النص الذي تريد ظهوره على الفيديو ليقوم الذكاء الاصطناعي بتقسيمه وتوقيته تلقائياً بدون الحاجة لاكتشاف الصوت.</p>
-              </div>
-              <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
-            </div>
+          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates (Collapsible at bottom of form) -->
+          <div class="studio-section capcut-studio-section is-collapsed" id="capcutStudioSection">
+            <button
+              type="button"
+              class="btn-collapse-panel"
+              id="btnToggleCapcutPresets"
+              aria-expanded="false"
+              aria-controls="capcutPresetsBody"
+            >
+              <span class="collapse-btn-main">
+                <span>🎨 3. قوالب النصوص المتحركة والكتابة (CapCut Text Presets)</span>
+                <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
+              </span>
+              <span class="collapse-chevron" id="capcutPresetsChevron">▾ عرض القوالب</span>
+            </button>
 
-            <!-- 7 Animated Templates Grid + None Option -->
+            <div class="capcut-presets-body" id="capcutPresetsBody" style="display: none;">
+              <div class="capcut-header-row">
+                <div>
+                  <label class="section-label mb-0">3. قوالب النصوص المتحركة بأسلوب CapCut (Custom Text &amp; Animations):</label>
+                  <p class="capcut-sub-hint">اختر قالب التحريك المفضل لديك، واكتب النص الذي تريد ظهوره على الفيديو ليقوم الذكاء الاصطناعي بتقسيمه وتوقيته تلقائياً بدون الحاجة لاكتشاف الصوت.</p>
+                </div>
+              </div>
+
+              <!-- 7 Animated Templates Grid + None Option -->
             <div class="capcut-templates-grid" id="captionTemplatesGrid" role="radiogroup" aria-label="قوالب النصوص المتحركة">
               <button type="button" class="capcut-tpl-card active" data-template="" aria-pressed="true">
                 <div class="tpl-preview tpl-preview-none">
@@ -370,6 +434,7 @@
                 <div class="split-chunks-list" id="splitChunksList"></div>
               </div>
             </div>
+            </div>
           </div>
 
           <!-- CONTROL 4: Produce Video Action Button -->
@@ -478,21 +543,36 @@
                   <p class="script-content-text" id="generatedScriptText"></p>
                 </div>
 
-                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts -->
-                <div class="shots-timeline-section" id="shotsTimelineSection" style="display: none;">
-                  <div class="timeline-header">
-                    <div class="timeline-title-group">
-                      <span class="timeline-icon">✂️</span>
-                      <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
+                <!-- Shot-by-Shot Synchronized Timeline & Editable Cuts (Collapsible) -->
+                <div class="shots-timeline-section is-collapsed" id="shotsTimelineSection" style="display: none;">
+                  <button
+                    type="button"
+                    class="btn-collapse-panel btn-collapse-timeline"
+                    id="btnToggleTimelinePanel"
+                    aria-expanded="false"
+                    aria-controls="shotsTimelineBody"
+                  >
+                    <span class="collapse-btn-main">
+                      <span>⏱️ عرض التوقيت الزمني والمشاهد والنص — التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</span>
+                      <span class="timeline-count-pill" id="timelineCountPill">0 لقطات</span>
+                    </span>
+                    <span class="collapse-chevron" id="timelinePanelChevron">▾ عرض التفاصيل</span>
+                  </button>
+                  <div class="shots-timeline-body" id="shotsTimelineBody" style="display: none;">
+                    <div class="timeline-header">
+                      <div class="timeline-title-group">
+                        <span class="timeline-icon">✂️</span>
+                        <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
+                      </div>
+                      <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
                     </div>
-                    <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
-                  </div>
-                  <div class="shots-timeline-list" id="shotsTimelineList"></div>
-                  <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
-                    <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
-                    <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
-                      <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
-                    </button>
+                    <div class="shots-timeline-list" id="shotsTimelineList"></div>
+                    <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
+                      <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
+                      <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
+                        <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -747,6 +827,209 @@
       </div>
     </div>
 
+    <!-- ===================================================================== -->
+    <!-- 3B. INTERACTIVE PERSISTENT SCREEN NOTE / PHONE DESIGNER MODAL         -->
+    <!-- ===================================================================== -->
+    <div id="screenOverlayModal" class="lok-settings-overlay screen-overlay-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="screenOverlayModalTitle">
+      <div class="settings-modal-dialog screen-overlay-dialog">
+        <div class="settings-modal-content screen-overlay-content">
+
+          <div class="settings-header overlay-modal-header">
+            <div>
+              <h2 class="settings-main-title" id="screenOverlayModalTitle">📱 تصميم الملاحظة / رقم الهاتف الثابت على الشاشة</h2>
+              <p class="overlay-modal-subtitle">اسحب النص مباشرة فوق الشاشة لتحديد موقعه بدقة، ثم اختر الخط والمؤثر المناسبين</p>
+            </div>
+            <button type="button" class="btn-bw-secondary" id="btnCloseScreenOverlayModal">✕ إغلاق</button>
+          </div>
+
+          <div class="overlay-designer-layout">
+
+            <!-- Left / Visual Interactive Phone Stage -->
+            <div class="overlay-stage-column">
+              <div class="overlay-stage-toolbar">
+                <span class="overlay-coords-badge" id="overlayCoordsBadge">X: 50% | Y: 92%</span>
+                <div class="overlay-quick-snaps">
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.10" title="أعلى المنتصف">أعلى</button>
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.50" title="وسط الشاشة">وسط</button>
+                  <button type="button" class="btn-snap-pos" data-snap-x="0.50" data-snap-y="0.92" title="أسفل المنتصف">أسفل</button>
+                </div>
+              </div>
+
+              <div class="overlay-screen-stage" id="overlayScreenStage">
+                <video id="overlayPreviewVideo" class="overlay-preview-video" playsinline muted loop autoplay style="display: none;"></video>
+                <div class="overlay-stage-placeholder" id="overlayStagePlaceholder">
+                  <span class="stage-placeholder-icon">🎬</span>
+                  <span class="stage-placeholder-text">ارفع فيديو لمعاينته هنا أو اسحب النص مباشرة على الشاشة</span>
+                </div>
+                <div class="overlay-stage-grid" aria-hidden="true"></div>
+                <div id="draggableOverlayNode" class="draggable-overlay-node overlay-fx-solid_dark overlay-size-medium" tabindex="0" role="application" aria-label="النص الثابت القابل للسحب">
+                  <span id="draggableOverlayNodeText">0550 12 34 56</span>
+                </div>
+              </div>
+              <p class="overlay-drag-hint">💡 اضغط واسحب النص بالماوس أو الإصبع لأي نقطة في الشاشة — تبقى هذه الإحداثيات ثابتة طوال الفيديو.</p>
+            </div>
+
+            <!-- Right / Controls: Text, Fonts, Effects, Size & Colors -->
+            <div class="overlay-controls-column">
+
+              <div class="overlay-control-group">
+                <label for="overlayTextInput" class="overlay-control-label">✍️ نص الملاحظة أو رقم الهاتف (يبقى ظاهراً طوال الفيديو)</label>
+                <input
+                  type="text"
+                  id="overlayTextInput"
+                  class="lok-input overlay-text-input"
+                  maxlength="90"
+                  placeholder="مثال: للتواصل: 0550123456 أو اسم الشركة / السعر"
+                  autocomplete="off"
+                >
+              </div>
+
+              <div class="overlay-control-group">
+                <div class="overlay-group-header">
+                  <label class="overlay-control-label">🔤 اختر الخط (Font)</label>
+                  <span class="overlay-selected-pill" id="overlaySelectedFontLabel">Tahoma Bold</span>
+                </div>
+                <div class="overlay-fonts-grid" id="overlayFontList">
+                  <!-- Populated dynamically from /api/overlay-options -->
+                </div>
+              </div>
+
+              <div class="overlay-control-group">
+                <div class="overlay-group-header">
+                  <label class="overlay-control-label">✨ اختر المؤثر (Effect)</label>
+                  <button type="button" class="btn-bw-secondary btn-xs-replay" id="btnReplayOverlayEffect" title="إعادة تشغيل معاينة الحركة">↻ معاينة الحركة</button>
+                </div>
+                <div class="overlay-effects-grid" id="overlayEffectList">
+                  <!-- Populated dynamically from /api/overlay-options -->
+                </div>
+              </div>
+
+              <div class="overlay-control-row-split">
+                <div class="overlay-control-group">
+                  <label class="overlay-control-label">📏 حجم الخط</label>
+                  <div class="overlay-size-pills" id="overlaySizePills">
+                    <button type="button" class="btn-overlay-size" data-size="small">صغير</button>
+                    <button type="button" class="btn-overlay-size active" data-size="medium">متوسط</button>
+                    <button type="button" class="btn-overlay-size" data-size="large">كبير</button>
+                  </div>
+                </div>
+
+                <div class="overlay-control-group">
+                  <label class="overlay-control-label">🎨 لون النص</label>
+                  <div class="overlay-color-swatches" id="overlayColorSwatches">
+                    <button type="button" class="overlay-color-swatch active" data-color="default" title="تلقائي حسب المؤثر" style="background: linear-gradient(135deg, #ffffff 50%, #f5c542 50%);"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="white" title="أبيض" style="background: #ffffff;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="gold" title="ذهبي" style="background: #ffd166;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="cyan" title="سماوي" style="background: #4cc9f0;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="emerald" title="أخضر زمردي" style="background: #38d399;"></button>
+                    <button type="button" class="overlay-color-swatch" data-color="rose" title="وردي/أحمر" style="background: #ff6b8b;"></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="overlay-modal-footer">
+            <button type="button" class="btn-bw-secondary btn-danger-ghost" id="btnDisableScreenOverlay">🗑️ تعطيل وإزالة النص</button>
+            <div class="overlay-footer-right">
+              <button type="button" class="btn-bw-secondary" id="btnCancelScreenOverlayModal">إلغاء</button>
+              <button type="button" class="btn-bw-primary" id="btnSaveScreenOverlay">✅ حفظ وتطبيق على الفيديو</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3C. INTERACTIVE USER GUIDE MODAL (Opened on demand from top-right btn)-->
+    <!-- ===================================================================== -->
+    <div id="userGuideModal" class="lok-settings-overlay user-guide-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="userGuideModalTitle">
+      <div class="settings-modal-dialog user-guide-dialog">
+        <div class="settings-modal-content user-guide-content">
+
+          <div class="settings-header user-guide-header">
+            <div>
+              <h2 class="settings-main-title" id="userGuideModalTitle">📖 دليل استخدام استوديو lok خطوة بخطوة</h2>
+              <p class="overlay-modal-subtitle">كل ما تحتاجه لإنتاج فيديو تسويقي احترافي بالدارجة مع النصوص والموسيقى في أقل من دقيقتين</p>
+            </div>
+            <button type="button" class="btn-bw-secondary" id="btnCloseUserGuideModal">✕ إغلاق</button>
+          </div>
+
+          <div class="user-guide-steps-grid">
+            <article class="guide-step-card">
+              <div class="guide-step-badge">1</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">🔐 تسجيل الدخول (`دخول الاستوديو`)</h3>
+                <p class="guide-step-desc">أدخل اسم المستخدم وكلمة المرور أو استخدم أزرار الدخول السريع بنقرة واحدة للوصول إلى مساحة عملك.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">2</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">⚙️ إعداد الصوت والتوصيات (إعداد لمرة واحدة)</h3>
+                <p class="guide-step-desc">من زر <strong>الإعدادات</strong>، جرّب أصوات المعلقين بالدارجة (عائشة، أمين، كريم، مريم)، عيّن صوتك المفضل، واحفظ قوالب توجيهاتك المفضلة مع متابعة رصيدك اليومي والأسبوعي.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">3</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">📹 رفع الفيديو المسجل</h3>
+                <p class="guide-step-desc">اسحب مقطع الفيديو الجاهز (MP4 / MOV / WebM) وأفلته في منطقة الرفع أو اختره من جهازك عبر <strong>تصفح واختيار الفيديو</strong>.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">4</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">⚡ الميزات الاختيارية (Opt-In)</h3>
+                <ul class="guide-sub-list">
+                  <li><strong>💬 ترجمة متزامنة:</strong> إظهار كلام المعلق متزامناً على الشاشة.</li>
+                  <li><strong>🎵 موسيقى خلفية:</strong> اختيار مقطوعة ومعاينتها قبل الدمج (الصوت نقي 100% عند التعطيل).</li>
+                  <li><strong>⏱️ مخطط المشاهد:</strong> تفصيل كل مشهد زمنياً مع إمكانية تعديل نصه لاحقاً.</li>
+                  <li><strong>📱 ملاحظة / رقم ثابت:</strong> نافذة تفاعلية لكتابة رقمك أو ملاحظتك، <strong>سحبها باليد لأي مكان على الشاشة</strong>، وتغيير الخط واللون والحجم والمؤثرات الحركية.</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">5</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">✍️ التوجيهات + 🎨 قوالب CapCut</h3>
+                <p class="guide-step-desc">اكتب تفاصيل العرض واللهجة وسرعة الإلقاء في مربع التوجيهات. ويمكنك اختيارياً فتح <strong>قوالب النصوص المتحركة</strong> لإضافة نصوص تيك توك وريلز مقسمة بالذكاء الاصطناعي.</p>
+              </div>
+            </article>
+
+            <article class="guide-step-card">
+              <div class="guide-step-badge">6</div>
+              <div class="guide-step-body">
+                <h3 class="guide-step-title">✨ الإنتاج والتعديل السريع والتحميل</h3>
+                <p class="guide-step-desc">اضغط <strong>إنتاج الفيديو التسويقي بنقرة واحدة</strong>. بعد النتيجة يمكنك نسخ السيناريو، أو تعديل جملة أي لقطة في المخطط وتحديث الصوت فوراً، ثم تحميل ملف MP4 النهائي.</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="guide-pro-tips-box">
+            <div class="guide-tips-title">💡 نصائح سريعة لأفضل نتيجة:</div>
+            <ul class="guide-tips-list">
+              <li>ارفع الفيديو أولاً قبل فتح <strong>📱 ملاحظة / رقم ثابت</strong> حتى تشاهد الفيديو يعمل خلف النص أثناء سحبه وتحديد مكانه.</li>
+              <li>لإبقاء التعليق الصوتي طبيعياً، ضع رقم الهاتف في <strong>📱 ملاحظة / رقم ثابت</strong> بدلاً من إجبار المعلق على قراءة الأرقام.</li>
+              <li>اذكر الحقائق المهمة (المساحة، السعر، الحي) في التوجيهات ليدمجها الذكاء الاصطناعي بدقة مع اللقطات.</li>
+            </ul>
+          </div>
+
+          <div class="overlay-modal-footer user-guide-footer">
+            <span class="guide-footer-note">يمكنك فتح هذا الدليل في أي وقت من زر «📖 دليل الاستخدام» أعلى اليمين.</span>
+            <button type="button" class="btn-bw-primary" id="btnAcknowledgeUserGuide">✅ فهمت، لنبدأ الإنتاج</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- Feedback Toast -->
     <div class="lok-toast" id="appToast" role="alert" aria-live="polite"></div>
 
@@ -800,6 +1083,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261112_editable_cuts" defer></script>
+  <script src="/static/app.js?v=20261113_user_guide" defer></script>
 </body>
 </html>

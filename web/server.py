@@ -78,6 +78,7 @@ from web.pipeline_bridge import (
     is_meta_prompt,
     parse_prompt_instructions,
     process_mobile_video,
+    resolve_music_track,
     resolve_voice_profile,
     sanitize_and_validate_prompt,
     update_cuts_text_and_rerender,
@@ -112,7 +113,12 @@ from web.auth_db import (
     verify_admin_login,
     verify_password,
 )
-from web.video_annotator import annotate_video
+from web.video_annotator import (
+    annotate_video,
+    get_overlay_effects_list,
+    get_overlay_fonts_list,
+    resolve_overlay_font,
+)
 from web.caption_templates import (
     DEFAULT_TEMPLATE as DEFAULT_CAPTION_TEMPLATE,
     assign_timings as assign_caption_timings,
@@ -161,8 +167,31 @@ async def get_presets(request: Request) -> JSONResponse:
 
 
 async def get_music_tracks(request: Request) -> JSONResponse:
-    """GET /api/music-tracks - Returns catalog of available open-source background music."""
+    """GET /api/music-tracks - Returns catalog of available open-source and local assets/music tracks."""
     return JSONResponse(get_music_tracks_list())
+
+
+_AUDIO_MEDIA_TYPES = {
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".m4a": "audio/mp4",
+    ".aac": "audio/aac",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+}
+
+
+async def music_track_audio_endpoint(request: Request) -> Response:
+    """GET /api/music-tracks/{track_id}/audio - Stream selected background music track for preview."""
+    track_id = request.path_params.get("track_id", "")
+    track_meta = resolve_music_track(track_id, strict=True)
+    if not track_meta:
+        return JSONResponse({"status": "error", "message": f"Music track '{track_id}' not found"}, status_code=404)
+    audio_path = Path(track_meta["file"]).resolve()
+    if not audio_path.is_file() or audio_path.stat().st_size == 0:
+        return JSONResponse({"status": "error", "message": f"Audio file missing for '{track_id}'"}, status_code=404)
+    media_type = _AUDIO_MEDIA_TYPES.get(audio_path.suffix.lower(), "application/octet-stream")
+    return FileResponse(str(audio_path), media_type=media_type, filename=audio_path.name)
 
 
 def _extract_candidate_tokens(request: Request, form: Optional[Any] = None) -> List[str]:
@@ -281,6 +310,83 @@ def _parse_caption_options(form: Any) -> Optional[Dict[str, Any]]:
     }
 
 
+def _parse_screen_overlay_options(form: Any) -> Optional[Dict[str, Any]]:
+    """Parse persistent screen note / phone placement, font, and effect parameters."""
+    raw_json = form.get("screen_overlay")
+    if isinstance(raw_json, str) and raw_json.strip().startswith("{"):
+        try:
+            data = json.loads(raw_json)
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+
+    enabled_raw = form.get("overlay_enabled")
+    if isinstance(enabled_raw, str) and enabled_raw.strip().lower() in ("false", "0", "no", "off"):
+        return None
+
+    text_val = None
+    for k in ("overlay_text", "screen_overlay_text"):
+        v = form.get(k)
+        if isinstance(v, str) and v.strip():
+            text_val = sanitize_and_validate_prompt(v.strip())[:220]
+            break
+
+    has_xy = form.get("overlay_x_pct") is not None or form.get("overlay_y_pct") is not None
+    if not text_val and not has_xy:
+        return None
+    if not text_val:
+        fallback_txt = form.get("bottom_text") or form.get("phone_number") or form.get("fixed_text")
+        if isinstance(fallback_txt, str) and fallback_txt.strip():
+            text_val = sanitize_and_validate_prompt(fallback_txt.strip())[:220]
+    if not text_val:
+        return None
+
+    def _pct(key: str, default: float) -> float:
+        try:
+            raw = form.get(key)
+            if raw is None or str(raw).strip() == "":
+                return default
+            return round(max(0.05, min(0.95, float(raw))), 4)
+        except (TypeError, ValueError):
+            return default
+
+    return {
+        "enabled": True,
+        "text": text_val,
+        "x_pct": _pct("overlay_x_pct", 0.5),
+        "y_pct": _pct("overlay_y_pct", 0.84),
+        "font": str(form.get("overlay_font") or "arial_bold").strip().lower(),
+        "effect": str(form.get("overlay_effect") or "solid_dark").strip().lower(),
+        "size": str(form.get("overlay_size") or "medium").strip().lower(),
+        "text_color": str(form.get("overlay_color") or "default").strip().lower(),
+    }
+
+
+async def get_overlay_options_endpoint(request: Request) -> JSONResponse:
+    """GET /api/overlay-options - Curated Arabic/Latin fonts and visual/motion effects for screen overlays."""
+    return JSONResponse({
+        "status": "ok",
+        "fonts": get_overlay_fonts_list(),
+        "effects": get_overlay_effects_list(),
+    })
+
+
+async def overlay_font_file_endpoint(request: Request) -> Response:
+    """GET /api/overlay-fonts/{font_id}/file - Safely stream an allowlisted TrueType font for live preview."""
+    font_id = (request.path_params.get("font_id") or "").strip().lower()
+    resolved = resolve_overlay_font(font_id)
+    if not font_id or resolved.get("id") != font_id:
+        return JSONResponse({"status": "error", "message": f"Unknown font '{font_id}'"}, status_code=404)
+    font_path_str = resolved.get("file")
+    if not font_path_str:
+        return JSONResponse({"status": "error", "message": f"Font '{font_id}' unavailable"}, status_code=404)
+    font_path = Path(font_path_str).resolve()
+    if not font_path.is_file():
+        return JSONResponse({"status": "error", "message": "Font file missing"}, status_code=404)
+    return FileResponse(str(font_path), media_type="font/ttf", filename=font_path.name)
+
+
 async def get_caption_templates_endpoint(request: Request) -> JSONResponse:
     """GET /api/captions/templates - Catalogue of animated caption templates."""
     return JSONResponse({"status": "ok", "templates": list_caption_templates(), "default": DEFAULT_CAPTION_TEMPLATE})
@@ -339,6 +445,7 @@ def _execute_processing_job(
     enable_subtitles: Optional[bool] = None,
     enable_music: Optional[bool] = None,
     caption_options: Optional[Dict[str, Any]] = None,
+    screen_overlay: Optional[Dict[str, Any]] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -424,6 +531,7 @@ def _execute_processing_job(
             enable_music=enable_music,
             job_id=job_id,
             caption_options=caption_options,
+            screen_overlay=screen_overlay,
         )
 
         # Record video generation in SaaS audit history
@@ -741,6 +849,7 @@ async def create_job_async(request: Request) -> JSONResponse:
 
     try:
         caption_options = _parse_caption_options(form)
+        screen_overlay = _parse_screen_overlay_options(form)
     except ValueError as cap_err:
         return JSONResponse(
             {"status": "error", "error": "security_violation", "message": str(cap_err)},
@@ -826,6 +935,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             enable_subtitles,
             enable_music,
             caption_options,
+            screen_overlay,
         ),
         daemon=True,
     )
@@ -1049,6 +1159,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
 
     try:
         caption_options = _parse_caption_options(form)
+        screen_overlay = _parse_screen_overlay_options(form)
     except ValueError as cap_err:
         return JSONResponse(
             {"status": "error", "error": "security_violation", "message": str(cap_err)},
@@ -1164,6 +1275,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             enable_music=enable_music,
             job_id=job_id,
             caption_options=caption_options,
+            screen_overlay=screen_overlay,
         )
 
         # Record video generation in SaaS audit history
@@ -1512,6 +1624,17 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
     cuts = body.get("cuts")
     edited_script = body.get("script")
     voice = body.get("voice")
+    music_track = body.get("music_track") or body.get("music")
+    screen_overlay = body.get("screen_overlay")
+    if screen_overlay is not None and not isinstance(screen_overlay, dict):
+        return JSONResponse({"error": "'screen_overlay' must be an object."}, status_code=400)
+    enable_music_raw = body.get("enable_music")
+    enable_music = None
+    if enable_music_raw is not None:
+        if isinstance(enable_music_raw, str):
+            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
+        else:
+            enable_music = bool(enable_music_raw)
 
     if cuts is not None and not isinstance(cuts, list):
         return JSONResponse({"error": "'cuts' must be a list of cut objects."}, status_code=400)
@@ -1532,6 +1655,9 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
             edited_script=edited_script if isinstance(edited_script, str) else None,
             output_dir=OUTPUTS_DIR / "mobile_cuts",
             voice=voice if isinstance(voice, str) and voice.strip() else None,
+            music_track=music_track if isinstance(music_track, str) and music_track.strip() else None,
+            enable_music=enable_music,
+            screen_overlay=screen_overlay,
         )
     except FileNotFoundError as exc:
         return JSONResponse(
@@ -2186,10 +2312,13 @@ routes = [
     Route("/api/voices", get_voices_endpoint, methods=["GET"]),
     Route("/api/voices/{voice_id}/sample", voice_sample_endpoint, methods=["GET"]),
     Route("/api/music-tracks", get_music_tracks, methods=["GET"]),
+    Route("/api/music-tracks/{track_id}/audio", music_track_audio_endpoint, methods=["GET"]),
     Route("/api/principles", get_principles_endpoint, methods=["GET"]),
     Route("/api/principles", save_principles_endpoint, methods=["POST"]),
     Route("/api/principles/reset", reset_principles_endpoint, methods=["POST"]),
     Route("/api/video/annotate", annotate_video_endpoint, methods=["POST"]),
+    Route("/api/overlay-options", get_overlay_options_endpoint, methods=["GET"]),
+    Route("/api/overlay-fonts/{font_id}/file", overlay_font_file_endpoint, methods=["GET"]),
     Route("/api/captions/templates", get_caption_templates_endpoint, methods=["GET"]),
     Route("/api/captions/split", split_captions_endpoint, methods=["POST"]),
     Route("/api/prompts/history", get_prompts_history_endpoint, methods=["GET"]),
