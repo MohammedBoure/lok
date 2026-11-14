@@ -1536,8 +1536,182 @@ body {
   transform: translateY(0);
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for phone viewports */
 @media (max-width: 640px) {
+  /* Gated Login */
+  .lok-gated-login {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 16px 12px 32px;
+    gap: 12px;
+  }
+  .login-card-wrapper {
+    margin: auto 0;
+  }
+  .login-card {
+    padding: 24px 16px;
+  }
+  .lok-brand-title {
+    font-size: 2.35rem;
+  }
+  .lok-brand-tagline {
+    font-size: 0.84rem;
+    margin-bottom: 20px;
+  }
+  .quick-credentials-hint {
+    font-size: 0.76rem;
+    padding: 10px 12px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Header & Navigation */
+  .header-inner {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header-brand-group {
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .lok-header-logo {
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+  .header-user-status {
+    padding: 3px 9px;
+    font-size: 0.74rem;
+    max-width: 150px;
+    min-width: 0;
+  }
+  .header-user-status .user-business-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+  }
+  .header-actions {
+    gap: 6px !important;
+    flex-shrink: 0;
+  }
+  .btn-bw-settings {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 5px;
+  }
+
+  /* Main Studio Layout */
+  .lok-main-content {
+    padding: 18px 12px 48px;
+  }
+  .studio-headline-group {
+    margin-bottom: 20px;
+  }
+  .studio-title {
+    font-size: 1.35rem;
+    line-height: 1.35;
+  }
+  .studio-subtitle {
+    font-size: 0.85rem;
+  }
+
+  /* Video Dropzone */
+  .video-dropzone {
+    padding: 24px 14px;
+  }
+  .dropzone-icon {
+    font-size: 2rem;
+  }
+  .dropzone-primary-text {
+    font-size: 0.92rem;
+  }
+  .dropzone-selected-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    text-align: center;
+    padding: 14px 12px;
+  }
+  .selected-video-icon {
+    margin-left: 0;
+  }
+  .selected-video-name {
+    word-break: break-word;
+  }
+
+  /* Prevent iOS auto-zoom on input focus */
+  .form-input,
+  .lok-prompt-textarea,
+  .lok-input,
+  .lok-select-sm,
+  .cut-text-editor {
+    font-size: 16px;
+  }
+
+  .btn-produce-main {
+    padding: 14px 16px;
+    font-size: 1rem;
+  }
+
+  /* Processing & Results */
+  .processing-stepper-box,
+  .studio-error-box {
+    padding: 14px 12px;
+  }
+  .result-container {
+    padding: 16px 12px;
+  }
+  .result-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .result-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+  .shot-timeline-item {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+  }
+  .shot-time-col {
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .shot-details-col {
+    flex: 1 1 100%;
+  }
+
+  /* Settings & Modals */
+  .lok-settings-overlay {
+    padding: 10px;
+  }
+  .settings-modal-dialog {
+    margin: 6px auto 20px;
+  }
+  .settings-modal-content {
+    padding: 16px 14px;
+    border-radius: var(--lok-radius-md);
+  }
+  .settings-main-title {
+    font-size: 1.08rem;
+    line-height: 1.35;
+  }
+  .settings-card {
+    padding: 14px 12px;
+  }
+  .optin-switch-item {
+    gap: 10px;
+    padding: 10px 12px;
+  }
   .quota-meters-row {
     grid-template-columns: 1fr;
   }
@@ -1554,13 +1728,21 @@ body {
   .rec-item-actions {
     width: 100%;
     justify-content: flex-end;
+    flex-wrap: wrap;
   }
   .optin-toggles-bar {
     flex-direction: column;
     align-items: stretch;
+    padding: 10px 12px;
   }
   .btn-optin-toggle {
     justify-content: space-between;
+  }
+  .lok-toast {
+    left: 12px;
+    right: 12px;
+    bottom: 14px;
+    text-align: center;
   }
 }
 
@@ -2823,12 +3005,67 @@ body {
 }
 
 @media (max-width: 640px) {
+  .login-guide-corner {
+    position: static;
+    align-self: flex-start;
+  }
   .btn-user-guide .guide-label {
     font-size: 0.78rem;
   }
   .user-guide-highlight-tip {
-    max-width: 240px;
+    max-width: calc(100vw - 24px);
     white-space: normal;
+  }
+  .screen-overlay-dialog,
+  .user-guide-dialog {
+    margin: 6px auto 20px;
+  }
+  .screen-overlay-content {
+    padding: 16px 14px;
+  }
+  .screen-overlay-summary-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .overlay-summary-text {
+    max-width: 100%;
+  }
+  .overlay-summary-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .overlay-stage-toolbar,
+  .overlay-screen-stage {
+    max-width: 240px;
+  }
+  .overlay-screen-stage {
+    max-height: 50vh;
+  }
+  .overlay-modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .overlay-footer-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .overlay-footer-right .btn-bw-primary,
+  .overlay-footer-right .btn-bw-secondary {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .capcut-studio-section {
+    padding: 14px 12px;
+  }
+  .btn-collapse-panel {
+    padding: 10px 12px;
+    font-size: 0.84rem;
+  }
+  .user-guide-steps-grid {
+    grid-template-columns: 1fr;
   }
 }
 
