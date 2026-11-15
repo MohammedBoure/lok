@@ -32,7 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261115_theme_redesign">
+  <link rel="stylesheet" href="/static/style.css?v=20261115_mobile_v1">
 </head>
 <body>
 
@@ -140,7 +140,10 @@
             <div class="lok-header-logo" aria-label="استوديو LOK">
               <span class="brand-square-mark">lok</span>
               <span class="brand-wordmark-stack">
-                <span class="brand-wordmark-title">استوديو LOK</span>
+                <span class="brand-wordmark-title">
+                  <span>استوديو LOK</span>
+                  <span class="brand-pro-badge">PRO</span>
+                </span>
                 <span class="brand-wordmark-sub">الذكاء الاصطناعي للمونتاج</span>
               </span>
             </div>
@@ -364,6 +367,12 @@
 • اللهجة (Dialect): بالدارجة الجزائرية العاصمية، أو الوهرانية، أو بالعربية الفصحى."
               ></textarea>
               <div class="prompt-char-count" id="promptCharCount">0 حرف</div>
+            </div>
+            <div class="mobile-prompt-chips" id="mobilePromptQuickChips" aria-label="مقترحات توجيه سريعة">
+              <span class="mobile-prompt-chips-label">مقترحات:</span>
+              <button type="button" class="mobile-prompt-chip" data-prompt-snippet="إظهار رقم الواتساب بالأسفل بخط واضح">+ رقم الواتساب بالأسفل</button>
+              <button type="button" class="mobile-prompt-chip" data-prompt-snippet="نبرة فخمة وحماسية ومقنعة">+ نبرة فخمة وحماسية</button>
+              <button type="button" class="mobile-prompt-chip" data-prompt-snippet="مع زووم واضح وتأكيد عند السعر">+ زووم عند السعر</button>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
               💡 بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً لتوفير صوت نقي 100% وفيديو سريع. يمكنك تفعيل ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق كلمة بكلمة، أو تشغيل الموسيقى الخلفية (الافتراضي: 'بدون موسيقى' لصوت نقي 100% وكتم الموسيقى)، أو ضبط مستوى الصوت، أو إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، أو كتابة نص مخصص مع قوالب الكابشن المتحركة أدناه. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
@@ -736,6 +745,30 @@
           </div>
         </div>
       </footer>
+
+      <!-- Mobile Bottom Navigation Bar (<= 768px only) -->
+      <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="التنقل السريع للجوال">
+        <button type="button" class="mobile-nav-item is-active" data-mobile-tab="studio">
+          <span class="mobile-nav-icon" aria-hidden="true">🎬</span>
+          <span class="mobile-nav-label">الاستوديو</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-mobile-tab="projects">
+          <span class="mobile-nav-icon" aria-hidden="true">🎞️</span>
+          <span class="mobile-nav-label">المشاريع</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-mobile-tab="voices">
+          <span class="mobile-nav-icon" aria-hidden="true">🎙️</span>
+          <span class="mobile-nav-label">الأصوات AI</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-mobile-tab="templates">
+          <span class="mobile-nav-icon" aria-hidden="true">🎨</span>
+          <span class="mobile-nav-label">القوالب</span>
+        </button>
+        <a href="/admin" class="mobile-nav-item" data-mobile-tab="admin" title="لوحة الإدارة">
+          <span class="mobile-nav-icon" aria-hidden="true">🛡️</span>
+          <span class="mobile-nav-label">الإدارة</span>
+        </a>
+      </nav>
 
     </div>
 
@@ -1226,6 +1259,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261115_theme_redesign" defer></script>
+  <script src="/static/app.js?v=20261115_mobile_v1" defer></script>
 </body>
 </html>

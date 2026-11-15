@@ -1404,7 +1404,7 @@
   }
 
   function setupCollapsiblePanels() {
-    setCapcutPanelOpen(false);
+    setCapcutPanelOpen(window.innerWidth <= 768);
     setTimelinePanelOpen(false);
     if (dom.btnToggleCapcutPresets) {
       dom.btnToggleCapcutPresets.addEventListener("click", () => {
@@ -3346,11 +3346,77 @@
     });
   }
 
+  function setupMobileNavigation() {
+    // 1. Prompt quick-suggestion chips
+    const chipButtons = document.querySelectorAll("#mobilePromptQuickChips .mobile-prompt-chip");
+    chipButtons.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const snippet = (chip.getAttribute("data-prompt-snippet") || "").trim();
+        if (!snippet || !dom.promptTextarea) return;
+        const current = (dom.promptTextarea.value || "").trim();
+        if (current.includes(snippet)) {
+          showToast("تمت إضافة هذا التوجيه مسبقاً.");
+          dom.promptTextarea.focus();
+          return;
+        }
+        dom.promptTextarea.value = current ? `${current}، ${snippet}` : snippet;
+        dom.promptTextarea.dispatchEvent(new Event("input", { bubbles: true }));
+        dom.promptTextarea.focus();
+        showToast("✅ تمت إضافة المقترح إلى التوجيه");
+      });
+    });
+
+    // 2. Step overview highlight on click
+    const overviewSteps = document.querySelectorAll(".studio-overview-step");
+    overviewSteps.forEach((stepEl) => {
+      stepEl.addEventListener("click", () => {
+        overviewSteps.forEach((el) => el.classList.remove("is-active"));
+        stepEl.classList.add("is-active");
+      });
+    });
+
+    // 3. Mobile bottom navigation tabs (<= 768px)
+    const navItems = document.querySelectorAll("#mobileBottomNav .mobile-nav-item");
+    navItems.forEach((item) => {
+      const tab = item.getAttribute("data-mobile-tab");
+      if (!tab || tab === "admin") return;
+
+      item.addEventListener("click", () => {
+        navItems.forEach((el) => el.classList.remove("is-active"));
+        item.classList.add("is-active");
+
+        if (tab === "studio") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else if (tab === "projects") {
+          const resultEl = document.getElementById("resultContainer");
+          const stepperEl = document.getElementById("processingStepper");
+          const target =
+            (resultEl && resultEl.style.display !== "none" && resultEl) ||
+            (stepperEl && stepperEl.style.display !== "none" && stepperEl) ||
+            document.getElementById("studioStepUpload");
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (tab === "voices") {
+          if (dom.btnOpenSettings) dom.btnOpenSettings.click();
+          setTimeout(() => {
+            const voiceSec = document.getElementById("sectionVoiceoverPicker");
+            if (voiceSec) voiceSec.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 80);
+        } else if (tab === "templates") {
+          setCapcutPanelOpen(true);
+          if (dom.capcutStudioSection) {
+            dom.capcutStudioSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      });
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // 9. Initialization Lifecycle on DOMContentLoaded
   // ---------------------------------------------------------------------------
   async function init() {
     setupThemeToggle();
+    setupMobileNavigation();
     setupSessionAuth();
     setupVideoUpload();
     setupPromptTextarea();

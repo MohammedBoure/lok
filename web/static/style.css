@@ -541,9 +541,27 @@ body {
 }
 
 .brand-wordmark-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--lok-ink);
+}
+
+.brand-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background-color: var(--lok-ink);
+  color: var(--lok-on-ink);
+  font-family: var(--lok-font-latin);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  line-height: 1.1;
 }
 
 .brand-wordmark-sub {
@@ -1968,12 +1986,6 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 720px) {
-  .studio-steps-overview {
-    grid-template-columns: 1fr;
-  }
-  .optin-toggles-grid {
-    grid-template-columns: 1fr !important;
-  }
   .action-section {
     flex-direction: column;
     align-items: stretch;
@@ -2008,12 +2020,6 @@ body {
   }
   .btn-optin-toggle {
     justify-content: space-between;
-  }
-  .header-inner {
-    padding: 10px 14px;
-  }
-  .brand-wordmark-sub {
-    display: none;
   }
 }
 
@@ -3585,4 +3591,506 @@ body {
 @keyframes lokKaraokePulse {
   0%, 100% { color: var(--capcut-primary-color, #ffffff); transform: scale(1); }
   45%, 75% { color: var(--capcut-accent-color, #ffd700); transform: scale(1.08); }
+}
+
+/* ==========================================================================
+   6. Quick Prompt Suggestion Chips & Mobile Stitch Blueprint (<= 768px)
+   ========================================================================== */
+.mobile-prompt-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.mobile-prompt-chips-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--lok-text-muted);
+  margin-left: 2px;
+}
+
+.mobile-prompt-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--lok-radius-pill);
+  border: 1px solid var(--lok-border);
+  background-color: var(--lok-soft-well);
+  color: var(--lok-ink);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.mobile-prompt-chip:hover {
+  background-color: var(--lok-elevated);
+  border-color: var(--lok-ink);
+  transform: translateY(-1px);
+}
+
+/* Desktop hides bottom navigation bar */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* 1) Compact Sticky Mobile Header */
+  .lok-header .header-inner {
+    padding: 10px 14px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .lok-header-logo {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .brand-square-mark {
+    width: 34px;
+    height: 34px;
+    font-size: 0.92rem;
+    border-radius: 8px;
+  }
+
+  .brand-wordmark-title {
+    font-size: 0.9rem;
+    gap: 5px;
+  }
+
+  .brand-wordmark-sub {
+    display: none;
+  }
+
+  .header-user-status {
+    display: inline-flex;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-guide-btn-wrap {
+    order: 3;
+    margin-inline-start: auto;
+  }
+
+  .header-actions {
+    order: 4;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .btn-bw-settings {
+    padding: 6px 9px;
+    min-height: 34px;
+    border-radius: 10px;
+  }
+
+  .btn-bw-settings .settings-label,
+  .btn-bw-settings .theme-toggle-label,
+  .btn-user-guide .guide-label {
+    display: none;
+  }
+
+  .btn-bw-settings .settings-icon,
+  .btn-bw-settings .theme-toggle-icon,
+  .btn-user-guide .guide-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  /* 2) Main Container & Bottom Nav Clearance */
+  .lok-main-content {
+    padding: 12px 12px 96px;
+  }
+
+  .lok-footer {
+    padding: 14px 12px 90px;
+  }
+
+  .lok-footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+
+  /* 3) Compact 3-Step Horizontal Pill Strip (Stitch Mobile Top Stepper) */
+  .studio-headline-group {
+    margin-bottom: 12px;
+  }
+
+  .studio-eyebrow-pill,
+  .studio-title,
+  .studio-subtitle {
+    display: none;
+  }
+
+  .studio-steps-overview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    background-color: var(--lok-surface);
+    border: 1px solid var(--lok-border);
+    border-radius: var(--lok-radius-lg);
+    box-shadow: var(--lok-card-shadow);
+  }
+
+  .studio-overview-step {
+    padding: 6px 6px;
+    gap: 6px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    border-radius: var(--lok-radius-sm);
+  }
+
+  .studio-overview-step.is-active {
+    background-color: var(--lok-soft-well);
+  }
+
+  .overview-step-num {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+    border-radius: 6px;
+    background-color: var(--lok-soft-well);
+    border: 1px solid var(--lok-border);
+  }
+
+  .studio-overview-step.is-active .overview-step-num {
+    background-color: var(--lok-ink);
+    color: var(--lok-on-ink);
+    border-color: var(--lok-ink);
+  }
+
+  .overview-step-text strong {
+    font-size: 0.7rem;
+    line-height: 1.25;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .overview-step-text small {
+    display: block;
+    font-size: 0.62rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 4) Section Cards Compact Mobile Spacing */
+  .studio-section {
+    margin-bottom: 12px;
+  }
+
+  .studio-card {
+    padding: 14px;
+    border-radius: var(--lok-radius-lg);
+  }
+
+  .studio-card-head {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .section-label {
+    font-size: 0.88rem;
+    gap: 7px;
+  }
+
+  .section-step-num {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+  }
+
+  /* 5) Mobile Dropzone Card */
+  .video-dropzone {
+    padding: 18px 12px;
+  }
+
+  .dropzone-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+  }
+
+  .dropzone-primary-text {
+    font-size: 0.9rem;
+  }
+
+  .dropzone-sub-text {
+    font-size: 0.74rem;
+    margin-bottom: 12px;
+  }
+
+  .btn-browse {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+  }
+
+  .dropzone-format-chips {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--lok-border);
+    gap: 5px;
+  }
+
+  /* 6) Mobile Opt-In Pills Grid (Inverted Active State matching Mockup) */
+  .optin-toggles-bar {
+    padding: 10px;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .optin-bar-head {
+    display: none;
+  }
+
+  .optin-toggles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .btn-optin-toggle {
+    flex: 1 1 calc(50% - 7px);
+    min-width: 140px;
+    padding: 9px 10px;
+    font-size: 0.76rem;
+    border-radius: var(--lok-radius-md);
+  }
+
+  .btn-optin-toggle .optin-state {
+    display: none;
+  }
+
+  .btn-optin-toggle.active {
+    background-color: var(--lok-ink);
+    color: var(--lok-on-ink);
+    border-color: var(--lok-ink);
+    box-shadow: none;
+  }
+
+  .btn-optin-toggle.active .optin-icon,
+  .btn-optin-toggle.active .optin-title {
+    color: var(--lok-on-ink);
+  }
+
+  .music-track-picker-wrap {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .music-picker-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .music-track-select {
+    min-width: 0;
+    flex: 1;
+    font-size: 0.78rem;
+  }
+
+  .lok-prompt-textarea {
+    min-height: 108px;
+    font-size: 0.84rem;
+    padding: 12px;
+  }
+
+  .prompt-guidance-hint {
+    display: none;
+  }
+
+  /* 7) Mobile CapCut Templates 2-Column Grid + Horizontal Fonts + Wrapped Colors */
+  .capcut-studio-header {
+    padding: 0;
+  }
+
+  .btn-collapse-panel {
+    padding: 2px 0;
+  }
+
+  .capcut-templates-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .capcut-template-card {
+    padding: 10px 8px;
+    min-height: 0;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--lok-radius-md);
+  }
+
+  .capcut-template-card .tpl-preview-box {
+    min-height: 36px;
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+  }
+
+  .capcut-template-card.active {
+    background-color: var(--lok-ink);
+    border-color: var(--lok-ink);
+    color: var(--lok-on-ink);
+  }
+
+  .capcut-template-card.active .tpl-title,
+  .capcut-template-card.active .tpl-desc {
+    color: var(--lok-on-ink);
+  }
+
+  .capcut-fonts-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 7px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .capcut-font-pill {
+    flex: 0 0 auto;
+    min-width: 112px;
+    padding: 7px 11px;
+  }
+
+  .capcut-font-pill.active {
+    background-color: var(--lok-ink);
+    border-color: var(--lok-ink);
+    box-shadow: none;
+  }
+
+  .capcut-font-pill.active .capcut-font-name,
+  .capcut-font-pill.active .capcut-font-sample {
+    color: var(--lok-on-ink);
+  }
+
+  .capcut-colors-grid {
+    gap: 6px;
+  }
+
+  .capcut-color-pill {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    border-radius: var(--lok-radius-md);
+  }
+
+  .capcut-controls-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* 8) Action Card Mobile CTA */
+  .action-section {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .action-summary h3 {
+    font-size: 0.9rem;
+  }
+
+  .action-summary p {
+    font-size: 0.74rem;
+  }
+
+  .btn-produce-main {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 0.94rem;
+  }
+
+  /* 9) Fixed Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    background-color: var(--lok-header-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--lok-border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 5px 2px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--lok-text-muted);
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.05rem;
+    line-height: 1.1;
+  }
+
+  .mobile-nav-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .mobile-nav-item.is-active {
+    color: var(--lok-ink);
+    background-color: var(--lok-accent-soft);
+  }
+
+  .mobile-nav-item.is-active .mobile-nav-label {
+    font-weight: 800;
+  }
+
+  .lok-toast {
+    bottom: 78px;
+    right: 12px;
+    left: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-user-status {
+    display: none;
+  }
+  .btn-optin-toggle {
+    flex: 1 1 100%;
+  }
 }

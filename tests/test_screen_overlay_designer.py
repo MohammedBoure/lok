@@ -332,7 +332,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert 'id="draggableOverlayNode"' in html
     assert 'id="overlayFontList"' in html
     assert 'id="overlayEffectList"' in html
-    assert '20261115_theme_redesign' in html
+    assert '20261115_mobile_v1' in html
 
     # JS handlers & API integration
     assert "/api/overlay-options" in js
@@ -522,6 +522,34 @@ def test_editorial_dual_theme_design_and_toggle_contract():
     assert 'class="lok-footer"' in html
     assert ".studio-steps-overview" in css
     assert ".studio-card" in css
+
+    for content in (html, admin_html, js, css):
+        assert "\u0669" not in content
+
+
+def test_mobile_stitch_layout_and_bottom_nav_contract():
+    html = (REPO_ROOT / "web" / "static" / "index.html").read_text(encoding="utf-8")
+    admin_html = (REPO_ROOT / "web" / "static" / "admin.html").read_text(encoding="utf-8")
+    js = (REPO_ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    css = (REPO_ROOT / "web" / "static" / "style.css").read_text(encoding="utf-8")
+
+    # Mobile Stitch HTML hooks (PRO badge, prompt quick chips, 5-tab fixed bottom nav)
+    assert 'class="brand-pro-badge"' in html
+    assert 'id="mobilePromptQuickChips"' in html
+    assert 'id="mobileBottomNav"' in html
+    for tab in ("studio", "projects", "voices", "templates", "admin"):
+        assert f'data-mobile-tab="{tab}"' in html
+
+    # Mobile CSS responsive rules & theme-variable usage (no hardcoded un-themed desktop override)
+    assert "@media (max-width: 768px)" in css
+    assert ".mobile-bottom-nav" in css
+    assert ".mobile-prompt-chips" in css
+    assert ".capcut-templates-grid" in css
+    assert "@media (max-width: 768px)" in admin_html
+
+    # Mobile JS tab routing + quick-prompt chip injection + auto-expand Step 3 on mobile
+    assert "setupMobileNavigation" in js
+    assert "window.innerWidth <= 768" in js
 
     for content in (html, admin_html, js, css):
         assert "\u0669" not in content

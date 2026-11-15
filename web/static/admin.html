@@ -939,6 +939,44 @@
       border-radius: 50%;
       background-color: var(--lok-ink);
     }
+
+    /* 13. Mobile Responsive Admin Layout (<= 768px) */
+    @media (max-width: 768px) {
+      .navbar .container-fluid {
+        gap: 0.65rem;
+      }
+      .navbar-brand {
+        font-size: 1.05rem;
+      }
+      .brand-logo-text {
+        font-size: 1.2rem;
+      }
+      .card {
+        border-radius: 12px;
+      }
+      .table th,
+      .table td {
+        padding: 0.55rem 0.6rem;
+        font-size: 0.78rem;
+      }
+      .modal-dialog {
+        margin: 0.75rem auto;
+        padding: 0 0.65rem;
+      }
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: 1rem;
+      }
+      .toast-container {
+        left: 0.65rem;
+        right: 0.65rem;
+        bottom: 0.75rem;
+      }
+      .toast {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
