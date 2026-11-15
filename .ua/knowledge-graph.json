@@ -21,8 +21,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-15T11:59:08.219Z",
-    "gitCommitHash": "bbbb7f40646cde167a1d8d98a2b3ed347500dc2c"
+    "analyzedAt": "2026-11-15T12:10:37.959Z",
+    "gitCommitHash": "e3032c764591251aad654c13a2858bab27d79312"
   },
   "nodes": [
     {
@@ -11815,6 +11815,23 @@
         527
       ],
       "summary": "Function test_editorial_dual_theme_design_and_toggle_contract in test_screen_overlay_designer.py (32 lines).",
+      "tags": [
+        "test",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_screen_overlay_designer.py:test_mobile_stitch_layout_and_bottom_nav_contract",
+      "type": "function",
+      "name": "test_mobile_stitch_layout_and_bottom_nav_contract",
+      "filePath": "tests/test_screen_overlay_designer.py",
+      "lineRange": [
+        530,
+        555
+      ],
+      "summary": "Function test_mobile_stitch_layout_and_bottom_nav_contract in test_screen_overlay_designer.py (26 lines).",
       "tags": [
         "test",
         "python",
@@ -23736,6 +23753,20 @@
     {
       "source": "file:tests/test_screen_overlay_designer.py",
       "target": "function:tests/test_screen_overlay_designer.py:test_editorial_dual_theme_design_and_toggle_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_mobile_stitch_layout_and_bottom_nav_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_screen_overlay_designer.py",
+      "target": "function:tests/test_screen_overlay_designer.py:test_mobile_stitch_layout_and_bottom_nav_contract",
       "type": "exports",
       "direction": "forward",
       "weight": 0.8
