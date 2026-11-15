@@ -1,13 +1,27 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="theme-color" content="#09090b">
+  <meta name="theme-color" id="metaThemeColor" content="#fbf6ef">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="lok • منصة إنتاج الفيديو الذكي للتجار والشركات بتصميم عصري وأبيض وأسود.">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="lok • منصة إنتاج الفيديو الذكي للتجار والشركات بتصميم تحريري أنيق بمظهر نهاري وداكن.">
   <title>lok • استوديو إنتاج الفيديو الذكي</title>
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("lok_theme");
+        var theme = saved === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+        var mc = document.getElementById("metaThemeColor");
+        if (mc) mc.setAttribute("content", theme === "dark" ? "#001524" : "#fbf6ef");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.ico">
@@ -18,7 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261115_fonts_colors">
+  <link rel="stylesheet" href="/static/style.css?v=20261115_theme_redesign">
 </head>
 <body>
 
@@ -29,6 +43,10 @@
     <!-- ===================================================================== -->
     <section id="loginView" class="lok-gated-login" style="display: none;">
       <div class="login-guide-corner">
+        <button type="button" class="btn-bw-settings btn-theme-toggle" id="btnLoginThemeToggle" data-theme-toggle aria-label="تبديل المظهر الفاتح والداكن" title="تبديل المظهر الفاتح / الداكن">
+          <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+          <span class="theme-toggle-label">الوضع الداكن</span>
+        </button>
         <button type="button" class="btn-bw-settings btn-user-guide" id="btnLoginUserGuide" title="عرض دليل استخدام المنصة خطوة بخطوة">
           <span class="guide-icon">📖</span>
           <span class="guide-label">دليل الاستخدام</span>
@@ -68,13 +86,13 @@
 
             <!-- Quick Credentials Helper Box -->
             <div class="quick-credentials-hint" id="loginCredentialHints">
-              <div class="d-flex align-items-center mb-1 text-white fw-bold">
+              <div class="d-flex align-items-center mb-1 login-hint-title">
                 <span class="me-2">🔐</span>
                 <span>بيانات الدخول السريع للاختبار:</span>
               </div>
-              <div class="font-monospace text-secondary small" dir="ltr">
-                • المشرف العام: <strong class="text-white">pluto</strong> / <strong class="text-white">plutosw4</strong><br>
-                • حساب تاجر: <strong class="text-white">algiers_luxury_re</strong> (أو <strong class="text-white">merchant_realestate</strong>) / <strong class="text-white">merchant123</strong>
+              <div class="font-monospace login-hint-body small" dir="ltr">
+                • المشرف العام: <strong class="login-hint-strong">pluto</strong> / <strong class="login-hint-strong">plutosw4</strong><br>
+                • حساب تاجر: <strong class="login-hint-strong">algiers_luxury_re</strong> (أو <strong class="login-hint-strong">merchant_realestate</strong>) / <strong class="login-hint-strong">merchant123</strong>
               </div>
             </div>
 
@@ -119,19 +137,29 @@
                 <button type="button" class="btn-dismiss-guide-tip" id="btnDismissGuideTip" aria-label="إخفاء التلميح">✕</button>
               </div>
             </div>
-            <div class="lok-header-logo">lok</div>
+            <div class="lok-header-logo" aria-label="استوديو LOK">
+              <span class="brand-square-mark">lok</span>
+              <span class="brand-wordmark-stack">
+                <span class="brand-wordmark-title">استوديو LOK</span>
+                <span class="brand-wordmark-sub">الذكاء الاصطناعي للمونتاج</span>
+              </span>
+            </div>
             <div class="header-user-status" id="headerUserStatus">
               <span class="user-role-icon" id="userRoleIcon">🏢</span>
               <span class="user-business-name" id="userBusinessName">دار النخبة العقارية</span>
             </div>
           </div>
 
-          <!-- Simple Settings & Admin Buttons -->
-          <div class="header-actions" style="display: flex; align-items: center; gap: 8px;">
+          <!-- Header Actions: Admin, Theme Toggle, Settings -->
+          <div class="header-actions">
             <a href="/admin" class="btn-bw-settings" id="btnHeaderAdminPortal" title="لوحة التحكم الإدارية" style="text-decoration: none;">
               <span class="settings-icon">👑</span>
               <span class="settings-label">لوحة الإدارة</span>
             </a>
+            <button type="button" class="btn-bw-settings btn-theme-toggle" id="btnThemeToggle" data-theme-toggle aria-label="تبديل المظهر الفاتح والداكن" title="تبديل المظهر الفاتح / الداكن">
+              <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+              <span class="theme-toggle-label">داكن</span>
+            </button>
             <button type="button" class="btn-bw-settings" id="btnOpenSettings" title="إعدادات الحساب والتوصيات والرصيد">
               <span class="settings-icon">⚙️</span>
               <span class="settings-label">الإعدادات</span>
@@ -144,17 +172,50 @@
       <main class="lok-main-content">
         <div class="studio-center-card">
 
-          <!-- Studio Hero Headline -->
+          <!-- Studio Hero Headline & Stepper Strip -->
           <div class="studio-headline-group">
+            <div class="studio-eyebrow-pill">
+              <span class="eyebrow-dot" aria-hidden="true"></span>
+              <span>الجيل الجديد لمونتاج الفيديو بالذكاء الاصطناعي</span>
+            </div>
             <h1 class="studio-title">إنتاج الفيديو التسويقي بنقرة واحدة</h1>
             <p class="studio-subtitle">
               ارفع مقطع الفيديو المسجل مسبقاً، واكتب توجيهاتك بالتفصيل لصياغة سيناريو احترافي، تعليق صوتي بالدارجة، ومونتاج ديناميكي فوري.
             </p>
+            <div class="studio-steps-overview" aria-label="خطوات الإنتاج الثلاث">
+              <a href="#studioStepUpload" class="studio-overview-step is-active">
+                <span class="overview-step-num">1</span>
+                <span class="overview-step-text">
+                  <strong>رفع الفيديو الخام</strong>
+                  <small>جاهز أو مصور بالجوال</small>
+                </span>
+              </a>
+              <a href="#studioStepPrompt" class="studio-overview-step">
+                <span class="overview-step-num">2</span>
+                <span class="overview-step-text">
+                  <strong>التوجيه والصوت</strong>
+                  <small>السيناريو والموسيقى</small>
+                </span>
+              </a>
+              <a href="#capcutStudioSection" class="studio-overview-step">
+                <span class="overview-step-num">3</span>
+                <span class="overview-step-text">
+                  <strong>تخصيص الكابشن</strong>
+                  <small>القوالب والخطوط الحية</small>
+                </span>
+              </a>
+            </div>
           </div>
 
-          <!-- CONTROL 1: Pre-recorded Video Upload Area (Dropzone, No in-browser camera) -->
-          <div class="studio-section upload-section">
-            <label class="section-label">1. مقطع الفيديو المسجل (Pre-recorded Video):</label>
+          <!-- CONTROL 1: Pre-recorded Video Upload Area -->
+          <div class="studio-section studio-card upload-section" id="studioStepUpload">
+            <div class="studio-card-head">
+              <label class="section-label">
+                <span class="section-step-num">1</span>
+                <span>مقطع الفيديو المسجل (Pre-recorded Video)</span>
+              </label>
+              <span class="section-meta-badge">إلزامي</span>
+            </div>
             
             <div class="video-dropzone" id="videoDropzone">
               <input type="file" id="videoFileInput" accept="video/*" class="visually-hidden" aria-label="اختيار مقطع فيديو">
@@ -162,9 +223,15 @@
               <div class="dropzone-idle-content" id="dropzoneIdleContent">
                 <div class="dropzone-icon">📹</div>
                 <div class="dropzone-primary-text">اسحب وأفلت مقطع الفيديو المسجل هنا أو انقر للاختيار</div>
-                <div class="dropzone-sub-text">مخصص للفيديوهات الجاهزة والمسجلة مسبقاً من الهاتف أو الكاميرا (MP4, MOV, WebM)</div>
+                <div class="dropzone-sub-text">مخصص للفيديوهات الجاهزة والمسجلة مسبقاً من الهاتف أو الكاميرا</div>
+                <div class="dropzone-format-chips" aria-hidden="true">
+                  <span class="format-chip">MP4</span>
+                  <span class="format-chip">MOV</span>
+                  <span class="format-chip">WebM</span>
+                  <span class="format-chip-muted">حتى 250 ميغابايت</span>
+                </div>
                 <button type="button" class="btn-bw-secondary btn-browse" id="btnBrowseVideo">
-                  <span>تصفح واختيار الفيديو</span>
+                  <span>⬆️ تصفح واختيار الفيديو</span>
                 </button>
               </div>
 
@@ -183,39 +250,70 @@
           </div>
 
           <!-- CONTROL 2: Detailed Prompt Textarea -->
-          <div class="studio-section prompt-section">
-            <div class="prompt-header-row">
-              <label for="promptTextarea" class="section-label mb-0">2. توجيهات المشهد والصوت والأسلوب (Detailed Prompt):</label>
-              <div class="prompt-hint-chip" id="attachedRecIndicator" style="display: none;">
-                <span class="rec-icon">🎯</span>
-                <span class="rec-text" id="attachedRecText">توصية نشطة</span>
-                <button type="button" class="btn-clear-rec" id="btnClearRec" title="إزالة التوصية">✕</button>
+          <div class="studio-section studio-card prompt-section" id="studioStepPrompt">
+            <div class="studio-card-head">
+              <div class="prompt-header-row mb-0">
+                <label for="promptTextarea" class="section-label mb-0">
+                  <span class="section-step-num">2</span>
+                  <span>توجيهات المشهد والصوت والأسلوب (Detailed Prompt)</span>
+                </label>
+                <div class="prompt-hint-chip" id="attachedRecIndicator" style="display: none;">
+                  <span class="rec-icon">🎯</span>
+                  <span class="rec-text" id="attachedRecText">توصية نشطة</span>
+                  <button type="button" class="btn-clear-rec" id="btnClearRec" title="إزالة التوصية">✕</button>
+                </div>
               </div>
+              <span class="section-meta-badge">الذكاء التوليدي</span>
             </div>
 
             <!-- Opt-In Feature Quick Toggles Bar -->
             <div class="optin-toggles-bar" id="optInQuickBar">
-              <span class="optin-bar-label">⚡ ميزات اختيارية (Opt-In):</span>
-              <button type="button" class="btn-optin-toggle" id="btnToggleCaptionsOptIn" data-feature="captions" aria-pressed="false" title="تفعيل أو تعطيل الترجمة المتزامنة">
-                <span class="optin-icon">💬</span>
-                <span class="optin-text">ترجمة متزامنة</span>
-                <span class="optin-status" id="statusCaptionsOptIn">معطل</span>
-              </button>
-              <button type="button" class="btn-optin-toggle" id="btnToggleMusicOptIn" data-feature="music" aria-pressed="false" title="تفعيل أو تعطيل الموسيقى التصويرية">
-                <span class="optin-icon">🎵</span>
-                <span class="optin-text">موسيقى خلفية</span>
-                <span class="optin-status" id="statusMusicOptIn">معطل</span>
-              </button>
-              <button type="button" class="btn-optin-toggle" id="btnToggleTimelineOptIn" data-feature="timeline" aria-pressed="false" title="تفعيل أو تعطيل تفكيك اللقطات والخط الزمني">
-                <span class="optin-icon">⏱️</span>
-                <span class="optin-text">مخطط المشاهد</span>
-                <span class="optin-status" id="statusTimelineOptIn">معطل</span>
-              </button>
-              <button type="button" class="btn-optin-toggle" id="btnToggleScreenNoteOptIn" data-feature="screen_note" aria-pressed="false" title="إضافة رقم هاتف أو ملاحظة ثابتة على الشاشة مع سحبها واختيار الخط والمؤثرات">
-                <span class="optin-icon">📱</span>
-                <span class="optin-text">ملاحظة / رقم ثابت</span>
-                <span class="optin-status" id="statusScreenNoteOptIn">إضافة</span>
-              </button>
+              <div class="optin-bar-head">
+                <span class="optin-bar-label">⚡ ميزات اختيارية (Opt-In Features):</span>
+                <span class="optin-bar-hint">معطلة افتراضياً للحصول على أعلى نقاء صوت وسرعة</span>
+              </div>
+              <div class="optin-toggles-grid">
+                <button type="button" class="btn-optin-toggle" id="btnToggleCaptionsOptIn" data-feature="captions" aria-pressed="false" title="تفعيل أو تعطيل الترجمة المتزامنة">
+                  <span class="optin-main">
+                    <span class="optin-icon">💬</span>
+                    <span class="optin-text-stack">
+                      <span class="optin-text">ترجمة متزامنة</span>
+                      <span class="optin-sub">كلمة بكلمة احترافية</span>
+                    </span>
+                  </span>
+                  <span class="optin-status" id="statusCaptionsOptIn">معطل</span>
+                </button>
+                <button type="button" class="btn-optin-toggle" id="btnToggleMusicOptIn" data-feature="music" aria-pressed="false" title="تفعيل أو تعطيل الموسيقى التصويرية">
+                  <span class="optin-main">
+                    <span class="optin-icon">🎵</span>
+                    <span class="optin-text-stack">
+                      <span class="optin-text">موسيقى خلفية</span>
+                      <span class="optin-sub">تخفيض تلقائي أثناء الصوت</span>
+                    </span>
+                  </span>
+                  <span class="optin-status" id="statusMusicOptIn">معطل</span>
+                </button>
+                <button type="button" class="btn-optin-toggle" id="btnToggleTimelineOptIn" data-feature="timeline" aria-pressed="false" title="تفعيل أو تعطيل تفكيك اللقطات والخط الزمني">
+                  <span class="optin-main">
+                    <span class="optin-icon">⏱️</span>
+                    <span class="optin-text-stack">
+                      <span class="optin-text">مخطط المشاهد</span>
+                      <span class="optin-sub">مطابقة الجمل باللقطة</span>
+                    </span>
+                  </span>
+                  <span class="optin-status" id="statusTimelineOptIn">معطل</span>
+                </button>
+                <button type="button" class="btn-optin-toggle" id="btnToggleScreenNoteOptIn" data-feature="screen_note" aria-pressed="false" title="إضافة رقم هاتف أو ملاحظة ثابتة على الشاشة مع سحبها واختيار الخط والمؤثرات">
+                  <span class="optin-main">
+                    <span class="optin-icon">📱</span>
+                    <span class="optin-text-stack">
+                      <span class="optin-text">ملاحظة / رقم ثابت</span>
+                      <span class="optin-sub">سحب حر على الشاشة</span>
+                    </span>
+                  </span>
+                  <span class="optin-status" id="statusScreenNoteOptIn">إضافة</span>
+                </button>
+              </div>
             </div>
 
             <!-- Persistent Screen Note / Phone Summary Bar -->
@@ -272,8 +370,8 @@
             </div>
           </div>
 
-          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates (Collapsible at bottom of form) -->
-          <div class="studio-section capcut-studio-section is-collapsed" id="capcutStudioSection">
+          <!-- CONTROL 3: CapCut-Style Custom Text & Animated Caption Templates (Collapsible card) -->
+          <div class="studio-section studio-card capcut-studio-section is-collapsed" id="capcutStudioSection">
             <button
               type="button"
               class="btn-collapse-panel"
@@ -282,7 +380,8 @@
               aria-controls="capcutPresetsBody"
             >
               <span class="collapse-btn-main">
-                <span>🎨 3. قوالب النصوص المتحركة والكتابة (CapCut Text Presets)</span>
+                <span class="section-step-num">3</span>
+                <span>قوالب النصوص المتحركة والكتابة (CapCut Text Presets)</span>
                 <span class="capcut-active-badge" id="capcutActiveBadge">بدون قالب متحرك</span>
               </span>
               <span class="collapse-chevron" id="capcutPresetsChevron">▾ عرض القوالب</span>
@@ -460,8 +559,15 @@
             </div>
           </div>
 
-          <!-- CONTROL 4: Produce Video Action Button -->
-          <div class="studio-section action-section">
+          <!-- CONTROL 4: Produce Video Action Card -->
+          <div class="studio-section studio-card action-section">
+            <div class="action-bar-info">
+              <span class="action-bar-icon" aria-hidden="true">⚡</span>
+              <div class="action-bar-text">
+                <strong>جاهز للتنفيذ الفوري</strong>
+                <small>متوسط وقت المعالجة والرندرة: 25 - 45 ثانية</small>
+              </div>
+            </div>
             <button type="button" class="btn-bw-primary btn-produce-main" id="btnProduceVideo">
               <span class="produce-icon">✨</span>
               <span class="produce-label">إنتاج الفيديو التسويقي بنقرة واحدة</span>
@@ -616,6 +722,20 @@
 
         </div>
       </main>
+
+      <!-- Editorial Studio Footer -->
+      <footer class="lok-footer">
+        <div class="lok-footer-inner">
+          <p class="lok-footer-copy">© 2026 استوديو LOK. جميع الحقوق محفوظة لمنصة الذكاء الاصطناعي للمونتاج والتسويق.</p>
+          <div class="lok-footer-links">
+            <span>صياغة ذكية بالدارجة</span>
+            <span aria-hidden="true">•</span>
+            <span>قوالب كابشن متزامنة</span>
+            <span aria-hidden="true">•</span>
+            <span>مظهر نهاري وداكن</span>
+          </div>
+        </div>
+      </footer>
 
     </div>
 
@@ -1106,6 +1226,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261115_fonts_colors" defer></script>
+  <script src="/static/app.js?v=20261115_theme_redesign" defer></script>
 </body>
 </html>

@@ -16,6 +16,7 @@
   const PREF_VOICE_KEY = 'preferred_voice';
   const ACTIVE_JOB_KEY = 'active_job_id';
   const RECOMMENDATIONS_KEY = 'lok_recommendations_catalog';
+  const THEME_STORAGE_KEY = 'lok_theme';
 
   // Pre-seeded Diverse Merchant Personas + Master Admin
   const PRESEEDED_ACCOUNTS = [
@@ -3295,9 +3296,61 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 8. Initialization Lifecycle on DOMContentLoaded
+  // 8. Theme Switching Engine (Light [#dce0d9/#fbf6ef/#ead7c3] & Dark [#001524/#15616d/#ffecd1])
+  // ---------------------------------------------------------------------------
+  function applyAppTheme(theme, persist = false) {
+    const normalized = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", normalized);
+
+    const metaTheme = document.getElementById("metaThemeColor");
+    if (metaTheme) {
+      metaTheme.setAttribute("content", normalized === "dark" ? "#001524" : "#fbf6ef");
+    }
+
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, normalized);
+      } catch (_) {}
+    }
+
+    document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
+      const iconEl = btn.querySelector(".theme-toggle-icon");
+      const labelEl = btn.querySelector(".theme-toggle-label");
+      const isDark = normalized === "dark";
+      if (iconEl) iconEl.textContent = isDark ? "☀️" : "🌙";
+      if (labelEl) labelEl.textContent = isDark ? "فاتح" : "داكن";
+      btn.setAttribute("aria-pressed", String(isDark));
+      btn.setAttribute(
+        "title",
+        isDark ? "التبديل إلى المظهر الفاتح" : "التبديل إلى المظهر الداكن"
+      );
+    });
+  }
+
+  function setupThemeToggle() {
+    let initial = "light";
+    try {
+      if (localStorage.getItem(THEME_STORAGE_KEY) === "dark") {
+        initial = "dark";
+      }
+    } catch (_) {}
+    applyAppTheme(initial, false);
+
+    document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        applyAppTheme(next, true);
+        showToast(next === "dark" ? "🌙 تم تفعيل المظهر الداكن" : "☀️ تم تفعيل المظهر الفاتح");
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9. Initialization Lifecycle on DOMContentLoaded
   // ---------------------------------------------------------------------------
   async function init() {
+    setupThemeToggle();
     setupSessionAuth();
     setupVideoUpload();
     setupPromptTextarea();

@@ -332,7 +332,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert 'id="draggableOverlayNode"' in html
     assert 'id="overlayFontList"' in html
     assert 'id="overlayEffectList"' in html
-    assert '20261115_fonts_colors' in html
+    assert '20261115_theme_redesign' in html
 
     # JS handlers & API integration
     assert "/api/overlay-options" in js
@@ -350,7 +350,6 @@ def test_screen_overlay_ui_dom_js_css_contract():
 
     for content in (html, js, css):
         assert "\u0669" not in content
-
 
 
 def test_top_right_user_guide_button_and_first_visit_highlight_contract():
@@ -493,4 +492,37 @@ def test_caption_font_styles_and_colors_ui_and_api_contract():
     for content in (html, js, css):
         assert "\u0669" not in content
 
+
+def test_editorial_dual_theme_design_and_toggle_contract():
+    html = (REPO_ROOT / "web" / "static" / "index.html").read_text(encoding="utf-8")
+    admin_html = (REPO_ROOT / "web" / "static" / "admin.html").read_text(encoding="utf-8")
+    js = (REPO_ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    css = (REPO_ROOT / "web" / "static" / "style.css").read_text(encoding="utf-8")
+
+    # Exact user-specified Light & Dark hex palettes in BOTH Studio CSS and Admin portal
+    for hex_color in ("#dce0d9", "#fbf6ef", "#ead7c3", "#001524", "#15616d", "#ffecd1"):
+        assert hex_color in css.lower(), f"{hex_color} missing from style.css"
+        assert hex_color in admin_html.lower(), f"{hex_color} missing from admin.html"
+
+    # Theme switcher buttons on Login, Studio Header, Admin Login, Admin Dashboard
+    assert 'id="btnThemeToggle"' in html
+    assert 'id="btnLoginThemeToggle"' in html
+    assert 'id="btnAdminThemeToggle"' in admin_html
+    assert 'id="btnAdminLoginThemeToggle"' in admin_html
+
+    # Persistent lok_theme toggling across index, admin, and app.js
+    assert 'data-theme="light"' in html
+    assert 'data-theme="light"' in admin_html
+    assert "lok_theme" in html and "lok_theme" in admin_html and "lok_theme" in js
+    assert "setupThemeToggle" in js
+
+    # Editorial layout structure (hero stepper, studio cards, dropzone chips, footer)
+    assert 'class="studio-steps-overview"' in html
+    assert 'class="dropzone-format-chips"' in html
+    assert 'class="lok-footer"' in html
+    assert ".studio-steps-overview" in css
+    assert ".studio-card" in css
+
+    for content in (html, admin_html, js, css):
+        assert "\u0669" not in content
 
