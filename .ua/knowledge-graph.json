@@ -21,8 +21,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-15T12:10:37.959Z",
-    "gitCommitHash": "e3032c764591251aad654c13a2858bab27d79312"
+    "analyzedAt": "2026-11-15T12:27:20.722Z",
+    "gitCommitHash": "61aaf7aec21e4638943cfe73d0adb5879b2d13f4"
   },
   "nodes": [
     {
@@ -20739,774 +20739,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_admin_portal_and_security.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_admin_portal_and_security.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_ai_video_montage.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_ai_video_montage.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_ai_video_montage.py",
-      "target": "file:web/video_montage_mcp.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_analysis_proxy_and_quality.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_assemble_video.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_no_freeze.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_delivery.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_pipeline.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_flipped_proxy_montage_pipeline.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_frame_extractor.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_saas_platform.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_job_id_consistency_and_delivery.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_api.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_api.py",
-      "target": "file:web/run_server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_enhancements.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_verification.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_verification.py",
-      "target": "file:web/run_server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_natural_tts_prosody.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline.py",
-      "target": "file:assemble_video.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_production_principles.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_descriptions_and_agent.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_descriptions_and_agent.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_saas_auth_and_quotas.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_session_auth_and_tts_samples.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_unified_auth_and_pipeline.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/video_annotator_mcp.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_editor_proxy_montage.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_proxy_and_cuts.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:app.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:web/vision_analyzer.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/__init__.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/create_story_voices.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/generate_speech_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/list_models_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/examples/list_voices_demo.py",
-      "target": "file:tts/gemini_speech/__init__.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/__init__.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/client.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/config.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/gemini_speech/voices.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_cli.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/models.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_client.py",
-      "target": "file:tts/gemini_speech/voices.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_key_manager.py",
-      "target": "file:tts/gemini_speech/config.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tts/tests/test_key_manager.py",
-      "target": "file:tts/gemini_speech/exceptions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_montage_mcp.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_montage_mcp.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/vision_analyzer.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:web/caption_templates.py",
       "target": "function:web/caption_templates.py:normalize_template",
       "type": "contains",
@@ -23194,430 +22426,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:tests/test_admin_portal_and_security.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_audio_sync_and_dense_vision.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_caption_templates.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_caption_templates.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_clean_studio_and_session_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_delivery.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_dynamic_video_pipeline.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_five_user_issues_verification.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_frontend_assets.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_saas_platform.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_job_id_consistency_and_delivery.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_minimal_lok_and_admin_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_api.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_enhancements.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_mobile_verification.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_music_selection_and_enable_fix.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_production_principles.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_descriptions_and_agent.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_prompt_intent_and_overlays.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_saas_auth_and_quotas.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_saas_dashboard_ui.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_session_auth_and_tts_samples.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_unified_auth_and_pipeline.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_annotation_mcp.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_vision_script_and_app.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_annotator_mcp.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:frame_extractor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:tts/gemini_speech/client.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/pipeline_bridge.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:config/production_principles_manager.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/prompt_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_screen_overlay_designer.py",
       "target": "function:tests/test_screen_overlay_designer.py:test_overlay_fonts_and_effects_catalogs",
       "type": "contains",
@@ -23807,6 +22615,766 @@
       "weight": 0.6
     },
     {
+      "source": "file:tests/test_admin_portal_and_security.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_admin_portal_and_security.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_admin_portal_and_security.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_ai_video_montage.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_ai_video_montage.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_ai_video_montage.py",
+      "target": "file:web/video_montage_mcp.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_analysis_proxy_and_quality.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_assemble_video.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_dense_vision.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_audio_sync_and_no_freeze.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_caption_templates.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_caption_templates.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_clean_studio_and_session_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_delivery.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_delivery.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_dynamic_video_pipeline.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_e2e_auth_and_video_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_editable_cuts_and_continuous_speech.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_five_user_issues_verification.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_flipped_proxy_montage_pipeline.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_frame_extractor.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_frontend_assets.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_admin_and_minimal_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_audio_sync_and_voice.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_captions_and_shot_grounding.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_dynamic_narration_and_audio.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompt_intent_and_overlays.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_prompts_and_mobile_theme.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_saas_platform.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_saas_platform.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_gatekeeper_session_auth_and_tts.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_job_id_consistency_and_delivery.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_job_id_consistency_and_delivery.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_minimal_lok_and_admin_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_api.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_api.py",
+      "target": "file:web/run_server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_api.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_enhancements.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_enhancements.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_verification.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_verification.py",
+      "target": "file:web/run_server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_mobile_verification.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_music_selection_and_enable_fix.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_natural_tts_prosody.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_optin_sandboxing_and_creative_variety.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline.py",
+      "target": "file:assemble_video.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_pipeline_latency_and_telemetry.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_production_principles.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_production_principles.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_customizations_and_dynamism.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_descriptions_and_agent.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_descriptions_and_agent.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_descriptions_and_agent.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_prompt_intent_and_overlays.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_saas_auth_and_quotas.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_saas_auth_and_quotas.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_saas_dashboard_ui.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
       "source": "file:tests/test_screen_overlay_designer.py",
       "target": "file:web/pipeline_bridge.py",
       "type": "imports",
@@ -23825,6 +23393,438 @@
     {
       "source": "file:tests/test_screen_overlay_designer.py",
       "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_session_auth_and_tts_samples.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_session_auth_and_tts_samples.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_synchronized_captions_and_shot_grounding.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_unified_auth_and_pipeline.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_unified_auth_and_pipeline.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_annotation_mcp.py",
+      "target": "file:web/video_annotator_mcp.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_editor_proxy_montage.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_proxy_and_cuts.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_vision_script_and_app.py",
+      "target": "file:web/vision_analyzer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/__init__.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/create_story_voices.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/generate_speech_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/list_models_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/examples/list_voices_demo.py",
+      "target": "file:tts/gemini_speech/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/__init__.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/client.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/config.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/gemini_speech/voices.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_cli.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_client.py",
+      "target": "file:tts/gemini_speech/voices.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_key_manager.py",
+      "target": "file:tts/gemini_speech/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tts/tests/test_key_manager.py",
+      "target": "file:tts/gemini_speech/exceptions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:tts/gemini_speech/client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/pipeline_bridge.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/prompt_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_annotator_mcp.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_montage_mcp.py",
+      "target": "file:frame_extractor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_montage_mcp.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "file:config/production_principles_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/vision_analyzer.py",
+      "target": "file:web/pipeline_bridge.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,

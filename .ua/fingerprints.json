@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "e3032c764591251aad654c13a2858bab27d79312",
-  "generatedAt": "2026-11-15T12:10:39.624Z",
+  "gitCommitHash": "61aaf7aec21e4638943cfe73d0adb5879b2d13f4",
+  "generatedAt": "2026-11-15T12:27:21.015Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -10640,42 +10640,42 @@
     },
     "web/static/admin.html": {
       "filePath": "web/static/admin.html",
-      "contentHash": "f15d8e23b1c095c7e1331e0ba05b28ddf8fb92181667094c9e02efb3ccef278c",
+      "contentHash": "9818da743aea7fcb794019b30ce3dccea94a1bc6845beb7587f5bbda9b9f2634",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2048,
+      "totalLines": 2070,
       "hasStructuralAnalysis": false
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "1631c4b8fc7807ee1eec65a3010640714a30fe0e0a51d828fb7ae0ab83feacc4",
+      "contentHash": "42be627013fc6e8328aba68486f2b4cbbdefd94f7733ac6666bcdbe647c848b8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3446,
+      "totalLines": 3458,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "8518e92814395e21b82e9c810b9bab2082fa1238d9943297b51a53bc5c72dd50",
+      "contentHash": "ea56577537c1faccd2f93e2a63c80f35fa592e02e58a64fc766e2cc0f307607d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1265,
+      "totalLines": 1282,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "1740bb75fe0841c7666ecad6047005f8191446b7e7d2bace96199350fc8f2450",
+      "contentHash": "f8ba38dacc47bea8a6beefbae7462b3854e8a8729b70043fe83055877d832434",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 4097,
+      "totalLines": 4152,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -11811,7 +11811,7 @@
     },
     "tests/test_screen_overlay_designer.py": {
       "filePath": "tests/test_screen_overlay_designer.py",
-      "contentHash": "950717f233bc09cc02133e09e2f6f8322a841cf02d7d8b5e034955018a47e123",
+      "contentHash": "0b99ef08f21a9a52e858da3054f0d2b6328f08f4843f7033e206681bdbcece1e",
       "functions": [
         {
           "name": "test_overlay_fonts_and_effects_catalogs",
@@ -11884,7 +11884,7 @@
           "name": "test_mobile_stitch_layout_and_bottom_nav_contract",
           "params": [],
           "exported": true,
-          "lineCount": 26
+          "lineCount": 34
         }
       ],
       "classes": [],
@@ -11974,7 +11974,7 @@
         "test_editorial_dual_theme_design_and_toggle_contract",
         "test_mobile_stitch_layout_and_bottom_nav_contract"
       ],
-      "totalLines": 557,
+      "totalLines": 565,
       "hasStructuralAnalysis": true
     }
   }
