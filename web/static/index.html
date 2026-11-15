@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261113_user_guide">
+  <link rel="stylesheet" href="/static/style.css?v=20261115_fonts_colors">
 </head>
 <body>
 
@@ -406,6 +406,29 @@
                     <option value="large">كبير وبارز</option>
                     <option value="small">صغير وأنيق</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Caption Font Styles & Colors Pickers (beside animation templates) -->
+              <div class="capcut-style-pickers" id="capcutStylePickers">
+                <div class="capcut-picker-block">
+                  <div class="capcut-picker-header">
+                    <label class="capcut-mini-label">🔤 نمط الخط (Font Style):</label>
+                    <span class="overlay-selected-pill" id="captionSelectedFontLabel">Cairo Bold</span>
+                  </div>
+                  <div class="capcut-fonts-grid" id="captionFontList">
+                    <!-- Populated dynamically from /api/overlay-options -->
+                  </div>
+                </div>
+
+                <div class="capcut-picker-block">
+                  <div class="capcut-picker-header">
+                    <label class="capcut-mini-label">🎨 ألوان النص والإبراز (Colors):</label>
+                    <span class="overlay-selected-pill" id="captionSelectedColorLabel">تلقائي حسب القالب</span>
+                  </div>
+                  <div class="capcut-colors-grid" id="captionColorList">
+                    <!-- Populated dynamically from /api/overlay-options -->
+                  </div>
                 </div>
               </div>
 
@@ -1083,6 +1106,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261113_user_guide" defer></script>
+  <script src="/static/app.js?v=20261115_fonts_colors" defer></script>
 </body>
 </html>

@@ -29,7 +29,7 @@ from web.pipeline_bridge import (
     normalize_screen_overlay_options,
     update_cuts_text_and_rerender,
 )
-from web.server import _parse_screen_overlay_options, app
+from web.server import _parse_caption_options, _parse_screen_overlay_options, app
 from web.video_annotator import (
     OVERLAY_EFFECTS,
     OVERLAY_FONTS,
@@ -45,13 +45,14 @@ def test_overlay_fonts_and_effects_catalogs():
     fonts = get_overlay_fonts_list()
     effects = get_overlay_effects_list()
 
-    assert len(fonts) >= 5
+    assert len(fonts) >= 7
     font_ids = {f["id"] for f in fonts}
-    assert {"tahoma_bold", "arial_bold", "segoe_bold"}.issubset(font_ids)
+    assert {"cairo_bold", "tajawal_bold", "amiri_bold", "lalezar_display"}.issubset(font_ids)
 
     for f in fonts:
         assert f["name_ar"]
         assert f["name_en"]
+        assert f["available"] is True
         assert "font_url" in f
 
     effect_ids = {e["id"] for e in effects}
@@ -67,8 +68,12 @@ def test_overlay_fonts_and_effects_catalogs():
         "urgent_red",
     }.issubset(effect_ids)
 
-    resolved = resolve_overlay_font("arial_bold")
-    assert resolved["id"] == "arial_bold"
+    resolved_cairo = resolve_overlay_font("cairo_bold")
+    assert resolved_cairo["id"] == "cairo_bold"
+    assert resolved_cairo["file"] and Path(resolved_cairo["file"]).is_file()
+    # Legacy font aliases map seamlessly to bundled TrueType fonts
+    assert resolve_overlay_font("arial_bold")["id"] == "cairo_bold"
+    assert resolve_overlay_font("tahoma_bold")["id"] == "tajawal_bold"
     assert resolve_overlay_font("nonexistent_font")["id"] in {f["id"] for f in OVERLAY_FONTS}
 
 
@@ -327,7 +332,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert 'id="draggableOverlayNode"' in html
     assert 'id="overlayFontList"' in html
     assert 'id="overlayEffectList"' in html
-    assert '20261113_user_guide' in html
+    assert '20261115_fonts_colors' in html
 
     # JS handlers & API integration
     assert "/api/overlay-options" in js
@@ -345,6 +350,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
 
     for content in (html, js, css):
         assert "\u0669" not in content
+
 
 
 def test_top_right_user_guide_button_and_first_visit_highlight_contract():
@@ -374,4 +380,117 @@ def test_top_right_user_guide_button_and_first_visit_highlight_contract():
 
     for content in (html, js, css):
         assert "\u0669" not in content
+
+
+def test_real_ffmpeg_burns_capcut_ass_captions_with_bundled_font_and_color(tmp_path: Path):
+    from web.caption_templates import prepare_caption_track
+
+    src_mp4 = tmp_path / "src_vert.mp4"
+    out_mp4 = tmp_path / "out_capcut.mp4"
+    ass_out = tmp_path / "captions.ass"
+
+    gen = subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=#0f172a:s=540x960:d=2.0:r=24",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            str(src_mp4),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if gen.returncode != 0:
+        pytest.skip(f"ffmpeg synthetic source skipped: {gen.stderr[:200]}")
+
+    meta = prepare_caption_track(
+        ass_out,
+        total_duration=2.0,
+        video_width=540,
+        video_height=960,
+        template="karaoke_highlight",
+        custom_text="شقة فاخرة للبيع في الجزائر العاصمة",
+        position="center",
+        size="large",
+        font_id="amiri_bold",
+        color_theme="cyan_white",
+        use_ai=False,
+    )
+    assert meta is not None
+    assert meta["font_name"] == "Amiri"
+    assert meta["color"] == "cyan_white"
+    ass_doc = ass_out.read_text(encoding="utf-8-sig")
+    assert "Style: Caption,Amiri," in ass_doc
+    assert "&H38BDF8" in ass_doc or "&HF8BD38" in ass_doc
+
+    res = annotate_video(
+        input_video_path=src_mp4,
+        output_video_path=out_mp4,
+        annotations=[
+            {
+                "text": "0550 12 34 56",
+                "style": "persistent_bottom",
+                "x_pct": 0.5,
+                "y_pct": 0.90,
+                "font_id": "cairo_bold",
+                "effect": "pulse_glow",
+            }
+        ],
+        ass_file=ass_out,
+    )
+    assert res["status"] == "ok", res
+    assert res["captions_applied"] is True
+    assert "fontsdir=" in res["filtergraph"]
+    assert out_mp4.exists() and out_mp4.stat().st_size > 5000
+
+
+def test_caption_font_styles_and_colors_ui_and_api_contract():
+    html = (REPO_ROOT / "web" / "static" / "index.html").read_text(encoding="utf-8")
+    js = (REPO_ROOT / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    css = (REPO_ROOT / "web" / "static" / "style.css").read_text(encoding="utf-8")
+
+    assert 'id="captionFontList"' in html
+    assert 'id="captionColorList"' in html
+    assert "renderCaptionStyleOptions" in js
+    assert 'formData.append("caption_font"' in js
+    assert 'formData.append("caption_color"' in js
+    assert ".capcut-fonts-grid" in css
+    assert ".capcut-colors-grid" in css
+
+    client = TestClient(app)
+    tpl_resp = client.get("/api/captions/templates")
+    assert tpl_resp.status_code == 200
+    tpl_data = tpl_resp.json()
+    assert len(tpl_data["colors"]) >= 8
+    assert len(tpl_data["fonts"]) >= 7
+    assert all(f["available"] for f in tpl_data["fonts"])
+
+    # Legacy alias streams valid TTF over HTTP
+    alias_font = client.get("/api/overlay-fonts/tahoma_bold/file")
+    assert alias_font.status_code == 200
+    assert len(alias_font.content) > 1000
+
+    parsed = _parse_caption_options(
+        {
+            "caption_template": "pop_bounce",
+            "caption_font": "lalezar_display",
+            "caption_color": "rose_white",
+            "caption_position": "center",
+            "caption_size": "large",
+        }
+    )
+    assert parsed is not None
+    assert parsed["font"] == "lalezar_display"
+    assert parsed["color"] == "rose_white"
+
+    for content in (html, js, css):
+        assert "\u0669" not in content
+
 

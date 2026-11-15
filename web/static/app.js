@@ -198,12 +198,14 @@
     selectedCaptionTemplate: "",
     captionPosition: "",
     captionSize: "medium",
+    captionFont: "cairo_bold",
+    captionColor: "default",
     screenOverlay: {
       enabled: false,
       text: "",
       x_pct: 0.50,
       y_pct: 0.92,
-      font: "tahoma_bold",
+      font: "cairo_bold",
       effect: "solid_dark",
       size: "medium",
       text_color: "default"
@@ -211,7 +213,8 @@
     screenOverlayDirty: false,
     overlayCatalog: {
       fonts: [],
-      effects: []
+      effects: [],
+      captionColors: []
     },
     overlayPreviewObjectUrl: null
   };
@@ -374,6 +377,10 @@
     capcutActiveBadge: document.getElementById("capcutActiveBadge"),
     captionPositionSelect: document.getElementById("captionPositionSelect"),
     captionSizeSelect: document.getElementById("captionSizeSelect"),
+    captionFontList: document.getElementById("captionFontList"),
+    captionSelectedFontLabel: document.getElementById("captionSelectedFontLabel"),
+    captionColorList: document.getElementById("captionColorList"),
+    captionSelectedColorLabel: document.getElementById("captionSelectedColorLabel"),
     customCaptionTextarea: document.getElementById("customCaptionTextarea"),
     btnPreviewSmartSplit: document.getElementById("btnPreviewSmartSplit"),
     capcutSplitPreview: document.getElementById("capcutSplitPreview"),
@@ -1441,6 +1448,40 @@
     styleEl.textContent = rules.join("\n");
   }
 
+  const DEFAULT_BUNDLED_FONTS = [
+    { id: "cairo_bold", name_ar: "كايرو عريض (حديث وواضح)", name_en: "Cairo Bold", sample_ar: "0558 81 54 53 • عرض خاص", font_url: "/api/overlay-fonts/cairo_bold/file" },
+    { id: "almarai_bold", name_ar: "المراعي بارز (للريلز والعناوين)", name_en: "Almarai ExtraBold", sample_ar: "0558 81 54 53 • جودة عالية", font_url: "/api/overlay-fonts/almarai_bold/file" },
+    { id: "tajawal_bold", name_ar: "تجوال أنيق (ناعم ومرتب)", name_en: "Tajawal Bold", sample_ar: "0558 81 54 53 • تصميم عصري", font_url: "/api/overlay-fonts/tajawal_bold/file" },
+    { id: "changa_bold", name_ar: "تشانغا هندسي (تقنية وسيارات)", name_en: "Changa Bold", sample_ar: "0558 81 54 53 • مودرن", font_url: "/api/overlay-fonts/changa_bold/file" },
+    { id: "amiri_bold", name_ar: "أميري كلاسيكي (عقارات فاخرة)", name_en: "Amiri Bold", sample_ar: "0558 81 54 53 • خط فاخر", font_url: "/api/overlay-fonts/amiri_bold/file" },
+    { id: "el_messiri_bold", name_ar: "المسيري زخرفي (فخامة وأزياء)", name_en: "El Messiri Bold", sample_ar: "0558 81 54 53 • خط مجلة", font_url: "/api/overlay-fonts/el_messiri_bold/file" },
+    { id: "lalezar_display", name_ar: "لاليزار عريض جداً (بوستر)", name_en: "Lalezar Display", sample_ar: "0558 81 54 53 • عرض مميز", font_url: "/api/overlay-fonts/lalezar_display/file" }
+  ];
+
+  const DEFAULT_CAPTION_COLORS = [
+    { id: "default", name_ar: "تلقائي (حسب القالب)", name_en: "Default", primary: "#FFFFFF", accent: "#FFD700" },
+    { id: "gold_white", name_ar: "أبيض + ذهبي", name_en: "Gold", primary: "#FFFFFF", accent: "#FFD700" },
+    { id: "cyan_white", name_ar: "أبيض + سماوي نيون", name_en: "Cyan", primary: "#FFFFFF", accent: "#38BDF8" },
+    { id: "emerald_white", name_ar: "أبيض + أخضر تيك توك", name_en: "Emerald", primary: "#FFFFFF", accent: "#3DFF8B" },
+    { id: "rose_white", name_ar: "أبيض + وردي جريء", name_en: "Rose", primary: "#FFFFFF", accent: "#FB7185" },
+    { id: "purple_white", name_ar: "أبيض + بنفسجي", name_en: "Purple", primary: "#FFFFFF", accent: "#C084FC" },
+    { id: "orange_white", name_ar: "أبيض + برتقالي", name_en: "Orange", primary: "#FFFFFF", accent: "#FB923C" },
+    { id: "yellow_bold", name_ar: "أصفر بارز + أبيض", name_en: "Yellow", primary: "#FFE135", accent: "#FFFFFF" },
+    { id: "pure_white", name_ar: "أبيض نقي كلاسيكي", name_en: "White", primary: "#FFFFFF", accent: "#F1F5F9" }
+  ];
+
+  function getCatalogFonts() {
+    return (state.overlayCatalog.fonts && state.overlayCatalog.fonts.length)
+      ? state.overlayCatalog.fonts
+      : DEFAULT_BUNDLED_FONTS;
+  }
+
+  function getCatalogCaptionColors() {
+    return (state.overlayCatalog.captionColors && state.overlayCatalog.captionColors.length)
+      ? state.overlayCatalog.captionColors
+      : DEFAULT_CAPTION_COLORS;
+  }
+
   async function loadOverlayCatalog() {
     try {
       const res = await fetch("/api/overlay-options");
@@ -1453,14 +1494,19 @@
       if (data && Array.isArray(data.effects)) {
         state.overlayCatalog.effects = data.effects;
       }
+      if (data && Array.isArray(data.caption_colors)) {
+        state.overlayCatalog.captionColors = data.caption_colors;
+      }
       if (overlayDraft && dom.screenOverlayModal && dom.screenOverlayModal.style.display !== "none") {
         renderOverlayFontCards();
         renderOverlayEffectCards();
         updateOverlayStagePreview();
       }
+      renderCaptionStyleOptions();
       syncOptInUI();
     } catch (e) {
-      // Fallback silently if offline
+      ensureOverlayFontFaces(DEFAULT_BUNDLED_FONTS);
+      renderCaptionStyleOptions();
     }
   }
 
@@ -1512,8 +1558,10 @@
     dom.draggableOverlayNode.style.color = customHex;
 
     if (replayAnimation) {
+      dom.draggableOverlayNode.style.animation = "none";
       dom.draggableOverlayNode.classList.remove("fx-replay-anim");
       void dom.draggableOverlayNode.offsetWidth;
+      dom.draggableOverlayNode.style.animation = "";
       dom.draggableOverlayNode.classList.add("fx-replay-anim");
     }
 
@@ -1531,13 +1579,7 @@
 
   function renderOverlayFontCards() {
     if (!dom.overlayFontList) return;
-    const fonts = state.overlayCatalog.fonts && state.overlayCatalog.fonts.length
-      ? state.overlayCatalog.fonts
-      : [
-          { id: "tahoma_bold", name_ar: "تاهوما عريض", name_en: "Tahoma Bold", sample_ar: "0550 12 34 56 • عرض حصري" },
-          { id: "arial_bold", name_ar: "أريال واضح", name_en: "Arial Bold", sample_ar: "0550 12 34 56 • شقة فاخرة" },
-          { id: "segoe_bold", name_ar: "سيغو حديث", name_en: "Segoe UI Bold", sample_ar: "0550 12 34 56 • تواصل معنا" }
-        ];
+    const fonts = getCatalogFonts();
     dom.overlayFontList.innerHTML = "";
     fonts.forEach((f) => {
       const card = document.createElement("button");
@@ -2108,8 +2150,12 @@
       }
       const posVal = (dom.captionPositionSelect?.value || state.captionPosition || "").trim();
       const sizeVal = (dom.captionSizeSelect?.value || state.captionSize || "medium").trim();
+      const fontVal = (state.captionFont || "").trim();
+      const colorVal = (state.captionColor || "").trim();
       if (posVal) formData.append("caption_position", posVal);
       if (sizeVal) formData.append("caption_size", sizeVal);
+      if (fontVal) formData.append("caption_font", fontVal);
+      if (colorVal && colorVal !== "default") formData.append("caption_color", colorVal);
     }
 
     if (!isMusicOpted || (promptText && (promptText.includes("بدون موسيقى") || promptText.includes("كتم الموسيقى")))) {
@@ -3053,7 +3099,87 @@
   // ---------------------------------------------------------------------------
   // 7b. CapCut-Style Animated Caption Studio & AI Smart Split Preview
   // ---------------------------------------------------------------------------
+  function syncCapcutPreviewStyles() {
+    const fonts = getCatalogFonts();
+    const chosenFont = fonts.find((f) => f.id === state.captionFont) || fonts[0];
+    const colors = getCatalogCaptionColors();
+    const chosenColor = colors.find((c) => c.id === state.captionColor) || colors[0];
+
+    if (dom.captionSelectedFontLabel && chosenFont) {
+      dom.captionSelectedFontLabel.textContent = chosenFont.name_ar || chosenFont.name_en || chosenFont.id;
+    }
+    if (dom.captionSelectedColorLabel && chosenColor) {
+      dom.captionSelectedColorLabel.textContent = chosenColor.name_ar || chosenColor.name_en || chosenColor.id;
+    }
+
+    if (dom.captionTemplatesGrid) {
+      if (chosenFont && chosenFont.font_url) {
+        dom.captionTemplatesGrid.style.setProperty("--capcut-font-family", `"lokOverlayFont_${chosenFont.id}", "Cairo", sans-serif`);
+      } else {
+        dom.captionTemplatesGrid.style.removeProperty("--capcut-font-family");
+      }
+      if (chosenColor && chosenColor.id !== "default") {
+        dom.captionTemplatesGrid.classList.add("has-custom-capcut-color");
+        dom.captionTemplatesGrid.style.setProperty("--capcut-primary-color", chosenColor.primary || "#FFFFFF");
+        dom.captionTemplatesGrid.style.setProperty("--capcut-accent-color", chosenColor.accent || "#FFD700");
+      } else {
+        dom.captionTemplatesGrid.classList.remove("has-custom-capcut-color");
+        dom.captionTemplatesGrid.style.removeProperty("--capcut-primary-color");
+        dom.captionTemplatesGrid.style.removeProperty("--capcut-accent-color");
+      }
+    }
+  }
+
+  function renderCaptionStyleOptions() {
+    ensureOverlayFontFaces(getCatalogFonts());
+
+    if (dom.captionFontList) {
+      const fonts = getCatalogFonts();
+      dom.captionFontList.innerHTML = "";
+      fonts.forEach((f) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "capcut-font-pill" + (state.captionFont === f.id ? " active" : "");
+        btn.setAttribute("data-caption-font", f.id);
+        if (f.font_url) {
+          btn.style.fontFamily = `"lokOverlayFont_${f.id}", "Cairo", sans-serif`;
+        }
+        btn.innerHTML = `<span class="capcut-font-name">${f.name_ar || f.name_en}</span><span class="capcut-font-sample">أبجد • 123</span>`;
+        btn.addEventListener("click", () => {
+          state.captionFont = f.id;
+          renderCaptionStyleOptions();
+          syncCapcutPreviewStyles();
+        });
+        dom.captionFontList.appendChild(btn);
+      });
+    }
+
+    if (dom.captionColorList) {
+      const colors = getCatalogCaptionColors();
+      dom.captionColorList.innerHTML = "";
+      colors.forEach((c) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "capcut-color-pill" + (state.captionColor === c.id ? " active" : "");
+        btn.setAttribute("data-caption-color", c.id);
+        btn.innerHTML = `
+          <span class="color-dual-dot" style="background: linear-gradient(135deg, ${c.primary || "#fff"} 50%, ${c.accent || "#ffd700"} 50%);"></span>
+          <span>${c.name_ar || c.name_en}</span>
+        `;
+        btn.addEventListener("click", () => {
+          state.captionColor = c.id;
+          renderCaptionStyleOptions();
+          syncCapcutPreviewStyles();
+        });
+        dom.captionColorList.appendChild(btn);
+      });
+    }
+
+    syncCapcutPreviewStyles();
+  }
+
   function setupCaptionTemplatesStudio() {
+    renderCaptionStyleOptions();
     if (dom.captionTemplatesGrid) {
       const cards = dom.captionTemplatesGrid.querySelectorAll(".capcut-tpl-card");
       cards.forEach((card) => {

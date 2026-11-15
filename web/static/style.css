@@ -2940,3 +2940,139 @@ body {
   font-size: 0.78rem;
   color: var(--lok-text-muted);
 }
+
+
+/* ==========================================================================
+   Caption Font Styles & Color Swatches Beside Animated Caption Templates
+   ========================================================================== */
+.capcut-style-pickers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-md);
+}
+
+.capcut-picker-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.capcut-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.capcut-fonts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 8px;
+}
+
+.capcut-font-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-md);
+  color: var(--lok-white);
+  cursor: pointer;
+  text-align: right;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.capcut-font-pill:hover {
+  border-color: var(--lok-white);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.capcut-font-pill.active {
+  border-color: var(--lok-white);
+  background-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 0 1px var(--lok-white);
+}
+
+.capcut-font-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--lok-white);
+}
+
+.capcut-font-sample {
+  font-size: 0.72rem;
+  color: var(--lok-text-secondary);
+}
+
+.capcut-colors-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capcut-color-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-pill);
+  color: var(--lok-text-secondary);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.capcut-color-pill:hover {
+  border-color: var(--lok-white);
+  color: var(--lok-white);
+}
+
+.capcut-color-pill.active {
+  border-color: var(--lok-white);
+  background-color: rgba(255, 255, 255, 0.14);
+  color: var(--lok-white);
+}
+
+.color-dual-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+/* Dynamic Caption Font & Color Preview Overrides on Template Cards */
+.capcut-templates-grid .tpl-demo-word {
+  font-family: var(--capcut-font-family, inherit);
+}
+
+.capcut-templates-grid.has-custom-capcut-color .tpl-demo-word {
+  color: var(--capcut-primary-color, #ffffff);
+}
+
+.capcut-templates-grid.has-custom-capcut-color .tpl-demo-word.is-accent,
+.capcut-templates-grid.has-custom-capcut-color .tpl-demo-word.is-green,
+.capcut-templates-grid.has-custom-capcut-color .tpl-demo-word.is-single {
+  color: var(--capcut-accent-color, #ffd700) !important;
+}
+
+.capcut-templates-grid.has-custom-capcut-color .tpl-preview-typewriter .tpl-caret {
+  color: var(--capcut-accent-color, #7df9ff);
+}
+
+@keyframes lokKaraokePulse {
+  0%, 100% { color: var(--capcut-primary-color, #ffffff); transform: scale(1); }
+  45%, 75% { color: var(--capcut-accent-color, #ffd700); transform: scale(1.08); }
+}
