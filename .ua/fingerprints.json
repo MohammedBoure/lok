@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "7c7237388e13edc2c69970fdb87e2cedc882d708",
-  "generatedAt": "2026-11-13T15:16:06.776Z",
+  "gitCommitHash": "61aaf7aec21e4638943cfe73d0adb5879b2d13f4",
+  "generatedAt": "2026-11-15T12:27:21.015Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -8617,7 +8617,7 @@
     },
     "web/caption_templates.py": {
       "filePath": "web/caption_templates.py",
-      "contentHash": "49af568a7cb8a37089af90c07e2e6de933879dcbbaaa79884ff73fd00fda7a06",
+      "contentHash": "874dc995d3ae154e4716d70f3c7bfaccff7f475a0134af027285cf6ba5228c2b",
       "functions": [
         {
           "name": "normalize_template",
@@ -8646,6 +8646,22 @@
           "returnType": "str",
           "exported": true,
           "lineCount": 3
+        },
+        {
+          "name": "normalize_caption_color",
+          "params": [
+            "color"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "list_caption_colors",
+          "params": [],
+          "returnType": "List[Dict[str, str]]",
+          "exported": true,
+          "lineCount": 11
         },
         {
           "name": "list_caption_templates",
@@ -8835,11 +8851,12 @@
         {
           "name": "font_family_for_ass",
           "params": [
-            "font_path"
+            "font_path",
+            "font_id"
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 15
+          "lineCount": 37
         },
         {
           "name": "_anchor",
@@ -8871,11 +8888,13 @@
             "video_height",
             "position",
             "size",
-            "font_name"
+            "font_name",
+            "font_id",
+            "color_theme"
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 168
+          "lineCount": 181
         },
         {
           "name": "write_ass_file",
@@ -8887,11 +8906,13 @@
             "video_height",
             "position",
             "size",
-            "font_name"
+            "font_name",
+            "font_id",
+            "color_theme"
           ],
           "returnType": "Path",
           "exported": true,
-          "lineCount": 24
+          "lineCount": 28
         },
         {
           "name": "prepare_caption_track",
@@ -8907,11 +8928,13 @@
             "size",
             "shot_timeline",
             "font_path",
+            "font_id",
+            "color_theme",
             "use_ai"
           ],
           "returnType": "Optional[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 53
+          "lineCount": 62
         }
       ],
       "classes": [],
@@ -8967,6 +8990,8 @@
         "normalize_template",
         "normalize_position",
         "normalize_size",
+        "normalize_caption_color",
+        "list_caption_colors",
         "list_caption_templates",
         "_clean_text",
         "_is_numberish",
@@ -8993,12 +9018,12 @@
         "write_ass_file",
         "prepare_caption_track"
       ],
-      "totalLines": 784,
+      "totalLines": 866,
       "hasStructuralAnalysis": true
     },
     "web/pipeline_bridge.py": {
       "filePath": "web/pipeline_bridge.py",
-      "contentHash": "bd876e318b9e2a1873e5937f438b478bc5a10192b1ec868f189ee2b4106a5dc2",
+      "contentHash": "86a14b9eda038892198c15e9681c103c039ff17112199371b49d066db9ef6bc1",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9390,7 +9415,7 @@
           ],
           "returnType": "tuple[List[Dict[str, Any]], Optional[Dict[str, Any]], int]",
           "exported": true,
-          "lineCount": 146
+          "lineCount": 148
         },
         {
           "name": "_mirror_outputs",
@@ -9683,7 +9708,7 @@
         "build_screen_overlay_annotation",
         "process_mobile_video"
       ],
-      "totalLines": 3698,
+      "totalLines": 3700,
       "hasStructuralAnalysis": true
     },
     "web/prompt_db.py": {
@@ -9909,7 +9934,7 @@
     },
     "web/server.py": {
       "filePath": "web/server.py",
-      "contentHash": "1d4451b3300575e511073e6db2885f5ff5bbd92ebe01206cf1dacb771daa7de2",
+      "contentHash": "12106918627f0d3a75f26f551fea27685e91f6b53dbdd3afd985987016e3f4ad",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9990,7 +10015,7 @@
           ],
           "returnType": "Optional[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 25
+          "lineCount": 27
         },
         {
           "name": "_parse_screen_overlay_options",
@@ -10008,7 +10033,7 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 7
+          "lineCount": 8
         },
         {
           "name": "overlay_font_file_endpoint",
@@ -10017,7 +10042,7 @@
           ],
           "returnType": "Response",
           "exported": true,
-          "lineCount": 13
+          "lineCount": 18
         },
         {
           "name": "get_caption_templates_endpoint",
@@ -10026,7 +10051,7 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 3
+          "lineCount": 9
         },
         {
           "name": "split_captions_endpoint",
@@ -10536,12 +10561,14 @@
             "annotate_video",
             "get_overlay_effects_list",
             "get_overlay_fonts_list",
+            "is_known_overlay_font",
             "resolve_overlay_font"
           ]
         },
         {
           "source": "web.caption_templates",
           "specifiers": [
+            "list_caption_colors",
             "list_caption_templates",
             "DEFAULT_CAPTION_TEMPLATE",
             "assign_caption_timings",
@@ -10598,7 +10625,7 @@
         "admin_account_logs_endpoint",
         "admin_stats_endpoint"
       ],
-      "totalLines": 2380,
+      "totalLines": 2396,
       "hasStructuralAnalysis": true
     },
     "web/static/README.md": {
@@ -10613,47 +10640,47 @@
     },
     "web/static/admin.html": {
       "filePath": "web/static/admin.html",
-      "contentHash": "28133d77a5a878fd17033843eff6f56cef17568c5dc2f5c4fa143bb72c3f1f20",
+      "contentHash": "9818da743aea7fcb794019b30ce3dccea94a1bc6845beb7587f5bbda9b9f2634",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1900,
+      "totalLines": 2070,
       "hasStructuralAnalysis": false
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "f6b5827a7854ac1916364d5852634f49f6e6de84b9ace7a9450d9c15f90a4553",
+      "contentHash": "42be627013fc6e8328aba68486f2b4cbbdefd94f7733ac6666bcdbe647c848b8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3201,
+      "totalLines": 3458,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "404042641c7ae4fc298560d9acbda673826fbc2d80c248f644428c5b27687b15",
+      "contentHash": "ea56577537c1faccd2f93e2a63c80f35fa592e02e58a64fc766e2cc0f307607d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1089,
+      "totalLines": 1282,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "3ef52089caa494287ad0393d2d7d8c9932a2cebdef5030eae679f0387ed6fb23",
+      "contentHash": "f8ba38dacc47bea8a6beefbae7462b3854e8a8729b70043fe83055877d832434",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 2943,
+      "totalLines": 4152,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
       "filePath": "web/video_annotator.py",
-      "contentHash": "dc8817fbace5493fd2896be26d37d0e45de16178df7c4a1d9bf97ad869dd28ce",
+      "contentHash": "f563ac0378973f080df31245968360350dee606c0568f0ee456b4252a9d226d2",
       "functions": [
         {
           "name": "find_system_font",
@@ -10663,20 +10690,29 @@
           "lineCount": 6
         },
         {
+          "name": "is_known_overlay_font",
+          "params": [
+            "font_id"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
           "name": "resolve_overlay_font",
           "params": [
             "font_id"
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 16
         },
         {
           "name": "get_overlay_fonts_list",
           "params": [],
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 14
+          "lineCount": 15
         },
         {
           "name": "get_overlay_effects_list",
@@ -10705,6 +10741,15 @@
           "lineCount": 10
         },
         {
+          "name": "_ffmpeg_supports_drawtext_option",
+          "params": [
+            "option_name"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
           "name": "_escape_ffmpeg_fontfile_path",
           "params": [
             "font_path"
@@ -10723,7 +10768,7 @@
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 225
+          "lineCount": 227
         },
         {
           "name": "annotate_video",
@@ -10736,11 +10781,17 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 109
+          "lineCount": 137
         }
       ],
       "classes": [],
       "imports": [
+        {
+          "source": "functools",
+          "specifiers": [
+            "functools"
+          ]
+        },
         {
           "source": "json",
           "specifiers": [
@@ -10789,16 +10840,18 @@
       ],
       "exports": [
         "find_system_font",
+        "is_known_overlay_font",
         "resolve_overlay_font",
         "get_overlay_fonts_list",
         "get_overlay_effects_list",
         "wrap_annotation_text",
         "escape_ffmpeg_drawtext",
+        "_ffmpeg_supports_drawtext_option",
         "_escape_ffmpeg_fontfile_path",
         "_build_drawtext_filter",
         "annotate_video"
       ],
-      "totalLines": 615,
+      "totalLines": 703,
       "hasStructuralAnalysis": true
     },
     "web/video_annotator_mcp.py": {
@@ -11758,13 +11811,13 @@
     },
     "tests/test_screen_overlay_designer.py": {
       "filePath": "tests/test_screen_overlay_designer.py",
-      "contentHash": "d6d62ddf9d66cd54ded7b20c3661ace0e9d408fbe13f72f597cd5b80906c77f4",
+      "contentHash": "0b99ef08f21a9a52e858da3054f0d2b6328f08f4843f7033e206681bdbcece1e",
       "functions": [
         {
           "name": "test_overlay_fonts_and_effects_catalogs",
           "params": [],
           "exported": true,
-          "lineCount": 29
+          "lineCount": 34
         },
         {
           "name": "test_build_drawtext_filter_custom_coords_and_effects",
@@ -11806,6 +11859,32 @@
           "params": [],
           "exported": true,
           "lineCount": 27
+        },
+        {
+          "name": "test_real_ffmpeg_burns_capcut_ass_captions_with_bundled_font_and_color",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 67
+        },
+        {
+          "name": "test_caption_font_styles_and_colors_ui_and_api_contract",
+          "params": [],
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "test_editorial_dual_theme_design_and_toggle_contract",
+          "params": [],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "test_mobile_stitch_layout_and_bottom_nav_contract",
+          "params": [],
+          "exported": true,
+          "lineCount": 34
         }
       ],
       "classes": [],
@@ -11864,6 +11943,7 @@
         {
           "source": "web.server",
           "specifiers": [
+            "_parse_caption_options",
             "_parse_screen_overlay_options",
             "app"
           ]
@@ -11888,9 +11968,13 @@
         "test_pipeline_bridge_normalize_and_rerender_preserves_screen_overlay",
         "test_server_overlay_endpoints_and_form_parser",
         "test_screen_overlay_ui_dom_js_css_contract",
-        "test_top_right_user_guide_button_and_first_visit_highlight_contract"
+        "test_top_right_user_guide_button_and_first_visit_highlight_contract",
+        "test_real_ffmpeg_burns_capcut_ass_captions_with_bundled_font_and_color",
+        "test_caption_font_styles_and_colors_ui_and_api_contract",
+        "test_editorial_dual_theme_design_and_toggle_contract",
+        "test_mobile_stitch_layout_and_bottom_nav_contract"
       ],
-      "totalLines": 378,
+      "totalLines": 565,
       "hasStructuralAnalysis": true
     }
   }

@@ -1,9 +1,25 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-bs-theme="dark">
+<html lang="ar" dir="rtl" data-theme="light" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" id="adminMetaThemeColor" content="#fbf6ef">
   <title>lok • لوحة التحكم الإدارية | Admin Portal</title>
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("lok_theme");
+        var theme = saved === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-bs-theme", theme);
+        var mc = document.getElementById("adminMetaThemeColor");
+        if (mc) mc.setAttribute("content", theme === "dark" ? "#001524" : "#fbf6ef");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.ico">
@@ -14,45 +30,87 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Bootstrap 5 RTL CSS Framework & Standalone Embedded Stylesheet -->
-  <!-- Note: Kept optional CDN reference for browser cache; standalone embedded CSS guarantees full offline rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" integrity="sha384-dpuaG1suU0eT09tx5plTaGMLBsfDLzUUCIEKCFm8BKWFP5UxGv37350OCg3MQVQk" crossorigin="anonymous">
 
   <style>
     /* ==========================================================================
-       Bootstrap 5 Compatible Standalone Embedded Design System (lok Admin)
-       Fully self-contained, offline-first, zero external CDN dependency.
+       Dual-Theme Standalone Design System (lok Admin)
+       Light Theme: ["#dce0d9","#fbf6ef","#ead7c3"]
+       Dark Theme:  ["#001524","#15616d","#ffecd1"]
        ========================================================================== */
-    :root {
+    :root,
+    [data-theme="light"] {
       --bs-body-font-family: 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       --bs-body-font-size: 0.95rem;
       --bs-body-line-height: 1.5;
-      --bs-body-color: #f4f4f5;
-      --bs-body-bg: #09090b;
-      --bs-border-color: #27272a;
+      --bs-body-color: #1c2229;
+      --bs-body-bg: #fbf6ef;
+      --bs-border-color: #dce0d9;
 
-      --lok-bg: #09090b;
-      --lok-card-bg: #141416;
-      --lok-card-header: #18181b;
-      --lok-border: #27272a;
-      --lok-border-light: #3f3f46;
-      --lok-accent: #ffffff;
-      --lok-text-muted: #a1a1aa;
-      --lok-text-dim: #71717a;
-      --lok-primary: #ffffff;
-      --lok-primary-text: #000000;
-      --lok-success: #22c55e;
-      --lok-danger: #ef4444;
-      --lok-warning: #f59e0b;
-      --lok-info: #38bdf8;
+      --lok-bg: #fbf6ef;
+      --lok-card-bg: #ffffff;
+      --lok-card-header: #fbf6ef;
+      --lok-soft-well: #fbf6ef;
+      --lok-muted-well: rgba(220, 224, 217, 0.36);
+      --lok-hover-well: rgba(234, 215, 195, 0.42);
+      --lok-accent-soft: rgba(234, 215, 195, 0.48);
+      --lok-elevated: #ead7c3;
+      --lok-border: #dce0d9;
+      --lok-border-light: #c8cdc4;
+      --lok-ink: #141920;
+      --lok-on-ink: #fbf6ef;
+      --lok-accent: #141920;
+      --lok-text-muted: #666c72;
+      --lok-text-dim: #8a8f94;
+      --lok-primary: #141920;
+      --lok-primary-text: #fbf6ef;
+      --lok-success: #15803d;
+      --lok-danger: #dc2626;
+      --lok-warning: #b45309;
+      --lok-info: #0369a1;
+      --lok-backdrop: rgba(20, 25, 32, 0.56);
+      --lok-shadow-card: 0 2px 10px rgba(20, 25, 32, 0.05);
+      --lok-shadow-modal: 0 20px 45px rgba(20, 25, 32, 0.22);
 
-      --bs-primary: #2563eb;
-      --bs-secondary: #64748b;
-      --bs-success: #22c55e;
-      --bs-danger: #ef4444;
-      --bs-warning: #f59e0b;
-      --bs-info: #0ea5e9;
-      --bs-dark: #18181b;
-      --bs-light: #f8fafc;
+      --bs-primary: #141920;
+      --bs-secondary: #666c72;
+      --bs-success: #15803d;
+      --bs-danger: #dc2626;
+      --bs-warning: #d97706;
+      --bs-info: #0369a1;
+      --bs-dark: #ead7c3;
+      --bs-light: #fbf6ef;
+    }
+
+    [data-theme="dark"] {
+      --bs-body-color: #ffecd1;
+      --bs-body-bg: #001524;
+      --bs-border-color: rgba(21, 97, 109, 0.56);
+
+      --lok-bg: #001524;
+      --lok-card-bg: #041f31;
+      --lok-card-header: #06273c;
+      --lok-soft-well: rgba(21, 97, 109, 0.16);
+      --lok-muted-well: rgba(21, 97, 109, 0.26);
+      --lok-hover-well: rgba(21, 97, 109, 0.36);
+      --lok-accent-soft: rgba(21, 97, 109, 0.36);
+      --lok-elevated: #15616d;
+      --lok-border: rgba(21, 97, 109, 0.56);
+      --lok-border-light: #15616d;
+      --lok-ink: #ffecd1;
+      --lok-on-ink: #001524;
+      --lok-accent: #ffecd1;
+      --lok-text-muted: #9ec2c9;
+      --lok-text-dim: #719aa3;
+      --lok-primary: #ffecd1;
+      --lok-primary-text: #001524;
+      --lok-success: #4ade80;
+      --lok-danger: #f87171;
+      --lok-warning: #ffecd1;
+      --lok-info: #7dd3fc;
+      --lok-backdrop: rgba(0, 10, 18, 0.82);
+      --lok-shadow-card: 0 10px 28px -10px rgba(0, 8, 16, 0.65);
+      --lok-shadow-modal: 0 24px 50px rgba(0, 8, 16, 0.85);
     }
 
     /* 1. Reset, Box-Sizing & Modern Typography */
@@ -75,11 +133,12 @@
       line-height: var(--bs-body-line-height);
       color: var(--bs-body-color);
       background-color: var(--lok-bg);
-      background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03), transparent 60%);
+      background-image: radial-gradient(circle at 50% 0%, var(--lok-accent-soft), transparent 60%);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       direction: rtl;
       text-align: right;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     body.modal-open {
@@ -92,7 +151,7 @@
       margin-bottom: 0.5rem;
       font-weight: 700;
       line-height: 1.3;
-      color: #ffffff;
+      color: var(--lok-ink);
     }
     h1 { font-size: 2.25rem; }
     h2 { font-size: 1.85rem; }
@@ -107,23 +166,23 @@
     }
 
     a {
-      color: #ffffff;
+      color: var(--lok-ink);
       text-decoration: none;
       transition: color 0.15s ease-in-out;
     }
     a:hover {
-      color: #e4e4e7;
+      opacity: 0.86;
     }
 
-    /* Typography & Utilities */
+    /* Typography & Utilities (Theme-Mapped!) */
     .fw-bold { font-weight: 700 !important; }
     .fw-semibold { font-weight: 600 !important; }
     .fw-normal { font-weight: 400 !important; }
     .text-center { text-align: center !important; }
-    .text-end { text-align: left !important; } /* In RTL, text-end aligns left */
+    .text-end { text-align: left !important; }
     .text-start { text-align: right !important; }
-    .text-white { color: #ffffff !important; }
-    .text-dark { color: #09090b !important; }
+    .text-white { color: var(--lok-ink) !important; }
+    .text-dark { color: var(--lok-on-ink) !important; }
     .text-secondary { color: var(--lok-text-muted) !important; }
     .text-muted { color: var(--lok-text-dim) !important; }
     .text-success { color: var(--lok-success) !important; }
@@ -144,8 +203,8 @@
       font-family: 'Inter', system-ui, sans-serif;
       font-weight: 900;
       letter-spacing: -1px;
-      font-size: 1.75rem;
-      color: #ffffff;
+      font-size: 1.6rem;
+      color: var(--lok-ink);
     }
 
     /* 2. Grid & Layout System */
@@ -312,7 +371,7 @@
       padding-bottom: 0.75rem;
       background-color: var(--lok-card-bg);
       border-bottom: 1px solid var(--lok-border);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      box-shadow: var(--lok-shadow-card);
     }
     .navbar-brand {
       padding-top: 0.3125rem;
@@ -322,6 +381,7 @@
       white-space: nowrap;
       display: flex;
       align-items: center;
+      color: var(--lok-ink);
     }
 
     /* 4. Cards & Stats */
@@ -334,7 +394,8 @@
       background-color: var(--lok-card-bg);
       background-clip: border-box;
       border: 1px solid var(--lok-border);
-      border-radius: 12px;
+      border-radius: 14px;
+      box-shadow: var(--lok-shadow-card);
       transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
     .card:hover {
@@ -345,8 +406,8 @@
       margin-bottom: 0;
       background-color: var(--lok-card-header);
       border-bottom: 1px solid var(--lok-border);
-      border-top-left-radius: 11px;
-      border-top-right-radius: 11px;
+      border-top-left-radius: 13px;
+      border-top-right-radius: 13px;
     }
     .card-body {
       flex: 1 1 auto;
@@ -356,12 +417,12 @@
       padding: 1rem 1.25rem;
       background-color: var(--lok-card-header);
       border-top: 1px solid var(--lok-border);
-      border-bottom-left-radius: 11px;
-      border-bottom-right-radius: 11px;
+      border-bottom-left-radius: 13px;
+      border-bottom-right-radius: 13px;
     }
-    .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important; }
-    .shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important; }
-    .shadow-lg { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6) !important; }
+    .shadow-sm { box-shadow: var(--lok-shadow-card) !important; }
+    .shadow { box-shadow: var(--lok-shadow-card) !important; }
+    .shadow-lg { box-shadow: var(--lok-shadow-modal) !important; }
 
     /* 5. Buttons & Controls */
     .btn {
@@ -371,7 +432,7 @@
       font-family: inherit;
       font-weight: 600;
       line-height: 1.5;
-      color: #ffffff;
+      color: var(--lok-ink);
       text-align: center;
       text-decoration: none;
       vertical-align: middle;
@@ -387,7 +448,7 @@
     }
     .btn:focus, .btn:focus-visible {
       outline: 0;
-      box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 0 0.25rem var(--lok-accent-soft);
     }
     .btn:disabled {
       opacity: 0.5;
@@ -407,25 +468,32 @@
 
     /* Button Variants */
     .btn-lok-primary {
-      background-color: #ffffff;
-      color: #000000 !important;
+      background-color: var(--lok-ink);
+      color: var(--lok-on-ink) !important;
       font-weight: 700;
-      border: 1px solid #ffffff;
+      border: 1px solid var(--lok-ink);
     }
     .btn-lok-primary:hover {
-      background-color: #e4e4e7;
-      color: #000000 !important;
+      opacity: 0.92;
+      color: var(--lok-on-ink) !important;
       transform: translateY(-1px);
     }
     .btn-lok-outline {
-      background-color: transparent;
-      color: #ffffff !important;
-      border: 1px solid var(--lok-border);
+      background-color: var(--lok-soft-well);
+      color: var(--lok-ink) !important;
+      border: 1px solid var(--lok-border-light);
     }
     .btn-lok-outline:hover {
-      background-color: #27272a;
-      color: #ffffff !important;
-      border-color: #ffffff;
+      background-color: var(--lok-elevated);
+      color: var(--lok-ink) !important;
+      border-color: var(--lok-ink);
+    }
+    .btn-admin-theme-toggle {
+      background-color: var(--lok-accent-soft);
+      color: var(--lok-ink) !important;
+      border: 1px solid var(--lok-border-light);
+      border-radius: 9999px;
+      padding: 0.3rem 0.85rem;
     }
     .btn-primary {
       color: #ffffff;
@@ -464,47 +532,47 @@
       border-color: #b91c1c;
     }
     .btn-dark {
-      color: #ffffff;
-      background-color: #18181b;
+      color: var(--lok-ink);
+      background-color: var(--lok-muted-well);
       border-color: var(--lok-border);
     }
     .btn-dark:hover {
-      background-color: #27272a;
+      background-color: var(--lok-elevated);
     }
     .btn-light {
-      color: #000000;
-      background-color: #f4f4f5;
-      border-color: #f4f4f5;
+      color: var(--lok-on-ink);
+      background-color: var(--lok-ink);
+      border-color: var(--lok-ink);
     }
     .btn-light:hover {
-      background-color: #e4e4e7;
+      opacity: 0.9;
     }
     .btn-outline-danger {
-      color: #f87171 !important;
-      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--lok-danger) !important;
+      border-color: rgba(239, 68, 68, 0.45);
     }
     .btn-outline-danger:hover {
-      background-color: rgba(239, 68, 68, 0.15);
-      border-color: #ef4444;
-      color: #ffffff !important;
+      background-color: rgba(239, 68, 68, 0.14);
+      border-color: var(--lok-danger);
+      color: var(--lok-ink) !important;
     }
     .btn-outline-warning {
-      color: #fbbf24 !important;
-      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--lok-warning) !important;
+      border-color: rgba(245, 158, 11, 0.45);
     }
     .btn-outline-warning:hover {
-      background-color: rgba(245, 158, 11, 0.15);
-      border-color: #f59e0b;
-      color: #ffffff !important;
+      background-color: rgba(245, 158, 11, 0.14);
+      border-color: var(--lok-warning);
+      color: var(--lok-ink) !important;
     }
     .btn-outline-success {
-      color: #4ade80 !important;
-      border-color: rgba(34, 197, 94, 0.4);
+      color: var(--lok-success) !important;
+      border-color: rgba(34, 197, 94, 0.45);
     }
     .btn-outline-success:hover {
-      background-color: rgba(34, 197, 94, 0.15);
-      border-color: #22c55e;
-      color: #ffffff !important;
+      background-color: rgba(34, 197, 94, 0.14);
+      border-color: var(--lok-success);
+      color: var(--lok-ink) !important;
     }
     .btn-group {
       position: relative;
@@ -529,7 +597,7 @@
     .form-label {
       display: inline-block;
       margin-bottom: 0.35rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--lok-text-muted);
     }
     .form-control, .form-select {
@@ -538,25 +606,25 @@
       padding: 0.5rem 0.85rem;
       font-family: inherit;
       font-size: 0.9rem;
-      font-weight: 400;
+      font-weight: 500;
       line-height: 1.5;
-      color: #f4f4f5;
-      background-color: #09090b;
+      color: var(--lok-ink) !important;
+      background-color: var(--lok-soft-well) !important;
       background-clip: padding-box;
-      border: 1px solid var(--lok-border);
+      border: 1px solid var(--lok-border-light) !important;
       border-radius: 8px;
       transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
     .form-control:focus, .form-select:focus {
-      color: #ffffff;
-      background-color: #000000;
-      border-color: #ffffff;
+      color: var(--lok-ink) !important;
+      background-color: var(--lok-card-bg) !important;
+      border-color: var(--lok-ink) !important;
       outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 0.2rem var(--lok-accent-soft);
     }
     .form-control:disabled, .form-control[readonly] {
-      background-color: #18181b;
-      opacity: 0.65;
+      background-color: var(--lok-muted-well) !important;
+      opacity: 0.7;
       cursor: not-allowed;
     }
     .form-control-sm, .form-select-sm {
@@ -574,8 +642,8 @@
     .border-secondary {
       border-color: var(--lok-border) !important;
     }
-    .bg-black { background-color: #000000 !important; }
-    .bg-dark { background-color: #141416 !important; }
+    .bg-black { background-color: var(--lok-soft-well) !important; }
+    .bg-dark { background-color: var(--lok-muted-well) !important; color: var(--lok-ink) !important; }
     .bg-transparent { background-color: transparent !important; }
 
     /* 7. Tables */
@@ -589,19 +657,22 @@
       margin-bottom: 0;
       vertical-align: middle;
       border-collapse: collapse;
-      color: #f4f4f5;
+      color: var(--bs-body-color);
+      --bs-table-bg: transparent;
+      --bs-table-color: var(--bs-body-color);
     }
     .table > thead {
       vertical-align: bottom;
-      background-color: rgba(255, 255, 255, 0.02);
+      background-color: var(--lok-soft-well);
       border-bottom: 2px solid var(--lok-border);
     }
     .table th {
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.8rem;
       padding: 0.75rem 0.85rem;
-      text-align: right; /* RTL */
-      letter-spacing: 0.5px;
+      text-align: right;
+      letter-spacing: 0.4px;
+      color: var(--lok-text-muted);
     }
     .table td {
       padding: 0.75rem 0.85rem;
@@ -609,10 +680,10 @@
       vertical-align: middle;
     }
     .table-hover tbody tr:hover td {
-      background-color: rgba(255, 255, 255, 0.04);
+      background-color: var(--lok-hover-well);
     }
     .table-striped tbody tr:nth-of-type(odd) td {
-      background-color: rgba(255, 255, 255, 0.015);
+      background-color: var(--lok-muted-well);
     }
     .table-bordered {
       border: 1px solid var(--lok-border);
@@ -623,41 +694,56 @@
 
     /* 8. Badges */
     .badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       padding: 0.35em 0.65em;
       font-size: 0.75em;
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1;
-      color: #ffffff;
+      color: var(--lok-on-ink);
       text-align: center;
       white-space: nowrap;
       vertical-align: baseline;
       border-radius: 6px;
+      font-variant-numeric: tabular-nums;
     }
-    .bg-primary { background-color: #2563eb !important; color: #ffffff !important; }
-    .bg-secondary { background-color: #3f3f46 !important; color: #ffffff !important; }
-    .bg-success { background-color: #16a34a !important; color: #ffffff !important; }
-    .bg-danger { background-color: #dc2626 !important; color: #ffffff !important; }
-    .bg-warning { background-color: #d97706 !important; color: #ffffff !important; }
-    .bg-info { background-color: #0284c7 !important; color: #ffffff !important; }
-    .bg-dark { background-color: #18181b !important; color: #ffffff !important; }
-    .bg-light { background-color: #f4f4f5 !important; color: #000000 !important; }
+    .bg-primary { background-color: #334155 !important; color: #f8fafc !important; }
+    .bg-secondary { background-color: var(--lok-elevated) !important; color: var(--lok-ink) !important; }
+    .bg-success { background-color: #15803d !important; color: #ffffff !important; }
+    .bg-danger { background-color: #b91c1c !important; color: #ffffff !important; }
+    .bg-warning { background-color: #b45309 !important; color: #ffffff !important; }
+    .bg-info { background-color: #15616d !important; color: #ffecd1 !important; }
+    .bg-dark { background-color: var(--lok-muted-well) !important; color: var(--lok-ink) !important; }
+    .bg-light { background-color: var(--lok-ink) !important; color: var(--lok-on-ink) !important; }
+    .lok-svg-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
     .badge-active {
-      background-color: rgba(34, 197, 94, 0.15) !important;
-      color: #4ade80 !important;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background-color: rgba(34, 197, 94, 0.14) !important;
+      color: var(--lok-success) !important;
+      border: 1px solid rgba(34, 197, 94, 0.35);
     }
     .badge-suspended {
-      background-color: rgba(239, 68, 68, 0.15) !important;
-      color: #f87171 !important;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background-color: rgba(239, 68, 68, 0.14) !important;
+      color: var(--lok-danger) !important;
+      border: 1px solid rgba(239, 68, 68, 0.35);
     }
     .badge-quota {
-      background-color: rgba(255, 255, 255, 0.08) !important;
-      color: #ffffff !important;
+      background-color: var(--lok-accent-soft) !important;
+      color: var(--lok-ink) !important;
       font-family: ui-monospace, SFMono-Regular, monospace;
-      font-weight: 600;
+      font-weight: 700;
       border: 1px solid var(--lok-border);
     }
 
@@ -671,29 +757,29 @@
       font-size: 0.9rem;
     }
     .alert-dark {
-      background-color: #18181b;
+      background-color: var(--lok-soft-well);
       border-color: var(--lok-border);
-      color: #f4f4f5;
+      color: var(--bs-body-color);
     }
     .alert-info {
       background-color: rgba(14, 165, 233, 0.12);
       border-color: rgba(14, 165, 233, 0.3);
-      color: #38bdf8;
+      color: var(--lok-info);
     }
     .alert-success {
       background-color: rgba(34, 197, 94, 0.12);
       border-color: rgba(34, 197, 94, 0.3);
-      color: #4ade80;
+      color: var(--lok-success);
     }
     .alert-danger {
       background-color: rgba(239, 68, 68, 0.12);
       border-color: rgba(239, 68, 68, 0.3);
-      color: #f87171;
+      color: var(--lok-danger);
     }
     .alert-warning {
       background-color: rgba(245, 158, 11, 0.12);
       border-color: rgba(245, 158, 11, 0.3);
-      color: #fbbf24;
+      color: var(--lok-warning);
     }
 
     /* 10. Modals & Dialogs */
@@ -739,7 +825,7 @@
       background-clip: padding-box;
       border: 1px solid var(--lok-border-light);
       border-radius: 14px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      box-shadow: var(--lok-shadow-modal);
       outline: 0;
     }
     .modal-backdrop {
@@ -749,7 +835,7 @@
       z-index: 1050;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0, 0, 0, 0.75);
+      background-color: var(--lok-backdrop);
       backdrop-filter: blur(4px);
     }
     .modal-header {
@@ -767,7 +853,7 @@
       line-height: 1.4;
       font-size: 1.2rem;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--lok-ink);
     }
     .modal-body {
       position: relative;
@@ -791,7 +877,7 @@
       width: 1em;
       height: 1em;
       padding: 0.25em 0.25em;
-      color: #ffffff;
+      color: var(--lok-ink);
       background: transparent;
       border: 0;
       border-radius: 0.25rem;
@@ -810,10 +896,10 @@
     }
     .btn-close:hover {
       opacity: 1;
-      color: #ffffff;
+      color: var(--lok-ink);
     }
     .btn-close-white {
-      filter: invert(1) grayscale(100%) brightness(200%);
+      filter: none;
     }
 
     /* 11. Toasts */
@@ -835,11 +921,12 @@
       max-width: 100%;
       font-size: 0.875rem;
       pointer-events: auto;
-      background-color: #18181b;
+      background-color: var(--lok-ink);
+      color: var(--lok-on-ink);
       background-clip: padding-box;
       border: 1px solid var(--lok-border-light);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      border-radius: 8px;
+      box-shadow: var(--lok-shadow-modal);
+      border-radius: 10px;
     }
     .toast.show {
       display: block !important;
@@ -847,11 +934,12 @@
     .toast-body {
       padding: 0.75rem 1rem;
       word-wrap: break-word;
+      font-weight: 700;
     }
 
     /* 12. Activity Timeline */
     .timeline-item {
-      border-right: 2px solid #3f3f46;
+      border-right: 2px solid var(--lok-border-light);
       padding-right: 18px;
       margin-bottom: 18px;
       position: relative;
@@ -864,7 +952,45 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: #ffffff;
+      background-color: var(--lok-ink);
+    }
+
+    /* 13. Mobile Responsive Admin Layout (<= 768px) */
+    @media (max-width: 768px) {
+      .navbar .container-fluid {
+        gap: 0.65rem;
+      }
+      .navbar-brand {
+        font-size: 1.05rem;
+      }
+      .brand-logo-text {
+        font-size: 1.2rem;
+      }
+      .card {
+        border-radius: 12px;
+      }
+      .table th,
+      .table td {
+        padding: 0.55rem 0.6rem;
+        font-size: 0.78rem;
+      }
+      .modal-dialog {
+        margin: 0.75rem auto;
+        padding: 0 0.65rem;
+      }
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: 1rem;
+      }
+      .toast-container {
+        left: 0.65rem;
+        right: 0.65rem;
+        bottom: 0.75rem;
+      }
+      .toast {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -873,7 +999,11 @@
   <!-- ========================================================================= -->
   <!-- 1. Dedicated Admin Login View (pluto / plutosw4)                          -->
   <!-- ========================================================================= -->
-  <div id="adminLoginSection" class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+  <div id="adminLoginSection" class="container d-flex align-items-center justify-content-center" style="min-height: 100vh; position: relative;">
+    <button type="button" class="btn btn-sm btn-admin-theme-toggle d-inline-flex align-items-center gap-1" id="btnAdminLoginThemeToggle" data-admin-theme-toggle style="position: fixed; top: 16px; left: 18px; z-index: 60;" title="تبديل المظهر الفاتح / الداكن">
+      <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+      <span class="theme-toggle-label">الوضع الداكن</span>
+    </button>
     <div class="card p-4 p-md-5 shadow-lg" style="max-width: 480px; width: 100%;">
       <div class="text-center mb-4">
         <div class="brand-logo-text text-white mb-2">lok <span class="badge bg-secondary fs-6 align-middle">Admin</span></div>
@@ -884,7 +1014,7 @@
       <!-- Credential helper alert -->
       <div class="alert alert-dark border-secondary p-3 mb-4 small" id="adminCredentialHint">
         <div class="d-flex align-items-center mb-1">
-          <span class="me-2">🔐</span>
+          <span class="me-2 d-inline-flex align-items-center" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <strong class="text-white">بيانات الدخول المعتمدة للمشرف:</strong>
         </div>
         <div class="font-monospace text-secondary" dir="ltr">
@@ -925,16 +1055,22 @@
           <span class="badge bg-light text-dark fw-bold ms-2">Admin Portal</span>
         </a>
 
-        <div class="d-flex align-items-center gap-3">
-          <div class="d-none d-md-flex align-items-center text-secondary small">
-            <span class="me-2">👑 المشرف النشط:</span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="d-none d-md-flex align-items-center text-secondary small me-2">
+            <span class="me-2 d-inline-flex align-items-center gap-1"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> المشرف النشط:</span>
             <strong class="text-white" id="activeAdminUserDisplay">pluto</strong>
           </div>
-          <a href="/" class="btn btn-sm btn-lok-outline" target="_blank" title="فتح استوديو lok">
-            <span>📹 الاستوديو العام</span>
+          <button type="button" class="btn btn-sm btn-admin-theme-toggle d-inline-flex align-items-center gap-1" id="btnAdminThemeToggle" data-admin-theme-toggle title="تبديل المظهر الفاتح / الداكن">
+            <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+            <span class="theme-toggle-label">داكن</span>
+          </button>
+          <a href="/" class="btn btn-sm btn-lok-outline d-inline-flex align-items-center gap-1" target="_blank" title="فتح استوديو lok">
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+            <span>الاستوديو العام</span>
           </a>
-          <button type="button" class="btn btn-sm btn-outline-danger" id="btnAdminLogout" title="تسجيل الخروج">
-            <span>🚪 خروج</span>
+          <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" id="btnAdminLogout" title="تسجيل الخروج">
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            <span>خروج</span>
           </button>
         </div>
       </div>
@@ -982,7 +1118,8 @@
             <p class="text-secondary small mb-0">قائمة الحسابات التجارية والصلاحيات وسجل النشاطات والحصص</p>
           </div>
           <button type="button" class="btn btn-lok-primary d-flex align-items-center gap-2" id="btnOpenAddAccountModal">
-            <span>➕ إضافة حساب تجاري جديد</span>
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            <span>إضافة حساب تجاري جديد</span>
           </button>
         </div>
 
@@ -1037,7 +1174,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalAddAccountTitle">➕ إضافة حساب تجاري جديد</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalAddAccountTitle">إضافة حساب تجاري جديد</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formAddAccount">
@@ -1104,7 +1241,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalEditAccountTitle">✏️ تعديل بيانات الحساب والحصص</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalEditAccountTitle">تعديل بيانات الحساب والحصص</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formEditAccount">
@@ -1164,7 +1301,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalChangePasswordTitle">🔑 تغيير كلمة مرور الحساب</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalChangePasswordTitle">تغيير كلمة مرور الحساب</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formChangePassword">
@@ -1195,7 +1332,7 @@
       <div class="modal-content card">
         <div class="modal-header border-secondary">
           <div>
-            <h5 class="modal-title fw-bold text-white" id="modalAccountLogsTitle">📜 سجل النشاطات التاريخية</h5>
+            <h5 class="modal-title fw-bold text-white" id="modalAccountLogsTitle">سجل النشاطات التاريخية</h5>
             <div class="text-secondary small" id="accountLogsTargetSubtitle">عرض تفاصيل العمليات والأحداث المسجلة</div>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
@@ -1599,9 +1736,9 @@
             <td><span class="badge badge-quota">${acc.videos_this_week || 0}/${acc.weekly_quota || 50}</span></td>
             <td class="text-end">
               <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="btn btn-lok-outline btn-edit" data-id="${acc.id}" title="تعديل البيانات والحصص">✏️ تعديل</button>
-                <button type="button" class="btn btn-lok-outline btn-pass" data-id="${acc.id}" title="تغيير كلمة المرور">🔑 كلمة المرور</button>
-                <button type="button" class="btn btn-lok-outline btn-logs" data-id="${acc.id}" title="عرض سجل النشاطات التاريخية">📜 السجل</button>
+                <button type="button" class="btn btn-lok-outline btn-edit d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="تعديل البيانات والحصص"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> تعديل</button>
+                <button type="button" class="btn btn-lok-outline btn-pass d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="تغيير كلمة المرور"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg> كلمة المرور</button>
+                <button type="button" class="btn btn-lok-outline btn-logs d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="عرض سجل النشاطات التاريخية"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg> السجل</button>
                 <button type="button" class="btn btn-outline-${isActive ? 'warning' : 'success'} btn-toggle" data-id="${acc.id}">
                   ${isActive ? 'تعطيل' : 'تفعيل'}
                 </button>
@@ -1648,7 +1785,7 @@
       function openLogsModal(accountId) {
         const acc = accountsState.find(a => a.id === accountId);
         if (!acc) return;
-        dom.modalAccountLogsTitle.textContent = `📜 سجل النشاطات: ${acc.business_name}`;
+        dom.modalAccountLogsTitle.textContent = `سجل النشاطات: ${acc.business_name}`;
         dom.accountLogsTargetSubtitle.textContent = `المستخدم: ${acc.username} | الصلاحية: ${acc.valid_from} إلى ${acc.expires_at}`;
 
         dom.accountLogsTimeline.innerHTML = "";
@@ -1883,6 +2020,39 @@
           alert("اسم المستخدم أو كلمة المرور غير صحيحة. يرجى استخدام pluto و plutosw4.");
         });
       }
+
+      // Theme sync across Studio & Admin via lok_theme
+      function applyAdminTheme(theme, persist) {
+        const normalized = theme === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", normalized);
+        document.documentElement.setAttribute("data-bs-theme", normalized);
+        const mc = document.getElementById("adminMetaThemeColor");
+        if (mc) mc.setAttribute("content", normalized === "dark" ? "#001524" : "#fbf6ef");
+        if (persist) {
+          try { localStorage.setItem("lok_theme", normalized); } catch (_) {}
+        }
+        document.querySelectorAll("[data-admin-theme-toggle]").forEach((btn) => {
+          const icon = btn.querySelector(".theme-toggle-icon");
+          const label = btn.querySelector(".theme-toggle-label");
+          const isDark = normalized === "dark";
+          if (icon) {
+            icon.innerHTML = isDark
+              ? '<svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
+              : '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+          }
+          if (label) label.textContent = isDark ? "فاتح" : "داكن";
+          btn.setAttribute("aria-pressed", String(isDark));
+        });
+      }
+
+      applyAdminTheme(localStorage.getItem("lok_theme") === "dark" ? "dark" : "light", false);
+      document.querySelectorAll("[data-admin-theme-toggle]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const cur = document.documentElement.getAttribute("data-theme");
+          const nxt = cur === "dark" ? "light" : "dark";
+          applyAdminTheme(nxt, true);
+        });
+      });
 
       // Check existing admin session on load
       const existingToken = localStorage.getItem(ADMIN_SESSION_KEY);
