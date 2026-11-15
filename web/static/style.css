@@ -153,8 +153,37 @@ body {
 }
 
 /* ==========================================================================
-   3. Theme-Aware Editorial Buttons
+   3. Theme-Aware Editorial Buttons & Uniform SVG Icon System
    ========================================================================== */
+.lok-svg-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lok-svg-icon--lg {
+  width: 22px;
+  height: 22px;
+}
+
+.lok-svg-icon--xl {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.6;
+}
+
+.mobile-nav-icon .lok-svg-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .btn-bw-primary {
   display: inline-flex;
   align-items: center;
@@ -163,21 +192,21 @@ body {
   background-color: var(--lok-ink);
   color: var(--lok-on-ink);
   font-family: var(--lok-font-arabic);
-  font-weight: 700;
-  font-size: 0.98rem;
+  font-weight: 600;
+  font-size: 0.96rem;
   padding: 12px 24px;
   border: 1px solid var(--lok-ink);
   border-radius: var(--lok-radius-md);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.16s ease-out, opacity 0.16s ease-out, transform 0.16s ease-out;
 }
 
 .btn-bw-primary:hover {
   opacity: 0.92;
   color: var(--lok-on-ink);
   transform: translateY(-1px);
-  box-shadow: var(--lok-shadow);
+  box-shadow: var(--lok-card-shadow);
 }
 
 .btn-bw-primary:active {
@@ -192,14 +221,14 @@ body {
   background-color: var(--lok-soft-well);
   color: var(--lok-ink);
   font-family: var(--lok-font-arabic);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.88rem;
   padding: 8px 16px;
   border: 1px solid var(--lok-border-strong);
   border-radius: var(--lok-radius-md);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: background-color 0.16s ease-out, border-color 0.16s ease-out, color 0.16s ease-out;
 }
 
 .btn-bw-secondary:hover {
@@ -215,13 +244,13 @@ body {
   background-color: var(--lok-surface);
   color: var(--lok-text);
   font-family: var(--lok-font-arabic);
-  font-weight: 600;
-  font-size: 0.86rem;
+  font-weight: 500;
+  font-size: 0.85rem;
   padding: 7px 14px;
   border: 1px solid var(--lok-border);
   border-radius: var(--lok-radius-pill);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.16s ease-out, border-color 0.16s ease-out, color 0.16s ease-out;
 }
 
 .btn-bw-settings:hover {
@@ -248,13 +277,13 @@ body {
   background-color: var(--lok-ink);
   color: var(--lok-on-ink);
   font-family: var(--lok-font-arabic);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.85rem;
   padding: 6px 16px;
   border: 1px solid var(--lok-ink);
   border-radius: var(--lok-radius-pill);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.16s ease-out, transform 0.16s ease-out;
 }
 
 .btn-bw-back:hover {
@@ -269,13 +298,13 @@ body {
   background-color: transparent;
   color: #dc2626;
   font-family: var(--lok-font-arabic);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 0.88rem;
   padding: 8px 18px;
   border: 1px solid rgba(220, 38, 38, 0.35);
   border-radius: var(--lok-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.16s ease-out, border-color 0.16s ease-out;
 }
 
 [data-theme="dark"] .btn-bw-danger {
@@ -776,13 +805,13 @@ body {
 
 /* CONTROL 1: Video Dropzone */
 .video-dropzone {
-  border: 2px dashed var(--lok-border-strong);
+  border: 1.5px dashed var(--lok-border-strong);
   border-radius: var(--lok-radius-md);
   background-color: var(--lok-soft-well);
   padding: 32px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: border-color 0.16s ease-out, background-color 0.16s ease-out;
 }
 
 .video-dropzone:hover, .video-dropzone.dragover {
@@ -794,19 +823,19 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   background-color: var(--lok-surface);
   border: 1px solid var(--lok-border);
-  font-size: 1.5rem;
+  color: var(--lok-ink);
   margin-bottom: 12px;
   box-shadow: var(--lok-card-shadow);
 }
 
 .dropzone-primary-text {
-  font-size: 0.98rem;
-  font-weight: 800;
+  font-size: 0.96rem;
+  font-weight: 600;
   color: var(--lok-ink);
   margin-bottom: 4px;
 }
@@ -1691,8 +1720,8 @@ body {
 }
 
 .settings-main-title {
-  font-size: 1.3rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--lok-white);
 }
 
@@ -1712,13 +1741,21 @@ body {
 }
 
 .settings-card-header .header-icon {
-  font-size: 1.4rem;
-  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--lok-soft-well);
+  border: 1px solid var(--lok-border);
+  color: var(--lok-ink);
+  flex-shrink: 0;
 }
 
 .settings-card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.02rem;
+  font-weight: 600;
   color: var(--lok-white);
   margin-bottom: 2px;
 }
@@ -1751,10 +1788,11 @@ body {
 }
 
 .quota-box-value {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 600;
   color: var(--lok-white);
   font-family: var(--lok-font-latin);
+  font-variant-numeric: tabular-nums;
 }
 
 .quota-box-sub {
@@ -1866,7 +1904,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.2s ease;
+  transition: border-color 0.16s ease-out, background-color 0.16s ease-out;
 }
 
 .voice-persona-card:hover {
@@ -1886,7 +1924,25 @@ body {
 }
 
 .voice-avatar {
-  font-size: 1.4rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--lok-surface);
+  border: 1px solid var(--lok-border);
+  color: var(--lok-ink);
+  font-family: var(--lok-font-latin);
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.voice-persona-card.active .voice-avatar {
+  background-color: var(--lok-ink);
+  color: var(--lok-on-ink);
+  border-color: var(--lok-ink);
 }
 
 .voice-name {
@@ -3257,20 +3313,19 @@ body {
 
 .guide-new-dot {
   display: none;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background-color: #d4a65a;
-  box-shadow: 0 0 8px rgba(212, 166, 90, 0.9);
+  background-color: var(--lok-ink);
 }
 
 @keyframes lokGuidePulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(212, 166, 90, 0.65), 0 0 12px rgba(212, 166, 90, 0.3);
-    border-color: #d4a65a;
+    box-shadow: 0 0 0 1px var(--lok-border-strong);
+    border-color: var(--lok-border-strong);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(212, 166, 90, 0), 0 0 20px rgba(212, 166, 90, 0.5);
+    box-shadow: 0 0 0 3px var(--lok-accent-soft);
     border-color: var(--lok-ink);
   }
 }
@@ -3278,8 +3333,8 @@ body {
 .btn-user-guide.is-first-visit-highlight {
   background: var(--lok-highlight-bg);
   color: var(--lok-ink);
-  border-color: #d4a65a;
-  animation: lokGuidePulse 1.9s ease-in-out infinite;
+  border-color: var(--lok-ink);
+  animation: lokGuidePulse 2.4s ease-out 2;
 }
 
 .btn-user-guide.is-first-visit-highlight .guide-new-dot {

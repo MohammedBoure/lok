@@ -32,7 +32,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css?v=20261115_mobile_v1">
+  <link rel="stylesheet" href="/static/style.css?v=20261115_unslop_v1">
 </head>
 <body>
 
@@ -44,11 +44,11 @@
     <section id="loginView" class="lok-gated-login" style="display: none;">
       <div class="login-guide-corner">
         <button type="button" class="btn-bw-settings btn-theme-toggle" id="btnLoginThemeToggle" data-theme-toggle aria-label="تبديل المظهر الفاتح والداكن" title="تبديل المظهر الفاتح / الداكن">
-          <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+          <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
           <span class="theme-toggle-label">الوضع الداكن</span>
         </button>
         <button type="button" class="btn-bw-settings btn-user-guide" id="btnLoginUserGuide" title="عرض دليل استخدام المنصة خطوة بخطوة">
-          <span class="guide-icon">📖</span>
+          <span class="guide-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
           <span class="guide-label">دليل الاستخدام</span>
           <span class="guide-new-dot" aria-hidden="true"></span>
         </button>
@@ -87,8 +87,8 @@
             <!-- Quick Credentials Helper Box -->
             <div class="quick-credentials-hint" id="loginCredentialHints">
               <div class="d-flex align-items-center mb-1 login-hint-title">
-                <span class="me-2">🔐</span>
-                <span>بيانات الدخول السريع للاختبار:</span>
+                <span class="me-2 d-inline-flex align-items-center" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span>بيانات الدخول للاختبار:</span>
               </div>
               <div class="font-monospace login-hint-body small" dir="ltr">
                 • المشرف العام: <strong class="login-hint-strong">pluto</strong> / <strong class="login-hint-strong">plutosw4</strong><br>
@@ -108,8 +108,9 @@
 
             <!-- Admin Portal Link -->
             <div class="admin-portal-shortcut mt-4 text-center">
-              <a href="/admin" class="link-admin-portal" target="_blank">
-                <span>👑 الدخول إلى لوحة التحكم الإدارية (/admin)</span>
+              <a href="/admin" class="link-admin-portal d-inline-flex align-items-center gap-2" target="_blank">
+                <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>الدخول إلى لوحة التحكم الإدارية (/admin)</span>
               </a>
             </div>
           </div>
@@ -128,13 +129,13 @@
           <div class="header-brand-group">
             <div class="user-guide-btn-wrap" id="userGuideBtnWrap">
               <button type="button" class="btn-bw-settings btn-user-guide" id="btnOpenUserGuide" aria-haspopup="dialog" aria-controls="userGuideModal" title="عرض دليل استخدام الاستوديو خطوة بخطوة">
-                <span class="guide-icon">📖</span>
+                <span class="guide-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
                 <span class="guide-label">دليل الاستخدام</span>
                 <span class="guide-new-dot" aria-hidden="true"></span>
               </button>
               <div class="user-guide-highlight-tip" id="userGuideHighlightTip" style="display: none;" role="status">
-                <span>✨ أول زيارة؟ اضغط هنا لدليل الاستخدام السريع</span>
-                <button type="button" class="btn-dismiss-guide-tip" id="btnDismissGuideTip" aria-label="إخفاء التلميح">✕</button>
+                <span>اضغط هنا لعرض دليل الاستخدام السريع</span>
+                <button type="button" class="btn-dismiss-guide-tip" id="btnDismissGuideTip" aria-label="إخفاء التلميح"><svg class="lok-svg-icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
               </div>
             </div>
             <div class="lok-header-logo" aria-label="استوديو LOK">
@@ -148,7 +149,7 @@
               </span>
             </div>
             <div class="header-user-status" id="headerUserStatus">
-              <span class="user-role-icon" id="userRoleIcon">🏢</span>
+              <span class="user-role-icon" id="userRoleIcon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></span>
               <span class="user-business-name" id="userBusinessName">دار النخبة العقارية</span>
             </div>
           </div>
@@ -156,15 +157,15 @@
           <!-- Header Actions: Admin, Theme Toggle, Settings -->
           <div class="header-actions">
             <a href="/admin" class="btn-bw-settings" id="btnHeaderAdminPortal" title="لوحة التحكم الإدارية" style="text-decoration: none;">
-              <span class="settings-icon">👑</span>
+              <span class="settings-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
               <span class="settings-label">لوحة الإدارة</span>
             </a>
             <button type="button" class="btn-bw-settings btn-theme-toggle" id="btnThemeToggle" data-theme-toggle aria-label="تبديل المظهر الفاتح والداكن" title="تبديل المظهر الفاتح / الداكن">
-              <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+              <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
               <span class="theme-toggle-label">داكن</span>
             </button>
             <button type="button" class="btn-bw-settings" id="btnOpenSettings" title="إعدادات الحساب والتوصيات والرصيد">
-              <span class="settings-icon">⚙️</span>
+              <span class="settings-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg></span>
               <span class="settings-label">الإعدادات</span>
             </button>
           </div>
@@ -224,7 +225,9 @@
               <input type="file" id="videoFileInput" accept="video/*" class="visually-hidden" aria-label="اختيار مقطع فيديو">
               
               <div class="dropzone-idle-content" id="dropzoneIdleContent">
-                <div class="dropzone-icon">📹</div>
+                <div class="dropzone-icon" aria-hidden="true">
+                  <svg class="lok-svg-icon lok-svg-icon--xl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                </div>
                 <div class="dropzone-primary-text">اسحب وأفلت مقطع الفيديو المسجل هنا أو انقر للاختيار</div>
                 <div class="dropzone-sub-text">مخصص للفيديوهات الجاهزة والمسجلة مسبقاً من الهاتف أو الكاميرا</div>
                 <div class="dropzone-format-chips" aria-hidden="true">
@@ -234,13 +237,16 @@
                   <span class="format-chip-muted">حتى 250 ميغابايت</span>
                 </div>
                 <button type="button" class="btn-bw-secondary btn-browse" id="btnBrowseVideo">
-                  <span>⬆️ تصفح واختيار الفيديو</span>
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+                  <span>تصفح واختيار الفيديو</span>
                 </button>
               </div>
 
               <!-- Selected Video State (Revealed when a file is picked) -->
               <div class="dropzone-selected-content" id="dropzoneSelectedContent" style="display: none;">
-                <div class="selected-video-icon">🎬</div>
+                <div class="selected-video-icon" aria-hidden="true">
+                  <svg class="lok-svg-icon lok-svg-icon--lg" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></svg>
+                </div>
                 <div class="selected-video-info">
                   <div class="selected-video-name" id="selectedVideoName">video.mp4</div>
                   <div class="selected-video-meta" id="selectedVideoMeta">الحجم: 12.4 ميغابايت</div>
@@ -261,9 +267,9 @@
                   <span>توجيهات المشهد والصوت والأسلوب (Detailed Prompt)</span>
                 </label>
                 <div class="prompt-hint-chip" id="attachedRecIndicator" style="display: none;">
-                  <span class="rec-icon">🎯</span>
+                  <span class="rec-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
                   <span class="rec-text" id="attachedRecText">توصية نشطة</span>
-                  <button type="button" class="btn-clear-rec" id="btnClearRec" title="إزالة التوصية">✕</button>
+                  <button type="button" class="btn-clear-rec" id="btnClearRec" title="إزالة التوصية"><svg class="lok-svg-icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                 </div>
               </div>
               <span class="section-meta-badge">الذكاء التوليدي</span>
@@ -272,23 +278,26 @@
             <!-- Opt-In Feature Quick Toggles Bar -->
             <div class="optin-toggles-bar" id="optInQuickBar">
               <div class="optin-bar-head">
-                <span class="optin-bar-label">⚡ ميزات اختيارية (Opt-In Features):</span>
-                <span class="optin-bar-hint">معطلة افتراضياً للحصول على أعلى نقاء صوت وسرعة</span>
+                <span class="optin-bar-label">
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+                  <span>ميزات اختيارية (Opt-In Features)</span>
+                </span>
+                <span class="optin-bar-hint">معطلة افتراضياً لصوت نقي وسرعة معالجة عالية</span>
               </div>
               <div class="optin-toggles-grid">
                 <button type="button" class="btn-optin-toggle" id="btnToggleCaptionsOptIn" data-feature="captions" aria-pressed="false" title="تفعيل أو تعطيل الترجمة المتزامنة">
                   <span class="optin-main">
-                    <span class="optin-icon">💬</span>
+                    <span class="optin-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg></span>
                     <span class="optin-text-stack">
                       <span class="optin-text">ترجمة متزامنة</span>
-                      <span class="optin-sub">كلمة بكلمة احترافية</span>
+                      <span class="optin-sub">كلمة بكلمة متزامنة</span>
                     </span>
                   </span>
                   <span class="optin-status" id="statusCaptionsOptIn">معطل</span>
                 </button>
                 <button type="button" class="btn-optin-toggle" id="btnToggleMusicOptIn" data-feature="music" aria-pressed="false" title="تفعيل أو تعطيل الموسيقى التصويرية">
                   <span class="optin-main">
-                    <span class="optin-icon">🎵</span>
+                    <span class="optin-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
                     <span class="optin-text-stack">
                       <span class="optin-text">موسيقى خلفية</span>
                       <span class="optin-sub">تخفيض تلقائي أثناء الصوت</span>
@@ -298,7 +307,7 @@
                 </button>
                 <button type="button" class="btn-optin-toggle" id="btnToggleTimelineOptIn" data-feature="timeline" aria-pressed="false" title="تفعيل أو تعطيل تفكيك اللقطات والخط الزمني">
                   <span class="optin-main">
-                    <span class="optin-icon">⏱️</span>
+                    <span class="optin-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
                     <span class="optin-text-stack">
                       <span class="optin-text">مخطط المشاهد</span>
                       <span class="optin-sub">مطابقة الجمل باللقطة</span>
@@ -308,7 +317,7 @@
                 </button>
                 <button type="button" class="btn-optin-toggle" id="btnToggleScreenNoteOptIn" data-feature="screen_note" aria-pressed="false" title="إضافة رقم هاتف أو ملاحظة ثابتة على الشاشة مع سحبها واختيار الخط والمؤثرات">
                   <span class="optin-main">
-                    <span class="optin-icon">📱</span>
+                    <span class="optin-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></span>
                     <span class="optin-text-stack">
                       <span class="optin-text">ملاحظة / رقم ثابت</span>
                       <span class="optin-sub">سحب حر على الشاشة</span>
@@ -322,19 +331,19 @@
             <!-- Persistent Screen Note / Phone Summary Bar -->
             <div class="screen-overlay-summary-bar" id="screenOverlaySummaryBar" style="display: none;">
               <div class="overlay-summary-info">
-                <span class="overlay-summary-badge">📌 نص ثابت على الشاشة</span>
+                <span class="overlay-summary-badge"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg> نص ثابت على الشاشة</span>
                 <span class="overlay-summary-text" id="overlaySummaryTextPreview">—</span>
                 <span class="overlay-summary-meta" id="overlaySummaryMetaPreview"></span>
               </div>
               <div class="overlay-summary-actions">
-                <button type="button" class="btn-bw-secondary btn-sm-pill" id="btnEditScreenOverlay">✏️ تعديل الموضع والخط</button>
-                <button type="button" class="btn-bw-secondary btn-sm-pill btn-danger-ghost" id="btnClearScreenOverlay">✖️ إزالة</button>
+                <button type="button" class="btn-bw-secondary btn-sm-pill" id="btnEditScreenOverlay"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> تعديل الموضع والخط</button>
+                <button type="button" class="btn-bw-secondary btn-sm-pill btn-danger-ghost" id="btnClearScreenOverlay"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> إزالة</button>
               </div>
             </div>
 
             <!-- Music Track Picker (shown when Background Music Opt-In is active) -->
             <div class="music-track-picker-wrap" id="musicTrackPickerWrap" style="display: none;">
-              <label for="musicTrackSelect" class="music-picker-label">🎵 اختر موسيقى الخلفية (من assets/music):</label>
+              <label for="musicTrackSelect" class="music-picker-label"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> اختر موسيقى الخلفية (من assets/music):</label>
               <div class="music-picker-controls">
                 <select id="musicTrackSelect" class="lok-select-sm music-track-select" aria-label="اختر موسيقى الخلفية">
                   <option value="luxury_piano">بيانو كلاسيكي راقي (Gymnopédie) - للعقارات الفاخرة</option>
@@ -375,7 +384,7 @@
               <button type="button" class="mobile-prompt-chip" data-prompt-snippet="مع زووم واضح وتأكيد عند السعر">+ زووم عند السعر</button>
             </div>
             <div class="prompt-guidance-hint" id="promptInputHint">
-              💡 بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً لتوفير صوت نقي 100% وفيديو سريع. يمكنك تفعيل ترجمة الكلام المتزامنة بدقة عالية مع نطق المعلق كلمة بكلمة، أو تشغيل الموسيقى الخلفية (الافتراضي: 'بدون موسيقى' لصوت نقي 100% وكتم الموسيقى)، أو ضبط مستوى الصوت، أو إظهار رقم الهاتف بخط كبير وواضح في الشريط السفلي، أو كتابة نص مخصص مع قوالب الكابشن المتحركة أدناه. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
+              بنية الاختيار المسبق (Opt-In): الميزات الإضافية معطلة افتراضياً للحفاظ على نقاء الصوت وسرعة المعالجة. يمكنك تفعيل الترجمة المتزامنة بدقة كلمة بكلمة، أو تشغيل الموسيقى الخلفية، أو إضافة نص أو رقم هاتف ثابت بتصميم وموضع مخصصين. (مثال: "مع إظهار رقم الهاتف 0558815453 أسفل الفيديو").
             </div>
           </div>
 
@@ -521,7 +530,7 @@
               <div class="capcut-style-pickers" id="capcutStylePickers">
                 <div class="capcut-picker-block">
                   <div class="capcut-picker-header">
-                    <label class="capcut-mini-label">🔤 نمط الخط (Font Style):</label>
+                    <label class="capcut-mini-label"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg> نمط الخط (Font Style):</label>
                     <span class="overlay-selected-pill" id="captionSelectedFontLabel">Cairo Bold</span>
                   </div>
                   <div class="capcut-fonts-grid" id="captionFontList">
@@ -531,7 +540,7 @@
 
                 <div class="capcut-picker-block">
                   <div class="capcut-picker-header">
-                    <label class="capcut-mini-label">🎨 ألوان النص والإبراز (Colors):</label>
+                    <label class="capcut-mini-label"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> ألوان النص والإبراز (Colors):</label>
                     <span class="overlay-selected-pill" id="captionSelectedColorLabel">تلقائي حسب القالب</span>
                   </div>
                   <div class="capcut-colors-grid" id="captionColorList">
@@ -544,7 +553,8 @@
                 <div class="capcut-textarea-header">
                   <label for="customCaptionTextarea" class="capcut-mini-label">النص المخصص للكابشن المتحرك (اختياري — يقسمه الذكاء الاصطناعي تلقائياً):</label>
                   <button type="button" class="btn-bw-secondary btn-preview-split" id="btnPreviewSmartSplit">
-                    <span>✂️ معاينة التقسيم الذكي (AI)</span>
+                    <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                    <span>معاينة التقسيم الذكي (AI)</span>
                   </button>
                 </div>
                 <textarea
@@ -552,14 +562,14 @@
                   class="lok-prompt-textarea capcut-textarea"
                   rows="3"
                   placeholder="اكتب هنا النص الذي تريد عرضه ككابشن متحرك على الفيديو (أو اتركه فارغاً لاستخدام نص التعليق الصوتي عند تفعيل الترجمة)...
-مثال: أفضل بيتزا في المدينة، توصيل سريع لباب الدار! اتصل الآن 0558815453 واستمتع بعرض خاص اليوم"
+مثال: عرض محدود لشقة مفروشة بإطلالة بحرية، تواصل معنا على الرقم 0558815453"
                 ></textarea>
               </div>
 
               <!-- Smart Split Preview Chips Container -->
               <div class="capcut-split-preview" id="capcutSplitPreview" style="display: none;">
                 <div class="split-preview-header">
-                  <span class="split-preview-title" id="splitPreviewTitle">✨ معاينة تقسيم المقاطع الزمنية:</span>
+                  <span class="split-preview-title" id="splitPreviewTitle">معاينة تقسيم المقاطع الزمنية:</span>
                   <span class="split-preview-engine" id="splitPreviewEngine">AI</span>
                 </div>
                 <div class="split-chunks-list" id="splitChunksList"></div>
@@ -571,14 +581,14 @@
           <!-- CONTROL 4: Produce Video Action Card -->
           <div class="studio-section studio-card action-section">
             <div class="action-bar-info">
-              <span class="action-bar-icon" aria-hidden="true">⚡</span>
+              <span class="action-bar-icon" aria-hidden="true"><svg class="lok-svg-icon lok-svg-icon--lg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
               <div class="action-bar-text">
-                <strong>جاهز للتنفيذ الفوري</strong>
-                <small>متوسط وقت المعالجة والرندرة: 25 - 45 ثانية</small>
+                <strong>الاستوديو جاهز للمعالجة</strong>
+                <small>متوسط زمن التنفيذ والرندرة: 25 - 45 ثانية</small>
               </div>
             </div>
             <button type="button" class="btn-bw-primary btn-produce-main" id="btnProduceVideo">
-              <span class="produce-icon">✨</span>
+              <span class="produce-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>
               <span class="produce-label">إنتاج الفيديو التسويقي بنقرة واحدة</span>
             </button>
           </div>
@@ -604,7 +614,7 @@
           <!-- Studio Error / Failure Alert Box with Quick Retry -->
           <div class="studio-error-box" id="studioErrorBox" style="display: none;">
             <div class="error-box-header">
-              <span class="error-icon">⚠️</span>
+              <span class="error-icon" aria-hidden="true"><svg class="lok-svg-icon lok-svg-icon--lg" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
               <div class="error-text-group">
                 <h4 class="error-title">تعذر إكمال إنتاج الفيديو</h4>
                 <p class="error-message" id="studioErrorMessage">حدث خطأ أثناء معالجة الفيديو.</p>
@@ -612,7 +622,8 @@
             </div>
             <div class="error-actions">
               <button type="button" class="btn-bw-primary btn-retry-action" id="btnRetryProduction">
-                <span>🔄 إعادة المحاولة</span>
+                <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                <span>إعادة المحاولة</span>
               </button>
             </div>
           </div>
@@ -621,15 +632,15 @@
           <div class="result-container" id="resultContainer" style="display: none;">
             <div id="resultCard" class="result-card">
               <div class="result-header">
-                <h3 class="result-title">🎉 تم إنتاج الفيديو التسويقي بنجاح!</h3>
-                <p class="result-subtitle">الفيديو جاهز للعرض والمشاركة بجودة عالية وصوت نقي</p>
+                <h3 class="result-title">تم إنتاج الفيديو التسويقي بنجاح</h3>
+                <p class="result-subtitle">الفيديو جاهز للمعاينة والتحميل بجودة عالية وصوت نقي</p>
               </div>
 
               <!-- Feedback Pills Section (Overlay, Large Font, Property Specs, Music, Montage) -->
               <div class="result-pills-row" id="resultPillsRow">
                 <!-- Persistent Overlay Feedback Pill & Badges -->
                 <div class="result-overlay-pill" id="resultOverlayPill" style="display: none;">
-                  <span class="overlay-icon">📞</span>
+                  <span class="overlay-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                   <span class="overlay-label">الشريط السفلي:</span>
                   <span class="overlay-text" id="resultOverlayText"></span>
                   <span class="bottom-text-badge" id="bottomTextBadge"></span>
@@ -639,7 +650,7 @@
 
                 <!-- Music & Audio Balance Feedback Pill -->
                 <div class="result-music-pill" id="resultMusicPill" style="display: none;">
-                  <span class="music-icon" id="resultMusicIcon">🎵</span>
+                  <span class="music-icon" id="resultMusicIcon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
                   <span class="music-label">الموسيقى والمكساج:</span>
                   <span class="music-text" id="resultMusicText"></span>
                   <span class="music-badge" id="resultMusicBadge" style="display: none;"></span>
@@ -647,7 +658,7 @@
 
                 <!-- Synchronized Captions Feedback Pill -->
                 <div class="result-captions-pill" id="resultCaptionsPill" style="display: none;">
-                  <span class="captions-icon" id="resultCaptionsIcon">💬</span>
+                  <span class="captions-icon" id="resultCaptionsIcon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg></span>
                   <span class="captions-label">ترجمة الكلام المتزامنة:</span>
                   <span class="captions-text" id="resultCaptionsText"></span>
                   <span class="captions-badge" id="resultCaptionsBadge" style="display: none;"></span>
@@ -655,7 +666,7 @@
 
                 <!-- Montage Feedback Pill -->
                 <div class="result-montage-pill" id="resultMontagePill" style="display: none;">
-                  <span class="montage-icon">✂️</span>
+                  <span class="montage-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg></span>
                   <span class="montage-label">المونتاج واقتطاع المشاهد:</span>
                   <span class="montage-text" id="resultMontageText"></span>
                 </div>
@@ -669,11 +680,11 @@
               <div class="generated-script-card" id="generatedScriptCard" style="display: none;">
                 <div class="script-card-header">
                   <div class="script-card-title-group">
-                    <span class="script-card-icon">🎙️</span>
+                    <span class="script-card-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
                     <h4 class="script-card-title">السيناريو والتعليق الصوتي المولّد</h4>
                   </div>
                   <button type="button" class="btn-bw-secondary btn-copy-script" id="btnCopyScript" title="نسخ نص السيناريو">
-                    <span class="copy-icon">📋</span>
+                    <span class="copy-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
                     <span class="copy-label">نسخ السيناريو</span>
                   </button>
                 </div>
@@ -691,7 +702,7 @@
                     aria-controls="shotsTimelineBody"
                   >
                     <span class="collapse-btn-main">
-                      <span>⏱️ عرض التوقيت الزمني والمشاهد والنص — التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</span>
+                      <span>عرض التوقيت الزمني والمشاهد والنص — التسلسل الزمني للمشاهد واللقطات (Shot-by-Shot Timeline)</span>
                       <span class="timeline-count-pill" id="timelineCountPill">0 لقطات</span>
                     </span>
                     <span class="collapse-chevron" id="timelinePanelChevron">▾ عرض التفاصيل</span>
@@ -699,7 +710,7 @@
                   <div class="shots-timeline-body" id="shotsTimelineBody" style="display: none;">
                     <div class="timeline-header">
                       <div class="timeline-title-group">
-                        <span class="timeline-icon">✂️</span>
+                        <span class="timeline-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg></span>
                         <h5 class="timeline-title">المشاهد والنص المرفق لكل لقطة (قابل للتعديل)</h5>
                       </div>
                       <span class="timeline-badge" id="timelineBadge">متزامن بالكامل</span>
@@ -708,7 +719,8 @@
                     <div class="cuts-edit-actions" id="cutsEditActions" style="display: none;">
                       <span class="cuts-edit-hint" id="cutsEditHint">عدّل أي كلمة في نص أي لقطة ثم حدّث الصوت والفيديو فوراً بدون إعادة المونتاج</span>
                       <button type="button" class="btn-bw-primary btn-apply-cuts-edit" id="btnApplyCutsEdit">
-                        <span>🔄 تحديث الصوت والفيديو بالكلام المعدّل</span>
+                        <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        <span>تحديث الصوت والفيديو بالكلام المعدّل</span>
                       </button>
                     </div>
                   </div>
@@ -717,13 +729,16 @@
 
               <div class="result-actions">
                 <a href="#" download="lok_production.mp4" class="btn-bw-primary btn-download" id="btnDownloadVideo">
-                  <span>⬇️ تحميل الفيديو النهائي (MP4)</span>
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  <span>تحميل الفيديو النهائي (MP4)</span>
                 </a>
                 <a href="#" target="_blank" rel="noopener noreferrer" class="btn-bw-secondary btn-share" id="btnShareVideo">
-                  <span>🔗 فتح رابط الفيديو المباشر</span>
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <span>فتح رابط الفيديو المباشر</span>
                 </a>
                 <button type="button" class="btn-bw-secondary btn-new-video" id="btnStartNewProduction">
-                  <span>🔄 إنتاج فيديو جديد</span>
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  <span>إنتاج فيديو جديد</span>
                 </button>
               </div>
             </div>
@@ -749,23 +764,23 @@
       <!-- Mobile Bottom Navigation Bar (<= 768px only) -->
       <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="التنقل السريع للجوال">
         <button type="button" class="mobile-nav-item is-active" data-mobile-tab="studio">
-          <span class="mobile-nav-icon" aria-hidden="true">🎬</span>
+          <span class="mobile-nav-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m10 8 6 4-6 4V8z"/></svg></span>
           <span class="mobile-nav-label">الاستوديو</span>
         </button>
         <button type="button" class="mobile-nav-item" data-mobile-tab="projects">
-          <span class="mobile-nav-icon" aria-hidden="true">🎞️</span>
+          <span class="mobile-nav-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
           <span class="mobile-nav-label">المشاريع</span>
         </button>
         <button type="button" class="mobile-nav-item" data-mobile-tab="voices">
-          <span class="mobile-nav-icon" aria-hidden="true">🎙️</span>
+          <span class="mobile-nav-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
           <span class="mobile-nav-label">الأصوات AI</span>
         </button>
         <button type="button" class="mobile-nav-item" data-mobile-tab="templates">
-          <span class="mobile-nav-icon" aria-hidden="true">🎨</span>
+          <span class="mobile-nav-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg></span>
           <span class="mobile-nav-label">القوالب</span>
         </button>
         <a href="/admin" class="mobile-nav-item" data-mobile-tab="admin" title="لوحة الإدارة">
-          <span class="mobile-nav-icon" aria-hidden="true">🛡️</span>
+          <span class="mobile-nav-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <span class="mobile-nav-label">الإدارة</span>
         </a>
       </nav>
@@ -792,7 +807,7 @@
             <!-- SETTINGS COMPONENT 1: Current Balance & Quota Indicator -->
             <section class="settings-card mb-4" id="sectionBalanceQuota">
               <div class="settings-card-header">
-                <div class="header-icon">⚡</div>
+                <div class="header-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
                 <div>
                   <h3 class="settings-card-title">حالة الرصيد والحصة المتاحة</h3>
                   <p class="settings-card-subtitle">الرصيد المتبقي لحسابك التجاري لإنتاج الفيديوهات اليوم والأسبوع</p>
@@ -827,7 +842,7 @@
             <!-- SETTINGS COMPONENT 2: Recommendations Manager (CRUD + Attach) -->
             <section class="settings-card mb-4" id="sectionRecommendations">
               <div class="settings-card-header">
-                <div class="header-icon">💡</div>
+                <div class="header-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg></div>
                 <div>
                   <h3 class="settings-card-title">إدارة التوصيات وقوالب التوجيه</h3>
                   <p class="settings-card-subtitle">أنشئ، عدّل، واحذف التوصيات المفضلة لتطبيقها بنقرة واحدة في الاستوديو</p>
@@ -839,7 +854,8 @@
                 <div class="input-group d-flex gap-2">
                   <input type="text" id="newRecommendationInput" class="form-input flex-grow-1" placeholder="اكتب نص توصية جديد (مثال: إعلان عقاري سريع بالدارجة العاصمية...)">
                   <button type="button" class="btn-bw-primary px-4" id="btnAddRecommendation">
-                    <span>➕ إضافة توصية</span>
+                    <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                    <span>إضافة توصية</span>
                   </button>
                 </div>
               </div>
@@ -853,7 +869,7 @@
             <!-- SETTINGS COMPONENT 3: Voiceover Artist Picker (With Darja Audition Player) -->
             <section class="settings-card mb-4" id="sectionVoiceoverPicker">
               <div class="settings-card-header">
-                <div class="header-icon">🎙️</div>
+                <div class="header-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></div>
                 <div>
                   <h3 class="settings-card-title">تعيين المعلق الصوتي (Voiceover Artist)</h3>
                   <p class="settings-card-subtitle">اختر المعلق الصوتي المعتمد للفيديو واستمع إلى عينة صوتية مسجلة بالدارجة الجزائرية</p>
@@ -864,7 +880,7 @@
                 <!-- Voice 1: ar-XA-Standard-A -->
                 <div class="voice-persona-card active" data-voice="ar-XA-Standard-A" id="voiceCardStandardA">
                   <div class="voice-card-header">
-                    <span class="voice-avatar">👩</span>
+                    <span class="voice-avatar" aria-hidden="true">A</span>
                     <div class="voice-info">
                       <div class="voice-name">عائشة (Standard A)</div>
                       <div class="voice-desc">صوت نسائي دافئ بالدارجة الجزائرية الفاخرة</div>
@@ -875,7 +891,7 @@
                       <span>▶ عينة صوتية بالدارجة</span>
                     </button>
                     <button type="button" class="btn-bw-select-voice active" data-voice="ar-XA-Standard-A">
-                      <span>تم التعيين ✓</span>
+                      <span>تم التعيين</span>
                     </button>
                   </div>
                 </div>
@@ -883,7 +899,7 @@
                 <!-- Voice 2: ar-XA-Standard-B -->
                 <div class="voice-persona-card" data-voice="ar-XA-Standard-B" id="voiceCardStandardB">
                   <div class="voice-card-header">
-                    <span class="voice-avatar">👨</span>
+                    <span class="voice-avatar" aria-hidden="true">B</span>
                     <div class="voice-info">
                       <div class="voice-name">أمين (Standard B)</div>
                       <div class="voice-desc">صوت رجالي وقور وموثوق بالدارجة التجارية</div>
@@ -902,7 +918,7 @@
                 <!-- Voice 3: ar-XA-Standard-C -->
                 <div class="voice-persona-card" data-voice="ar-XA-Standard-C" id="voiceCardStandardC">
                   <div class="voice-card-header">
-                    <span class="voice-avatar">🧑</span>
+                    <span class="voice-avatar" aria-hidden="true">C</span>
                     <div class="voice-info">
                       <div class="voice-name">كريم (Standard C)</div>
                       <div class="voice-desc">صوت رجالي شبابي وحيوي للمتاجر والتقنية</div>
@@ -921,7 +937,7 @@
                 <!-- Voice 4: ar-XA-Standard-D -->
                 <div class="voice-persona-card" data-voice="ar-XA-Standard-D" id="voiceCardStandardD">
                   <div class="voice-card-header">
-                    <span class="voice-avatar">🧕</span>
+                    <span class="voice-avatar" aria-hidden="true">D</span>
                     <div class="voice-info">
                       <div class="voice-name">مريم (Standard D)</div>
                       <div class="voice-desc">صوت نسائي هادئ وأنيق للأزياء والديكور</div>
@@ -942,17 +958,17 @@
             <!-- SETTINGS COMPONENT 4: Opt-In Feature Preferences -->
             <section class="settings-card mb-4" id="sectionOptInPreferences">
               <div class="settings-card-header">
-                <div class="header-icon">🎛️</div>
+                <div class="header-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg></div>
                 <div>
                   <h3 class="settings-card-title">تفضيلات الميزات الإضافية (Opt-In Features)</h3>
-                  <p class="settings-card-subtitle">الوضع الافتراضي معطل لضمان السرعة والصوت النقي 100% — فعّل ما يناسبك بلمسة واحدة</p>
+                  <p class="settings-card-subtitle">معطلة افتراضياً لصوت نقي وسرعة معالجة عالية — فعّل ما يناسبك</p>
                 </div>
               </div>
 
               <div class="optin-switches-list">
                 <div class="optin-switch-item">
                   <div class="optin-switch-info">
-                    <div class="optin-switch-title">💬 ترجمة الكلام المتزامنة (Synchronized Captions)</div>
+                    <div class="optin-switch-title">ترجمة الكلام المتزامنة (Synchronized Captions)</div>
                     <div class="optin-switch-desc">إظهار شريط ترجمة متحرك أسفل الفيديو متزامن بدقة كلمة بكلمة مع صوت المعلق</div>
                   </div>
                   <label class="lok-switch">
@@ -963,7 +979,7 @@
 
                 <div class="optin-switch-item">
                   <div class="optin-switch-info">
-                    <div class="optin-switch-title">🎵 الموسيقى التصويرية والمكساج (Background Music)</div>
+                    <div class="optin-switch-title">الموسيقى التصويرية والمكساج (Background Music)</div>
                     <div class="optin-switch-desc">إضافة موسيقى خلفية متناسقة مع طبيعة النشاط (الافتراضي: صوت نقي 100% بدون موسيقى)</div>
                   </div>
                   <label class="lok-switch">
@@ -974,7 +990,7 @@
 
                 <div class="optin-switch-item">
                   <div class="optin-switch-info">
-                    <div class="optin-switch-title">⏱️ المخطط الزمني للمشاهد (Shot-by-Shot Timeline)</div>
+                    <div class="optin-switch-title">المخطط الزمني للمشاهد (Shot-by-Shot Timeline)</div>
                     <div class="optin-switch-desc">تفكيك اللقطات وعرض تسلسل زمني تفصيلي للمشاهد والربط البصري المعماري</div>
                   </div>
                   <label class="lok-switch">
@@ -993,7 +1009,8 @@
                   <p class="settings-card-subtitle mb-0">إنهاء الجلسة الحالية وإعادة فتح شاشة تسجيل الدخول</p>
                 </div>
                 <button type="button" class="btn-bw-danger" id="btnLogout">
-                  <span>🚪 تسجيل الخروج</span>
+                  <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                  <span>تسجيل الخروج</span>
                 </button>
               </div>
             </section>
@@ -1012,10 +1029,10 @@
 
           <div class="settings-header overlay-modal-header">
             <div>
-              <h2 class="settings-main-title" id="screenOverlayModalTitle">📱 تصميم الملاحظة / رقم الهاتف الثابت على الشاشة</h2>
+              <h2 class="settings-main-title" id="screenOverlayModalTitle">تصميم الملاحظة / رقم الهاتف الثابت على الشاشة</h2>
               <p class="overlay-modal-subtitle">اسحب النص مباشرة فوق الشاشة لتحديد موقعه بدقة، ثم اختر الخط والمؤثر المناسبين</p>
             </div>
-            <button type="button" class="btn-bw-secondary" id="btnCloseScreenOverlayModal">✕ إغلاق</button>
+            <button type="button" class="btn-bw-secondary" id="btnCloseScreenOverlayModal"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> إغلاق</button>
           </div>
 
           <div class="overlay-designer-layout">
@@ -1034,7 +1051,7 @@
               <div class="overlay-screen-stage" id="overlayScreenStage">
                 <video id="overlayPreviewVideo" class="overlay-preview-video" playsinline muted loop autoplay style="display: none;"></video>
                 <div class="overlay-stage-placeholder" id="overlayStagePlaceholder">
-                  <span class="stage-placeholder-icon">🎬</span>
+                  <span class="stage-placeholder-icon" aria-hidden="true"><svg class="lok-svg-icon lok-svg-icon--xl" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m10 8 6 4-6 4V8z"/></svg></span>
                   <span class="stage-placeholder-text">ارفع فيديو لمعاينته هنا أو اسحب النص مباشرة على الشاشة</span>
                 </div>
                 <div class="overlay-stage-grid" aria-hidden="true"></div>
@@ -1042,14 +1059,14 @@
                   <span id="draggableOverlayNodeText">0550 12 34 56</span>
                 </div>
               </div>
-              <p class="overlay-drag-hint">💡 اضغط واسحب النص بالماوس أو الإصبع لأي نقطة في الشاشة — تبقى هذه الإحداثيات ثابتة طوال الفيديو.</p>
+              <p class="overlay-drag-hint">اضغط واسحب النص بالماوس أو اللمس لأي موضع في الشاشة — تبقى هذه الإحداثيات ثابتة طوال الفيديو.</p>
             </div>
 
             <!-- Right / Controls: Text, Fonts, Effects, Size & Colors -->
             <div class="overlay-controls-column">
 
               <div class="overlay-control-group">
-                <label for="overlayTextInput" class="overlay-control-label">✍️ نص الملاحظة أو رقم الهاتف (يبقى ظاهراً طوال الفيديو)</label>
+                <label for="overlayTextInput" class="overlay-control-label">نص الملاحظة أو رقم الهاتف (يبقى ظاهراً طوال الفيديو)</label>
                 <input
                   type="text"
                   id="overlayTextInput"
@@ -1062,7 +1079,7 @@
 
               <div class="overlay-control-group">
                 <div class="overlay-group-header">
-                  <label class="overlay-control-label">🔤 اختر الخط (Font)</label>
+                  <label class="overlay-control-label">اختر الخط (Font)</label>
                   <span class="overlay-selected-pill" id="overlaySelectedFontLabel">Tahoma Bold</span>
                 </div>
                 <div class="overlay-fonts-grid" id="overlayFontList">
@@ -1072,7 +1089,7 @@
 
               <div class="overlay-control-group">
                 <div class="overlay-group-header">
-                  <label class="overlay-control-label">✨ اختر المؤثر (Effect)</label>
+                  <label class="overlay-control-label">اختر المؤثر (Effect)</label>
                   <button type="button" class="btn-bw-secondary btn-xs-replay" id="btnReplayOverlayEffect" title="إعادة تشغيل معاينة الحركة">↻ معاينة الحركة</button>
                 </div>
                 <div class="overlay-effects-grid" id="overlayEffectList">
@@ -1082,7 +1099,7 @@
 
               <div class="overlay-control-row-split">
                 <div class="overlay-control-group">
-                  <label class="overlay-control-label">📏 حجم الخط</label>
+                  <label class="overlay-control-label">حجم الخط</label>
                   <div class="overlay-size-pills" id="overlaySizePills">
                     <button type="button" class="btn-overlay-size" data-size="small">صغير</button>
                     <button type="button" class="btn-overlay-size active" data-size="medium">متوسط</button>
@@ -1091,7 +1108,7 @@
                 </div>
 
                 <div class="overlay-control-group">
-                  <label class="overlay-control-label">🎨 لون النص</label>
+                  <label class="overlay-control-label">لون النص</label>
                   <div class="overlay-color-swatches" id="overlayColorSwatches">
                     <button type="button" class="overlay-color-swatch active" data-color="default" title="تلقائي حسب المؤثر" style="background: linear-gradient(135deg, #ffffff 50%, #f5c542 50%);"></button>
                     <button type="button" class="overlay-color-swatch" data-color="white" title="أبيض" style="background: #ffffff;"></button>
@@ -1107,10 +1124,10 @@
           </div>
 
           <div class="overlay-modal-footer">
-            <button type="button" class="btn-bw-secondary btn-danger-ghost" id="btnDisableScreenOverlay">🗑️ تعطيل وإزالة النص</button>
+            <button type="button" class="btn-bw-secondary btn-danger-ghost" id="btnDisableScreenOverlay"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> تعطيل وإزالة النص</button>
             <div class="overlay-footer-right">
               <button type="button" class="btn-bw-secondary" id="btnCancelScreenOverlayModal">إلغاء</button>
-              <button type="button" class="btn-bw-primary" id="btnSaveScreenOverlay">✅ حفظ وتطبيق على الفيديو</button>
+              <button type="button" class="btn-bw-primary" id="btnSaveScreenOverlay"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> حفظ وتطبيق على الفيديو</button>
             </div>
           </div>
 
@@ -1127,17 +1144,17 @@
 
           <div class="settings-header user-guide-header">
             <div>
-              <h2 class="settings-main-title" id="userGuideModalTitle">📖 دليل استخدام استوديو lok خطوة بخطوة</h2>
-              <p class="overlay-modal-subtitle">كل ما تحتاجه لإنتاج فيديو تسويقي احترافي بالدارجة مع النصوص والموسيقى في أقل من دقيقتين</p>
+              <h2 class="settings-main-title" id="userGuideModalTitle">دليل استخدام استوديو LOK خطوة بخطوة</h2>
+              <p class="overlay-modal-subtitle">خطوات واضحة لإنتاج فيديو تسويقي بالدارجة مع النصوص والموسيقى</p>
             </div>
-            <button type="button" class="btn-bw-secondary" id="btnCloseUserGuideModal">✕ إغلاق</button>
+            <button type="button" class="btn-bw-secondary" id="btnCloseUserGuideModal"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> إغلاق</button>
           </div>
 
           <div class="user-guide-steps-grid">
             <article class="guide-step-card">
               <div class="guide-step-badge">1</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">🔐 تسجيل الدخول (`دخول الاستوديو`)</h3>
+                <h3 class="guide-step-title">تسجيل الدخول (دخول الاستوديو)</h3>
                 <p class="guide-step-desc">أدخل اسم المستخدم وكلمة المرور أو استخدم أزرار الدخول السريع بنقرة واحدة للوصول إلى مساحة عملك.</p>
               </div>
             </article>
@@ -1145,15 +1162,15 @@
             <article class="guide-step-card">
               <div class="guide-step-badge">2</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">⚙️ إعداد الصوت والتوصيات (إعداد لمرة واحدة)</h3>
-                <p class="guide-step-desc">من زر <strong>الإعدادات</strong>، جرّب أصوات المعلقين بالدارجة (عائشة، أمين، كريم، مريم)، عيّن صوتك المفضل، واحفظ قوالب توجيهاتك المفضلة مع متابعة رصيدك اليومي والأسبوعي.</p>
+                <h3 class="guide-step-title">إعداد الصوت والتوصيات</h3>
+                <p class="guide-step-desc">من زر <strong>الإعدادات</strong>، جرّب أصوات المعلقين بالدارجة (عائشة، أمين، كريم، مريم)، عيّن صوتك المفضل، واحفظ قوالب توجيهاتك مع متابعة رصيدك اليومي والأسبوعي.</p>
               </div>
             </article>
 
             <article class="guide-step-card">
               <div class="guide-step-badge">3</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">📹 رفع الفيديو المسجل</h3>
+                <h3 class="guide-step-title">رفع الفيديو المسجل</h3>
                 <p class="guide-step-desc">اسحب مقطع الفيديو الجاهز (MP4 / MOV / WebM) وأفلته في منطقة الرفع أو اختره من جهازك عبر <strong>تصفح واختيار الفيديو</strong>.</p>
               </div>
             </article>
@@ -1161,12 +1178,12 @@
             <article class="guide-step-card">
               <div class="guide-step-badge">4</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">⚡ الميزات الاختيارية (Opt-In)</h3>
+                <h3 class="guide-step-title">الميزات الاختيارية (Opt-In)</h3>
                 <ul class="guide-sub-list">
-                  <li><strong>💬 ترجمة متزامنة:</strong> إظهار كلام المعلق متزامناً على الشاشة.</li>
-                  <li><strong>🎵 موسيقى خلفية:</strong> اختيار مقطوعة ومعاينتها قبل الدمج (الصوت نقي 100% عند التعطيل).</li>
-                  <li><strong>⏱️ مخطط المشاهد:</strong> تفصيل كل مشهد زمنياً مع إمكانية تعديل نصه لاحقاً.</li>
-                  <li><strong>📱 ملاحظة / رقم ثابت:</strong> نافذة تفاعلية لكتابة رقمك أو ملاحظتك، <strong>سحبها باليد لأي مكان على الشاشة</strong>، وتغيير الخط واللون والحجم والمؤثرات الحركية.</li>
+                  <li><strong>ترجمة متزامنة:</strong> إظهار كلام المعلق متزامناً على الشاشة.</li>
+                  <li><strong>موسيقى خلفية:</strong> اختيار مقطوعة ومعاينتها قبل الدمج (الصوت نقي 100% عند التعطيل).</li>
+                  <li><strong>مخطط المشاهد:</strong> تفصيل كل مشهد زمنياً مع إمكانية تعديل نصه لاحقاً.</li>
+                  <li><strong>ملاحظة / رقم ثابت:</strong> نافذة تفاعلية لكتابة رقمك أو ملاحظتك، <strong>سحبها باليد لأي مكان على الشاشة</strong>، وتغيير الخط واللون والحجم والمؤثرات الحركية.</li>
                 </ul>
               </div>
             </article>
@@ -1174,32 +1191,32 @@
             <article class="guide-step-card">
               <div class="guide-step-badge">5</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">✍️ التوجيهات + 🎨 قوالب CapCut</h3>
-                <p class="guide-step-desc">اكتب تفاصيل العرض واللهجة وسرعة الإلقاء في مربع التوجيهات. ويمكنك اختيارياً فتح <strong>قوالب النصوص المتحركة</strong> لإضافة نصوص تيك توك وريلز مقسمة بالذكاء الاصطناعي.</p>
+                <h3 class="guide-step-title">التوجيهات وقوالب الكابشن</h3>
+                <p class="guide-step-desc">اكتب تفاصيل العرض واللهجة وسرعة الإلقاء في مربع التوجيهات. ويمكنك اختيارياً فتح <strong>قوالب النصوص المتحركة</strong> لإضافة نصوص مقسمة بالذكاء الاصطناعي.</p>
               </div>
             </article>
 
             <article class="guide-step-card">
               <div class="guide-step-badge">6</div>
               <div class="guide-step-body">
-                <h3 class="guide-step-title">✨ الإنتاج والتعديل السريع والتحميل</h3>
+                <h3 class="guide-step-title">الإنتاج والتعديل والتحميل</h3>
                 <p class="guide-step-desc">اضغط <strong>إنتاج الفيديو التسويقي بنقرة واحدة</strong>. بعد النتيجة يمكنك نسخ السيناريو، أو تعديل جملة أي لقطة في المخطط وتحديث الصوت فوراً، ثم تحميل ملف MP4 النهائي.</p>
               </div>
             </article>
           </div>
 
           <div class="guide-pro-tips-box">
-            <div class="guide-tips-title">💡 نصائح سريعة لأفضل نتيجة:</div>
+            <div class="guide-tips-title">إرشادات لنتيجة أدق:</div>
             <ul class="guide-tips-list">
-              <li>ارفع الفيديو أولاً قبل فتح <strong>📱 ملاحظة / رقم ثابت</strong> حتى تشاهد الفيديو يعمل خلف النص أثناء سحبه وتحديد مكانه.</li>
-              <li>لإبقاء التعليق الصوتي طبيعياً، ضع رقم الهاتف في <strong>📱 ملاحظة / رقم ثابت</strong> بدلاً من إجبار المعلق على قراءة الأرقام.</li>
+              <li>ارفع الفيديو أولاً قبل فتح <strong>ملاحظة / رقم ثابت</strong> حتى تشاهد الفيديو يعمل خلف النص أثناء سحبه وتحديد مكانه.</li>
+              <li>لإبقاء التعليق الصوتي طبيعياً، ضع رقم الهاتف في <strong>ملاحظة / رقم ثابت</strong> بدلاً من إجبار المعلق على قراءة الأرقام.</li>
               <li>اذكر الحقائق المهمة (المساحة، السعر، الحي) في التوجيهات ليدمجها الذكاء الاصطناعي بدقة مع اللقطات.</li>
             </ul>
           </div>
 
           <div class="overlay-modal-footer user-guide-footer">
-            <span class="guide-footer-note">يمكنك فتح هذا الدليل في أي وقت من زر «📖 دليل الاستخدام» أعلى اليمين.</span>
-            <button type="button" class="btn-bw-primary" id="btnAcknowledgeUserGuide">✅ فهمت، لنبدأ الإنتاج</button>
+            <span class="guide-footer-note">يمكنك فتح هذا الدليل في أي وقت من زر «دليل الاستخدام» أعلى الشريط.</span>
+            <button type="button" class="btn-bw-primary" id="btnAcknowledgeUserGuide"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> فهمت، لنبدأ الإنتاج</button>
           </div>
 
         </div>
@@ -1238,8 +1255,8 @@
         <div id="sessionLoginTitle">تسجيل الدخول</div>
         <button type="button" id="btnCloseLoginModal">إغلاق</button>
         <div id="loginRoleTabs">
-          <button type="button" id="tabLoginAdmin">👑 دخول المشرف</button>
-          <button type="button" id="tabLoginMerchant">🏢 دخول التاجر</button>
+          <button type="button" id="tabLoginAdmin">دخول المشرف</button>
+          <button type="button" id="tabLoginMerchant">دخول التاجر</button>
         </div>
         <div id="loginAdminSection">
           <div id="adminHelperNote">اسم المستخدم: admin | كلمة المرور الافتراضية: admin123</div>
@@ -1259,6 +1276,6 @@
   </div>
 
   <!-- Application Script -->
-  <script src="/static/app.js?v=20261115_mobile_v1" defer></script>
+  <script src="/static/app.js?v=20261115_unslop_v1" defer></script>
 </body>
 </html>

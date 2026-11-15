@@ -586,7 +586,11 @@
       if (dom.loginView) dom.loginView.style.display = "none";
       if (dom.studioView) dom.studioView.style.display = "block";
       if (dom.userBusinessName) dom.userBusinessName.textContent = user.business_name;
-      if (dom.userRoleIcon) dom.userRoleIcon.textContent = user.role === "admin" ? "👑" : "🏢";
+      if (dom.userRoleIcon) {
+        dom.userRoleIcon.innerHTML = user.role === "admin"
+          ? '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+          : '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>';
+      }
       updateQuotaDisplay(user);
     } else {
       if (dom.studioView) dom.studioView.style.display = "none";
@@ -632,17 +636,17 @@
     dom.merchantQuickLoginGrid.innerHTML = "";
 
     const quickList = [
-      { username: "pluto", label: "👑 المشرف pluto", pass: "plutosw4" },
-      { username: "merchant_realestate", label: "🏢 عقارات فاخرة", pass: "merchant123" },
-      { username: "dar_al_nokhba", label: "🏢 دار النخبة", pass: "merchant123" },
-      { username: "auto_algerie", label: "🚗 أوتو الجزائر", pass: "merchant123" }
+      { username: "pluto", label: "المشرف pluto", icon: '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', pass: "plutosw4" },
+      { username: "merchant_realestate", label: "عقارات فاخرة", icon: '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/></svg>', pass: "merchant123" },
+      { username: "dar_al_nokhba", label: "دار النخبة", icon: '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/></svg>', pass: "merchant123" },
+      { username: "auto_algerie", label: "أوتو الجزائر", icon: '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>', pass: "merchant123" }
     ];
 
     quickList.forEach((item) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-merchant-quick";
-      btn.innerHTML = `<span>${item.label}</span>`;
+      btn.innerHTML = `<span class="d-inline-flex align-items-center gap-2">${item.icon}<span>${item.label}</span></span>`;
       btn.title = `دخول سريع بالحساب (${item.username})`;
       btn.addEventListener("click", () => {
         if (dom.merchantLoginUsername) dom.merchantLoginUsername.value = item.username;
@@ -682,7 +686,7 @@
         const token = data.session_token || data.token || (data.session && data.session.token) || `tok_${username}`;
         const user = data.user || state.accounts.find(a => a.username.toLowerCase() === username.toLowerCase()) || state.accounts[0];
         setSessionAndProceed(token, user);
-        showToast(`مرحباً بك مجدداً: ${user.business_name}! ✨`);
+        showToast(`تم تسجيل الدخول: ${user.business_name}`);
         if (dom.btnSubmitMerchantLogin) dom.btnSubmitMerchantLogin.disabled = false;
         return;
       } else if (resp.status === 401) {
@@ -708,7 +712,7 @@
       if (isPlutoValid || isAdminValid || isMerchantValid) {
         const token = user.token || `tok_${user.username}`;
         setSessionAndProceed(token, user);
-        showToast(`تم تسجيل الدخول بنجاح: ${user.business_name}! ✨`);
+        showToast(`تم تسجيل الدخول: ${user.business_name}`);
       } else {
         showLoginError("اسم المستخدم أو كلمة المرور غير صحيحة");
       }
@@ -730,7 +734,7 @@
     if (!user) return;
     const token = user.token || `tok_${user.username}`;
     setSessionAndProceed(token, user);
-    showToast(`تم الدخول السريع: ${user.business_name} ✨`);
+    showToast(`تم تسجيل الدخول: ${user.business_name}`);
   }
 
   function setSessionAndProceed(token, user) {
@@ -757,7 +761,7 @@
     state.sessionToken = null;
     state.currentUser = null;
     updateAuthUI(false, null);
-    showToast("تم تسجيل الخروج بنجاح. 🚪");
+    showToast("تم تسجيل الخروج");
   }
 
   function setupSessionAuth() {
@@ -873,7 +877,7 @@
     if (dom.dropzoneIdleContent) dom.dropzoneIdleContent.style.display = "none";
     if (dom.dropzoneSelectedContent) dom.dropzoneSelectedContent.style.display = "flex";
 
-    showToast(`تم اختيار الفيديو: ${file.name} بنجاح 📹`);
+    showToast(`تم اختيار الفيديو: ${file.name}`);
   }
 
   // ---------------------------------------------------------------------------
@@ -946,9 +950,9 @@
       item.innerHTML = `
         <div class="rec-item-text">${rec.text}</div>
         <div class="rec-item-actions">
-          <button type="button" class="btn-rec-action attach" title="تطبيق هذا القالب في حقل التوجيه بالاستوديو">🎯 تطبيق في التوجيه</button>
-          <button type="button" class="btn-rec-action edit" title="تعديل نص التوصية">✏️ تعديل</button>
-          <button type="button" class="btn-rec-action delete" title="حذف التوصية">🗑️ حذف</button>
+          <button type="button" class="btn-rec-action attach d-inline-flex align-items-center gap-1" title="تطبيق هذا القالب في حقل التوجيه بالاستوديو"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> تطبيق</button>
+          <button type="button" class="btn-rec-action edit d-inline-flex align-items-center gap-1" title="تعديل نص التوصية"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> تعديل</button>
+          <button type="button" class="btn-rec-action delete d-inline-flex align-items-center gap-1" title="حذف التوصية"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg> حذف</button>
         </div>
       `;
 
@@ -977,7 +981,7 @@
     state.recommendations.unshift(newRec);
     saveRecommendations();
     renderRecommendations();
-    showToast("تمت إضافة التوصية الجديدة بنجاح! 💡");
+    showToast("تمت إضافة التوصية الجديدة");
   }
 
   function editRecommendation(id) {
@@ -988,7 +992,7 @@
       rec.text = newText.trim();
       saveRecommendations();
       renderRecommendations();
-      showToast("تم تحديث نص التوصية بنجاح.");
+      showToast("تم تحديث نص التوصية");
     }
   }
 
@@ -996,7 +1000,7 @@
     state.recommendations = state.recommendations.filter(r => r.id !== id);
     saveRecommendations();
     renderRecommendations();
-    showToast("تم حذف التوصية.");
+    showToast("تم حذف التوصية");
   }
 
   function attachRecommendationToPrompt(rec) {
@@ -1019,7 +1023,7 @@
       dom.promptTextarea?.focus();
     }
 
-    showToast("تم تطبيق التوصية في حقل التوجيه بنجاح! 🎯");
+    showToast("تم تطبيق التوصية في حقل التوجيه");
   }
 
   // ---------------------------------------------------------------------------
@@ -1073,7 +1077,7 @@
       const selBtn = card.querySelector(".btn-bw-select-voice");
       if (selBtn) {
         selBtn.classList.toggle("active", match);
-        selBtn.textContent = match ? "تم التعيين ✓" : "تعيين الصوت";
+        selBtn.textContent = match ? "تم التعيين" : "تعيين الصوت";
       }
     });
 
@@ -1191,7 +1195,7 @@
           music: "الموسيقى التصويرية",
           timeline: "مخطط المشاهد واللقطات"
         };
-        const st = state.optIn[feature] ? "تم التفعيل بنجاح ✓" : "تم التعطيل (الافتراضي)";
+        const st = state.optIn[feature] ? "مفعل" : "معطل (الافتراضي)";
         showToast(`${names[feature] || feature}: ${st}`);
       }
     }
@@ -1204,7 +1208,7 @@
       dom.btnToggleCaptionsOptIn.setAttribute("aria-pressed", state.optIn.captions ? "true" : "false");
     }
     if (dom.statusCaptionsOptIn) {
-      dom.statusCaptionsOptIn.textContent = state.optIn.captions ? "مفعل ✓" : "معطل";
+      dom.statusCaptionsOptIn.textContent = state.optIn.captions ? "مفعل" : "معطل";
     }
     if (dom.settingToggleCaptions) {
       dom.settingToggleCaptions.checked = state.optIn.captions;
@@ -1216,7 +1220,7 @@
       dom.btnToggleMusicOptIn.setAttribute("aria-pressed", state.optIn.music ? "true" : "false");
     }
     if (dom.statusMusicOptIn) {
-      dom.statusMusicOptIn.textContent = state.optIn.music ? "مفعل ✓" : "معطل";
+      dom.statusMusicOptIn.textContent = state.optIn.music ? "مفعل" : "معطل";
     }
     if (dom.settingToggleMusic) {
       dom.settingToggleMusic.checked = state.optIn.music;
@@ -1228,7 +1232,7 @@
       dom.btnToggleTimelineOptIn.setAttribute("aria-pressed", state.optIn.timeline ? "true" : "false");
     }
     if (dom.statusTimelineOptIn) {
-      dom.statusTimelineOptIn.textContent = state.optIn.timeline ? "مفعل ✓" : "معطل";
+      dom.statusTimelineOptIn.textContent = state.optIn.timeline ? "مفعل" : "معطل";
     }
     if (dom.settingToggleTimeline) {
       dom.settingToggleTimeline.checked = state.optIn.timeline;
@@ -1247,7 +1251,7 @@
       dom.btnToggleScreenNoteOptIn.setAttribute("aria-pressed", hasOverlay ? "true" : "false");
     }
     if (dom.statusScreenNoteOptIn) {
-      dom.statusScreenNoteOptIn.textContent = hasOverlay ? "مفعل ✓" : "إضافة";
+      dom.statusScreenNoteOptIn.textContent = hasOverlay ? "مفعل" : "إضافة";
     }
     if (dom.screenOverlaySummaryBar) {
       dom.screenOverlaySummaryBar.style.display = hasOverlay ? "flex" : "none";
@@ -1624,7 +1628,7 @@
       card.type = "button";
       card.className = "overlay-choice-card overlay-effect-card" + (overlayDraft && overlayDraft.effect === fx.id ? " active" : "");
       card.setAttribute("data-effect-id", fx.id);
-      const badge = fx.animated ? `<span class="overlay-fx-badge">متحرك ✨</span>` : `<span class="overlay-fx-badge static">ثابت</span>`;
+      const badge = fx.animated ? `<span class="overlay-fx-badge">متحرك</span>` : `<span class="overlay-fx-badge static">ثابت</span>`;
       card.innerHTML = `
         <div class="overlay-fx-head">
           <span class="overlay-choice-title">${fx.name_ar || fx.name_en}</span>
@@ -1812,7 +1816,7 @@
         state.screenOverlayDirty = true;
         syncOptInUI();
         closeScreenOverlayModal();
-        showToast("تم تثبيت النص وموضعه وخطه على الشاشة بنجاح! 📌");
+        showToast("تم تثبيت النص وموضعه وخطه على الشاشة");
       });
     }
 
@@ -2053,11 +2057,11 @@
         document.execCommand("copy");
         document.body.removeChild(ta);
       }
-      showToast("تم نسخ نص السيناريو بنجاح! 📋");
+      showToast("تم نسخ نص السيناريو");
       const labelEl = dom.btnCopyScript.querySelector(".copy-label");
       if (labelEl) {
         const orig = labelEl.textContent;
-        labelEl.textContent = "تم النسخ ✓";
+        labelEl.textContent = "تم النسخ";
         setTimeout(() => { labelEl.textContent = orig; }, 2000);
       }
     } catch (e) {
@@ -2069,13 +2073,13 @@
     // 0. Gated production check
     if (!state.isAuthenticated || !state.currentUser) {
       openLoginModal();
-      showToast("يرجى تسجيل الدخول أولاً للبدء بإنتاج الفيديو! 🔐");
+      showToast("يرجى تسجيل الدخول أولاً لبدء إنتاج الفيديو");
       return;
     }
 
     // 1. Validation: pre-recorded video selected
     if (!state.selectedFile) {
-      showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً!");
+      showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً");
       dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
       return;
     }
@@ -2566,7 +2570,7 @@
         // Large Font badge
         if (dom.overlayFontBadge) {
           if (largeFontApplied) {
-            dom.overlayFontBadge.textContent = "🔍 بخط كبير وواضح";
+            dom.overlayFontBadge.textContent = "بخط كبير وواضح";
             dom.overlayFontBadge.style.display = "inline-flex";
             hasOverlayInfo = true;
           } else {
@@ -2581,7 +2585,7 @@
           if (propFeatures.property_type && propFeatures.property_type !== "عقار") specsParts.push(propFeatures.property_type);
           if (propFeatures.sea_view) specsParts.push("مطل على البحر");
           if (specsParts.length > 0) {
-            dom.propertySpecsBadge.textContent = `🏡 ${specsParts.join(" • ")}`;
+            dom.propertySpecsBadge.textContent = specsParts.join(" • ");
             dom.propertySpecsBadge.style.display = "inline-flex";
             hasOverlayInfo = true;
           } else {
@@ -2606,8 +2610,10 @@
       if (dom.resultMusicPill && dom.resultMusicText) {
         if (isMusicMuted || musicVolume === 0) {
           dom.resultMusicPill.classList.add("muted");
-          if (dom.resultMusicIcon) dom.resultMusicIcon.textContent = "🔇";
-          dom.resultMusicText.textContent = "صوت نقي 100% (تم كتم وإلغاء موسيقى الخلفية بالكامل)";
+          if (dom.resultMusicIcon) {
+            dom.resultMusicIcon.innerHTML = '<svg class="lok-svg-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';
+          }
+          dom.resultMusicText.textContent = "صوت نقي 100% (بدون موسيقى خلفية)";
           if (dom.resultMusicBadge) {
             dom.resultMusicBadge.textContent = "كتم كامل";
             dom.resultMusicBadge.style.display = "inline-block";
@@ -2615,7 +2621,9 @@
           dom.resultMusicPill.style.display = "inline-flex";
         } else {
           dom.resultMusicPill.classList.remove("muted");
-          if (dom.resultMusicIcon) dom.resultMusicIcon.textContent = "🎵";
+          if (dom.resultMusicIcon) {
+            dom.resultMusicIcon.innerHTML = '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+          }
 
           let trackTitle = musicTrackObj.title || "بيانو فاخر";
           let volPercent = 16;
@@ -2713,7 +2721,7 @@
         dom.resultContainer.style.display = "block";
         dom.resultContainer.scrollIntoView({ behavior: "smooth" });
       }
-      showToast("تم إنجاز الفيديو التسويقي بنجاح! 🎉");
+      showToast("تم إنجاز الفيديو التسويقي");
     } else {
       if (dom.resultContainer) dom.resultContainer.style.display = "none";
       if (dom.generatedScriptCard) dom.generatedScriptCard.style.display = "none";
@@ -3045,7 +3053,7 @@
           dom.generatedScriptText.textContent = String(data.script).trim();
         }
         renderShotTimeline(data);
-        showToast("تم تحديث الصوت والكلام على الفيديو بنجاح! 🎙️✨");
+        showToast("تم تحديث الصوت والكلام على الفيديو");
       } catch (err) {
         showToast(err.message || "حدث خطأ أثناء تحديث نص المشاهد.");
       } finally {
@@ -3094,7 +3102,7 @@
     if (dom.splitChunksList) dom.splitChunksList.innerHTML = "";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
     dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
-    showToast("جاهز لإنتاج فيديو جديد 📹");
+    showToast("جاهز لإنتاج فيديو جديد");
   }
 
   // ---------------------------------------------------------------------------
@@ -3195,7 +3203,7 @@
           if (dom.capcutActiveBadge) {
             const titleEl = card.querySelector(".tpl-title");
             if (tpl) {
-              dom.capcutActiveBadge.textContent = `✨ القالب: ${titleEl ? titleEl.textContent : tpl}`;
+              dom.capcutActiveBadge.textContent = `القالب: ${titleEl ? titleEl.textContent : tpl}`;
               dom.capcutActiveBadge.classList.add("is-enabled");
             } else {
               dom.capcutActiveBadge.textContent = "بدون قالب متحرك";
@@ -3232,14 +3240,14 @@
       dom.btnPreviewSmartSplit.addEventListener("click", async () => {
         const text = (dom.customCaptionTextarea?.value || dom.promptTextarea?.value || "").trim();
         if (!text) {
-          showToast("اكتب نص الكابشن أولاً لمعاينة التقسيم الذكي ✍️");
+          showToast("اكتب نص الكابشن أولاً لمعاينة التقسيم");
           dom.customCaptionTextarea?.focus();
           return;
         }
         const tpl = state.selectedCaptionTemplate || "karaoke_highlight";
         const origLabel = dom.btnPreviewSmartSplit.innerHTML;
         dom.btnPreviewSmartSplit.disabled = true;
-        dom.btnPreviewSmartSplit.innerHTML = "<span>⏳ جاري التقسيم الذكي...</span>";
+        dom.btnPreviewSmartSplit.innerHTML = "<span>جاري التقسيم...</span>";
         try {
           const resp = await fetch("/api/captions/split", {
             method: "POST",
@@ -3251,7 +3259,7 @@
             throw new Error(data.message || data.error || "تعذر تقسيم النص.");
           }
           if (dom.splitPreviewEngine) {
-            dom.splitPreviewEngine.textContent = data.engine === "gemini" ? "Gemini AI ✨" : "تقسيم ذكي فوري ⚡";
+            dom.splitPreviewEngine.textContent = data.engine === "gemini" ? "Gemini AI" : "تقسيم آلي";
           }
           if (dom.splitChunksList) {
             dom.splitChunksList.innerHTML = "";
@@ -3284,7 +3292,7 @@
           if (dom.capcutSplitPreview) {
             dom.capcutSplitPreview.style.display = "block";
           }
-          showToast(`تم تقسيم النص بذكاء إلى ${(data.chunks || []).length} مقاطع متناسقة ✨`);
+          showToast(`تم تقسيم النص إلى ${(data.chunks || []).length} مقاطع`);
         } catch (err) {
           showToast(err.message || "حدث خطأ أثناء معاينة التقسيم.");
         } finally {
@@ -3317,7 +3325,11 @@
       const iconEl = btn.querySelector(".theme-toggle-icon");
       const labelEl = btn.querySelector(".theme-toggle-label");
       const isDark = normalized === "dark";
-      if (iconEl) iconEl.textContent = isDark ? "☀️" : "🌙";
+      if (iconEl) {
+        iconEl.innerHTML = isDark
+          ? '<svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
+          : '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+      }
       if (labelEl) labelEl.textContent = isDark ? "فاتح" : "داكن";
       btn.setAttribute("aria-pressed", String(isDark));
       btn.setAttribute(
@@ -3341,7 +3353,7 @@
         const current = document.documentElement.getAttribute("data-theme");
         const next = current === "dark" ? "light" : "dark";
         applyAppTheme(next, true);
-        showToast(next === "dark" ? "🌙 تم تفعيل المظهر الداكن" : "☀️ تم تفعيل المظهر الفاتح");
+        showToast(next === "dark" ? "تم تفعيل المظهر الداكن" : "تم تفعيل المظهر الفاتح");
       });
     });
   }
@@ -3362,7 +3374,7 @@
         dom.promptTextarea.value = current ? `${current}، ${snippet}` : snippet;
         dom.promptTextarea.dispatchEvent(new Event("input", { bubbles: true }));
         dom.promptTextarea.focus();
-        showToast("✅ تمت إضافة المقترح إلى التوجيه");
+        showToast("تمت إضافة المقترح إلى التوجيه");
       });
     });
 

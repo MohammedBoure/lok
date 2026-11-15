@@ -694,25 +694,40 @@
 
     /* 8. Badges */
     .badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       padding: 0.35em 0.65em;
       font-size: 0.75em;
-      font-weight: 700;
+      font-weight: 600;
       line-height: 1;
       color: var(--lok-on-ink);
       text-align: center;
       white-space: nowrap;
       vertical-align: baseline;
       border-radius: 6px;
+      font-variant-numeric: tabular-nums;
     }
-    .bg-primary { background-color: #2563eb !important; color: #ffffff !important; }
+    .bg-primary { background-color: #334155 !important; color: #f8fafc !important; }
     .bg-secondary { background-color: var(--lok-elevated) !important; color: var(--lok-ink) !important; }
-    .bg-success { background-color: #16a34a !important; color: #ffffff !important; }
-    .bg-danger { background-color: #dc2626 !important; color: #ffffff !important; }
-    .bg-warning { background-color: #d97706 !important; color: #ffffff !important; }
-    .bg-info { background-color: #0284c7 !important; color: #ffffff !important; }
+    .bg-success { background-color: #15803d !important; color: #ffffff !important; }
+    .bg-danger { background-color: #b91c1c !important; color: #ffffff !important; }
+    .bg-warning { background-color: #b45309 !important; color: #ffffff !important; }
+    .bg-info { background-color: #15616d !important; color: #ffecd1 !important; }
     .bg-dark { background-color: var(--lok-muted-well) !important; color: var(--lok-ink) !important; }
     .bg-light { background-color: var(--lok-ink) !important; color: var(--lok-on-ink) !important; }
+    .lok-svg-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
     .badge-active {
       background-color: rgba(34, 197, 94, 0.14) !important;
@@ -985,8 +1000,8 @@
   <!-- 1. Dedicated Admin Login View (pluto / plutosw4)                          -->
   <!-- ========================================================================= -->
   <div id="adminLoginSection" class="container d-flex align-items-center justify-content-center" style="min-height: 100vh; position: relative;">
-    <button type="button" class="btn btn-sm btn-admin-theme-toggle" id="btnAdminLoginThemeToggle" data-admin-theme-toggle style="position: fixed; top: 16px; left: 18px; z-index: 60;" title="تبديل المظهر الفاتح / الداكن">
-      <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+    <button type="button" class="btn btn-sm btn-admin-theme-toggle d-inline-flex align-items-center gap-1" id="btnAdminLoginThemeToggle" data-admin-theme-toggle style="position: fixed; top: 16px; left: 18px; z-index: 60;" title="تبديل المظهر الفاتح / الداكن">
+      <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
       <span class="theme-toggle-label">الوضع الداكن</span>
     </button>
     <div class="card p-4 p-md-5 shadow-lg" style="max-width: 480px; width: 100%;">
@@ -999,7 +1014,7 @@
       <!-- Credential helper alert -->
       <div class="alert alert-dark border-secondary p-3 mb-4 small" id="adminCredentialHint">
         <div class="d-flex align-items-center mb-1">
-          <span class="me-2">🔐</span>
+          <span class="me-2 d-inline-flex align-items-center" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <strong class="text-white">بيانات الدخول المعتمدة للمشرف:</strong>
         </div>
         <div class="font-monospace text-secondary" dir="ltr">
@@ -1042,18 +1057,20 @@
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <div class="d-none d-md-flex align-items-center text-secondary small me-2">
-            <span class="me-2">👑 المشرف النشط:</span>
+            <span class="me-2 d-inline-flex align-items-center gap-1"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> المشرف النشط:</span>
             <strong class="text-white" id="activeAdminUserDisplay">pluto</strong>
           </div>
-          <button type="button" class="btn btn-sm btn-admin-theme-toggle" id="btnAdminThemeToggle" data-admin-theme-toggle title="تبديل المظهر الفاتح / الداكن">
-            <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+          <button type="button" class="btn btn-sm btn-admin-theme-toggle d-inline-flex align-items-center gap-1" id="btnAdminThemeToggle" data-admin-theme-toggle title="تبديل المظهر الفاتح / الداكن">
+            <span class="theme-toggle-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
             <span class="theme-toggle-label">داكن</span>
           </button>
-          <a href="/" class="btn btn-sm btn-lok-outline" target="_blank" title="فتح استوديو lok">
-            <span>📹 الاستوديو العام</span>
+          <a href="/" class="btn btn-sm btn-lok-outline d-inline-flex align-items-center gap-1" target="_blank" title="فتح استوديو lok">
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+            <span>الاستوديو العام</span>
           </a>
-          <button type="button" class="btn btn-sm btn-outline-danger" id="btnAdminLogout" title="تسجيل الخروج">
-            <span>🚪 خروج</span>
+          <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" id="btnAdminLogout" title="تسجيل الخروج">
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            <span>خروج</span>
           </button>
         </div>
       </div>
@@ -1101,7 +1118,8 @@
             <p class="text-secondary small mb-0">قائمة الحسابات التجارية والصلاحيات وسجل النشاطات والحصص</p>
           </div>
           <button type="button" class="btn btn-lok-primary d-flex align-items-center gap-2" id="btnOpenAddAccountModal">
-            <span>➕ إضافة حساب تجاري جديد</span>
+            <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            <span>إضافة حساب تجاري جديد</span>
           </button>
         </div>
 
@@ -1156,7 +1174,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalAddAccountTitle">➕ إضافة حساب تجاري جديد</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalAddAccountTitle">إضافة حساب تجاري جديد</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formAddAccount">
@@ -1223,7 +1241,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalEditAccountTitle">✏️ تعديل بيانات الحساب والحصص</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalEditAccountTitle">تعديل بيانات الحساب والحصص</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formEditAccount">
@@ -1283,7 +1301,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card">
         <div class="modal-header border-secondary">
-          <h5 class="modal-title fw-bold text-white" id="modalChangePasswordTitle">🔑 تغيير كلمة مرور الحساب</h5>
+          <h5 class="modal-title fw-bold text-white" id="modalChangePasswordTitle">تغيير كلمة مرور الحساب</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
         </div>
         <form id="formChangePassword">
@@ -1314,7 +1332,7 @@
       <div class="modal-content card">
         <div class="modal-header border-secondary">
           <div>
-            <h5 class="modal-title fw-bold text-white" id="modalAccountLogsTitle">📜 سجل النشاطات التاريخية</h5>
+            <h5 class="modal-title fw-bold text-white" id="modalAccountLogsTitle">سجل النشاطات التاريخية</h5>
             <div class="text-secondary small" id="accountLogsTargetSubtitle">عرض تفاصيل العمليات والأحداث المسجلة</div>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
@@ -1718,9 +1736,9 @@
             <td><span class="badge badge-quota">${acc.videos_this_week || 0}/${acc.weekly_quota || 50}</span></td>
             <td class="text-end">
               <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="btn btn-lok-outline btn-edit" data-id="${acc.id}" title="تعديل البيانات والحصص">✏️ تعديل</button>
-                <button type="button" class="btn btn-lok-outline btn-pass" data-id="${acc.id}" title="تغيير كلمة المرور">🔑 كلمة المرور</button>
-                <button type="button" class="btn btn-lok-outline btn-logs" data-id="${acc.id}" title="عرض سجل النشاطات التاريخية">📜 السجل</button>
+                <button type="button" class="btn btn-lok-outline btn-edit d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="تعديل البيانات والحصص"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> تعديل</button>
+                <button type="button" class="btn btn-lok-outline btn-pass d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="تغيير كلمة المرور"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg> كلمة المرور</button>
+                <button type="button" class="btn btn-lok-outline btn-logs d-inline-flex align-items-center gap-1" data-id="${acc.id}" title="عرض سجل النشاطات التاريخية"><svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg> السجل</button>
                 <button type="button" class="btn btn-outline-${isActive ? 'warning' : 'success'} btn-toggle" data-id="${acc.id}">
                   ${isActive ? 'تعطيل' : 'تفعيل'}
                 </button>
@@ -1767,7 +1785,7 @@
       function openLogsModal(accountId) {
         const acc = accountsState.find(a => a.id === accountId);
         if (!acc) return;
-        dom.modalAccountLogsTitle.textContent = `📜 سجل النشاطات: ${acc.business_name}`;
+        dom.modalAccountLogsTitle.textContent = `سجل النشاطات: ${acc.business_name}`;
         dom.accountLogsTargetSubtitle.textContent = `المستخدم: ${acc.username} | الصلاحية: ${acc.valid_from} إلى ${acc.expires_at}`;
 
         dom.accountLogsTimeline.innerHTML = "";
@@ -2017,7 +2035,11 @@
           const icon = btn.querySelector(".theme-toggle-icon");
           const label = btn.querySelector(".theme-toggle-label");
           const isDark = normalized === "dark";
-          if (icon) icon.textContent = isDark ? "☀️" : "🌙";
+          if (icon) {
+            icon.innerHTML = isDark
+              ? '<svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
+              : '<svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+          }
           if (label) label.textContent = isDark ? "فاتح" : "داكن";
           btn.setAttribute("aria-pressed", String(isDark));
         });

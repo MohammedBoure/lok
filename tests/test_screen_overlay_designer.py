@@ -332,7 +332,7 @@ def test_screen_overlay_ui_dom_js_css_contract():
     assert 'id="draggableOverlayNode"' in html
     assert 'id="overlayFontList"' in html
     assert 'id="overlayEffectList"' in html
-    assert '20261115_mobile_v1' in html
+    assert '20261115_unslop_v1' in html
 
     # JS handlers & API integration
     assert "/api/overlay-options" in js
@@ -551,6 +551,14 @@ def test_mobile_stitch_layout_and_bottom_nav_contract():
     assert "setupMobileNavigation" in js
     assert "window.innerWidth <= 768" in js
 
-    for content in (html, admin_html, js, css):
+    # Unslop custom SVG vector icon contract (no emoji UI clutter)
+    import re
+    emoji_re = re.compile(r"[\U0001F300-\U0001FAFF]+")
+    for label, content in (("index.html", html), ("admin.html", admin_html), ("app.js", js), ("style.css", css)):
         assert "\u0669" not in content
+        assert not emoji_re.search(content), f"Found emoji slop in {label}"
+    assert "lok-svg-icon" in html
+    assert "lok-svg-icon" in admin_html
+    assert "lok-svg-icon" in js
+    assert ".lok-svg-icon" in css
 
