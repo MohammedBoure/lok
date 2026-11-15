@@ -2002,6 +2002,8 @@ def _apply_subtitles_and_annotations(
                     size=caption_options.get("size"),
                     shot_timeline=shot_timeline_data,
                     font_path=find_system_font(),
+                    font_id=caption_options.get("font"),
+                    color_theme=caption_options.get("color") or caption_options.get("text_color"),
                 )
             except Exception as cap_err:
                 logger.warning("Job %s: Animated caption track preparation failed: %s", job_id, cap_err)

@@ -98,6 +98,18 @@ DEFAULT_TEMPLATE = "karaoke_highlight"
 VALID_POSITIONS = ("top", "center", "bottom")
 SIZE_FACTORS = {"small": 0.8, "medium": 1.0, "large": 1.25}
 
+CAPTION_COLOR_THEMES: Dict[str, Dict[str, str]] = {
+    "default": {"name_ar": "تلقائي (حسب القالب)", "name_en": "Template Default", "primary": "FFFFFF", "accent": ""},
+    "gold_white": {"name_ar": "أبيض + ذهبي", "name_en": "White & Gold", "primary": "FFFFFF", "accent": "FFD700"},
+    "cyan_white": {"name_ar": "أبيض + سماوي نيون", "name_en": "White & Cyan", "primary": "FFFFFF", "accent": "38BDF8"},
+    "emerald_white": {"name_ar": "أبيض + أخضر تيك توك", "name_en": "White & Emerald", "primary": "FFFFFF", "accent": "3DFF8B"},
+    "rose_white": {"name_ar": "أبيض + وردي جريء", "name_en": "White & Rose", "primary": "FFFFFF", "accent": "FB7185"},
+    "purple_white": {"name_ar": "أبيض + بنفسجي عصري", "name_en": "White & Purple", "primary": "FFFFFF", "accent": "C084FC"},
+    "orange_white": {"name_ar": "أبيض + برتقالي حماس", "name_en": "White & Orange", "primary": "FFFFFF", "accent": "FB923C"},
+    "yellow_bold": {"name_ar": "أصفر بارز + أبيض", "name_en": "Yellow & White", "primary": "FFE135", "accent": "FFFFFF"},
+    "pure_white": {"name_ar": "أبيض نقي كلاسيكي", "name_en": "Pure White", "primary": "FFFFFF", "accent": "F1F5F9"},
+}
+
 _ARABIC_RE = re.compile(r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]")
 _DIGIT_RE = re.compile(r"\d")  # unicode-aware: Latin + Arabic-Indic digits
 _SENTENCE_END_RE = re.compile(r"(?<=[.!?\u061F\u2026])\s+")
@@ -131,6 +143,28 @@ def normalize_position(position: Optional[str], template: str) -> str:
 def normalize_size(size: Optional[str]) -> str:
     s = str(size or "").strip().lower()
     return s if s in SIZE_FACTORS else "medium"
+
+
+def normalize_caption_color(color: Optional[str]) -> str:
+    key = str(color or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if key in CAPTION_COLOR_THEMES:
+        return key
+    if re.fullmatch(r"#?[0-9a-f]{6}", key):
+        return f"#{key.lstrip('#').upper()}"
+    return "default"
+
+
+def list_caption_colors() -> List[Dict[str, str]]:
+    return [
+        {
+            "id": key,
+            "name_ar": meta["name_ar"],
+            "name_en": meta["name_en"],
+            "primary": f"#{meta['primary']}",
+            "accent": f"#{meta['accent']}" if meta["accent"] else "#FFD700",
+        }
+        for key, meta in CAPTION_COLOR_THEMES.items()
+    ]
 
 
 def list_caption_templates() -> List[Dict[str, Any]]:
@@ -503,8 +537,30 @@ def _ass_escape(text: str) -> str:
     return text.replace("\\", "/").replace("{", "(").replace("}", ")").replace("\n", " ")
 
 
-def font_family_for_ass(font_path: Optional[str] = None) -> str:
+def font_family_for_ass(font_path: Optional[str] = None, font_id: Optional[str] = None) -> str:
+    if font_id:
+        try:
+            from web.video_annotator import resolve_overlay_font
+            resolved = resolve_overlay_font(font_id)
+            if resolved.get("ass_family"):
+                return str(resolved["ass_family"])
+        except Exception:
+            pass
     name = Path(font_path).stem.lower() if font_path else ""
+    if "cairo" in name:
+        return "Cairo"
+    if "tajawal" in name:
+        return "Tajawal"
+    if "almarai" in name:
+        return "Almarai"
+    if "changa" in name:
+        return "Changa"
+    if "amiri" in name:
+        return "Amiri"
+    if "messiri" in name:
+        return "El Messiri"
+    if "lalezar" in name:
+        return "Lalezar"
     if "tahoma" in name:
         return "Tahoma"
     if "segoe" in name:
@@ -517,7 +573,7 @@ def font_family_for_ass(font_path: Optional[str] = None) -> str:
         return "Liberation Sans"
     if "freesans" in name:
         return "FreeSans"
-    return "Arial"
+    return "Cairo"
 
 
 def _anchor(position: str) -> int:
@@ -540,14 +596,16 @@ def build_ass_document(
     position: Optional[str] = None,
     size: Optional[str] = None,
     font_name: Optional[str] = None,
+    font_id: Optional[str] = None,
+    color_theme: Optional[str] = None,
 ) -> str:
-    """Render timed chunks into a complete .ass document for the chosen animated template."""
+    """Render timed chunks into a complete .ass document for the chosen animated template, font, and color."""
     tpl = normalize_template(template)
     meta = CAPTION_TEMPLATES[tpl]
     pos = normalize_position(position, tpl)
     size_key = normalize_size(size)
     w, h = int(video_width or 1080), int(video_height or 1920)
-    font = font_name or "Arial"
+    font = font_name or font_family_for_ass(font_id=font_id)
 
     base = min(w, h) * 0.074
     font_size = max(24, int(round(base * meta["size_factor"] * SIZE_FACTORS[size_key])))
@@ -555,11 +613,22 @@ def build_ass_document(
     # Bottom captions stay above the persistent phone/bottom banner area
     margin_v = int(h * (0.20 if pos == "bottom" else 0.11))
     align = _anchor(pos)
-    accent = meta["accent"]
-    accent_inline = _inline_color(accent)
-    white_inline = "&HFFFFFF&"
 
-    primary = _ass_color("FFFFFF")
+    color_key = normalize_caption_color(color_theme)
+    primary_hex = "FFFFFF"
+    accent = meta["accent"]
+    if color_key in CAPTION_COLOR_THEMES:
+        theme = CAPTION_COLOR_THEMES[color_key]
+        primary_hex = theme["primary"]
+        if theme["accent"]:
+            accent = theme["accent"]
+    elif color_key.startswith("#") and len(color_key) == 7:
+        accent = color_key.lstrip("#")
+
+    accent_inline = _inline_color(accent)
+    primary_inline = _inline_color(primary_hex)
+
+    primary = _ass_color(primary_hex)
     outline_col = _ass_color("000000")
     back_col = _ass_color("000000", 0x80)
     border_style = 1
@@ -626,7 +695,7 @@ def build_ass_document(
         def emph_wrap(word: str) -> str:
             esc = _ass_escape(word)
             if emphasis and word == emphasis:
-                return "{\\1c" + accent_inline + "}" + esc + "{\\1c" + white_inline + "}"
+                return "{\\1c" + accent_inline + "}" + esc + "{\\1c" + primary_inline + "}"
             return esc
 
         if tpl == "karaoke_highlight":
@@ -634,8 +703,8 @@ def build_ass_document(
             for wd in words:
                 a, b = rel_ms(wd["start_sec"]), rel_ms(wd["end_sec"])
                 parts.append(
-                    "{\\1c" + white_inline + "\\t(" + f"{a},{a + 70}" + ",\\1c" + accent_inline + ")"
-                    + "\\t(" + f"{max(a + 71, b - 40)},{b}" + ",\\1c" + white_inline + ")}"
+                    "{\\1c" + primary_inline + "\\t(" + f"{a},{a + 70}" + ",\\1c" + accent_inline + ")"
+                    + "\\t(" + f"{max(a + 71, b - 40)},{b}" + ",\\1c" + primary_inline + ")}"
                     + _ass_escape(wd["word"]) + " "
                 )
             add_event(st, et, "".join(parts).rstrip())
@@ -645,8 +714,8 @@ def build_ass_document(
             for wd in words:
                 a, b = rel_ms(wd["start_sec"]), rel_ms(wd["end_sec"])
                 parts.append(
-                    "{\\1c" + white_inline + "\\t(" + f"{a},{a + 60}" + ",\\1c" + accent_inline + ")"
-                    + "\\t(" + f"{max(a + 61, b - 40)},{b}" + ",\\1c" + white_inline + ")}"
+                    "{\\1c" + primary_inline + "\\t(" + f"{a},{a + 60}" + ",\\1c" + accent_inline + ")"
+                    + "\\t(" + f"{max(a + 61, b - 40)},{b}" + ",\\1c" + primary_inline + ")}"
                     + _ass_escape(wd["word"]) + " "
                 )
             add_event(st, et, "".join(parts).rstrip())
@@ -692,7 +761,7 @@ def build_ass_document(
         elif tpl == "single_word":
             for idx, wd in enumerate(words):
                 ws, we = float(wd["start_sec"]), float(wd["end_sec"])
-                color = accent_inline if (emphasis and wd["word"] == emphasis) else white_inline
+                color = accent_inline if (emphasis and wd["word"] == emphasis) else primary_inline
                 txt = (
                     "{\\1c" + color + "\\fscx65\\fscy65\\t(0,90,\\fscx114\\fscy114)\\t(90,170,\\fscx100\\fscy100)}"
                     + _ass_escape(wd["word"])
@@ -711,6 +780,8 @@ def write_ass_file(
     position: Optional[str] = None,
     size: Optional[str] = None,
     font_name: Optional[str] = None,
+    font_id: Optional[str] = None,
+    color_theme: Optional[str] = None,
 ) -> Path:
     doc = build_ass_document(
         timed_chunks,
@@ -720,6 +791,8 @@ def write_ass_file(
         position=position,
         size=size,
         font_name=font_name,
+        font_id=font_id,
+        color_theme=color_theme,
     )
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -740,6 +813,8 @@ def prepare_caption_track(
     size: Optional[str] = None,
     shot_timeline: Optional[List[Dict[str, Any]]] = None,
     font_path: Optional[str] = None,
+    font_id: Optional[str] = None,
+    color_theme: Optional[str] = None,
     use_ai: bool = True,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -760,6 +835,8 @@ def prepare_caption_track(
         return None
     if not timed:
         return None
+    resolved_font_name = font_family_for_ass(font_path=font_path, font_id=font_id)
+    resolved_color = normalize_caption_color(color_theme)
     ass_path = write_ass_file(
         output_path,
         timed,
@@ -768,7 +845,9 @@ def prepare_caption_track(
         video_height=video_height,
         position=position,
         size=size,
-        font_name=font_family_for_ass(font_path),
+        font_name=resolved_font_name,
+        font_id=font_id,
+        color_theme=resolved_color,
     )
     return {
         "ass_path": str(ass_path),
@@ -776,6 +855,9 @@ def prepare_caption_track(
         "template_name_ar": CAPTION_TEMPLATES[tpl]["name_ar"],
         "position": normalize_position(position, tpl),
         "size": normalize_size(size),
+        "font_id": font_id or "",
+        "font_name": resolved_font_name,
+        "color": resolved_color,
         "engine": engine,
         "chunks": [{k: v for k, v in c.items() if k != "words"} for c in timed],
         "chunks_count": len(timed),

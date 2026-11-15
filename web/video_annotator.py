@@ -9,6 +9,7 @@ Author: MouhammedBoure
 
 from __future__ import annotations
 
+import functools
 import json
 import os
 import re
@@ -17,8 +18,18 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Cross-platform fallback font paths (Windows + Linux + macOS) supporting Arabic & Latin scripts
+REPO_ROOT = Path(__file__).resolve().parent.parent
+BUNDLED_FONTS_DIR = REPO_ROOT / "assets" / "fonts"
+
+# Cross-platform font candidates: bundled SIL OFL Arabic+Latin TTFs first, then OS fallbacks
 FONT_CANDIDATES = [
+    str(BUNDLED_FONTS_DIR / "Cairo-Bold.ttf"),
+    str(BUNDLED_FONTS_DIR / "Tajawal-Bold.ttf"),
+    str(BUNDLED_FONTS_DIR / "Almarai-ExtraBold.ttf"),
+    str(BUNDLED_FONTS_DIR / "Amiri-Bold.ttf"),
+    str(BUNDLED_FONTS_DIR / "Changa-Bold.ttf"),
+    str(BUNDLED_FONTS_DIR / "ElMessiri-Bold.ttf"),
+    str(BUNDLED_FONTS_DIR / "Lalezar-Regular.ttf"),
     "C:/Windows/Fonts/arialbd.ttf",
     "C:/Windows/Fonts/arial.ttf",
     "C:/Windows/Fonts/tahomabd.ttf",
@@ -33,83 +44,101 @@ FONT_CANDIDATES = [
 
 OVERLAY_FONTS: List[Dict[str, Any]] = [
     {
-        "id": "arial_bold",
-        "name_ar": "أريال عريض (واضح وعصري)",
-        "name_en": "Arial Bold",
+        "id": "cairo_bold",
+        "name_ar": "كايرو عريض (حديث وواضح)",
+        "name_en": "Cairo Bold",
+        "ass_family": "Cairo",
         "sample_ar": "0558 81 54 53 • عرض خاص",
         "candidates": [
+            str(BUNDLED_FONTS_DIR / "Cairo-Bold.ttf"),
             "C:/Windows/Fonts/arialbd.ttf",
-            "C:/Windows/Fonts/arial.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ],
     },
     {
-        "id": "tahoma_bold",
-        "name_ar": "تاهوما (كلاسيكي للريلز)",
-        "name_en": "Tahoma Bold",
-        "sample_ar": "0558 81 54 53 • تاهوما",
+        "id": "almarai_bold",
+        "name_ar": "المراعي بارز (للريلز والعناوين)",
+        "name_en": "Almarai ExtraBold",
+        "ass_family": "Almarai",
+        "sample_ar": "0558 81 54 53 • جودة عالية",
         "candidates": [
-            "C:/Windows/Fonts/tahomabd.ttf",
-            "C:/Windows/Fonts/tahoma.ttf",
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-        ],
-    },
-    {
-        "id": "segoe_bold",
-        "name_ar": "سيغوي ناعم (عصري وخفيف)",
-        "name_en": "Segoe UI Bold",
-        "sample_ar": "0558 81 54 53 • خط عصري",
-        "candidates": [
+            str(BUNDLED_FONTS_DIR / "Almarai-ExtraBold.ttf"),
             "C:/Windows/Fonts/segoeuib.ttf",
-            "C:/Windows/Fonts/segoeui.ttf",
-            "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ],
     },
     {
-        "id": "sakkal_majalla",
-        "name_ar": "صقل مجلة (أنيق للعقارات)",
-        "name_en": "Sakkal Majalla",
+        "id": "tajawal_bold",
+        "name_ar": "تجوال أنيق (ناعم ومرتب)",
+        "name_en": "Tajawal Bold",
+        "ass_family": "Tajawal",
+        "sample_ar": "0558 81 54 53 • تصميم عصري",
+        "candidates": [
+            str(BUNDLED_FONTS_DIR / "Tajawal-Bold.ttf"),
+            "C:/Windows/Fonts/tahomabd.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ],
+    },
+    {
+        "id": "changa_bold",
+        "name_ar": "تشانغا هندسي (تقنية وسيارات)",
+        "name_en": "Changa Bold",
+        "ass_family": "Changa",
+        "sample_ar": "0558 81 54 53 • مودرن",
+        "candidates": [
+            str(BUNDLED_FONTS_DIR / "Changa-Bold.ttf"),
+            "C:/Windows/Fonts/tahomabd.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ],
+    },
+    {
+        "id": "amiri_bold",
+        "name_ar": "أميري كلاسيكي (عقارات فاخرة)",
+        "name_en": "Amiri Bold",
+        "ass_family": "Amiri",
+        "sample_ar": "0558 81 54 53 • خط فاخر",
+        "candidates": [
+            str(BUNDLED_FONTS_DIR / "Amiri-Bold.ttf"),
+            "C:/Windows/Fonts/arabtype.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ],
+    },
+    {
+        "id": "el_messiri_bold",
+        "name_ar": "المسيري زخرفي (فخامة وأزياء)",
+        "name_en": "El Messiri Bold",
+        "ass_family": "El Messiri",
         "sample_ar": "0558 81 54 53 • خط مجلة",
         "candidates": [
+            str(BUNDLED_FONTS_DIR / "ElMessiri-Bold.ttf"),
             "C:/Windows/Fonts/majallab.ttf",
-            "C:/Windows/Fonts/majalla.ttf",
-            "C:/Windows/Fonts/arialbd.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ],
     },
     {
-        "id": "arabic_typesetting",
-        "name_ar": "نسخ عربي كلاسيكي (فاخر)",
-        "name_en": "Arabic Typesetting",
-        "sample_ar": "0558 81 54 53 • خط كلاسيكي",
+        "id": "lalezar_display",
+        "name_ar": "لاليزار عريض جداً (بوستر)",
+        "name_en": "Lalezar Display",
+        "ass_family": "Lalezar",
+        "sample_ar": "0558 81 54 53 • عرض مميز",
         "candidates": [
-            "C:/Windows/Fonts/arabtype.ttf",
-            "C:/Windows/Fonts/trado.ttf",
-            "C:/Windows/Fonts/arial.ttf",
-        ],
-    },
-    {
-        "id": "simplified_arabic",
-        "name_ar": "عربي مبسط (رسمي مرتب)",
-        "name_en": "Simplified Arabic",
-        "sample_ar": "0558 81 54 53 • عربي مبسط",
-        "candidates": [
-            "C:/Windows/Fonts/simpo.ttf",
-            "C:/Windows/Fonts/trado.ttf",
-            "C:/Windows/Fonts/arial.ttf",
-        ],
-    },
-    {
-        "id": "times_bold",
-        "name_ar": "تايمز عريض (رقمي فخم)",
-        "name_en": "Times Bold",
-        "sample_ar": "0558 81 54 53 • تايمز",
-        "candidates": [
+            str(BUNDLED_FONTS_DIR / "Lalezar-Regular.ttf"),
             "C:/Windows/Fonts/timesbd.ttf",
-            "C:/Windows/Fonts/times.ttf",
             "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
         ],
     },
 ]
+
+# Legacy font ID aliases kept for backward compatibility with older jobs/clients
+OVERLAY_FONT_ALIASES: Dict[str, str] = {
+    "arial_bold": "cairo_bold",
+    "tahoma_bold": "tajawal_bold",
+    "segoe_bold": "almarai_bold",
+    "sakkal_majalla": "el_messiri_bold",
+    "arabic_typesetting": "amiri_bold",
+    "simplified_arabic": "changa_bold",
+    "times_bold": "lalezar_display",
+}
 
 OVERLAY_EFFECTS: List[Dict[str, Any]] = [
     {
@@ -188,10 +217,20 @@ def find_system_font() -> Optional[str]:
     return None
 
 
-def resolve_overlay_font(font_id: Optional[str] = None) -> Dict[str, Any]:
-    """Resolve an allowlisted overlay font entry to an existing local TrueType file path."""
+def is_known_overlay_font(font_id: Optional[str] = None) -> bool:
+    """Return True if font_id matches a known catalog entry or legacy alias."""
     wanted = str(font_id or "").strip().lower()
-    entry = next((f for f in OVERLAY_FONTS if f["id"] == wanted), OVERLAY_FONTS[0])
+    if not wanted:
+        return False
+    canonical = OVERLAY_FONT_ALIASES.get(wanted, wanted)
+    return any(f["id"] == canonical for f in OVERLAY_FONTS)
+
+
+def resolve_overlay_font(font_id: Optional[str] = None) -> Dict[str, Any]:
+    """Resolve an allowlisted overlay font entry (or legacy alias) to an existing TrueType file path."""
+    wanted = str(font_id or "").strip().lower()
+    canonical = OVERLAY_FONT_ALIASES.get(wanted, wanted)
+    entry = next((f for f in OVERLAY_FONTS if f["id"] == canonical), OVERLAY_FONTS[0])
     resolved_file = next((p for p in entry["candidates"] if os.path.isfile(p)), None)
     if not resolved_file:
         resolved_file = find_system_font()
@@ -199,6 +238,7 @@ def resolve_overlay_font(font_id: Optional[str] = None) -> Dict[str, Any]:
         "id": entry["id"],
         "name_ar": entry["name_ar"],
         "name_en": entry["name_en"],
+        "ass_family": entry.get("ass_family", entry["name_en"]),
         "sample_ar": entry["sample_ar"],
         "file": resolved_file,
     }
@@ -213,6 +253,7 @@ def get_overlay_fonts_list() -> List[Dict[str, Any]]:
             "id": entry["id"],
             "name_ar": entry["name_ar"],
             "name_en": entry["name_en"],
+            "ass_family": entry.get("ass_family", entry["name_en"]),
             "sample_ar": entry["sample_ar"],
             "available": bool(resolved.get("file")),
             "font_url": f"/api/overlay-fonts/{entry['id']}/file",
@@ -268,6 +309,23 @@ def escape_ffmpeg_drawtext(text: str) -> str:
     escaped = escaped.replace(":", "\\:")
     escaped = escaped.replace("%", "\\%")
     return escaped
+
+
+@functools.lru_cache(maxsize=8)
+def _ffmpeg_supports_drawtext_option(option_name: str) -> bool:
+    """Check whether the host FFmpeg drawtext filter supports a given option (e.g. fix_bounds)."""
+    try:
+        res = subprocess.run(
+            ["ffmpeg", "-v", "error", "-h", "filter=drawtext"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+        )
+        return f" {option_name} " in (res.stdout or "")
+    except Exception:
+        return False
 
 
 def _escape_ffmpeg_fontfile_path(font_path: str) -> str:
@@ -421,18 +479,18 @@ def _build_drawtext_filter(
         font_color = "0xFFFFFF"
         box_color = "0x09090B@0.78"
         shadow_x, shadow_y = 0, 2
-        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.55)'"
+        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.85)'"
     elif effect == "pulse_glow":
         font_color = "0xFFFFFF"
         box_color = "0x09090B@0.82"
         border_w = 2
         border_color = "0xFBBF24@0.85"
-        alpha_expr = "'0.76+0.24*sin(2*PI*t/1.8)'"
+        alpha_expr = "'0.45+0.55*abs(sin(PI*t/1.2))'"
     elif effect == "slide_up":
         font_color = "0xFFFFFF"
         box_color = "0x09090B@0.82"
         shadow_x, shadow_y = 0, 2
-        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.35)'"
+        alpha_expr = f"'min(1\\,(t-{start_sec:.2f})/0.55)'"
     elif effect == "urgent_red":
         font_color = "0xFFFFFF"
         box_color = "0xB91C1C@0.92"
@@ -454,16 +512,18 @@ def _build_drawtext_filter(
             yp = max(0.05, min(0.95, float(raw_yp)))
             coord_x = f"max(16\\,min(w-text_w-16\\,w*{xp:.4f}-text_w/2))"
             if effect == "slide_up":
+                slide_px = max(56, int(video_height * 0.055))
                 coord_y = (
                     f"max(16\\,min(h-text_h-16\\,"
-                    f"(h*{yp:.4f}-text_h/2)+max(0\\,1-(t-{start_sec:.2f})/0.50)*48))"
+                    f"(h*{yp:.4f}-text_h/2)+max(0\\,1-(t-{start_sec:.2f})/0.85)*{slide_px}))"
                 )
             else:
                 coord_y = f"max(16\\,min(h-text_h-16\\,h*{yp:.4f}-text_h/2))"
         except (TypeError, ValueError):
             pass
     elif effect == "slide_up":
-        coord_y = f"({coord_y})+max(0\\,1-(t-{start_sec:.2f})/0.50)*48"
+        slide_px = max(56, int(video_height * 0.055))
+        coord_y = f"({coord_y})+max(0\\,1-(t-{start_sec:.2f})/0.85)*{slide_px}"
 
     filter_parts = [
         f"text='{escaped_text}'",
@@ -483,7 +543,7 @@ def _build_drawtext_filter(
         filter_parts.append(f"shadowcolor={shadow_color}")
     if alpha_expr:
         filter_parts.append(f"alpha={alpha_expr}")
-    if has_custom_box_or_effect or (raw_xp is not None and raw_yp is not None):
+    if (has_custom_box_or_effect or (raw_xp is not None and raw_yp is not None)) and _ffmpeg_supports_drawtext_option("fix_bounds"):
         filter_parts.append("fix_bounds=1")
 
     filter_parts.extend([
@@ -571,10 +631,15 @@ def annotate_video(
         ann_font_file = resolve_overlay_font(ann_font_id)["file"] if ann_font_id else default_font_file
         filters.append(_build_drawtext_filter(a, font_file=ann_font_file, video_width=vw, video_height=vh))
     run_cwd: Optional[str] = None
+    drawtext_only_chain = ",".join(filters)
     if ass_path is not None:
-        # Run FFmpeg from the subtitle directory so the filter argument needs no path escaping
+        # Run FFmpeg from the subtitle directory and point libass to our bundled fontsdir
         run_cwd = str(ass_path.parent)
-        filters.append(f"ass=filename={ass_path.name}")
+        ass_filter = f"ass=filename={ass_path.name}"
+        if BUNDLED_FONTS_DIR.is_dir():
+            escaped_fonts_dir = _escape_ffmpeg_fontfile_path(str(BUNDLED_FONTS_DIR.resolve()))
+            ass_filter += f":fontsdir='{escaped_fonts_dir}'"
+        filters.append(ass_filter)
     filter_chain = ",".join(filters)
 
     cmd = [
@@ -603,6 +668,29 @@ def annotate_video(
             "filtergraph": filter_chain
         }
     except subprocess.CalledProcessError as exc:
+        # If ASS filter failed (e.g. host ffmpeg compiled without libass) but drawtext overlays exist, preserve overlays
+        if ass_path is not None and drawtext_only_chain:
+            try:
+                fallback_cmd = [
+                    "ffmpeg", "-y", "-i", str(input_path),
+                    "-vf", drawtext_only_chain,
+                    "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-threads", "0",
+                    "-c:a", "copy", "-movflags", "+faststart", str(output_path),
+                ]
+                subprocess.run(
+                    fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    text=True, encoding="utf-8", errors="replace", check=True,
+                )
+                return {
+                    "status": "ok",
+                    "annotations_applied": len(valid_annotations),
+                    "captions_applied": False,
+                    "output_video": str(output_path),
+                    "filtergraph": drawtext_only_chain,
+                    "warning": "ASS captions skipped; drawtext overlays applied.",
+                }
+            except subprocess.CalledProcessError:
+                pass
         # Fallback to direct copy if drawtext fails (e.g. font missing or filter issue)
         shutil.copy2(input_path, output_path)
         return {

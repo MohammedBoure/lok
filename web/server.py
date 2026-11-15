@@ -117,11 +117,13 @@ from web.video_annotator import (
     annotate_video,
     get_overlay_effects_list,
     get_overlay_fonts_list,
+    is_known_overlay_font,
     resolve_overlay_font,
 )
 from web.caption_templates import (
     DEFAULT_TEMPLATE as DEFAULT_CAPTION_TEMPLATE,
     assign_timings as assign_caption_timings,
+    list_caption_colors,
     list_caption_templates,
     normalize_template as normalize_caption_template,
     smart_split_text as smart_split_caption_text,
@@ -307,6 +309,8 @@ def _parse_caption_options(form: Any) -> Optional[Dict[str, Any]]:
         "custom_text": custom_text,
         "position": _str_field("caption_position"),
         "size": _str_field("caption_size"),
+        "font": _str_field("caption_font", "caption_font_id"),
+        "color": _str_field("caption_color", "caption_theme", "caption_accent_color"),
     }
 
 
@@ -364,32 +368,44 @@ def _parse_screen_overlay_options(form: Any) -> Optional[Dict[str, Any]]:
 
 
 async def get_overlay_options_endpoint(request: Request) -> JSONResponse:
-    """GET /api/overlay-options - Curated Arabic/Latin fonts and visual/motion effects for screen overlays."""
+    """GET /api/overlay-options - Curated Arabic/Latin fonts, colors, and effects."""
     return JSONResponse({
         "status": "ok",
         "fonts": get_overlay_fonts_list(),
         "effects": get_overlay_effects_list(),
+        "caption_colors": list_caption_colors(),
     })
 
 
 async def overlay_font_file_endpoint(request: Request) -> Response:
     """GET /api/overlay-fonts/{font_id}/file - Safely stream an allowlisted TrueType font for live preview."""
     font_id = (request.path_params.get("font_id") or "").strip().lower()
-    resolved = resolve_overlay_font(font_id)
-    if not font_id or resolved.get("id") != font_id:
+    if not is_known_overlay_font(font_id):
         return JSONResponse({"status": "error", "message": f"Unknown font '{font_id}'"}, status_code=404)
+    resolved = resolve_overlay_font(font_id)
     font_path_str = resolved.get("file")
     if not font_path_str:
         return JSONResponse({"status": "error", "message": f"Font '{font_id}' unavailable"}, status_code=404)
     font_path = Path(font_path_str).resolve()
     if not font_path.is_file():
         return JSONResponse({"status": "error", "message": "Font file missing"}, status_code=404)
-    return FileResponse(str(font_path), media_type="font/ttf", filename=font_path.name)
+    return FileResponse(
+        str(font_path),
+        media_type="font/ttf",
+        filename=font_path.name,
+        headers={"Cache-Control": "public, max-age=86400", "Access-Control-Allow-Origin": "*"},
+    )
 
 
 async def get_caption_templates_endpoint(request: Request) -> JSONResponse:
-    """GET /api/captions/templates - Catalogue of animated caption templates."""
-    return JSONResponse({"status": "ok", "templates": list_caption_templates(), "default": DEFAULT_CAPTION_TEMPLATE})
+    """GET /api/captions/templates - Catalogue of animated caption templates, colors, and fonts."""
+    return JSONResponse({
+        "status": "ok",
+        "templates": list_caption_templates(),
+        "colors": list_caption_colors(),
+        "fonts": get_overlay_fonts_list(),
+        "default": DEFAULT_CAPTION_TEMPLATE,
+    })
 
 
 async def split_captions_endpoint(request: Request) -> JSONResponse:
