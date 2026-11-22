@@ -2112,6 +2112,69 @@ body {
   color: var(--lok-text-muted);
 }
 
+.action-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-blur-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 13px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.face-blur-tip-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  margin-top: 2px;
+  background-color: var(--lok-surface);
+  border: 1px dashed var(--lok-border-strong);
+  border-radius: var(--lok-radius-md);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--lok-text-muted);
+}
+
+.face-blur-tip-notice .lok-svg-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--lok-ink);
+}
+
+.btn-optin-toggle--wide {
+  grid-column: 1 / -1;
+}
+
+.result-faceblur-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--lok-soft-well);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-pill);
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  color: var(--lok-ink);
+}
+
+.result-faceblur-pill .faceblur-label {
+  color: var(--lok-text-muted);
+}
+
+.result-faceblur-pill .faceblur-text {
+  font-weight: 700;
+  color: var(--lok-ink);
+}
+
 .optin-toggles-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3932,6 +3995,10 @@ body {
     border-radius: var(--lok-radius-md);
   }
 
+  .btn-optin-toggle--wide {
+    flex: 1 1 100%;
+  }
+
   .btn-optin-toggle .optin-state {
     display: none;
   }
@@ -3944,7 +4011,9 @@ body {
   }
 
   .btn-optin-toggle.active .optin-icon,
-  .btn-optin-toggle.active .optin-title {
+  .btn-optin-toggle.active .optin-title,
+  .btn-optin-toggle.active .optin-sub,
+  .btn-optin-toggle.active .optin-text {
     color: var(--lok-on-ink);
   }
 
@@ -4072,6 +4141,13 @@ body {
     font-size: 0.74rem;
   }
 
+  .action-cta-group {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-blur-only,
   .btn-produce-main {
     width: 100%;
     padding: 13px 16px;
