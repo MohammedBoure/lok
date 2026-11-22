@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "61aaf7aec21e4638943cfe73d0adb5879b2d13f4",
-  "generatedAt": "2026-11-15T12:27:21.015Z",
+  "gitCommitHash": "50996b4b0470efc663a151e86014fc8ddac1ea3f",
+  "generatedAt": "2026-11-22T15:58:45.333Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -9023,7 +9023,7 @@
     },
     "web/pipeline_bridge.py": {
       "filePath": "web/pipeline_bridge.py",
-      "contentHash": "86a14b9eda038892198c15e9681c103c039ff17112199371b49d066db9ef6bc1",
+      "contentHash": "db359722c9a369cdbbfb0f8e2aafd174c4c3c0a554a3fc87f2cf3c48366ebe2d",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -9120,7 +9120,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 102
+          "lineCount": 109
         },
         {
           "name": "sanitize_script_against_meta_prompts",
@@ -9394,6 +9394,19 @@
           "lineCount": 128
         },
         {
+          "name": "_maybe_apply_face_blur",
+          "params": [
+            "final_cut_path",
+            "job_id",
+            "job_sandbox_dir",
+            "blur_enabled",
+            "notify_fn"
+          ],
+          "returnType": "Dict[str, Any]",
+          "exported": true,
+          "lineCount": 58
+        },
+        {
           "name": "_apply_subtitles_and_annotations",
           "params": [
             "final_cut_path",
@@ -9473,11 +9486,12 @@
             "voice",
             "music_track",
             "enable_music",
-            "screen_overlay"
+            "screen_overlay",
+            "blur_faces"
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 265
+          "lineCount": 282
         },
         {
           "name": "_extract_formatted_keyframes",
@@ -9541,11 +9555,12 @@
             "enable_music",
             "job_id",
             "caption_options",
-            "screen_overlay"
+            "screen_overlay",
+            "blur_faces"
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 1100
+          "lineCount": 1120
         }
       ],
       "classes": [],
@@ -9697,6 +9712,7 @@
         "synthesize_scene_aligned_narration",
         "_compute_timeline_fit",
         "_render_mixed_cut",
+        "_maybe_apply_face_blur",
         "_apply_subtitles_and_annotations",
         "_mirror_outputs",
         "_pick_closest_thumb",
@@ -9708,7 +9724,7 @@
         "build_screen_overlay_annotation",
         "process_mobile_video"
       ],
-      "totalLines": 3700,
+      "totalLines": 3804,
       "hasStructuralAnalysis": true
     },
     "web/prompt_db.py": {
@@ -9934,7 +9950,7 @@
     },
     "web/server.py": {
       "filePath": "web/server.py",
-      "contentHash": "12106918627f0d3a75f26f551fea27685e91f6b53dbdd3afd985987016e3f4ad",
+      "contentHash": "e65b6c2417c894c1e6baa70ceb82853f80876c56dd3e1b50e5c63d7f9110fbaa",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -10063,6 +10079,15 @@
           "lineCount": 27
         },
         {
+          "name": "_parse_optional_bool",
+          "params": [
+            "raw_val"
+          ],
+          "returnType": "Optional[bool]",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
           "name": "_execute_processing_job",
           "params": [
             "job_id",
@@ -10088,10 +10113,11 @@
             "enable_subtitles",
             "enable_music",
             "caption_options",
-            "screen_overlay"
+            "screen_overlay",
+            "blur_faces"
           ],
           "exported": true,
-          "lineCount": 230
+          "lineCount": 232
         },
         {
           "name": "create_job_async",
@@ -10100,7 +10126,7 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 309
+          "lineCount": 305
         },
         {
           "name": "upload_and_process",
@@ -10109,7 +10135,7 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 421
+          "lineCount": 417
         },
         {
           "name": "_find_finalized_cut_file",
@@ -10137,7 +10163,16 @@
           ],
           "returnType": "JSONResponse",
           "exported": true,
-          "lineCount": 93
+          "lineCount": 89
+        },
+        {
+          "name": "blur_faces_only_endpoint",
+          "params": [
+            "request"
+          ],
+          "returnType": "JSONResponse",
+          "exported": true,
+          "lineCount": 118
         },
         {
           "name": "get_mobile_cut_endpoint",
@@ -10592,12 +10627,14 @@
         "overlay_font_file_endpoint",
         "get_caption_templates_endpoint",
         "split_captions_endpoint",
+        "_parse_optional_bool",
         "_execute_processing_job",
         "create_job_async",
         "upload_and_process",
         "_find_finalized_cut_file",
         "get_job_status",
         "update_job_cuts_text_endpoint",
+        "blur_faces_only_endpoint",
         "get_mobile_cut_endpoint",
         "index_page",
         "admin_page",
@@ -10625,7 +10662,7 @@
         "admin_account_logs_endpoint",
         "admin_stats_endpoint"
       ],
-      "totalLines": 2396,
+      "totalLines": 2515,
       "hasStructuralAnalysis": true
     },
     "web/static/README.md": {
@@ -10650,32 +10687,32 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "42be627013fc6e8328aba68486f2b4cbbdefd94f7733ac6666bcdbe647c848b8",
+      "contentHash": "bd6d7f72846145dc2496029efc1e7d7b3d659f308df445434a02f7c1e287a1c3",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3458,
+      "totalLines": 3588,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "ea56577537c1faccd2f93e2a63c80f35fa592e02e58a64fc766e2cc0f307607d",
+      "contentHash": "7799f9a2401b33b97ed59d873fcf6365ac2b0a31d942f7c7d80ae9655dd4b79b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1282,
+      "totalLines": 1320,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "f8ba38dacc47bea8a6beefbae7462b3854e8a8729b70043fe83055877d832434",
+      "contentHash": "599d426f5b3ae055c44b13e6672abc9691f6efd97173c509442d8230a407507f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 4152,
+      "totalLines": 4228,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -11975,6 +12012,354 @@
         "test_mobile_stitch_layout_and_bottom_nav_contract"
       ],
       "totalLines": 565,
+      "hasStructuralAnalysis": true
+    },
+    "assets/models/face_detection_yunet_2023mar.onnx": {
+      "filePath": "assets/models/face_detection_yunet_2023mar.onnx",
+      "contentHash": "46a415bb7af45a9ea48b6e5e987544220c47c4c77e2622f7f966673c3d713eec",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1990,
+      "hasStructuralAnalysis": false
+    },
+    "tests/test_face_blur.py": {
+      "filePath": "tests/test_face_blur.py",
+      "contentHash": "dcbb94e0e402037a60491a80b89f5c108c9bcb5b876e4a2f79300c1f39096282",
+      "functions": [
+        {
+          "name": "_make_sample_video_with_audio",
+          "params": [
+            "dest",
+            "frames",
+            "width",
+            "height"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "test_plan_blur_timeline_anti_glitch_guarantees",
+          "params": [],
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "test_plan_blur_timeline_edge_exit_does_not_linger",
+          "params": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "test_yunet_model_loads_cleanly",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_blur_faces_in_video_blurs_face_preserves_product_and_audio",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "test_blur_faces_in_video_no_faces_keeps_clean",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_prompt_directive_and_api_endpoints",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 81
+        },
+        {
+          "name": "test_pipeline_bridge_maybe_apply_face_blur_replaces_cut_before_overlays",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "test_frontend_face_blur_controls_and_notice_present",
+          "params": [],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List"
+          ]
+        },
+        {
+          "source": "cv2",
+          "specifiers": [
+            "cv2"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "starlette.testclient",
+          "specifiers": [
+            "TestClient"
+          ]
+        },
+        {
+          "source": "web.auth_db",
+          "specifiers": [
+            "init_db"
+          ]
+        },
+        {
+          "source": "web.face_blur",
+          "specifiers": [
+            "DEFAULT_YUNET_MODEL",
+            "_YuNetFaceDetector",
+            "_find_yunet_model",
+            "blur_faces_in_video",
+            "plan_blur_timeline"
+          ]
+        },
+        {
+          "source": "web.pipeline_bridge",
+          "specifiers": [
+            "_maybe_apply_face_blur",
+            "extract_directives"
+          ]
+        },
+        {
+          "source": "web.server",
+          "specifiers": [
+            "app"
+          ]
+        },
+        {
+          "source": "web.video_editor",
+          "specifiers": [
+            "probe_video_stream"
+          ]
+        }
+      ],
+      "exports": [
+        "_make_sample_video_with_audio",
+        "test_plan_blur_timeline_anti_glitch_guarantees",
+        "test_plan_blur_timeline_edge_exit_does_not_linger",
+        "test_yunet_model_loads_cleanly",
+        "test_blur_faces_in_video_blurs_face_preserves_product_and_audio",
+        "test_blur_faces_in_video_no_faces_keeps_clean",
+        "test_prompt_directive_and_api_endpoints",
+        "test_pipeline_bridge_maybe_apply_face_blur_replaces_cut_before_overlays",
+        "test_frontend_face_blur_controls_and_notice_present"
+      ],
+      "totalLines": 307,
+      "hasStructuralAnalysis": true
+    },
+    "web/face_blur.py": {
+      "filePath": "web/face_blur.py",
+      "contentHash": "7086b488774d9c552df32618ba23c4c04f88dd144d58cd713f02a3f0cad2fe8e",
+      "functions": [
+        {
+          "name": "_find_yunet_model",
+          "params": [
+            "model_path"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_box_iou",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "_same_face_match",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_is_near_border",
+          "params": [
+            "box",
+            "width",
+            "height",
+            "margin_ratio"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "plan_blur_timeline",
+          "params": [
+            "raw_detections",
+            "frame_width",
+            "frame_height",
+            "scene_cuts",
+            "min_track_frames",
+            "max_bridge_gap",
+            "smooth_radius",
+            "pad_w",
+            "pad_h"
+          ],
+          "returnType": "List[List[FrameBox]]",
+          "exported": true,
+          "lineCount": 163
+        },
+        {
+          "name": "_apply_feathered_oval_blur",
+          "params": [
+            "frame_bgr",
+            "boxes"
+          ],
+          "returnType": "np.ndarray",
+          "exported": true,
+          "lineCount": 51
+        },
+        {
+          "name": "blur_faces_in_video",
+          "params": [
+            "input_video_path",
+            "output_video_path",
+            "model_path",
+            "score_threshold",
+            "detector",
+            "progress_callback"
+          ],
+          "returnType": "Dict[str, Any]",
+          "exported": true,
+          "lineCount": 162
+        }
+      ],
+      "classes": [
+        {
+          "name": "_YuNetFaceDetector",
+          "methods": [
+            "__init__",
+            "detect"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 55
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "math",
+          "specifiers": [
+            "math"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Callable",
+            "Dict",
+            "List",
+            "Optional",
+            "Sequence",
+            "Tuple",
+            "Union"
+          ]
+        },
+        {
+          "source": "cv2",
+          "specifiers": [
+            "cv2"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        }
+      ],
+      "exports": [
+        "_find_yunet_model",
+        "_YuNetFaceDetector",
+        "_box_iou",
+        "_same_face_match",
+        "_is_near_border",
+        "plan_blur_timeline",
+        "_apply_feathered_oval_blur",
+        "blur_faces_in_video"
+      ],
+      "totalLines": 520,
       "hasStructuralAnalysis": true
     }
   }

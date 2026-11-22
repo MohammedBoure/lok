@@ -325,6 +325,20 @@
                   </span>
                   <span class="optin-status" id="statusScreenNoteOptIn">إضافة</span>
                 </button>
+                <button type="button" class="btn-optin-toggle btn-optin-toggle--wide" id="btnToggleFaceBlurOptIn" data-feature="blur_faces" aria-pressed="false" title="تعتيم تلقائي للوجوه لحماية الخصوصية مع الحفاظ على وضوح المنتج والنص">
+                  <span class="optin-main">
+                    <span class="optin-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><circle cx="12" cy="10" r="2.5"/><path d="M9 16c.8-1.3 1.8-2 3-2s2.2.7 3 2"/></svg></span>
+                    <span class="optin-text-stack">
+                      <span class="optin-text">تعتيم الوجوه (حماية الخصوصية)</span>
+                      <span class="optin-sub">تعتيم ناعم للوجه فقط مع إبقاء المنتج واضحاً</span>
+                    </span>
+                  </span>
+                  <span class="optin-status" id="statusFaceBlurOptIn">معطل</span>
+                </button>
+              </div>
+              <div class="face-blur-tip-notice" id="faceBlurTipNotice" style="display: none;">
+                <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span><strong>تنبيه الخصوصية:</strong> للحصول على أفضل نتيجة، اعرض المنتج بجانب الجسم أو بعيداً عن الوجه ولا تضعه مباشرة أمام الوجه حتى لا يتأثر المنتج بالتعتيم أو يتقطع تتبّع الوجه.</span>
               </div>
             </div>
 
@@ -584,13 +598,19 @@
               <span class="action-bar-icon" aria-hidden="true"><svg class="lok-svg-icon lok-svg-icon--lg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
               <div class="action-bar-text">
                 <strong>الاستوديو جاهز للمعالجة</strong>
-                <small>متوسط زمن التنفيذ والرندرة: 25 - 45 ثانية</small>
+                <small>أنتج فيديو تسويقي كامل، أو استخدم أداة تعتيم الوجوه فقط مع إبقاء المنتج واضحاً (تجنب وضع المنتج أمام الوجه مباشرة)</small>
               </div>
             </div>
-            <button type="button" class="btn-bw-primary btn-produce-main" id="btnProduceVideo">
-              <span class="produce-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>
-              <span class="produce-label">إنتاج الفيديو التسويقي بنقرة واحدة</span>
-            </button>
+            <div class="action-cta-group">
+              <button type="button" class="btn-bw-secondary btn-blur-only" id="btnBlurFacesOnly" title="تعتيم الوجوه في الفيديو المرفوع فقط دون إضافة صوت أو مونتاج ذكاء اصطناعي">
+                <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><circle cx="12" cy="10" r="2.5"/><path d="M9 16c.8-1.3 1.8-2 3-2s2.2.7 3 2"/></svg>
+                <span>تعتيم الوجوه فقط</span>
+              </button>
+              <button type="button" class="btn-bw-primary btn-produce-main" id="btnProduceVideo">
+                <span class="produce-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg></span>
+                <span class="produce-label">إنتاج الفيديو التسويقي بنقرة واحدة</span>
+              </button>
+            </div>
           </div>
 
           <!-- Processing Stepper Progress -->
@@ -669,6 +689,13 @@
                   <span class="montage-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg></span>
                   <span class="montage-label">المونتاج واقتطاع المشاهد:</span>
                   <span class="montage-text" id="resultMontageText"></span>
+                </div>
+
+                <!-- Face Blur Privacy Feedback Pill -->
+                <div class="result-faceblur-pill" id="resultFaceBlurPill" style="display: none;">
+                  <span class="faceblur-icon" aria-hidden="true"><svg class="lok-svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><circle cx="12" cy="10" r="2.5"/><path d="M9 16c.8-1.3 1.8-2 3-2s2.2.7 3 2"/></svg></span>
+                  <span class="faceblur-label">حماية الخصوصية:</span>
+                  <span class="faceblur-text" id="resultFaceBlurText"></span>
                 </div>
               </div>
 
@@ -995,6 +1022,17 @@
                   </div>
                   <label class="lok-switch">
                     <input type="checkbox" id="settingToggleTimeline">
+                    <span class="lok-slider"></span>
+                  </label>
+                </div>
+
+                <div class="optin-switch-item">
+                  <div class="optin-switch-info">
+                    <div class="optin-switch-title">تعتيم الوجوه تلقائياً (Face Blur Privacy)</div>
+                    <div class="optin-switch-desc">تعتيم ناعم للوجوه أثناء العرض مع الحفاظ على وضوح المنتج والنص (تجنب وضع المنتج مباشرة أمام الوجه)</div>
+                  </div>
+                  <label class="lok-switch">
+                    <input type="checkbox" id="settingToggleFaceBlur">
                     <span class="lok-slider"></span>
                   </label>
                 </div>

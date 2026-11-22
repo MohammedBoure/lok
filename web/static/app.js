@@ -184,12 +184,14 @@
     currentPlayingVoice: null,
     activeJobId: null,
     isProcessing: false,
+    lastActionMode: "produce",
     pollTimer: null,
     editableCuts: [],
     optIn: {
       captions: false,
       music: false,
-      timeline: false
+      timeline: false,
+      blurFaces: false
     },
     selectedMusicTrack: "luxury_piano",
     musicTracksCatalog: [],
@@ -266,6 +268,7 @@
 
     // Action & Processing
     btnProduceVideo: document.getElementById("btnProduceVideo"),
+    btnBlurFacesOnly: document.getElementById("btnBlurFacesOnly"),
     processingStepper: document.getElementById("processingStepper"),
     stepperStatusText: document.getElementById("stepperStatusText"),
     stepperFill: document.getElementById("stepperFill"),
@@ -306,6 +309,8 @@
     resultCaptionsBadge: document.getElementById("resultCaptionsBadge"),
     resultMontagePill: document.getElementById("resultMontagePill"),
     resultMontageText: document.getElementById("resultMontageText"),
+    resultFaceBlurPill: document.getElementById("resultFaceBlurPill"),
+    resultFaceBlurText: document.getElementById("resultFaceBlurText"),
     shotsTimelineSection: document.getElementById("shotsTimelineSection"),
     timelineBadge: document.getElementById("timelineBadge"),
     shotsTimelineList: document.getElementById("shotsTimelineList"),
@@ -320,6 +325,9 @@
     statusMusicOptIn: document.getElementById("statusMusicOptIn"),
     btnToggleTimelineOptIn: document.getElementById("btnToggleTimelineOptIn"),
     statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
+    btnToggleFaceBlurOptIn: document.getElementById("btnToggleFaceBlurOptIn"),
+    statusFaceBlurOptIn: document.getElementById("statusFaceBlurOptIn"),
+    faceBlurTipNotice: document.getElementById("faceBlurTipNotice"),
     musicTrackPickerWrap: document.getElementById("musicTrackPickerWrap"),
     musicTrackSelect: document.getElementById("musicTrackSelect"),
     btnPreviewMusic: document.getElementById("btnPreviewMusic"),
@@ -336,6 +344,7 @@
     settingToggleCaptions: document.getElementById("settingToggleCaptions"),
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
+    settingToggleFaceBlur: document.getElementById("settingToggleFaceBlur"),
 
     // Persistent Screen Note / Phone Designer
     btnToggleScreenNoteOptIn: document.getElementById("btnToggleScreenNoteOptIn"),
@@ -1171,6 +1180,7 @@
         state.optIn.captions = Boolean(parsed.captions);
         state.optIn.music = Boolean(parsed.music);
         state.optIn.timeline = Boolean(parsed.timeline);
+        state.optIn.blurFaces = Boolean(parsed.blurFaces);
       }
     } catch (_) {
       // Keep defaults: false
@@ -1193,7 +1203,8 @@
         const names = {
           captions: "ترجمة الكلام المتزامنة",
           music: "الموسيقى التصويرية",
-          timeline: "مخطط المشاهد واللقطات"
+          timeline: "مخطط المشاهد واللقطات",
+          blurFaces: "تعتيم الوجوه تلقائياً"
         };
         const st = state.optIn[feature] ? "مفعل" : "معطل (الافتراضي)";
         showToast(`${names[feature] || feature}: ${st}`);
@@ -1242,6 +1253,21 @@
       if (!state.optIn.music) {
         stopMusicPreview();
       }
+    }
+
+    // 3b. Face Blur Privacy Opt-In
+    if (dom.btnToggleFaceBlurOptIn) {
+      dom.btnToggleFaceBlurOptIn.classList.toggle("active", Boolean(state.optIn.blurFaces));
+      dom.btnToggleFaceBlurOptIn.setAttribute("aria-pressed", state.optIn.blurFaces ? "true" : "false");
+    }
+    if (dom.statusFaceBlurOptIn) {
+      dom.statusFaceBlurOptIn.textContent = state.optIn.blurFaces ? "مفعل" : "معطل";
+    }
+    if (dom.settingToggleFaceBlur) {
+      dom.settingToggleFaceBlur.checked = Boolean(state.optIn.blurFaces);
+    }
+    if (dom.faceBlurTipNotice) {
+      dom.faceBlurTipNotice.style.display = state.optIn.blurFaces ? "flex" : "none";
     }
 
     // 4. Persistent Screen Note / Phone
@@ -1962,6 +1988,11 @@
         setOptInFeature("timeline", !state.optIn.timeline);
       });
     }
+    if (dom.btnToggleFaceBlurOptIn) {
+      dom.btnToggleFaceBlurOptIn.addEventListener("click", () => {
+        setOptInFeature("blurFaces", !state.optIn.blurFaces);
+      });
+    }
 
     // Settings Modal Switches
     if (dom.settingToggleCaptions) {
@@ -1977,6 +2008,11 @@
     if (dom.settingToggleTimeline) {
       dom.settingToggleTimeline.addEventListener("change", (e) => {
         setOptInFeature("timeline", e.target.checked);
+      });
+    }
+    if (dom.settingToggleFaceBlur) {
+      dom.settingToggleFaceBlur.addEventListener("change", (e) => {
+        setOptInFeature("blurFaces", e.target.checked);
       });
     }
   }
@@ -2017,6 +2053,9 @@
     if (dom.btnProduceVideo) {
       dom.btnProduceVideo.addEventListener("click", produceHandler);
     }
+    if (dom.btnBlurFacesOnly) {
+      dom.btnBlurFacesOnly.addEventListener("click", () => handleBlurFacesOnly());
+    }
     if (dom.btnProduce) {
       dom.btnProduce.addEventListener("click", produceHandler);
     }
@@ -2027,7 +2066,11 @@
     if (dom.btnRetryProduction) {
       dom.btnRetryProduction.addEventListener("click", () => {
         if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
-        handleProduceProduction();
+        if (state.lastActionMode === "blurOnly") {
+          handleBlurFacesOnly();
+        } else {
+          handleProduceProduction();
+        }
       });
     }
 
@@ -2070,6 +2113,7 @@
   }
 
   async function handleProduceProduction() {
+    state.lastActionMode = "produce";
     // 0. Gated production check
     if (!state.isAuthenticated || !state.currentUser) {
       openLoginModal();
@@ -2131,10 +2175,16 @@
       state.optIn.timeline ||
       (promptText && (promptText.includes("مخطط") || promptText.includes("لقطات") || promptText.includes("مشاهد") || promptText.includes("timeline")))
     );
+    const isFaceBlurOpted = Boolean(
+      state.optIn.blurFaces ||
+      (promptText && (promptText.includes("تعتيم الوجه") || promptText.includes("تعتيم الوجوه") || promptText.includes("اخفاء الوجه") || promptText.includes("إخفاء الوجه") || promptText.toLowerCase().includes("blur face")))
+    );
 
     formData.append("optin_captions", isCaptionsOpted ? "true" : "false");
     formData.append("optin_music", isMusicOpted ? "true" : "false");
     formData.append("optin_timeline", isTimelineOpted ? "true" : "false");
+    formData.append("optin_blur_faces", isFaceBlurOpted ? "true" : "false");
+    formData.append("blur_faces", isFaceBlurOpted ? "true" : "false");
 
     if (isCaptionsOpted) {
       formData.append("enable_captions", "true");
@@ -2275,6 +2325,64 @@
     }
   }
 
+  async function handleBlurFacesOnly() {
+    state.lastActionMode = "blurOnly";
+    if (!state.isAuthenticated || !state.currentUser) {
+      openLoginModal();
+      showToast("يرجى تسجيل الدخول أولاً لتعتيم الوجوه في الفيديو");
+      return;
+    }
+    if (!state.selectedFile) {
+      showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً");
+      dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
+    const formData = new FormData();
+    formData.append("video", state.selectedFile);
+    if (activeToken) {
+      formData.append("token", activeToken);
+      formData.append("session_token", activeToken);
+      formData.append("auth_token", activeToken);
+    }
+
+    const headers = {};
+    if (activeToken) {
+      headers["Authorization"] = `Bearer ${activeToken}`;
+      headers["X-Session-Token"] = activeToken;
+    }
+
+    startStepper();
+    updateStepperStatus("جاري مسح الفيديو وتعتيم الوجوه تلقائياً مع الحفاظ على الصوت الأصلي...", 45, "stepRender");
+
+    try {
+      const resp = await fetch("/api/blur-faces", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: formData,
+      });
+
+      if (resp.status === 401) {
+        throw new Error("جلسة العمل منتهية أو غير مصرح بها. يرجى تسجيل الدخول مجدداً.");
+      }
+      if (resp.status === 403) {
+        throw new Error("الحساب معطل أو تم استنفاد الحصة المسموحة.");
+      }
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || err.error || `تعذر معالجة الفيديو (${resp.status})`);
+      }
+
+      const data = await resp.json();
+      updateStepperStatus("تم تجهيز الفيديو بعد تعتيم الوجوه بنجاح!", 100, "stepAnnotations");
+      finishStepper(true, data);
+    } catch (err) {
+      finishStepper(false, null, err.message);
+    }
+  }
+
   function buildDynamicVideoUrl(rawUrl, jobId) {
     if (!rawUrl) return "";
     const buster = `v=${Date.now()}`;
@@ -2342,6 +2450,7 @@
       dom.resultVideo.load();
     }
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = true;
+    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = true;
 
     updateStepperStatus("1. جاري استخراج الإطارات وفحص خصائص الفيديو...", 10, "stepFrames");
     animateStepperProgress();
@@ -2464,6 +2573,7 @@
   function finishStepper(success, data, errorMsg) {
     state.isProcessing = false;
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = false;
+    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = false;
     if (dom.processingStepper) dom.processingStepper.style.display = "none";
 
     if (success) {
@@ -2653,6 +2763,22 @@
         }
       }
 
+      // 4b. Display Face Blur Privacy Feedback Pill
+      const faceBlurEnabled = Boolean(data && (data.blur_faces_enabled || (data.result && data.result.blur_faces_enabled)));
+      const faceBlurApplied = Boolean(data && (data.blur_faces_applied || (data.result && data.result.blur_faces_applied)));
+      const faceBlurredFrames = (data && (data.faces_blurred_frames ?? (data.result && data.result.faces_blurred_frames))) || 0;
+      if (dom.resultFaceBlurPill && dom.resultFaceBlurText) {
+        if (faceBlurApplied) {
+          dom.resultFaceBlurText.textContent = `تم تعتيم الوجوه تلقائياً (${faceBlurredFrames} إطار) مع إبقاء المنتج واضحاً`;
+          dom.resultFaceBlurPill.style.display = "inline-flex";
+        } else if (faceBlurEnabled || (data && data.standalone_mode === "face_blur_only")) {
+          dom.resultFaceBlurText.textContent = "تم فحص الفيديو: لم يُرصد وجه ظاهر — تم الحفاظ على الفيديو سليماً";
+          dom.resultFaceBlurPill.style.display = "inline-flex";
+        } else {
+          dom.resultFaceBlurPill.style.display = "none";
+        }
+      }
+
       // 5. Display Synchronized Captions Feedback Pill (Opt-In Controlled)
       const captionsApplied = Boolean(data && (
         (data.subtitles_count !== undefined && data.subtitles_count > 0) ||
@@ -2729,6 +2855,7 @@
       if (dom.resultMusicPill) dom.resultMusicPill.style.display = "none";
       if (dom.resultCaptionsPill) dom.resultCaptionsPill.style.display = "none";
       if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
+      if (dom.resultFaceBlurPill) dom.resultFaceBlurPill.style.display = "none";
       if (dom.shotsTimelineSection) dom.shotsTimelineSection.style.display = "none";
 
       // Show action-oriented failure alert with Retry button
@@ -3017,6 +3144,7 @@
           body: JSON.stringify({
             cuts: state.editableCuts,
             enable_music: Boolean(state.optIn && state.optIn.music),
+            blur_faces: Boolean(state.optIn && state.optIn.blurFaces),
             ...(state.optIn && state.optIn.music && state.selectedMusicTrack
               ? { music_track: state.selectedMusicTrack }
               : {}),
@@ -3095,6 +3223,8 @@
     if (dom.resultCaptionsBadge) dom.resultCaptionsBadge.style.display = "none";
     if (dom.resultMontagePill) dom.resultMontagePill.style.display = "none";
     if (dom.resultMontageText) dom.resultMontageText.textContent = "";
+    if (dom.resultFaceBlurPill) dom.resultFaceBlurPill.style.display = "none";
+    if (dom.resultFaceBlurText) dom.resultFaceBlurText.textContent = "";
     if (dom.promptTextarea) dom.promptTextarea.value = "";
     if (dom.promptCharCount) dom.promptCharCount.textContent = "0 حرف";
     if (dom.customCaptionTextarea) dom.customCaptionTextarea.value = "";

@@ -437,6 +437,14 @@ async def split_captions_endpoint(request: Request) -> JSONResponse:
     })
 
 
+def _parse_optional_bool(raw_val: Any) -> Optional[bool]:
+    if raw_val is None:
+        return None
+    if isinstance(raw_val, str):
+        return raw_val.lower() in ("true", "1", "yes", "on")
+    return bool(raw_val)
+
+
 def _execute_processing_job(
     job_id: str,
     saved_video_path: Path,
@@ -462,6 +470,7 @@ def _execute_processing_job(
     enable_music: Optional[bool] = None,
     caption_options: Optional[Dict[str, Any]] = None,
     screen_overlay: Optional[Dict[str, Any]] = None,
+    blur_faces: Optional[bool] = None,
 ):
     """Worker function executed synchronously or in a background thread."""
     def _on_progress(event: Dict[str, Any]):
@@ -548,6 +557,7 @@ def _execute_processing_job(
             job_id=job_id,
             caption_options=caption_options,
             screen_overlay=screen_overlay,
+            blur_faces=blur_faces,
         )
 
         # Record video generation in SaaS audit history
@@ -797,13 +807,8 @@ async def create_job_async(request: Request) -> JSONResponse:
         else:
             enable_subtitles = bool(enable_subtitles_raw)
 
-    enable_music_raw = form.get("enable_music") or form.get("music_enabled")
-    enable_music = None
-    if enable_music_raw is not None:
-        if isinstance(enable_music_raw, str):
-            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
-        else:
-            enable_music = bool(enable_music_raw)
+    enable_music = _parse_optional_bool(form.get("enable_music") or form.get("music_enabled"))
+    blur_faces = _parse_optional_bool(form.get("blur_faces") or form.get("optin_blur_faces"))
 
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
@@ -952,6 +957,7 @@ async def create_job_async(request: Request) -> JSONResponse:
             enable_music,
             caption_options,
             screen_overlay,
+            blur_faces,
         ),
         daemon=True,
     )
@@ -1107,13 +1113,8 @@ async def upload_and_process(request: Request) -> JSONResponse:
         else:
             enable_subtitles = bool(enable_subtitles_raw)
 
-    enable_music_raw = form.get("enable_music") or form.get("music_enabled")
-    enable_music = None
-    if enable_music_raw is not None:
-        if isinstance(enable_music_raw, str):
-            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
-        else:
-            enable_music = bool(enable_music_raw)
+    enable_music = _parse_optional_bool(form.get("enable_music") or form.get("music_enabled"))
+    blur_faces = _parse_optional_bool(form.get("blur_faces") or form.get("optin_blur_faces"))
 
     # Prompt Security Guardrails
     raw_prompt = form.get("prompt")
@@ -1292,6 +1293,7 @@ async def upload_and_process(request: Request) -> JSONResponse:
             job_id=job_id,
             caption_options=caption_options,
             screen_overlay=screen_overlay,
+            blur_faces=blur_faces,
         )
 
         # Record video generation in SaaS audit history
@@ -1644,13 +1646,8 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
     screen_overlay = body.get("screen_overlay")
     if screen_overlay is not None and not isinstance(screen_overlay, dict):
         return JSONResponse({"error": "'screen_overlay' must be an object."}, status_code=400)
-    enable_music_raw = body.get("enable_music")
-    enable_music = None
-    if enable_music_raw is not None:
-        if isinstance(enable_music_raw, str):
-            enable_music = enable_music_raw.lower() in ("true", "1", "yes", "on")
-        else:
-            enable_music = bool(enable_music_raw)
+    enable_music = _parse_optional_bool(body.get("enable_music"))
+    blur_faces = _parse_optional_bool(body.get("blur_faces"))
 
     if cuts is not None and not isinstance(cuts, list):
         return JSONResponse({"error": "'cuts' must be a list of cut objects."}, status_code=400)
@@ -1674,6 +1671,7 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
             music_track=music_track if isinstance(music_track, str) and music_track.strip() else None,
             enable_music=enable_music,
             screen_overlay=screen_overlay,
+            blur_faces=blur_faces,
         )
     except FileNotFoundError as exc:
         return JSONResponse(
@@ -1701,6 +1699,126 @@ async def update_job_cuts_text_endpoint(request: Request) -> JSONResponse:
         PROGRESS_STORE[job_id] = p_curr
 
     return JSONResponse(updated_summary, status_code=200)
+
+
+async def blur_faces_only_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/blur-faces
+    Standalone privacy endpoint: detects & smoothly blurs faces in an uploaded video
+    while preserving original audio, without generating AI narration or montage cuts.
+    """
+    try:
+        form = await request.form()
+    except Exception as exc:
+        return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    user = _get_authenticated_user_from_form_or_header(request, form)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب تعتيم الفيديو تسجيل دخول نشط أو رمز مصادقة صالح.",
+            },
+            status_code=401,
+        )
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    if not allowed:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": reason,
+                "message": reason,
+                "quota_exceeded": True,
+                "quota_details": quota_details,
+            },
+            status_code=403,
+        )
+
+    video_field = form.get("video")
+    if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
+        return JSONResponse({"error": "Missing required 'video' file field in multipart form."}, status_code=400)
+
+    original_filename = Path(video_field.filename).name
+    clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex[:6]
+    job_id = f"{timestamp_str}_{unique_id}"
+    saved_video_path = UPLOADS_DIR / f"upload_{job_id}{clean_suffix}"
+
+    try:
+        with open(saved_video_path, "wb") as f_out:
+            shutil.copyfileobj(video_field.file, f_out)
+    except Exception as exc:
+        return JSONResponse({"error": f"Failed to save uploaded file: {exc}"}, status_code=500)
+
+    job_sandbox_dir = (OUTPUTS_DIR / "jobs" / job_id / "sandbox").resolve()
+    job_sandbox_dir.mkdir(parents=True, exist_ok=True)
+    sandbox_out_path = job_sandbox_dir / f"cut_{job_id}.mp4"
+    mobile_cuts_dir = OUTPUTS_DIR / "mobile_cuts"
+    mobile_cuts_dir.mkdir(parents=True, exist_ok=True)
+    mirror_cut_path = mobile_cuts_dir / f"cut_{job_id}.mp4"
+
+    try:
+        from web import face_blur as face_blur_mod
+
+        blur_stats = await asyncio.to_thread(
+            face_blur_mod.blur_faces_in_video,
+            input_video_path=saved_video_path,
+            output_video_path=sandbox_out_path,
+        )
+        shutil.copyfile(sandbox_out_path, mirror_cut_path)
+    except Exception as exc:
+        logger.exception("Standalone face blur failed for job %s: %s", job_id, exc)
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": f"تعذر تعتيم الوجوه في الفيديو: {exc}"},
+            status_code=500,
+        )
+
+    video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+    sandboxed_video_url = f"/outputs/jobs/{job_id}/sandbox/cut_{job_id}.mp4"
+
+    try:
+        record_generation(
+            user_id=user["id"],
+            job_id=job_id,
+            video_url=video_web_url,
+            title=f"تعتيم الوجه — {Path(original_filename).stem}",
+        )
+    except Exception as rec_err:
+        logger.warning("Failed to record standalone face blur generation: %s", rec_err)
+
+    _, _, updated_quotas = check_quota(user["id"])
+    summary: Dict[str, Any] = {
+        "job_id": job_id,
+        "status": "completed",
+        "progress": 100,
+        "progress_percent": 100,
+        "standalone_mode": "face_blur_only",
+        "video_url": video_web_url,
+        "output_video_url": video_web_url,
+        "output_video": video_web_url,
+        "sandboxed_video_url": sandboxed_video_url,
+        "output_path": str(mirror_cut_path),
+        "file_size_bytes": sandbox_out_path.stat().st_size,
+        "duration": blur_stats.get("duration", 0.0),
+        "resolution": blur_stats.get("resolution"),
+        "blur_faces_enabled": True,
+        "blur_faces_applied": bool(blur_stats.get("applied")),
+        "faces_detected": bool(blur_stats.get("faces_detected")),
+        "faces_blurred_frames": int(blur_stats.get("blurred_frames", 0)),
+        "blur_faces_details": blur_stats,
+        "user": {
+            "id": user["id"],
+            "username": user.get("username"),
+            "role": user.get("role"),
+            "quotas": updated_quotas,
+        },
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    JOBS_STORE[job_id] = dict(summary)
+    return JSONResponse(summary, status_code=200)
 
 
 async def get_mobile_cut_endpoint(request: Request) -> Response:
@@ -2361,6 +2479,7 @@ routes = [
     Route("/api/admin/users/{user_id}/logs", admin_account_logs_endpoint, methods=["GET"]),
     Route("/api/admin/stats", admin_stats_endpoint, methods=["GET"]),
     Route("/api/upload-and-process", upload_and_process, methods=["POST"]),
+    Route("/api/blur-faces", blur_faces_only_endpoint, methods=["POST"]),
     Route("/api/jobs/create", create_job_async, methods=["POST"]),
     Route("/api/jobs/{job_id}/update-cuts-text", update_job_cuts_text_endpoint, methods=["POST"]),
     Route("/api/status/{job_id}", get_job_status, methods=["GET"]),

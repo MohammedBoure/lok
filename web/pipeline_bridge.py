@@ -681,6 +681,12 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "ملصقات المميزات", "نقاط القوة على الفيديو", "أبرز المميزات على الشاشة", "highlights", "badges",
     ])
 
+    # Opt-In Face Blur Privacy protection
+    blur_faces_requested = any(w in raw_lower for w in [
+        "تعتيم الوجه", "تعتيم الوجوه", "اخفاء الوجه", "إخفاء الوجه", "طمس الوجه",
+        "بدون إظهار الوجه", "بدون اظهار الوجه", "blur face", "blur faces", "hide face",
+    ])
+
     # Voice persona / gender directive detection
     requested_voice: Optional[str] = None
     if any(w in raw_lower for w in ["صوت شاب", "بصوت شاب", "صوت حيوي", "صوت حماسي", "fenrir"]):
@@ -718,6 +724,7 @@ def extract_directives(text: Optional[str]) -> Dict[str, Any]:
         "persistent_overlay": persistent_overlay,
         "subtitles_requested": subtitles_requested,
         "highlights_requested": highlights_requested,
+        "blur_faces_requested": blur_faces_requested,
         "requested_voice": requested_voice,
         "orientation_requested": orientation_requested,
         "montage_plan": montage_plan,
@@ -1914,6 +1921,66 @@ def _render_mixed_cut(
     return (datetime.now(timezone.utc) - start_render).total_seconds()
 
 
+def _maybe_apply_face_blur(
+    *,
+    final_cut_path: Path,
+    job_id: str,
+    job_sandbox_dir: Path,
+    blur_enabled: bool,
+    notify_fn: Optional[Callable[..., None]] = None,
+) -> Dict[str, Any]:
+    """Run privacy face blurring on ``final_cut_path`` before overlays/captions when enabled."""
+    if not blur_enabled:
+        return {"enabled": False, "applied": False, "faces_detected": False, "blurred_frames": 0}
+
+    if notify_fn:
+        notify_fn(
+            step=4,
+            percent=92,
+            message="جاري فحص وتعتيم الوجوه لحماية الخصوصية...",
+            log=f"[خصوصية الوجه] بدء الفحص المزدوج وتعتيم الوجوه تلقائياً على المقطع ({final_cut_path.name})...",
+        )
+
+    from web import face_blur as face_blur_mod
+
+    blurred_tmp = job_sandbox_dir / f"blurred_{job_id}.mp4"
+    res = face_blur_mod.blur_faces_in_video(
+        input_video_path=final_cut_path,
+        output_video_path=blurred_tmp,
+    )
+    if res.get("applied") and blurred_tmp.is_file() and blurred_tmp.stat().st_size > 0:
+        blurred_tmp.replace(final_cut_path)
+    elif blurred_tmp.is_file():
+        try:
+            blurred_tmp.unlink()
+        except OSError:
+            pass
+
+    if notify_fn:
+        if res.get("applied"):
+            notify_fn(
+                step=4,
+                percent=94,
+                message="تم تعتيم الوجوه بنجاح مع الحفاظ على نقاء النص والمنتج...",
+                log=f"[خصوصية الوجه] تم تعتيم الوجوه في {res.get('blurred_frames', 0)} إطاراً بنجاح.",
+            )
+        else:
+            notify_fn(
+                step=4,
+                percent=94,
+                message="اكتمل فحص الخصوصية (لم يُرصد أي وجه ظاهر في اللقطات)...",
+                log="[خصوصية الوجه] لم يُرصد أي وجه واضح في المشاهد — تم الحفاظ على الفيديو الأصلي.",
+            )
+
+    return {
+        "enabled": True,
+        "applied": bool(res.get("applied", False)),
+        "faces_detected": bool(res.get("faces_detected", False)),
+        "blurred_frames": int(res.get("blurred_frames", 0)),
+        "total_frames": int(res.get("total_frames", 0)),
+    }
+
+
 def _apply_subtitles_and_annotations(
     *,
     final_cut_path: Path,
@@ -2219,6 +2286,7 @@ def update_cuts_text_and_rerender(
     music_track: Optional[str] = None,
     enable_music: Optional[bool] = None,
     screen_overlay: Optional[Dict[str, Any]] = None,
+    blur_faces: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Re-synthesize edited per-cut text and re-render audio + captions directly onto an existing job's
@@ -2414,6 +2482,18 @@ def update_cuts_text_and_rerender(
             summary["screen_overlay"] = None
     cfg["base_annotations"] = base_annotations
 
+    blur_faces_opt_in = bool(
+        blur_faces if blur_faces is not None
+        else cfg.get("blur_faces_enabled", summary.get("blur_faces_enabled", False))
+    )
+    cfg["blur_faces_enabled"] = blur_faces_opt_in
+    face_blur_meta = _maybe_apply_face_blur(
+        final_cut_path=final_cut_path,
+        job_id=job_id,
+        job_sandbox_dir=job_sandbox_dir,
+        blur_enabled=blur_faces_opt_in,
+    )
+
     subtitles_list, caption_track_meta, applied_annotations_count = _apply_subtitles_and_annotations(
         final_cut_path=final_cut_path,
         job_id=job_id,
@@ -2441,6 +2521,10 @@ def update_cuts_text_and_rerender(
     summary["subtitles_count"] = len(subtitles_list)
     summary["animated_captions"] = caption_track_meta
     summary["annotations_applied"] = applied_annotations_count
+    summary["blur_faces_enabled"] = blur_faces_opt_in
+    summary["blur_faces_applied"] = face_blur_meta["applied"]
+    summary["blur_faces_details"] = face_blur_meta
+    summary["faces_blurred_frames"] = face_blur_meta["blurred_frames"]
     summary["duration"] = total_duration
     summary["end_freeze_seconds"] = pad_needed
     summary["visual_lead_in_seconds"] = visual_lead_in
@@ -2624,6 +2708,7 @@ def process_mobile_video(
     job_id: Optional[str] = None,
     caption_options: Optional[Dict[str, Any]] = None,
     screen_overlay: Optional[Dict[str, Any]] = None,
+    blur_faces: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Process smartphone video recording into a polished marketing promo cut.
@@ -3484,6 +3569,19 @@ def process_mobile_video(
         elif "fb_res" in locals() and isinstance(fb_res, dict) and fb_res.get("subtitles"):
             fallback_subs = list(fb_res["subtitles"])
 
+    # Strict Opt-In Face Blurring (runs after cut/aspect normalization, before crisp text/phone overlays)
+    blur_faces_opt_in = bool(
+        blur_faces if blur_faces is not None
+        else parsed_dirs.get("blur_faces_requested", False)
+    )
+    face_blur_meta = _maybe_apply_face_blur(
+        final_cut_path=final_cut_path,
+        job_id=job_id,
+        job_sandbox_dir=job_sandbox_dir,
+        blur_enabled=blur_faces_opt_in,
+        notify_fn=_notify,
+    )
+
     subtitles_list, caption_track_meta, applied_annotations_count = _apply_subtitles_and_annotations(
         final_cut_path=final_cut_path,
         job_id=job_id,
@@ -3574,6 +3672,7 @@ def process_mobile_video(
             "music_track_id": resolved_music_key,
             "ambient_volume": ambient_volume,
             "subtitles_enabled": subtitles_opt_in,
+            "blur_faces_enabled": blur_faces_opt_in,
             "caption_options": caption_options,
             "screen_overlay": normalized_screen_overlay,
             "base_annotations": base_annotations,
@@ -3587,6 +3686,7 @@ def process_mobile_video(
             "mute_music": mute_music,
             "large_font": bool(parsed_dirs.get("large_font", False)),
             "subtitles_requested": subtitles_opt_in,
+            "blur_faces_requested": blur_faces_opt_in,
         },
         "text_position": text_position,
         "text_style": text_style,
@@ -3611,6 +3711,10 @@ def process_mobile_video(
         "synthesizer": narration_info["synthesizer"],
         "narration_audio_url": f"/outputs/mobile_cuts/narration_{job_id}.wav",
         "annotations_applied": applied_annotations_count,
+        "blur_faces_enabled": blur_faces_opt_in,
+        "blur_faces_applied": face_blur_meta["applied"],
+        "blur_faces_details": face_blur_meta,
+        "faces_blurred_frames": face_blur_meta["blurred_frames"],
         "montage_applied": montage_applied,
         "montage_details": montage_details if montage_applied else None,
         "music_muted": mute_music,
