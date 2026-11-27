@@ -22,8 +22,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-27T14:09:28.030Z",
-    "gitCommitHash": "2e61fd69f37649d594a7aa7bd3f6f2da11537d31"
+    "analyzedAt": "2026-11-27T14:33:07.948Z",
+    "gitCommitHash": "a18df792c2935a1b54c0329d5433f0de6defa396"
   },
   "nodes": [
     {
@@ -10878,117 +10878,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:tests/test_video_captions.py",
-      "type": "file",
-      "name": "test_video_captions.py",
-      "filePath": "tests/test_video_captions.py",
-      "summary": "Unit and integration tests for acoustic word-chunk grouping, Groq 429 rotation and hallucination filtering, silent video handling, original audio preservation during ASS caption burn, /api/captions/transcribe, /api/video-captions, and UI contracts.",
-      "tags": [
-        "test",
-        "captions",
-        "stt",
-        "api",
-        "ui-contract"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:_make_test_video",
-      "type": "function",
-      "name": "_make_test_video",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        32,
-        50
-      ],
-      "summary": "Function _make_test_video in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
-      "type": "function",
-      "name": "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        53,
-        87
-      ],
-      "summary": "Function test_group_words_preserves_acoustic_timings_and_splits_on_pauses in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
-      "type": "function",
-      "name": "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        90,
-        124
-      ],
-      "summary": "Function test_groq_stt_rotates_on_429_and_filters_silence_hallucinations in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
-      "type": "function",
-      "name": "test_silent_or_no_audio_video_skips_stt_cleanly",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        127,
-        136
-      ],
-      "summary": "Function test_silent_or_no_audio_video_skips_stt_cleanly in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
-      "type": "function",
-      "name": "test_burn_video_voice_captions_preserves_original_audio",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        139,
-        202
-      ],
-      "summary": "Function test_burn_video_voice_captions_preserves_original_audio in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
-      "type": "function",
-      "name": "test_video_captions_api_endpoints_and_ui_contracts",
-      "filePath": "tests/test_video_captions.py",
-      "lineRange": [
-        205,
-        297
-      ],
-      "summary": "Function test_video_captions_api_endpoints_and_ui_contracts in tests/test_video_captions.py.",
-      "tags": [
-        "function",
-        "python"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "file:web/caption_templates.py",
       "type": "file",
       "name": "caption_templates.py",
@@ -12416,212 +12305,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:web/video_captions.py",
-      "type": "file",
-      "name": "video_captions.py",
-      "filePath": "web/video_captions.py",
-      "summary": "Video-voice auto-captions engine preserving original speaker audio (-c:a copy) with Groq Whisper word-level timestamps, local faster-whisper fallback, FFmpeg+Gemini acoustic fallback, and optional face blur / screen overlay composition.",
-      "tags": [
-        "captions",
-        "stt",
-        "groq-whisper",
-        "ffmpeg",
-        "video-processing"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/video_captions.py:_ensure_stt_env_loaded",
-      "type": "function",
-      "name": "_ensure_stt_env_loaded",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        69,
-        88
-      ],
-      "summary": "Load GROQ_API_KEY, GROQ_API_KEYS, and GEMINI_API_KEY from .env when absent from os.environ.",
-      "tags": [
-        "config",
-        "env",
-        "stt"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/video_captions.py:_get_api_keys",
-      "type": "function",
-      "name": "_get_api_keys",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        91,
-        100
-      ],
-      "summary": "Collect comma-separated API keys across one or more env vars with deduplication.",
-      "tags": [
-        "config",
-        "auth",
-        "helper"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/video_captions.py:_probe_video_geometry_and_audio",
-      "type": "function",
-      "name": "_probe_video_geometry_and_audio",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        103,
-        149
-      ],
-      "summary": "Probe rotation-aware video dimensions, duration, and audio stream presence via ffprobe.",
-      "tags": [
-        "ffmpeg",
-        "media-probe",
-        "video"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:extract_audio_for_stt",
-      "type": "function",
-      "name": "extract_audio_for_stt",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        152,
-        197
-      ],
-      "summary": "Extract lightweight 16kHz mono MP3 audio and reject silent or audio-less clips.",
-      "tags": [
-        "ffmpeg",
-        "audio",
-        "stt",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
-      "type": "function",
-      "name": "_detect_speech_intervals_ffmpeg",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        200,
-        236
-      ],
-      "summary": "Measure acoustic non-silent speech intervals using FFmpeg silencedetect.",
-      "tags": [
-        "ffmpeg",
-        "vad",
-        "audio"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:_is_hallucination",
-      "type": "function",
-      "name": "_is_hallucination",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        239,
-        245
-      ],
-      "summary": "Filter empty text, high no_speech_prob segments, and common Whisper silence hallucinations.",
-      "tags": [
-        "stt",
-        "validation",
-        "helper"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/video_captions.py:_transcribe_with_groq",
-      "type": "function",
-      "name": "_transcribe_with_groq",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        248,
-        333
-      ],
-      "summary": "Transcribe audio via Groq Whisper REST API with word timestamps and 429 key rotation.",
-      "tags": [
-        "groq",
-        "whisper",
-        "stt",
-        "api"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
-      "type": "function",
-      "name": "_transcribe_with_local_faster_whisper",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        336,
-        392
-      ],
-      "summary": "Offline fallback transcription using cached faster-whisper model with Silero VAD.",
-      "tags": [
-        "whisper",
-        "offline",
-        "stt"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
-      "type": "function",
-      "name": "_transcribe_with_gemini_acoustic",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        395,
-        473
-      ],
-      "summary": "Fallback transcription aligning Gemini verbatim Arabic/Darja chunks to FFmpeg speech bursts.",
-      "tags": [
-        "gemini",
-        "stt",
-        "fallback"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:transcribe_video_speech",
-      "type": "function",
-      "name": "transcribe_video_speech",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        476,
-        534
-      ],
-      "summary": "Orchestrate Groq -> local faster-whisper -> Gemini acoustic STT into timed CapCut chunks.",
-      "tags": [
-        "stt",
-        "orchestration",
-        "captions",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/video_captions.py:burn_video_voice_captions",
-      "type": "function",
-      "name": "burn_video_voice_captions",
-      "filePath": "web/video_captions.py",
-      "lineRange": [
-        537,
-        662
-      ],
-      "summary": "Burn animated ASS captions onto video while preserving original voice untouched, with optional face blur and screen overlay.",
-      "tags": [
-        "captions",
-        "ffmpeg",
-        "video-processing",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:web/static/index.html",
       "type": "file",
       "name": "index.html",
@@ -12646,6 +12329,359 @@
         "css",
         "styling",
         "responsive"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_video_captions.py",
+      "type": "file",
+      "name": "test_video_captions.py",
+      "filePath": "tests/test_video_captions.py",
+      "summary": "Unit and integration tests for acoustic word-chunk grouping, Groq 429 rotation and hallucination filtering, silent video handling, original audio preservation during ASS caption burn, /api/captions/transcribe, /api/video-captions, and UI contracts.",
+      "tags": [
+        "test",
+        "captions",
+        "stt",
+        "api",
+        "ui-contract"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:_make_test_video",
+      "type": "function",
+      "name": "_make_test_video",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        33,
+        51
+      ],
+      "summary": "Function _make_test_video in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "type": "function",
+      "name": "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        54,
+        102
+      ],
+      "summary": "Function test_group_words_preserves_acoustic_timings_and_splits_on_pauses in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+      "type": "function",
+      "name": "test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        105,
+        156
+      ],
+      "summary": "Verify Gemini Darja proofreader fixes garbled words while preserving Whisper acoustic timestamps.",
+      "tags": [
+        "test",
+        "darja",
+        "gemini",
+        "captions"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "type": "function",
+      "name": "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        159,
+        194
+      ],
+      "summary": "Function test_groq_stt_rotates_on_429_and_filters_silence_hallucinations in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
+      "type": "function",
+      "name": "test_silent_or_no_audio_video_skips_stt_cleanly",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        197,
+        206
+      ],
+      "summary": "Function test_silent_or_no_audio_video_skips_stt_cleanly in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
+      "type": "function",
+      "name": "test_burn_video_voice_captions_preserves_original_audio",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        209,
+        272
+      ],
+      "summary": "Function test_burn_video_voice_captions_preserves_original_audio in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
+      "type": "function",
+      "name": "test_video_captions_api_endpoints_and_ui_contracts",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        275,
+        367
+      ],
+      "summary": "Function test_video_captions_api_endpoints_and_ui_contracts in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/video_captions.py",
+      "type": "file",
+      "name": "video_captions.py",
+      "filePath": "web/video_captions.py",
+      "summary": "Video-voice auto-captions engine preserving original speaker audio (-c:a copy) with Groq Whisper word-level timestamps, local faster-whisper fallback, FFmpeg+Gemini acoustic fallback, and optional face blur / screen overlay composition.",
+      "tags": [
+        "captions",
+        "stt",
+        "groq-whisper",
+        "ffmpeg",
+        "video-processing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/video_captions.py:_ensure_stt_env_loaded",
+      "type": "function",
+      "name": "_ensure_stt_env_loaded",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        75,
+        94
+      ],
+      "summary": "Load GROQ_API_KEY, GROQ_API_KEYS, and GEMINI_API_KEY from .env when absent from os.environ.",
+      "tags": [
+        "config",
+        "env",
+        "stt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_get_api_keys",
+      "type": "function",
+      "name": "_get_api_keys",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        97,
+        106
+      ],
+      "summary": "Collect comma-separated API keys across one or more env vars with deduplication.",
+      "tags": [
+        "config",
+        "auth",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_probe_video_geometry_and_audio",
+      "type": "function",
+      "name": "_probe_video_geometry_and_audio",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        109,
+        155
+      ],
+      "summary": "Probe rotation-aware video dimensions, duration, and audio stream presence via ffprobe.",
+      "tags": [
+        "ffmpeg",
+        "media-probe",
+        "video"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:extract_audio_for_stt",
+      "type": "function",
+      "name": "extract_audio_for_stt",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        158,
+        203
+      ],
+      "summary": "Extract lightweight 16kHz mono MP3 audio and reject silent or audio-less clips.",
+      "tags": [
+        "ffmpeg",
+        "audio",
+        "stt",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
+      "type": "function",
+      "name": "_detect_speech_intervals_ffmpeg",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        206,
+        242
+      ],
+      "summary": "Measure acoustic non-silent speech intervals using FFmpeg silencedetect.",
+      "tags": [
+        "ffmpeg",
+        "vad",
+        "audio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_is_hallucination",
+      "type": "function",
+      "name": "_is_hallucination",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        245,
+        251
+      ],
+      "summary": "Filter empty text, high no_speech_prob segments, and common Whisper silence hallucinations.",
+      "tags": [
+        "stt",
+        "validation",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_groq",
+      "type": "function",
+      "name": "_transcribe_with_groq",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        254,
+        342
+      ],
+      "summary": "Transcribe audio via Groq Whisper REST API with word timestamps and 429 key rotation.",
+      "tags": [
+        "groq",
+        "whisper",
+        "stt",
+        "api"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
+      "type": "function",
+      "name": "_transcribe_with_local_faster_whisper",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        345,
+        401
+      ],
+      "summary": "Offline fallback transcription using cached faster-whisper model with Silero VAD.",
+      "tags": [
+        "whisper",
+        "offline",
+        "stt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
+      "type": "function",
+      "name": "_transcribe_with_gemini_acoustic",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        404,
+        482
+      ],
+      "summary": "Fallback transcription aligning Gemini verbatim Arabic/Darja chunks to FFmpeg speech bursts.",
+      "tags": [
+        "gemini",
+        "stt",
+        "fallback"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_refine_chunks_with_gemini_audio",
+      "type": "function",
+      "name": "_refine_chunks_with_gemini_audio",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        485,
+        587
+      ],
+      "summary": "Audio-grounded Gemini proofreader that fixes Whisper Algerian Darja/Arabic spelling errors while keeping acoustic chunk and word timings intact.",
+      "tags": [
+        "gemini",
+        "darja",
+        "proofreading",
+        "captions"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/video_captions.py:transcribe_video_speech",
+      "type": "function",
+      "name": "transcribe_video_speech",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        590,
+        657
+      ],
+      "summary": "Orchestrate Groq -> local faster-whisper -> Gemini acoustic STT into timed CapCut chunks.",
+      "tags": [
+        "stt",
+        "orchestration",
+        "captions",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:burn_video_voice_captions",
+      "type": "function",
+      "name": "burn_video_voice_captions",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        660,
+        785
+      ],
+      "summary": "Burn animated ASS captions onto video while preserving original voice untouched, with optional face blur and screen overlay.",
+      "tags": [
+        "captions",
+        "ffmpeg",
+        "video-processing",
+        "exported"
       ],
       "complexity": "complex"
     }
@@ -22032,55 +22068,6 @@
       "weight": 1
     },
     {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:_make_test_video",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/video_captions.py",
-      "type": "tests",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
       "source": "file:web/caption_templates.py",
       "target": "function:web/caption_templates.py:normalize_template",
       "type": "contains",
@@ -23586,125 +23573,6 @@
       "weight": 1
     },
     {
-      "source": "function:web/server.py:transcribe_video_captions_endpoint",
-      "target": "function:web/video_captions.py:transcribe_video_speech",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "function:web/server.py:video_voice_captions_endpoint",
-      "target": "function:web/video_captions.py:burn_video_voice_captions",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_ensure_stt_env_loaded",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_get_api_keys",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_probe_video_geometry_and_audio",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:extract_audio_for_stt",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_is_hallucination",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_transcribe_with_groq",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:transcribe_video_speech",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "function:web/video_captions.py:burn_video_voice_captions",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:web/video_captions.py:transcribe_video_speech",
-      "target": "function:web/caption_templates.py:group_words_into_chunks",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "function:web/video_captions.py:burn_video_voice_captions",
-      "target": "function:web/caption_templates.py:prepare_caption_track",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "function:web/video_captions.py:burn_video_voice_captions",
-      "target": "function:web/video_annotator.py:annotate_video",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "function:web/video_captions.py:burn_video_voice_captions",
-      "target": "function:web/face_blur.py:blur_faces_in_video",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
       "source": "file:tests/test_admin_portal_and_security.py",
       "target": "file:web/auth_db.py",
       "type": "imports",
@@ -24617,46 +24485,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/video_captions.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_video_captions.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_video_editor_proxy_montage.py",
       "target": "file:web/video_editor.py",
       "type": "imports",
@@ -24969,22 +24797,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:web/video_captions.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "file:web/video_annotator.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:web/video_montage_mcp.py",
       "target": "file:frame_extractor.py",
       "type": "imports",
@@ -25011,6 +24823,202 @@
     {
       "source": "file:web/vision_analyzer.py",
       "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:_make_test_video",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_ensure_stt_env_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_get_api_keys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_probe_video_geometry_and_audio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:extract_audio_for_stt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_is_hallucination",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_groq",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:transcribe_video_speech",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:burn_video_voice_captions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_refine_chunks_with_gemini_audio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:web/video_captions.py:transcribe_video_speech",
+      "target": "function:web/video_captions.py:_refine_chunks_with_gemini_audio",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/video_captions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,

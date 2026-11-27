@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "2e61fd69f37649d594a7aa7bd3f6f2da11537d31",
-  "generatedAt": "2026-11-27T14:09:32.819Z",
+  "gitCommitHash": "a18df792c2935a1b54c0329d5433f0de6defa396",
+  "generatedAt": "2026-11-27T14:33:10.104Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -8617,7 +8617,7 @@
     },
     "web/caption_templates.py": {
       "filePath": "web/caption_templates.py",
-      "contentHash": "8490261c12e554741ecb0f04dfee710e2e8f2949f96d8986551d9a5050990742",
+      "contentHash": "c4ac049a3e118a439d24ae858ddd4e41b5f99807c552184105d09776c7498d58",
       "functions": [
         {
           "name": "normalize_template",
@@ -8823,7 +8823,7 @@
           ],
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 61
+          "lineCount": 70
         },
         {
           "name": "segments_to_timed_chunks",
@@ -8833,7 +8833,7 @@
           ],
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 24
+          "lineCount": 26
         },
         {
           "name": "_ass_color",
@@ -8918,7 +8918,7 @@
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 185
+          "lineCount": 193
         },
         {
           "name": "write_ass_file",
@@ -9046,7 +9046,7 @@
         "write_ass_file",
         "prepare_caption_track"
       ],
-      "totalLines": 968,
+      "totalLines": 987,
       "hasStructuralAnalysis": true
     },
     "web/pipeline_bridge.py": {
@@ -12412,7 +12412,7 @@
     },
     "tests/test_video_captions.py": {
       "filePath": "tests/test_video_captions.py",
-      "contentHash": "0b7f693dca46ee4e47524800ec6897109e554edf735e42bdad39ae19667d8564",
+      "contentHash": "0530272a27c97135885d09953bec25cfb80079bb940b0c29adb6e21115c9f034",
       "functions": [
         {
           "name": "_make_test_video",
@@ -12429,7 +12429,16 @@
           "name": "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
           "params": [],
           "exported": true,
-          "lineCount": 35
+          "lineCount": 49
+        },
+        {
+          "name": "test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 52
         },
         {
           "name": "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
@@ -12438,7 +12447,7 @@
             "tmp_path"
           ],
           "exported": true,
-          "lineCount": 35
+          "lineCount": 36
         },
         {
           "name": "test_silent_or_no_audio_video_skips_stt_cleanly",
@@ -12528,6 +12537,7 @@
         {
           "source": "web.video_captions",
           "specifiers": [
+            "_refine_chunks_with_gemini_audio",
             "_transcribe_with_groq",
             "burn_video_voice_captions",
             "extract_audio_for_stt",
@@ -12544,17 +12554,18 @@
       "exports": [
         "_make_test_video",
         "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+        "test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
         "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
         "test_silent_or_no_audio_video_skips_stt_cleanly",
         "test_burn_video_voice_captions_preserves_original_audio",
         "test_video_captions_api_endpoints_and_ui_contracts"
       ],
-      "totalLines": 298,
+      "totalLines": 368,
       "hasStructuralAnalysis": true
     },
     "web/video_captions.py": {
       "filePath": "web/video_captions.py",
-      "contentHash": "49fffca2e1ba6a473e2ae412c8fa990ae7d694e163768114ca3b331bb917b5b4",
+      "contentHash": "c65e93db25261c072c77a8a0298269bfa12863c96a3c261143c36c70585e394b",
       "functions": [
         {
           "name": "_ensure_stt_env_loaded",
@@ -12618,7 +12629,7 @@
           ],
           "returnType": "Optional[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 86
+          "lineCount": 89
         },
         {
           "name": "_transcribe_with_local_faster_whisper",
@@ -12643,6 +12654,17 @@
           "lineCount": 79
         },
         {
+          "name": "_refine_chunks_with_gemini_audio",
+          "params": [
+            "audio_mp3",
+            "chunks",
+            "detected_language"
+          ],
+          "returnType": "Tuple[List[Dict[str, Any]], bool]",
+          "exported": true,
+          "lineCount": 103
+        },
+        {
           "name": "transcribe_video_speech",
           "params": [
             "video_path",
@@ -12651,7 +12673,7 @@
           ],
           "returnType": "Dict[str, Any]",
           "exported": true,
-          "lineCount": 59
+          "lineCount": 68
         },
         {
           "name": "burn_video_voice_captions",
@@ -12788,10 +12810,11 @@
         "_transcribe_with_groq",
         "_transcribe_with_local_faster_whisper",
         "_transcribe_with_gemini_acoustic",
+        "_refine_chunks_with_gemini_audio",
         "transcribe_video_speech",
         "burn_video_voice_captions"
       ],
-      "totalLines": 663,
+      "totalLines": 786,
       "hasStructuralAnalysis": true
     }
   }
