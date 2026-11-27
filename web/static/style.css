@@ -2301,7 +2301,8 @@ body {
   flex-wrap: wrap;
 }
 
-.btn-blur-only {
+.btn-blur-only,
+.btn-video-captions-only {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2310,6 +2311,73 @@ body {
   font-size: 0.9rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.capcut-textarea-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.video-caption-editor-wrap {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--lok-soft-well);
+  border: 1px solid var(--lok-border-strong);
+  border-radius: var(--lok-radius-md);
+}
+
+.video-caption-editor-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-caption-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.video-caption-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-caption-time {
+  flex-shrink: 0;
+  min-width: 82px;
+  text-align: center;
+  padding: 5px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--lok-text-muted);
+  background-color: var(--lok-surface);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-sm);
+}
+
+.video-caption-input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--lok-text);
+  background-color: var(--lok-surface);
+  border: 1px solid var(--lok-border);
+  border-radius: var(--lok-radius-sm);
+}
+
+.video-caption-input:focus {
+  outline: none;
+  border-color: var(--lok-ink);
 }
 
 .face-blur-tip-notice {
@@ -4385,6 +4453,7 @@ body {
   }
 
   .btn-blur-only,
+  .btn-video-captions-only,
   .btn-produce-main {
     width: 100%;
     padding: 13px 16px;

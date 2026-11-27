@@ -1821,6 +1821,222 @@ async def blur_faces_only_endpoint(request: Request) -> JSONResponse:
     return JSONResponse(summary, status_code=200)
 
 
+async def transcribe_video_captions_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/captions/transcribe
+    Extract word-timed captions directly from the uploaded video's own speech for
+    optional CapCut-style typo review before burning (does not consume video quota).
+    """
+    try:
+        form = await request.form()
+    except Exception as exc:
+        return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    user = _get_authenticated_user_from_form_or_header(request, form)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب استخراج الكلام تسجيل دخول نشط.",
+            },
+            status_code=401,
+        )
+
+    video_field = form.get("video")
+    if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
+        return JSONResponse({"error": "Missing required 'video' file field in multipart form."}, status_code=400)
+
+    template = form.get("caption_template") or form.get("template")
+    language = form.get("language")
+    suffix = Path(Path(video_field.filename).name).suffix.lower() or ".mp4"
+    tmp_video = UPLOADS_DIR / f"_stt_probe_{uuid.uuid4().hex[:8]}{suffix}"
+
+    try:
+        with open(tmp_video, "wb") as f_out:
+            shutil.copyfileobj(video_field.file, f_out)
+        from web import video_captions as video_captions_mod
+
+        result = await asyncio.to_thread(
+            video_captions_mod.transcribe_video_speech,
+            video_path=tmp_video,
+            template=str(template).strip() if isinstance(template, str) and template.strip() else None,
+            language=str(language).strip() if isinstance(language, str) and language.strip() else None,
+        )
+        return JSONResponse({"status": "ok", **result}, status_code=200)
+    except Exception as exc:
+        logger.exception("Video speech transcription failed: %s", exc)
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": f"تعذر استخراج الكلام من الفيديو: {exc}"},
+            status_code=500,
+        )
+    finally:
+        try:
+            if tmp_video.is_file():
+                tmp_video.unlink()
+        except OSError:
+            pass
+
+
+async def video_voice_captions_endpoint(request: Request) -> JSONResponse:
+    """
+    POST /api/video-captions
+    Standalone CapCut Auto-Captions mode: preserves the person's original voice untouched
+    (no AI TTS overwrite, no unwanted cuts) and burns animated captions synced to their speech.
+    """
+    try:
+        form = await request.form()
+    except Exception as exc:
+        return JSONResponse({"error": f"Invalid multipart form data: {exc}"}, status_code=400)
+
+    user = _get_authenticated_user_from_form_or_header(request, form)
+    if not user:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": "unauthorized",
+                "message": "غير مصرح به. يتطلب تركيب الكابشن تسجيل دخول نشط.",
+            },
+            status_code=401,
+        )
+
+    allowed, reason, quota_details = check_quota(user["id"])
+    if not allowed:
+        return JSONResponse(
+            {
+                "status": "error",
+                "error": reason,
+                "message": reason,
+                "quota_exceeded": True,
+                "quota_details": quota_details,
+            },
+            status_code=403,
+        )
+
+    video_field = form.get("video")
+    if not video_field or not hasattr(video_field, "filename") or not video_field.filename:
+        return JSONResponse({"error": "Missing required 'video' file field in multipart form."}, status_code=400)
+
+    try:
+        caption_opts = _parse_caption_options(form) or {}
+        screen_overlay = _parse_screen_overlay_options(form)
+    except ValueError as val_err:
+        return JSONResponse(
+            {"status": "error", "error": "security_violation", "message": str(val_err)},
+            status_code=400,
+        )
+
+    blur_faces = bool(_parse_optional_bool(form.get("blur_faces") or form.get("optin_blur_faces")))
+    language_raw = form.get("language")
+    language = str(language_raw).strip() if isinstance(language_raw, str) and language_raw.strip() else None
+
+    edited_segments = None
+    raw_segments = form.get("caption_segments")
+    if isinstance(raw_segments, str) and raw_segments.strip():
+        try:
+            parsed_segs = json.loads(raw_segments)
+            if isinstance(parsed_segs, list):
+                edited_segments = parsed_segs
+        except Exception:
+            return JSONResponse({"error": "Invalid JSON in 'caption_segments'."}, status_code=400)
+
+    original_filename = Path(video_field.filename).name
+    clean_suffix = Path(original_filename).suffix.lower() or ".mp4"
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    job_id = f"{timestamp_str}_{uuid.uuid4().hex[:6]}"
+    saved_video_path = UPLOADS_DIR / f"upload_{job_id}{clean_suffix}"
+
+    try:
+        with open(saved_video_path, "wb") as f_out:
+            shutil.copyfileobj(video_field.file, f_out)
+    except Exception as exc:
+        return JSONResponse({"error": f"Failed to save uploaded file: {exc}"}, status_code=500)
+
+    job_sandbox_dir = (OUTPUTS_DIR / "jobs" / job_id / "sandbox").resolve()
+    job_sandbox_dir.mkdir(parents=True, exist_ok=True)
+    sandbox_out_path = job_sandbox_dir / f"cut_{job_id}.mp4"
+    mobile_cuts_dir = OUTPUTS_DIR / "mobile_cuts"
+    mobile_cuts_dir.mkdir(parents=True, exist_ok=True)
+    mirror_cut_path = mobile_cuts_dir / f"cut_{job_id}.mp4"
+
+    try:
+        from web import video_captions as video_captions_mod
+
+        cap_stats = await asyncio.to_thread(
+            video_captions_mod.burn_video_voice_captions,
+            input_video_path=saved_video_path,
+            output_video_path=sandbox_out_path,
+            work_dir=job_sandbox_dir,
+            job_id=job_id,
+            template=caption_opts.get("template") or "karaoke_highlight",
+            position=caption_opts.get("position"),
+            size=caption_opts.get("size"),
+            font_id=caption_opts.get("font"),
+            color_theme=caption_opts.get("color") or caption_opts.get("text_color"),
+            language=language,
+            edited_segments=edited_segments,
+            blur_faces=blur_faces,
+            screen_overlay=screen_overlay,
+        )
+        shutil.copyfile(sandbox_out_path, mirror_cut_path)
+    except Exception as exc:
+        logger.exception("Standalone video captions failed for job %s: %s", job_id, exc)
+        return JSONResponse(
+            {"status": "error", "error": str(exc), "message": f"تعذر تركيب الكابشن على الفيديو: {exc}"},
+            status_code=500,
+        )
+
+    video_web_url = f"/outputs/mobile_cuts/cut_{job_id}.mp4"
+    sandboxed_video_url = f"/outputs/jobs/{job_id}/sandbox/cut_{job_id}.mp4"
+
+    try:
+        record_generation(
+            user_id=user["id"],
+            job_id=job_id,
+            video_url=video_web_url,
+            title=f"كابشن صوت الفيديو — {Path(original_filename).stem}",
+        )
+    except Exception as rec_err:
+        logger.warning("Failed to record video captions generation: %s", rec_err)
+
+    _, _, updated_quotas = check_quota(user["id"])
+    summary: Dict[str, Any] = {
+        "job_id": job_id,
+        "status": "completed",
+        "progress": 100,
+        "progress_percent": 100,
+        "standalone_mode": "video_captions_only",
+        "original_audio_preserved": True,
+        "video_url": video_web_url,
+        "output_video_url": video_web_url,
+        "output_video": video_web_url,
+        "sandboxed_video_url": sandboxed_video_url,
+        "output_path": str(mirror_cut_path),
+        "file_size_bytes": sandbox_out_path.stat().st_size,
+        "duration": cap_stats.get("duration", 0.0),
+        "resolution": cap_stats.get("resolution"),
+        "speech_detected": bool(cap_stats.get("speech_detected")),
+        "stt_engine": cap_stats.get("stt_engine"),
+        "transcript": cap_stats.get("transcript") or "",
+        "animated_captions": cap_stats.get("animated_captions"),
+        "captions_count": int(cap_stats.get("captions_count", 0)),
+        "captions_applied": bool(cap_stats.get("animated_captions")),
+        "blur_faces_enabled": bool(cap_stats.get("blur_faces_enabled")),
+        "blur_faces_applied": bool(cap_stats.get("blur_faces_applied")),
+        "faces_blurred_frames": int(cap_stats.get("faces_blurred_frames", 0)),
+        "screen_overlay": cap_stats.get("screen_overlay"),
+        "user": {
+            "id": user["id"],
+            "username": user.get("username"),
+            "role": user.get("role"),
+            "quotas": updated_quotas,
+        },
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    JOBS_STORE[job_id] = dict(summary)
+    return JSONResponse(summary, status_code=200)
+
+
 async def get_mobile_cut_endpoint(request: Request) -> Response:
     """
     GET /outputs/mobile_cuts/{filename}
@@ -2455,6 +2671,8 @@ routes = [
     Route("/api/overlay-fonts/{font_id}/file", overlay_font_file_endpoint, methods=["GET"]),
     Route("/api/captions/templates", get_caption_templates_endpoint, methods=["GET"]),
     Route("/api/captions/split", split_captions_endpoint, methods=["POST"]),
+    Route("/api/captions/transcribe", transcribe_video_captions_endpoint, methods=["POST"]),
+    Route("/api/video-captions", video_voice_captions_endpoint, methods=["POST"]),
     Route("/api/prompts/history", get_prompts_history_endpoint, methods=["GET"]),
     Route("/api/prompts", create_prompt_endpoint, methods=["POST"]),
     Route("/api/prompts/{prompt_id:int}", delete_prompt_endpoint, methods=["DELETE"]),

@@ -292,15 +292,13 @@ def test_frontend_face_blur_controls_and_notice_present():
     assert 'id="btnToggleFaceBlurOptIn"' in html
     assert 'id="faceBlurTipNotice"' in html
     assert 'id="settingToggleFaceBlur"' in html
-    assert 'id="btnBlurFacesOnly"' in html
+    assert 'id="btnBlurFacesOnly"' not in html
     assert 'id="resultFaceBlurPill"' in html
     assert "أمام الوجه" in html
 
     assert "blurFaces: false" in js
-    assert 'fetch("/api/blur-faces"' in js
     assert 'formData.append("blur_faces"' in js
     assert "resultFaceBlurPill" in js
 
     assert ".face-blur-tip-notice" in css
-    assert ".btn-blur-only" in css
     assert ".result-faceblur-pill" in css

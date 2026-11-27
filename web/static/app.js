@@ -191,7 +191,8 @@
       captions: false,
       music: false,
       timeline: false,
-      blurFaces: false
+      blurFaces: false,
+      videoVoiceCaptions: false
     },
     selectedMusicTrack: "luxury_piano",
     musicTracksCatalog: [],
@@ -203,6 +204,8 @@
     captionSize: "medium",
     captionFont: "cairo_bold",
     captionColor: "default",
+    extractedVideoCaptions: null,
+    extractedVideoCaptionsEngine: "",
     screenOverlay: {
       enabled: false,
       text: "",
@@ -268,7 +271,8 @@
 
     // Action & Processing
     btnProduceVideo: document.getElementById("btnProduceVideo"),
-    btnBlurFacesOnly: document.getElementById("btnBlurFacesOnly"),
+    btnProduceVideoLabel: document.getElementById("btnProduceVideoLabel"),
+    actionBarSubtext: document.getElementById("actionBarSubtext"),
     processingStepper: document.getElementById("processingStepper"),
     stepperStatusText: document.getElementById("stepperStatusText"),
     stepperFill: document.getElementById("stepperFill"),
@@ -327,6 +331,8 @@
     statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
     btnToggleFaceBlurOptIn: document.getElementById("btnToggleFaceBlurOptIn"),
     statusFaceBlurOptIn: document.getElementById("statusFaceBlurOptIn"),
+    btnToggleVideoVoiceCaptionsOptIn: document.getElementById("btnToggleVideoVoiceCaptionsOptIn"),
+    statusVideoVoiceCaptionsOptIn: document.getElementById("statusVideoVoiceCaptionsOptIn"),
     faceBlurTipNotice: document.getElementById("faceBlurTipNotice"),
     musicTrackPickerWrap: document.getElementById("musicTrackPickerWrap"),
     musicTrackSelect: document.getElementById("musicTrackSelect"),
@@ -345,6 +351,7 @@
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
     settingToggleFaceBlur: document.getElementById("settingToggleFaceBlur"),
+    settingToggleVideoVoiceCaptions: document.getElementById("settingToggleVideoVoiceCaptions"),
 
     // Persistent Screen Note / Phone Designer
     btnToggleScreenNoteOptIn: document.getElementById("btnToggleScreenNoteOptIn"),
@@ -393,9 +400,14 @@
     captionSelectedColorLabel: document.getElementById("captionSelectedColorLabel"),
     customCaptionTextarea: document.getElementById("customCaptionTextarea"),
     btnPreviewSmartSplit: document.getElementById("btnPreviewSmartSplit"),
+    btnExtractVideoCaptions: document.getElementById("btnExtractVideoCaptions"),
     capcutSplitPreview: document.getElementById("capcutSplitPreview"),
     splitPreviewEngine: document.getElementById("splitPreviewEngine"),
     splitChunksList: document.getElementById("splitChunksList"),
+    videoCaptionEditorWrap: document.getElementById("videoCaptionEditorWrap"),
+    videoCaptionEngineBadge: document.getElementById("videoCaptionEngineBadge"),
+    videoCaptionRowsList: document.getElementById("videoCaptionRowsList"),
+    btnClearVideoCaptions: document.getElementById("btnClearVideoCaptions"),
 
     // Settings View
     btnSettingsBack: document.getElementById("btnSettingsBack"),
@@ -878,6 +890,10 @@
     }
 
     state.selectedFile = file;
+    state.extractedVideoCaptions = null;
+    state.extractedVideoCaptionsEngine = "";
+    if (dom.videoCaptionEditorWrap) dom.videoCaptionEditorWrap.style.display = "none";
+    if (dom.videoCaptionRowsList) dom.videoCaptionRowsList.innerHTML = "";
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
 
     if (dom.selectedVideoName) dom.selectedVideoName.textContent = file.name;
@@ -1181,6 +1197,7 @@
         state.optIn.music = Boolean(parsed.music);
         state.optIn.timeline = Boolean(parsed.timeline);
         state.optIn.blurFaces = Boolean(parsed.blurFaces);
+        state.optIn.videoVoiceCaptions = Boolean(parsed.videoVoiceCaptions);
       }
     } catch (_) {
       // Keep defaults: false
@@ -1196,7 +1213,14 @@
 
   function setOptInFeature(feature, enabled, notify = true) {
     if (feature in state.optIn) {
-      state.optIn[feature] = Boolean(enabled);
+      const nextVal = Boolean(enabled);
+      state.optIn[feature] = nextVal;
+      // Original-voice video captions and AI-narration subtitles are mutually exclusive
+      if (feature === "videoVoiceCaptions" && nextVal) {
+        state.optIn.captions = false;
+      } else if (feature === "captions" && nextVal) {
+        state.optIn.videoVoiceCaptions = false;
+      }
       saveOptInSettings();
       syncOptInUI();
       if (notify) {
@@ -1204,7 +1228,8 @@
           captions: "ترجمة الكلام المتزامنة",
           music: "الموسيقى التصويرية",
           timeline: "مخطط المشاهد واللقطات",
-          blurFaces: "تعتيم الوجوه تلقائياً"
+          blurFaces: "تعتيم الوجوه تلقائياً",
+          videoVoiceCaptions: "كابشن من صوت الفيديو الأصلي"
         };
         const st = state.optIn[feature] ? "مفعل" : "معطل (الافتراضي)";
         showToast(`${names[feature] || feature}: ${st}`);
@@ -1268,6 +1293,29 @@
     }
     if (dom.faceBlurTipNotice) {
       dom.faceBlurTipNotice.style.display = state.optIn.blurFaces ? "flex" : "none";
+    }
+
+    // 3c. Original-Voice Video Captions Opt-In (single-button smart mode)
+    const isVideoVoiceMode = Boolean(state.optIn.videoVoiceCaptions);
+    if (dom.btnToggleVideoVoiceCaptionsOptIn) {
+      dom.btnToggleVideoVoiceCaptionsOptIn.classList.toggle("active", isVideoVoiceMode);
+      dom.btnToggleVideoVoiceCaptionsOptIn.setAttribute("aria-pressed", isVideoVoiceMode ? "true" : "false");
+    }
+    if (dom.statusVideoVoiceCaptionsOptIn) {
+      dom.statusVideoVoiceCaptionsOptIn.textContent = isVideoVoiceMode ? "مفعل" : "معطل";
+    }
+    if (dom.settingToggleVideoVoiceCaptions) {
+      dom.settingToggleVideoVoiceCaptions.checked = isVideoVoiceMode;
+    }
+    if (dom.btnProduceVideoLabel) {
+      dom.btnProduceVideoLabel.textContent = isVideoVoiceMode
+        ? "تركيب كابشن من صوت الفيديو بنقرة واحدة"
+        : "إنتاج الفيديو التسويقي بنقرة واحدة";
+    }
+    if (dom.actionBarSubtext) {
+      dom.actionBarSubtext.textContent = isVideoVoiceMode
+        ? "يحافظ على صوتك الأصلي 100% مع كابشن متزامن (يدعم تعتيم الوجه ورقم الهاتف)"
+        : "متوسط زمن التنفيذ والرندرة: 25 - 45 ثانية";
     }
 
     // 4. Persistent Screen Note / Phone
@@ -1993,6 +2041,11 @@
         setOptInFeature("blurFaces", !state.optIn.blurFaces);
       });
     }
+    if (dom.btnToggleVideoVoiceCaptionsOptIn) {
+      dom.btnToggleVideoVoiceCaptionsOptIn.addEventListener("click", () => {
+        setOptInFeature("videoVoiceCaptions", !state.optIn.videoVoiceCaptions);
+      });
+    }
 
     // Settings Modal Switches
     if (dom.settingToggleCaptions) {
@@ -2013,6 +2066,11 @@
     if (dom.settingToggleFaceBlur) {
       dom.settingToggleFaceBlur.addEventListener("change", (e) => {
         setOptInFeature("blurFaces", e.target.checked);
+      });
+    }
+    if (dom.settingToggleVideoVoiceCaptions) {
+      dom.settingToggleVideoVoiceCaptions.addEventListener("change", (e) => {
+        setOptInFeature("videoVoiceCaptions", e.target.checked);
       });
     }
   }
@@ -2048,13 +2106,15 @@
   // 7. Video Production Action & Processing Stepper
   // ---------------------------------------------------------------------------
   function setupProductionAction() {
-    const produceHandler = () => handleProduceProduction();
+    const produceHandler = () => {
+      if (state.optIn && state.optIn.videoVoiceCaptions) {
+        return handleAutoVideoCaptions();
+      }
+      return handleProduceProduction();
+    };
 
     if (dom.btnProduceVideo) {
       dom.btnProduceVideo.addEventListener("click", produceHandler);
-    }
-    if (dom.btnBlurFacesOnly) {
-      dom.btnBlurFacesOnly.addEventListener("click", () => handleBlurFacesOnly());
     }
     if (dom.btnProduce) {
       dom.btnProduce.addEventListener("click", produceHandler);
@@ -2066,8 +2126,8 @@
     if (dom.btnRetryProduction) {
       dom.btnRetryProduction.addEventListener("click", () => {
         if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
-        if (state.lastActionMode === "blurOnly") {
-          handleBlurFacesOnly();
+        if (state.lastActionMode === "videoCaptions") {
+          handleAutoVideoCaptions();
         } else {
           handleProduceProduction();
         }
@@ -2325,11 +2385,11 @@
     }
   }
 
-  async function handleBlurFacesOnly() {
-    state.lastActionMode = "blurOnly";
+  async function handleAutoVideoCaptions() {
+    state.lastActionMode = "videoCaptions";
     if (!state.isAuthenticated || !state.currentUser) {
       openLoginModal();
-      showToast("يرجى تسجيل الدخول أولاً لتعتيم الوجوه في الفيديو");
+      showToast("يرجى تسجيل الدخول أولاً لإضافة كابشن من صوت الفيديو");
       return;
     }
     if (!state.selectedFile) {
@@ -2341,6 +2401,38 @@
     const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
     const formData = new FormData();
     formData.append("video", state.selectedFile);
+
+    const tpl = state.selectedCaptionTemplate || "karaoke_highlight";
+    const posVal = (dom.captionPositionSelect?.value || state.captionPosition || "").trim();
+    const sizeVal = (dom.captionSizeSelect?.value || state.captionSize || "medium").trim();
+    const fontVal = (state.captionFont || "").trim();
+    const colorVal = (state.captionColor || "").trim();
+    formData.append("caption_template", tpl);
+    if (posVal) formData.append("caption_position", posVal);
+    if (sizeVal) formData.append("caption_size", sizeVal);
+    if (fontVal) formData.append("caption_font", fontVal);
+    if (colorVal && colorVal !== "default") formData.append("caption_color", colorVal);
+
+    if (Array.isArray(state.extractedVideoCaptions) && state.extractedVideoCaptions.length > 0) {
+      const cleaned = state.extractedVideoCaptions.filter((c) => String(c.text || "").trim());
+      if (cleaned.length > 0) {
+        formData.append("caption_segments", JSON.stringify(cleaned));
+      }
+    }
+
+    if (state.optIn && state.optIn.blurFaces) {
+      formData.append("blur_faces", "true");
+    }
+    if (state.screenOverlay && state.screenOverlay.enabled && String(state.screenOverlay.text || "").trim()) {
+      formData.append("overlay_text", String(state.screenOverlay.text).trim());
+      formData.append("overlay_x_pct", String(state.screenOverlay.x_pct ?? 0.5));
+      formData.append("overlay_y_pct", String(state.screenOverlay.y_pct ?? 0.92));
+      formData.append("overlay_font", state.screenOverlay.font || "cairo_bold");
+      formData.append("overlay_effect", state.screenOverlay.effect || "solid_dark");
+      formData.append("overlay_size", state.screenOverlay.size || "medium");
+      formData.append("overlay_color", state.screenOverlay.text_color || "default");
+    }
+
     if (activeToken) {
       formData.append("token", activeToken);
       formData.append("session_token", activeToken);
@@ -2354,10 +2446,10 @@
     }
 
     startStepper();
-    updateStepperStatus("جاري مسح الفيديو وتعتيم الوجوه تلقائياً مع الحفاظ على الصوت الأصلي...", 45, "stepRender");
+    updateStepperStatus("جاري استخراج كلام الفيديو وتركيب الكابشن مع الحفاظ على صوتك الأصلي 100%...", 45, "stepAnnotations");
 
     try {
-      const resp = await fetch("/api/blur-faces", {
+      const resp = await fetch("/api/video-captions", {
         method: "POST",
         headers,
         credentials: "include",
@@ -2372,11 +2464,11 @@
       }
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
-        throw new Error(err.message || err.error || `تعذر معالجة الفيديو (${resp.status})`);
+        throw new Error(err.message || err.error || `تعذر تركيب الكابشن (${resp.status})`);
       }
 
       const data = await resp.json();
-      updateStepperStatus("تم تجهيز الفيديو بعد تعتيم الوجوه بنجاح!", 100, "stepAnnotations");
+      updateStepperStatus("تم تركيب الكابشن المتزامن مع صوت الفيديو الأصلي بنجاح!", 100, "stepAnnotations");
       finishStepper(true, data);
     } catch (err) {
       finishStepper(false, null, err.message);
@@ -2450,7 +2542,6 @@
       dom.resultVideo.load();
     }
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = true;
-    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = true;
 
     updateStepperStatus("1. جاري استخراج الإطارات وفحص خصائص الفيديو...", 10, "stepFrames");
     animateStepperProgress();
@@ -2573,7 +2664,6 @@
   function finishStepper(success, data, errorMsg) {
     state.isProcessing = false;
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = false;
-    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = false;
     if (dom.processingStepper) dom.processingStepper.style.display = "none";
 
     if (success) {
@@ -2831,6 +2921,10 @@
             dom.resultCaptionsBadge.textContent = captionsCount > 0 ? `${captionsCount} جمل متزامنة` : "متزامن 100%";
             dom.resultCaptionsBadge.style.display = "inline-block";
           }
+          dom.resultCaptionsPill.style.display = "inline-flex";
+        } else if (data && data.standalone_mode === "video_captions_only" && data.speech_detected === false) {
+          dom.resultCaptionsText.textContent = "لم يُرصد كلام واضح في الفيديو — تم الحفاظ على صوتك والفيديو سليماً";
+          if (dom.resultCaptionsBadge) dom.resultCaptionsBadge.style.display = "none";
           dom.resultCaptionsPill.style.display = "inline-flex";
         } else {
           dom.resultCaptionsPill.style.display = "none";
@@ -3230,6 +3324,10 @@
     if (dom.customCaptionTextarea) dom.customCaptionTextarea.value = "";
     if (dom.capcutSplitPreview) dom.capcutSplitPreview.style.display = "none";
     if (dom.splitChunksList) dom.splitChunksList.innerHTML = "";
+    state.extractedVideoCaptions = null;
+    state.extractedVideoCaptionsEngine = "";
+    if (dom.videoCaptionEditorWrap) dom.videoCaptionEditorWrap.style.display = "none";
+    if (dom.videoCaptionRowsList) dom.videoCaptionRowsList.innerHTML = "";
     if (dom.attachedRecIndicator) dom.attachedRecIndicator.style.display = "none";
     dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
     showToast("جاهز لإنتاج فيديو جديد");
@@ -3362,6 +3460,112 @@
         if (val && !state.selectedCaptionTemplate) {
           const defaultCard = dom.captionTemplatesGrid.querySelector('[data-template="karaoke_highlight"]');
           if (defaultCard) defaultCard.click();
+        }
+      });
+    }
+
+    if (dom.btnClearVideoCaptions) {
+      dom.btnClearVideoCaptions.addEventListener("click", () => {
+        state.extractedVideoCaptions = null;
+        state.extractedVideoCaptionsEngine = "";
+        if (dom.videoCaptionEditorWrap) dom.videoCaptionEditorWrap.style.display = "none";
+        if (dom.videoCaptionRowsList) dom.videoCaptionRowsList.innerHTML = "";
+      });
+    }
+
+    if (dom.btnExtractVideoCaptions) {
+      dom.btnExtractVideoCaptions.addEventListener("click", async () => {
+        if (!state.isAuthenticated || !state.currentUser) {
+          openLoginModal();
+          showToast("يرجى تسجيل الدخول أولاً لاستخراج كلام الفيديو");
+          return;
+        }
+        if (!state.selectedFile) {
+          showToast("اختر مقطع فيديو أولاً في الخطوة 1");
+          dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+        const tpl = state.selectedCaptionTemplate || "karaoke_highlight";
+        if (!state.selectedCaptionTemplate && dom.captionTemplatesGrid) {
+          const defaultCard = dom.captionTemplatesGrid.querySelector('[data-template="karaoke_highlight"]');
+          if (defaultCard) defaultCard.click();
+        }
+        const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
+        const fd = new FormData();
+        fd.append("video", state.selectedFile);
+        fd.append("caption_template", tpl);
+        if (activeToken) {
+          fd.append("token", activeToken);
+          fd.append("session_token", activeToken);
+        }
+        const headers = activeToken ? { "Authorization": `Bearer ${activeToken}`, "X-Session-Token": activeToken } : {};
+
+        const origHtml = dom.btnExtractVideoCaptions.innerHTML;
+        dom.btnExtractVideoCaptions.disabled = true;
+        dom.btnExtractVideoCaptions.innerHTML = "<span>جاري استخراج الكلام...</span>";
+        try {
+          const resp = await fetch("/api/captions/transcribe", {
+            method: "POST",
+            headers,
+            credentials: "include",
+            body: fd,
+          });
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok || data.status !== "ok") {
+            throw new Error(data.message || data.error || "تعذر استخراج الكلام من الفيديو.");
+          }
+          const chunks = Array.isArray(data.chunks) ? data.chunks : [];
+          if (!chunks.length) {
+            showToast(data.message || "لم يُرصد كلام واضح في الفيديو.");
+            return;
+          }
+          state.extractedVideoCaptions = chunks.map((c) => ({
+            text: String(c.text || "").trim(),
+            start_sec: Number(c.start_sec || 0),
+            end_sec: Number(c.end_sec || 0),
+            emphasis: c.emphasis || null,
+            words: Array.isArray(c.words) ? c.words : [],
+          }));
+          state.extractedVideoCaptionsEngine = data.engine || "whisper";
+
+          if (dom.videoCaptionEngineBadge) {
+            dom.videoCaptionEngineBadge.textContent = state.extractedVideoCaptionsEngine;
+          }
+          if (dom.videoCaptionRowsList) {
+            dom.videoCaptionRowsList.innerHTML = "";
+            state.extractedVideoCaptions.forEach((item, idx) => {
+              const row = document.createElement("div");
+              row.className = "video-caption-row";
+              const timeBadge = document.createElement("span");
+              timeBadge.className = "video-caption-time";
+              timeBadge.textContent = `${item.start_sec.toFixed(1)}s–${item.end_sec.toFixed(1)}s`;
+              const input = document.createElement("input");
+              input.type = "text";
+              input.className = "video-caption-input";
+              input.value = item.text;
+              input.setAttribute("aria-label", `تعديل نص المقطع ${idx + 1}`);
+              input.addEventListener("input", () => {
+                if (state.extractedVideoCaptions && state.extractedVideoCaptions[idx]) {
+                  state.extractedVideoCaptions[idx].text = input.value;
+                }
+              });
+              row.appendChild(timeBadge);
+              row.appendChild(input);
+              dom.videoCaptionRowsList.appendChild(row);
+            });
+          }
+          if (dom.videoCaptionEditorWrap) {
+            dom.videoCaptionEditorWrap.style.display = "block";
+          }
+          if (!state.optIn.videoVoiceCaptions) {
+            setOptInFeature("videoVoiceCaptions", true, false);
+          }
+          showToast(`تم استخراج ${chunks.length} مقاطع — عدّل أي كلمة ثم اضغط زر التركيب بالأسفل`);
+        } catch (err) {
+          showToast(err.message || "تعذر استخراج كلام الفيديو.");
+        } finally {
+          dom.btnExtractVideoCaptions.disabled = false;
+          dom.btnExtractVideoCaptions.innerHTML = origHtml;
         }
       });
     }

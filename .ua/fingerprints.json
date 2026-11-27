@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "50996b4b0470efc663a151e86014fc8ddac1ea3f",
-  "generatedAt": "2026-11-22T15:58:45.333Z",
+  "gitCommitHash": "ad74ba5a20504f80509952fd9320cdbaf674ec36",
+  "generatedAt": "2026-11-27T14:42:39.997Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -8617,7 +8617,7 @@
     },
     "web/caption_templates.py": {
       "filePath": "web/caption_templates.py",
-      "contentHash": "874dc995d3ae154e4716d70f3c7bfaccff7f475a0134af027285cf6ba5228c2b",
+      "contentHash": "c4ac049a3e118a439d24ae858ddd4e41b5f99807c552184105d09776c7498d58",
       "functions": [
         {
           "name": "normalize_template",
@@ -8802,6 +8802,30 @@
           "lineCount": 56
         },
         {
+          "name": "_normalize_acoustic_words",
+          "params": [
+            "raw_words",
+            "chunk_start",
+            "chunk_end",
+            "expected_tokens"
+          ],
+          "returnType": "Optional[List[Dict[str, Any]]]",
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "group_words_into_chunks",
+          "params": [
+            "words",
+            "template",
+            "total_duration",
+            "pause_threshold"
+          ],
+          "returnType": "List[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 70
+        },
+        {
           "name": "segments_to_timed_chunks",
           "params": [
             "segments",
@@ -8809,7 +8833,7 @@
           ],
           "returnType": "List[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 23
+          "lineCount": 26
         },
         {
           "name": "_ass_color",
@@ -8894,7 +8918,7 @@
           ],
           "returnType": "str",
           "exported": true,
-          "lineCount": 181
+          "lineCount": 193
         },
         {
           "name": "write_ass_file",
@@ -8930,11 +8954,13 @@
             "font_path",
             "font_id",
             "color_theme",
-            "use_ai"
+            "use_ai",
+            "engine_name",
+            "source_label"
           ],
           "returnType": "Optional[Dict[str, Any]]",
           "exported": true,
-          "lineCount": 62
+          "lineCount": 64
         }
       ],
       "classes": [],
@@ -9006,6 +9032,8 @@
         "_word_timings",
         "_snap_to_shots",
         "assign_timings",
+        "_normalize_acoustic_words",
+        "group_words_into_chunks",
         "segments_to_timed_chunks",
         "_ass_color",
         "_inline_color",
@@ -9018,7 +9046,7 @@
         "write_ass_file",
         "prepare_caption_track"
       ],
-      "totalLines": 866,
+      "totalLines": 987,
       "hasStructuralAnalysis": true
     },
     "web/pipeline_bridge.py": {
@@ -9950,7 +9978,7 @@
     },
     "web/server.py": {
       "filePath": "web/server.py",
-      "contentHash": "e65b6c2417c894c1e6baa70ceb82853f80876c56dd3e1b50e5c63d7f9110fbaa",
+      "contentHash": "3098b6c0ec4b449b29e1f2d65e09482123987145cf0110151328d11e59752195",
       "functions": [
         {
           "name": "_ensure_env_loaded",
@@ -10173,6 +10201,24 @@
           "returnType": "JSONResponse",
           "exported": true,
           "lineCount": 118
+        },
+        {
+          "name": "transcribe_video_captions_endpoint",
+          "params": [
+            "request"
+          ],
+          "returnType": "JSONResponse",
+          "exported": true,
+          "lineCount": 55
+        },
+        {
+          "name": "video_voice_captions_endpoint",
+          "params": [
+            "request"
+          ],
+          "returnType": "JSONResponse",
+          "exported": true,
+          "lineCount": 157
         },
         {
           "name": "get_mobile_cut_endpoint",
@@ -10635,6 +10681,8 @@
         "get_job_status",
         "update_job_cuts_text_endpoint",
         "blur_faces_only_endpoint",
+        "transcribe_video_captions_endpoint",
+        "video_voice_captions_endpoint",
         "get_mobile_cut_endpoint",
         "index_page",
         "admin_page",
@@ -10662,7 +10710,7 @@
         "admin_account_logs_endpoint",
         "admin_stats_endpoint"
       ],
-      "totalLines": 2515,
+      "totalLines": 2733,
       "hasStructuralAnalysis": true
     },
     "web/static/README.md": {
@@ -10687,32 +10735,32 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "bd6d7f72846145dc2496029efc1e7d7b3d659f308df445434a02f7c1e287a1c3",
+      "contentHash": "98e9443f9d2cb37897306998356382e8f703083ba1e99c54d8788c7b3aae6ef2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3588,
+      "totalLines": 3792,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "7799f9a2401b33b97ed59d873fcf6365ac2b0a31d942f7c7d80ae9655dd4b79b",
+      "contentHash": "ddc1a930f2f6769ce8cb459bb3ab434df047fda44faf5b7dd21c71e19904287a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1320,
+      "totalLines": 1353,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
       "filePath": "web/static/style.css",
-      "contentHash": "599d426f5b3ae055c44b13e6672abc9691f6efd97173c509442d8230a407507f",
+      "contentHash": "154206a3f5335965632b2fa6cc6b5b73b9e9cd548ea1c7993861e7c8ec8c3850",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 4228,
+      "totalLines": 4534,
       "hasStructuralAnalysis": false
     },
     "web/video_annotator.py": {
@@ -12026,7 +12074,7 @@
     },
     "tests/test_face_blur.py": {
       "filePath": "tests/test_face_blur.py",
-      "contentHash": "dcbb94e0e402037a60491a80b89f5c108c9bcb5b876e4a2f79300c1f39096282",
+      "contentHash": "51f301818a7e2c5012b79043745a137396bcd6a0d065f94de74cb0613d1eef94",
       "functions": [
         {
           "name": "_make_sample_video_with_audio",
@@ -12096,7 +12144,7 @@
           "name": "test_frontend_face_blur_controls_and_notice_present",
           "params": [],
           "exported": true,
-          "lineCount": 20
+          "lineCount": 18
         }
       ],
       "classes": [],
@@ -12190,7 +12238,7 @@
         "test_pipeline_bridge_maybe_apply_face_blur_replaces_cut_before_overlays",
         "test_frontend_face_blur_controls_and_notice_present"
       ],
-      "totalLines": 307,
+      "totalLines": 305,
       "hasStructuralAnalysis": true
     },
     "web/face_blur.py": {
@@ -12360,6 +12408,413 @@
         "blur_faces_in_video"
       ],
       "totalLines": 520,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_video_captions.py": {
+      "filePath": "tests/test_video_captions.py",
+      "contentHash": "41bd41212d0e6f08a42bc22409707741cb5e267af50d4dd167f5cf07fb8624f2",
+      "functions": [
+        {
+          "name": "_make_test_video",
+          "params": [
+            "dest",
+            "with_audio",
+            "duration"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+          "params": [],
+          "exported": true,
+          "lineCount": 49
+        },
+        {
+          "name": "test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "test_silent_or_no_audio_video_skips_stt_cleanly",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_burn_video_voice_captions_preserves_original_audio",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 64
+        },
+        {
+          "name": "test_video_captions_api_endpoints_and_ui_contracts",
+          "params": [
+            "monkeypatch",
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 97
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "types",
+          "specifiers": [
+            "SimpleNamespace"
+          ]
+        },
+        {
+          "source": "starlette.testclient",
+          "specifiers": [
+            "TestClient"
+          ]
+        },
+        {
+          "source": "web.auth_db",
+          "specifiers": [
+            "init_db"
+          ]
+        },
+        {
+          "source": "web.caption_templates",
+          "specifiers": [
+            "build_ass_document",
+            "group_words_into_chunks",
+            "segments_to_timed_chunks"
+          ]
+        },
+        {
+          "source": "web.server",
+          "specifiers": [
+            "app"
+          ]
+        },
+        {
+          "source": "web.video_captions",
+          "specifiers": [
+            "_refine_chunks_with_gemini_audio",
+            "_transcribe_with_groq",
+            "burn_video_voice_captions",
+            "extract_audio_for_stt",
+            "transcribe_video_speech"
+          ]
+        },
+        {
+          "source": "web.video_editor",
+          "specifiers": [
+            "probe_video_stream"
+          ]
+        }
+      ],
+      "exports": [
+        "_make_test_video",
+        "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+        "test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings",
+        "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+        "test_silent_or_no_audio_video_skips_stt_cleanly",
+        "test_burn_video_voice_captions_preserves_original_audio",
+        "test_video_captions_api_endpoints_and_ui_contracts"
+      ],
+      "totalLines": 372,
+      "hasStructuralAnalysis": true
+    },
+    "web/video_captions.py": {
+      "filePath": "web/video_captions.py",
+      "contentHash": "c65e93db25261c072c77a8a0298269bfa12863c96a3c261143c36c70585e394b",
+      "functions": [
+        {
+          "name": "_ensure_stt_env_loaded",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "_get_api_keys",
+          "params": [],
+          "returnType": "List[str]",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "_probe_video_geometry_and_audio",
+          "params": [
+            "video_path"
+          ],
+          "returnType": "Dict[str, Any]",
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "extract_audio_for_stt",
+          "params": [
+            "video_path",
+            "out_mp3"
+          ],
+          "returnType": "Tuple[Optional[Path], float]",
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "_detect_speech_intervals_ffmpeg",
+          "params": [
+            "audio_path",
+            "total_duration"
+          ],
+          "returnType": "List[Tuple[float, float]]",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "_is_hallucination",
+          "params": [
+            "text",
+            "no_speech_prob"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_transcribe_with_groq",
+          "params": [
+            "audio_mp3",
+            "total_duration",
+            "language"
+          ],
+          "returnType": "Optional[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 89
+        },
+        {
+          "name": "_transcribe_with_local_faster_whisper",
+          "params": [
+            "audio_mp3",
+            "total_duration",
+            "language"
+          ],
+          "returnType": "Optional[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "_transcribe_with_gemini_acoustic",
+          "params": [
+            "audio_mp3",
+            "total_duration",
+            "language"
+          ],
+          "returnType": "Optional[Dict[str, Any]]",
+          "exported": true,
+          "lineCount": 79
+        },
+        {
+          "name": "_refine_chunks_with_gemini_audio",
+          "params": [
+            "audio_mp3",
+            "chunks",
+            "detected_language"
+          ],
+          "returnType": "Tuple[List[Dict[str, Any]], bool]",
+          "exported": true,
+          "lineCount": 103
+        },
+        {
+          "name": "transcribe_video_speech",
+          "params": [
+            "video_path",
+            "template",
+            "language"
+          ],
+          "returnType": "Dict[str, Any]",
+          "exported": true,
+          "lineCount": 68
+        },
+        {
+          "name": "burn_video_voice_captions",
+          "params": [
+            "input_video_path",
+            "output_video_path",
+            "work_dir",
+            "job_id",
+            "template",
+            "position",
+            "size",
+            "font_id",
+            "color_theme",
+            "language",
+            "edited_segments",
+            "blur_faces",
+            "screen_overlay"
+          ],
+          "returnType": "Dict[str, Any]",
+          "exported": true,
+          "lineCount": 126
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "base64",
+          "specifiers": [
+            "base64"
+          ]
+        },
+        {
+          "source": "importlib.util",
+          "specifiers": [
+            "importlib.util"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "tempfile",
+          "specifiers": [
+            "tempfile"
+          ]
+        },
+        {
+          "source": "threading",
+          "specifiers": [
+            "threading"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Dict",
+            "List",
+            "Optional",
+            "Tuple",
+            "Union"
+          ]
+        },
+        {
+          "source": "requests",
+          "specifiers": [
+            "requests"
+          ]
+        },
+        {
+          "source": "web.caption_templates",
+          "specifiers": [
+            "DEFAULT_TEMPLATE",
+            "group_words_into_chunks",
+            "normalize_template",
+            "prepare_caption_track",
+            "segments_to_timed_chunks"
+          ]
+        },
+        {
+          "source": "web.video_annotator",
+          "specifiers": [
+            "annotate_video",
+            "find_system_font"
+          ]
+        }
+      ],
+      "exports": [
+        "_ensure_stt_env_loaded",
+        "_get_api_keys",
+        "_probe_video_geometry_and_audio",
+        "extract_audio_for_stt",
+        "_detect_speech_intervals_ffmpeg",
+        "_is_hallucination",
+        "_transcribe_with_groq",
+        "_transcribe_with_local_faster_whisper",
+        "_transcribe_with_gemini_acoustic",
+        "_refine_chunks_with_gemini_audio",
+        "transcribe_video_speech",
+        "burn_video_voice_captions"
+      ],
+      "totalLines": 786,
       "hasStructuralAnalysis": true
     }
   }
