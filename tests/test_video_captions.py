@@ -353,15 +353,19 @@ def test_video_captions_api_endpoints_and_ui_contracts(monkeypatch, tmp_path: Pa
     assert captured["blur_faces"] is True
     assert len(captured["edited_segments"]) == 1
 
-    # UI wiring assertions
+    # UI wiring assertions (Opt-In inside Section 2 + single clean Generate CTA)
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     js = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
     css = (STATIC_DIR / "style.css").read_text(encoding="utf-8")
+    assert 'id="btnToggleVideoVoiceCaptionsOptIn"' in html
+    assert 'id="settingToggleVideoVoiceCaptions"' in html
     assert 'id="btnExtractVideoCaptions"' in html
     assert 'id="videoCaptionEditorWrap"' in html
-    assert 'id="btnAutoVideoCaptions"' in html
+    assert 'id="btnAutoVideoCaptions"' not in html
+    assert 'id="btnBlurFacesOnly"' not in html
+    assert 'id="btnProduceVideo"' in html
     assert 'fetch("/api/captions/transcribe"' in js
     assert 'fetch("/api/video-captions"' in js
+    assert "videoVoiceCaptions" in js
     assert "extractedVideoCaptions" in js
-    assert ".btn-video-captions-only" in css
     assert ".video-caption-editor-wrap" in css

@@ -191,7 +191,8 @@
       captions: false,
       music: false,
       timeline: false,
-      blurFaces: false
+      blurFaces: false,
+      videoVoiceCaptions: false
     },
     selectedMusicTrack: "luxury_piano",
     musicTracksCatalog: [],
@@ -270,8 +271,8 @@
 
     // Action & Processing
     btnProduceVideo: document.getElementById("btnProduceVideo"),
-    btnBlurFacesOnly: document.getElementById("btnBlurFacesOnly"),
-    btnAutoVideoCaptions: document.getElementById("btnAutoVideoCaptions"),
+    btnProduceVideoLabel: document.getElementById("btnProduceVideoLabel"),
+    actionBarSubtext: document.getElementById("actionBarSubtext"),
     processingStepper: document.getElementById("processingStepper"),
     stepperStatusText: document.getElementById("stepperStatusText"),
     stepperFill: document.getElementById("stepperFill"),
@@ -330,6 +331,8 @@
     statusTimelineOptIn: document.getElementById("statusTimelineOptIn"),
     btnToggleFaceBlurOptIn: document.getElementById("btnToggleFaceBlurOptIn"),
     statusFaceBlurOptIn: document.getElementById("statusFaceBlurOptIn"),
+    btnToggleVideoVoiceCaptionsOptIn: document.getElementById("btnToggleVideoVoiceCaptionsOptIn"),
+    statusVideoVoiceCaptionsOptIn: document.getElementById("statusVideoVoiceCaptionsOptIn"),
     faceBlurTipNotice: document.getElementById("faceBlurTipNotice"),
     musicTrackPickerWrap: document.getElementById("musicTrackPickerWrap"),
     musicTrackSelect: document.getElementById("musicTrackSelect"),
@@ -348,6 +351,7 @@
     settingToggleMusic: document.getElementById("settingToggleMusic"),
     settingToggleTimeline: document.getElementById("settingToggleTimeline"),
     settingToggleFaceBlur: document.getElementById("settingToggleFaceBlur"),
+    settingToggleVideoVoiceCaptions: document.getElementById("settingToggleVideoVoiceCaptions"),
 
     // Persistent Screen Note / Phone Designer
     btnToggleScreenNoteOptIn: document.getElementById("btnToggleScreenNoteOptIn"),
@@ -1193,6 +1197,7 @@
         state.optIn.music = Boolean(parsed.music);
         state.optIn.timeline = Boolean(parsed.timeline);
         state.optIn.blurFaces = Boolean(parsed.blurFaces);
+        state.optIn.videoVoiceCaptions = Boolean(parsed.videoVoiceCaptions);
       }
     } catch (_) {
       // Keep defaults: false
@@ -1208,7 +1213,14 @@
 
   function setOptInFeature(feature, enabled, notify = true) {
     if (feature in state.optIn) {
-      state.optIn[feature] = Boolean(enabled);
+      const nextVal = Boolean(enabled);
+      state.optIn[feature] = nextVal;
+      // Original-voice video captions and AI-narration subtitles are mutually exclusive
+      if (feature === "videoVoiceCaptions" && nextVal) {
+        state.optIn.captions = false;
+      } else if (feature === "captions" && nextVal) {
+        state.optIn.videoVoiceCaptions = false;
+      }
       saveOptInSettings();
       syncOptInUI();
       if (notify) {
@@ -1216,7 +1228,8 @@
           captions: "ترجمة الكلام المتزامنة",
           music: "الموسيقى التصويرية",
           timeline: "مخطط المشاهد واللقطات",
-          blurFaces: "تعتيم الوجوه تلقائياً"
+          blurFaces: "تعتيم الوجوه تلقائياً",
+          videoVoiceCaptions: "كابشن من صوت الفيديو الأصلي"
         };
         const st = state.optIn[feature] ? "مفعل" : "معطل (الافتراضي)";
         showToast(`${names[feature] || feature}: ${st}`);
@@ -1280,6 +1293,29 @@
     }
     if (dom.faceBlurTipNotice) {
       dom.faceBlurTipNotice.style.display = state.optIn.blurFaces ? "flex" : "none";
+    }
+
+    // 3c. Original-Voice Video Captions Opt-In (single-button smart mode)
+    const isVideoVoiceMode = Boolean(state.optIn.videoVoiceCaptions);
+    if (dom.btnToggleVideoVoiceCaptionsOptIn) {
+      dom.btnToggleVideoVoiceCaptionsOptIn.classList.toggle("active", isVideoVoiceMode);
+      dom.btnToggleVideoVoiceCaptionsOptIn.setAttribute("aria-pressed", isVideoVoiceMode ? "true" : "false");
+    }
+    if (dom.statusVideoVoiceCaptionsOptIn) {
+      dom.statusVideoVoiceCaptionsOptIn.textContent = isVideoVoiceMode ? "مفعل" : "معطل";
+    }
+    if (dom.settingToggleVideoVoiceCaptions) {
+      dom.settingToggleVideoVoiceCaptions.checked = isVideoVoiceMode;
+    }
+    if (dom.btnProduceVideoLabel) {
+      dom.btnProduceVideoLabel.textContent = isVideoVoiceMode
+        ? "تركيب كابشن من صوت الفيديو بنقرة واحدة"
+        : "إنتاج الفيديو التسويقي بنقرة واحدة";
+    }
+    if (dom.actionBarSubtext) {
+      dom.actionBarSubtext.textContent = isVideoVoiceMode
+        ? "يحافظ على صوتك الأصلي 100% مع كابشن متزامن (يدعم تعتيم الوجه ورقم الهاتف)"
+        : "متوسط زمن التنفيذ والرندرة: 25 - 45 ثانية";
     }
 
     // 4. Persistent Screen Note / Phone
@@ -2005,6 +2041,11 @@
         setOptInFeature("blurFaces", !state.optIn.blurFaces);
       });
     }
+    if (dom.btnToggleVideoVoiceCaptionsOptIn) {
+      dom.btnToggleVideoVoiceCaptionsOptIn.addEventListener("click", () => {
+        setOptInFeature("videoVoiceCaptions", !state.optIn.videoVoiceCaptions);
+      });
+    }
 
     // Settings Modal Switches
     if (dom.settingToggleCaptions) {
@@ -2025,6 +2066,11 @@
     if (dom.settingToggleFaceBlur) {
       dom.settingToggleFaceBlur.addEventListener("change", (e) => {
         setOptInFeature("blurFaces", e.target.checked);
+      });
+    }
+    if (dom.settingToggleVideoVoiceCaptions) {
+      dom.settingToggleVideoVoiceCaptions.addEventListener("change", (e) => {
+        setOptInFeature("videoVoiceCaptions", e.target.checked);
       });
     }
   }
@@ -2060,16 +2106,15 @@
   // 7. Video Production Action & Processing Stepper
   // ---------------------------------------------------------------------------
   function setupProductionAction() {
-    const produceHandler = () => handleProduceProduction();
+    const produceHandler = () => {
+      if (state.optIn && state.optIn.videoVoiceCaptions) {
+        return handleAutoVideoCaptions();
+      }
+      return handleProduceProduction();
+    };
 
     if (dom.btnProduceVideo) {
       dom.btnProduceVideo.addEventListener("click", produceHandler);
-    }
-    if (dom.btnBlurFacesOnly) {
-      dom.btnBlurFacesOnly.addEventListener("click", () => handleBlurFacesOnly());
-    }
-    if (dom.btnAutoVideoCaptions) {
-      dom.btnAutoVideoCaptions.addEventListener("click", () => handleAutoVideoCaptions());
     }
     if (dom.btnProduce) {
       dom.btnProduce.addEventListener("click", produceHandler);
@@ -2081,9 +2126,7 @@
     if (dom.btnRetryProduction) {
       dom.btnRetryProduction.addEventListener("click", () => {
         if (dom.studioErrorBox) dom.studioErrorBox.style.display = "none";
-        if (state.lastActionMode === "blurOnly") {
-          handleBlurFacesOnly();
-        } else if (state.lastActionMode === "videoCaptions") {
+        if (state.lastActionMode === "videoCaptions") {
           handleAutoVideoCaptions();
         } else {
           handleProduceProduction();
@@ -2342,64 +2385,6 @@
     }
   }
 
-  async function handleBlurFacesOnly() {
-    state.lastActionMode = "blurOnly";
-    if (!state.isAuthenticated || !state.currentUser) {
-      openLoginModal();
-      showToast("يرجى تسجيل الدخول أولاً لتعتيم الوجوه في الفيديو");
-      return;
-    }
-    if (!state.selectedFile) {
-      showToast("يرجى تسجيل أو اختيار مقطع فيديو أولاً");
-      dom.videoDropzone?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-
-    const activeToken = state.sessionToken || (state.currentUser && state.currentUser.token) || getStoredSessionToken() || "";
-    const formData = new FormData();
-    formData.append("video", state.selectedFile);
-    if (activeToken) {
-      formData.append("token", activeToken);
-      formData.append("session_token", activeToken);
-      formData.append("auth_token", activeToken);
-    }
-
-    const headers = {};
-    if (activeToken) {
-      headers["Authorization"] = `Bearer ${activeToken}`;
-      headers["X-Session-Token"] = activeToken;
-    }
-
-    startStepper();
-    updateStepperStatus("جاري مسح الفيديو وتعتيم الوجوه تلقائياً مع الحفاظ على الصوت الأصلي...", 45, "stepRender");
-
-    try {
-      const resp = await fetch("/api/blur-faces", {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: formData,
-      });
-
-      if (resp.status === 401) {
-        throw new Error("جلسة العمل منتهية أو غير مصرح بها. يرجى تسجيل الدخول مجدداً.");
-      }
-      if (resp.status === 403) {
-        throw new Error("الحساب معطل أو تم استنفاد الحصة المسموحة.");
-      }
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.message || err.error || `تعذر معالجة الفيديو (${resp.status})`);
-      }
-
-      const data = await resp.json();
-      updateStepperStatus("تم تجهيز الفيديو بعد تعتيم الوجوه بنجاح!", 100, "stepAnnotations");
-      finishStepper(true, data);
-    } catch (err) {
-      finishStepper(false, null, err.message);
-    }
-  }
-
   async function handleAutoVideoCaptions() {
     state.lastActionMode = "videoCaptions";
     if (!state.isAuthenticated || !state.currentUser) {
@@ -2557,8 +2542,6 @@
       dom.resultVideo.load();
     }
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = true;
-    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = true;
-    if (dom.btnAutoVideoCaptions) dom.btnAutoVideoCaptions.disabled = true;
 
     updateStepperStatus("1. جاري استخراج الإطارات وفحص خصائص الفيديو...", 10, "stepFrames");
     animateStepperProgress();
@@ -2681,8 +2664,6 @@
   function finishStepper(success, data, errorMsg) {
     state.isProcessing = false;
     if (dom.btnProduceVideo) dom.btnProduceVideo.disabled = false;
-    if (dom.btnBlurFacesOnly) dom.btnBlurFacesOnly.disabled = false;
-    if (dom.btnAutoVideoCaptions) dom.btnAutoVideoCaptions.disabled = false;
     if (dom.processingStepper) dom.processingStepper.style.display = "none";
 
     if (success) {
@@ -3576,7 +3557,10 @@
           if (dom.videoCaptionEditorWrap) {
             dom.videoCaptionEditorWrap.style.display = "block";
           }
-          showToast(`تم استخراج ${chunks.length} مقاطع — عدّل أي كلمة ثم اضغط «كابشن من صوت الفيديو فقط»`);
+          if (!state.optIn.videoVoiceCaptions) {
+            setOptInFeature("videoVoiceCaptions", true, false);
+          }
+          showToast(`تم استخراج ${chunks.length} مقاطع — عدّل أي كلمة ثم اضغط زر التركيب بالأسفل`);
         } catch (err) {
           showToast(err.message || "تعذر استخراج كلام الفيديو.");
         } finally {
