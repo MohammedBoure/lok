@@ -22,8 +22,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-27T14:33:07.948Z",
-    "gitCommitHash": "a18df792c2935a1b54c0329d5433f0de6defa396"
+    "analyzedAt": "2026-11-27T14:42:39.750Z",
+    "gitCommitHash": "ad74ba5a20504f80509952fd9320cdbaf674ec36"
   },
   "nodes": [
     {
@@ -12305,20 +12305,6 @@
       "complexity": "simple"
     },
     {
-      "id": "file:web/static/index.html",
-      "type": "file",
-      "name": "index.html",
-      "filePath": "web/static/index.html",
-      "summary": "Main Lok AI Studio RTL Arabic single-page HTML interface for upload, prompt directives, opt-in toggles, timeline editor, and preview.",
-      "tags": [
-        "frontend",
-        "html",
-        "ui",
-        "rtl-arabic"
-      ],
-      "complexity": "complex"
-    },
-    {
       "id": "file:web/static/style.css",
       "type": "file",
       "name": "style.css",
@@ -12684,6 +12670,21 @@
         "exported"
       ],
       "complexity": "complex"
+    },
+    {
+      "id": "file:web/static/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "web/static/index.html",
+      "summary": "Single-page RTL web studio HTML for LOK AI video marketing with a symmetric 6-toggle Section 2 opt-in grid (captions, video-voice captions, music, timeline, persistent phone note, face blur), Section 3 CapCut template studio with editable transcript review, and a single 1-click generate button.",
+      "tags": [
+        "markup",
+        "ui",
+        "studio",
+        "captions",
+        "privacy"
+      ],
+      "complexity": "moderate"
     }
   ],
   "edges": [
@@ -23765,46 +23766,6 @@
       "recoveredFromImportMap": true
     },
     {
-      "source": "file:tests/test_face_blur.py",
-      "target": "file:web/auth_db.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_face_blur.py",
-      "target": "file:web/face_blur.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_face_blur.py",
-      "target": "file:web/pipeline_bridge.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_face_blur.py",
-      "target": "file:web/server.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:tests/test_face_blur.py",
-      "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
       "source": "file:tests/test_five_user_issues_verification.py",
       "target": "file:config/production_principles_manager.py",
       "type": "imports",
@@ -24969,6 +24930,62 @@
       "weight": 0.9
     },
     {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_face_blur.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_face_blur.py",
+      "target": "file:web/face_blur.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_face_blur.py",
+      "target": "file:web/pipeline_bridge.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_face_blur.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_face_blur.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
       "source": "file:tests/test_video_captions.py",
       "target": "file:web/auth_db.py",
       "type": "imports",
@@ -25003,22 +25020,6 @@
     {
       "source": "file:tests/test_video_captions.py",
       "target": "file:web/video_editor.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "file:web/caption_templates.py",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7,
-      "recoveredFromImportMap": true
-    },
-    {
-      "source": "file:web/video_captions.py",
-      "target": "file:web/video_annotator.py",
       "type": "imports",
       "direction": "forward",
       "weight": 0.7,

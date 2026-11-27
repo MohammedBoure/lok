@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "a18df792c2935a1b54c0329d5433f0de6defa396",
-  "generatedAt": "2026-11-27T14:33:10.104Z",
+  "gitCommitHash": "ad74ba5a20504f80509952fd9320cdbaf674ec36",
+  "generatedAt": "2026-11-27T14:42:39.997Z",
   "files": {
     ".agent/README.md": {
       "filePath": ".agent/README.md",
@@ -10735,22 +10735,22 @@
     },
     "web/static/app.js": {
       "filePath": "web/static/app.js",
-      "contentHash": "9c54f56fec2406d986e0ba2d819b952550e0171debdd268cec459e10c0560ed8",
+      "contentHash": "98e9443f9d2cb37897306998356382e8f703083ba1e99c54d8788c7b3aae6ef2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 3808,
+      "totalLines": 3792,
       "hasStructuralAnalysis": true
     },
     "web/static/index.html": {
       "filePath": "web/static/index.html",
-      "contentHash": "aa6abdf41e4d86a3ff6f51e11efd9c64bef0b592d1df428aa584c08f8d907ad2",
+      "contentHash": "ddc1a930f2f6769ce8cb459bb3ab434df047fda44faf5b7dd21c71e19904287a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 1342,
+      "totalLines": 1353,
       "hasStructuralAnalysis": false
     },
     "web/static/style.css": {
@@ -12074,7 +12074,7 @@
     },
     "tests/test_face_blur.py": {
       "filePath": "tests/test_face_blur.py",
-      "contentHash": "dcbb94e0e402037a60491a80b89f5c108c9bcb5b876e4a2f79300c1f39096282",
+      "contentHash": "51f301818a7e2c5012b79043745a137396bcd6a0d065f94de74cb0613d1eef94",
       "functions": [
         {
           "name": "_make_sample_video_with_audio",
@@ -12144,7 +12144,7 @@
           "name": "test_frontend_face_blur_controls_and_notice_present",
           "params": [],
           "exported": true,
-          "lineCount": 20
+          "lineCount": 18
         }
       ],
       "classes": [],
@@ -12238,7 +12238,7 @@
         "test_pipeline_bridge_maybe_apply_face_blur_replaces_cut_before_overlays",
         "test_frontend_face_blur_controls_and_notice_present"
       ],
-      "totalLines": 307,
+      "totalLines": 305,
       "hasStructuralAnalysis": true
     },
     "web/face_blur.py": {
@@ -12412,7 +12412,7 @@
     },
     "tests/test_video_captions.py": {
       "filePath": "tests/test_video_captions.py",
-      "contentHash": "0530272a27c97135885d09953bec25cfb80079bb940b0c29adb6e21115c9f034",
+      "contentHash": "41bd41212d0e6f08a42bc22409707741cb5e267af50d4dd167f5cf07fb8624f2",
       "functions": [
         {
           "name": "_make_test_video",
@@ -12473,7 +12473,7 @@
             "tmp_path"
           ],
           "exported": true,
-          "lineCount": 93
+          "lineCount": 97
         }
       ],
       "classes": [],
@@ -12560,7 +12560,7 @@
         "test_burn_video_voice_captions_preserves_original_audio",
         "test_video_captions_api_endpoints_and_ui_contracts"
       ],
-      "totalLines": 368,
+      "totalLines": 372,
       "hasStructuralAnalysis": true
     },
     "web/video_captions.py": {
