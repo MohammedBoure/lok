@@ -22,8 +22,8 @@
       "Gemini API"
     ],
     "description": "Autonomous AI video post-production and real estate studio web platform combining Starlette/ASGI web backend, Gemini vision/TTS/live pipelines, FFmpeg montage, MCP tooling, and vanilla JS studio UI. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
-    "analyzedAt": "2026-11-22T15:58:42.460Z",
-    "gitCommitHash": "50996b4b0470efc663a151e86014fc8ddac1ea3f"
+    "analyzedAt": "2026-11-27T14:09:28.030Z",
+    "gitCommitHash": "2e61fd69f37649d594a7aa7bd3f6f2da11537d31"
   },
   "nodes": [
     {
@@ -9321,530 +9321,6 @@
       "complexity": "complex"
     },
     {
-      "id": "file:web/caption_templates.py",
-      "type": "file",
-      "name": "caption_templates.py",
-      "filePath": "web/caption_templates.py",
-      "summary": "CapCut-style animated ASS caption engine supporting AI/heuristic text splitting and word-level karaoke/bounce/typewriter styles.",
-      "tags": [
-        "captions",
-        "ass-subtitles",
-        "animation",
-        "service"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/caption_templates.py:normalize_template",
-      "type": "function",
-      "name": "normalize_template",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        129,
-        131
-      ],
-      "summary": "Function normalize_template in caption_templates.py (3 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:normalize_position",
-      "type": "function",
-      "name": "normalize_position",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        134,
-        140
-      ],
-      "summary": "Function normalize_position in caption_templates.py (7 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:normalize_size",
-      "type": "function",
-      "name": "normalize_size",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        143,
-        145
-      ],
-      "summary": "Function normalize_size in caption_templates.py (3 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:normalize_caption_color",
-      "type": "function",
-      "name": "normalize_caption_color",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        148,
-        154
-      ],
-      "summary": "Function normalize_caption_color in caption_templates.py (7 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:list_caption_colors",
-      "type": "function",
-      "name": "list_caption_colors",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        157,
-        167
-      ],
-      "summary": "Function list_caption_colors in caption_templates.py (11 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:list_caption_templates",
-      "type": "function",
-      "name": "list_caption_templates",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        170,
-        181
-      ],
-      "summary": "Function list_caption_templates in caption_templates.py (12 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_clean_text",
-      "type": "function",
-      "name": "_clean_text",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        188,
-        192
-      ],
-      "summary": "Function _clean_text in caption_templates.py (5 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_is_numberish",
-      "type": "function",
-      "name": "_is_numberish",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        195,
-        196
-      ],
-      "summary": "Function _is_numberish in caption_templates.py (2 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_bare",
-      "type": "function",
-      "name": "_bare",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        199,
-        200
-      ],
-      "summary": "Function _bare in caption_templates.py (2 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "function",
-      "name": "_pick_emphasis",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        203,
-        212
-      ],
-      "summary": "Function _pick_emphasis in caption_templates.py (10 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_balanced_split",
-      "type": "function",
-      "name": "_balanced_split",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        215,
-        251
-      ],
-      "summary": "Split a long clause into balanced chunks, preferring breaks before connectors.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:heuristic_split",
-      "type": "function",
-      "name": "heuristic_split",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        254,
-        284
-      ],
-      "summary": "Punctuation + connector aware splitting used when AI is unavailable.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_gemini_api_key",
-      "type": "function",
-      "name": "_gemini_api_key",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        287,
-        294
-      ],
-      "summary": "Function _gemini_api_key in caption_templates.py (8 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:ai_split",
-      "type": "function",
-      "name": "ai_split",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        297,
-        374
-      ],
-      "summary": "Ask Gemini to split the text into caption chunks. Returns None on any failure.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/caption_templates.py:smart_split_text",
-      "type": "function",
-      "name": "smart_split_text",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        377,
-        391
-      ],
-      "summary": "Split customer text into caption chunks (AI first, heuristic fallback).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_reading_seconds",
-      "type": "function",
-      "name": "_reading_seconds",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        398,
-        401
-      ],
-      "summary": "Function _reading_seconds in caption_templates.py (4 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_word_timings",
-      "type": "function",
-      "name": "_word_timings",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        404,
-        416
-      ],
-      "summary": "Function _word_timings in caption_templates.py (13 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_snap_to_shots",
-      "type": "function",
-      "name": "_snap_to_shots",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        419,
-        426
-      ],
-      "summary": "Function _snap_to_shots in caption_templates.py (8 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:assign_timings",
-      "type": "function",
-      "name": "assign_timings",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        429,
-        484
-      ],
-      "summary": "Distribute chunks across the video using reading speed, snapping starts to shot cuts.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "type": "function",
-      "name": "segments_to_timed_chunks",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        487,
-        509
-      ],
-      "summary": "Convert already-timed subtitle segments (e.g. narration captions) into timed chunks.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_ass_color",
-      "type": "function",
-      "name": "_ass_color",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        516,
-        519
-      ],
-      "summary": "Function _ass_color in caption_templates.py (4 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_inline_color",
-      "type": "function",
-      "name": "_inline_color",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        522,
-        524
-      ],
-      "summary": "Function _inline_color in caption_templates.py (3 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_ass_time",
-      "type": "function",
-      "name": "_ass_time",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        527,
-        533
-      ],
-      "summary": "Function _ass_time in caption_templates.py (7 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_ass_escape",
-      "type": "function",
-      "name": "_ass_escape",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        536,
-        537
-      ],
-      "summary": "Function _ass_escape in caption_templates.py (2 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:font_family_for_ass",
-      "type": "function",
-      "name": "font_family_for_ass",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        540,
-        576
-      ],
-      "summary": "Function font_family_for_ass in caption_templates.py (37 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_anchor",
-      "type": "function",
-      "name": "_anchor",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        579,
-        580
-      ],
-      "summary": "Function _anchor in caption_templates.py (2 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:_anchor_xy",
-      "type": "function",
-      "name": "_anchor_xy",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        583,
-        588
-      ],
-      "summary": "Function _anchor_xy in caption_templates.py (6 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:build_ass_document",
-      "type": "function",
-      "name": "build_ass_document",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        591,
-        771
-      ],
-      "summary": "Render timed chunks into a complete .ass document for the chosen animated template, font, and color.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/caption_templates.py:write_ass_file",
-      "type": "function",
-      "name": "write_ass_file",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        774,
-        801
-      ],
-      "summary": "Function write_ass_file in caption_templates.py (28 lines).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/caption_templates.py:prepare_caption_track",
-      "type": "function",
-      "name": "prepare_caption_track",
-      "filePath": "web/caption_templates.py",
-      "lineRange": [
-        804,
-        865
-      ],
-      "summary": "High level helper used by the pipeline. - custom_text: customer typed text -> smart split + calculated timings. - segments: already-timed narration captions -> styled with the template. Returns metadata dict...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
       "id": "file:web/video_annotator.py",
       "type": "file",
       "name": "video_annotator.py",
@@ -10259,838 +9735,6 @@
         "dashboard"
       ],
       "complexity": "complex"
-    },
-    {
-      "id": "file:web/server.py",
-      "type": "file",
-      "name": "server.py",
-      "filePath": "web/server.py",
-      "summary": "Starlette ASGI web server providing studio UI static hosting, SaaS auth routes, async montage jobs, SSE/polling progress, and media streaming.",
-      "tags": [
-        "api-handler",
-        "entry-point",
-        "asgi",
-        "web-server",
-        "tested"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/server.py:_ensure_env_loaded",
-      "type": "function",
-      "name": "_ensure_env_loaded",
-      "filePath": "web/server.py",
-      "lineRange": [
-        31,
-        52
-      ],
-      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:health_check",
-      "type": "function",
-      "name": "health_check",
-      "filePath": "web/server.py",
-      "lineRange": [
-        154,
-        163
-      ],
-      "summary": "GET /api/health - Service health and telemetry.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_presets",
-      "type": "function",
-      "name": "get_presets",
-      "filePath": "web/server.py",
-      "lineRange": [
-        166,
-        168
-      ],
-      "summary": "GET /api/presets - Returns catalog of Algerian real estate presets.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_music_tracks",
-      "type": "function",
-      "name": "get_music_tracks",
-      "filePath": "web/server.py",
-      "lineRange": [
-        171,
-        173
-      ],
-      "summary": "GET /api/music-tracks - Returns catalog of available open-source and local assets/music tracks.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:music_track_audio_endpoint",
-      "type": "function",
-      "name": "music_track_audio_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        186,
-        196
-      ],
-      "summary": "GET /api/music-tracks/{track_id}/audio - Stream selected background music track for preview.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_extract_candidate_tokens",
-      "type": "function",
-      "name": "_extract_candidate_tokens",
-      "filePath": "web/server.py",
-      "lineRange": [
-        199,
-        251
-      ],
-      "summary": "Extract and normalize all potential session or auth tokens from request: Authorization header, form fields, custom headers, query parameters, and cookies. Explicit request tokens take precedence over ambient cookies.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "function",
-      "name": "_get_authenticated_user_and_session",
-      "filePath": "web/server.py",
-      "lineRange": [
-        254,
-        276
-      ],
-      "summary": "Authenticate user and session by testing extracted candidate tokens. Returns: (user_dict, session_dict) if authenticated, else (None, None).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "function",
-      "name": "_get_authenticated_user_from_form_or_header",
-      "filePath": "web/server.py",
-      "lineRange": [
-        279,
-        285
-      ],
-      "summary": "Convenience alias returning only the authenticated user dictionary (or None).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_parse_caption_options",
-      "type": "function",
-      "name": "_parse_caption_options",
-      "filePath": "web/server.py",
-      "lineRange": [
-        288,
-        314
-      ],
-      "summary": "Parse CapCut-style animated caption options from the production form. Returns None when the customer did not pick a caption template. Raises ValueError if the custom caption text fails the prompt security guardrails.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_parse_screen_overlay_options",
-      "type": "function",
-      "name": "_parse_screen_overlay_options",
-      "filePath": "web/server.py",
-      "lineRange": [
-        317,
-        367
-      ],
-      "summary": "Parse persistent screen note / phone placement, font, and effect parameters.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:get_overlay_options_endpoint",
-      "type": "function",
-      "name": "get_overlay_options_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        370,
-        377
-      ],
-      "summary": "GET /api/overlay-options - Curated Arabic/Latin fonts, colors, and effects.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:overlay_font_file_endpoint",
-      "type": "function",
-      "name": "overlay_font_file_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        380,
-        397
-      ],
-      "summary": "GET /api/overlay-fonts/{font_id}/file - Safely stream an allowlisted TrueType font for live preview.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_caption_templates_endpoint",
-      "type": "function",
-      "name": "get_caption_templates_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        400,
-        408
-      ],
-      "summary": "GET /api/captions/templates - Catalogue of animated caption templates, colors, and fonts.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:split_captions_endpoint",
-      "type": "function",
-      "name": "split_captions_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        411,
-        437
-      ],
-      "summary": "POST /api/captions/split - Preview how the AI splits custom caption text into chunks.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_parse_optional_bool",
-      "type": "function",
-      "name": "_parse_optional_bool",
-      "filePath": "web/server.py",
-      "lineRange": [
-        440,
-        445
-      ],
-      "summary": "Parse optional form or JSON boolean flags uniformly across endpoints.",
-      "tags": [
-        "helper",
-        "validation",
-        "api"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:_execute_processing_job",
-      "type": "function",
-      "name": "_execute_processing_job",
-      "filePath": "web/server.py",
-      "lineRange": [
-        448,
-        679
-      ],
-      "summary": "Worker function executed synchronously or in a background thread.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/server.py:create_job_async",
-      "type": "function",
-      "name": "create_job_async",
-      "filePath": "web/server.py",
-      "lineRange": [
-        686,
-        990
-      ],
-      "summary": "POST /api/jobs/create Asynchronous ingestion endpoint: accepts multipart video upload, returns job_id immediately with HTTP 202, and runs processing in background. Supports auto_mode (Gemini Multimodal Vision script...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/server.py:upload_and_process",
-      "type": "function",
-      "name": "upload_and_process",
-      "filePath": "web/server.py",
-      "lineRange": [
-        993,
-        1409
-      ],
-      "summary": "POST /api/upload-and-process Synchronous processing endpoint for direct client calls and automated tests. Supports auto_mode (Gemini Multimodal Vision script & mood inference).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:web/server.py:_find_finalized_cut_file",
-      "type": "function",
-      "name": "_find_finalized_cut_file",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1412,
-        1452
-      ],
-      "summary": "Check candidate paths on disk to verify if the output video cut is finalized and non-empty. Returns (Path or None, web_url).",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_job_status",
-      "type": "function",
-      "name": "get_job_status",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1455,
-        1610
-      ],
-      "summary": "GET /api/status/{job_id} - Retrieve live telemetry, status and execution summary for a job.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:update_job_cuts_text_endpoint",
-      "type": "function",
-      "name": "update_job_cuts_text_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1613,
-        1701
-      ],
-      "summary": "POST /api/jobs/{job_id}/update-cuts-text Re-synthesize edited cut-by-cut narration text and re-render audio + captions onto the job's already-cut visual track without re-running Gemini Vision or re-cutting 1080p.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:blur_faces_only_endpoint",
-      "type": "function",
-      "name": "blur_faces_only_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1704,
-        1821
-      ],
-      "summary": "POST /api/blur-faces standalone authenticated privacy endpoint returning a face-blurred MP4 with original audio intact.",
-      "tags": [
-        "api-handler",
-        "privacy",
-        "face-blur",
-        "endpoint"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:get_mobile_cut_endpoint",
-      "type": "function",
-      "name": "get_mobile_cut_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1824,
-        1859
-      ],
-      "summary": "GET /outputs/mobile_cuts/{filename} Serve rendered job video cut with MIME type video/mp4, Accept-Ranges, and full HTTP 206 Partial Content range streaming support.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:index_page",
-      "type": "function",
-      "name": "index_page",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1862,
-        1870
-      ],
-      "summary": "GET / - Serve mobile web application index.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_page",
-      "type": "function",
-      "name": "admin_page",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1873,
-        1881
-      ],
-      "summary": "GET /admin - Serve dedicated Bootstrap admin portal.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:style_css_endpoint",
-      "type": "function",
-      "name": "style_css_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1884,
-        1889
-      ],
-      "summary": "GET /style.css - Root alias for CSS stylesheet.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:app_js_endpoint",
-      "type": "function",
-      "name": "app_js_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1892,
-        1897
-      ],
-      "summary": "GET /app.js - Root alias for JavaScript application bundle.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:favicon_endpoint",
-      "type": "function",
-      "name": "favicon_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1900,
-        1906
-      ],
-      "summary": "GET /favicon.ico - Returns clean SVG or empty icon to prevent 404.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_principles_endpoint",
-      "type": "function",
-      "name": "get_principles_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1907,
-        1909
-      ],
-      "summary": "GET /api/principles - Retrieve currently active production & voice principles.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:save_principles_endpoint",
-      "type": "function",
-      "name": "save_principles_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1912,
-        1924
-      ],
-      "summary": "POST /api/principles - Save updated user/AI production principles.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:reset_principles_endpoint",
-      "type": "function",
-      "name": "reset_principles_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1927,
-        1934
-      ],
-      "summary": "POST /api/principles/reset - Reset principles to factory defaults.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:annotate_video_endpoint",
-      "type": "function",
-      "name": "annotate_video_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1937,
-        1953
-      ],
-      "summary": "POST /api/video/annotate - Apply visual annotations and badges onto a video cut.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_prompts_history_endpoint",
-      "type": "function",
-      "name": "get_prompts_history_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1956,
-        1967
-      ],
-      "summary": "GET /api/prompts/history - Retrieve recent prompt descriptions history.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:create_prompt_endpoint",
-      "type": "function",
-      "name": "create_prompt_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        1970,
-        1998
-      ],
-      "summary": "POST /api/prompts - Save prompt descriptions and title to SQLite. Accepts JSON: {\"visual_description\": \"...\", \"speech_description\": \"...\", \"title\": \"...\"}",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:delete_prompt_endpoint",
-      "type": "function",
-      "name": "delete_prompt_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2001,
-        2021
-      ],
-      "summary": "DELETE /api/prompts/{prompt_id} - Delete prompt record from SQLite.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:get_voices_endpoint",
-      "type": "function",
-      "name": "get_voices_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2024,
-        2029
-      ],
-      "summary": "GET /api/voices - Returns catalog of supported real estate voice profiles.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:voice_sample_endpoint",
-      "type": "function",
-      "name": "voice_sample_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2032,
-        2046
-      ],
-      "summary": "GET /api/voices/{voice_id}/sample - Stream audio preview sample for voice audition.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:login_endpoint",
-      "type": "function",
-      "name": "login_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2049,
-        2134
-      ],
-      "summary": "POST /api/auth/login Accepts JSON or form data: {\"username\": \"...\", \"password\": \"...\"} or {\"token\": \"...\"}. Validates credentials, creates authenticated session, sets cookie, and returns token + quotas. Recognizes...",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:logout_endpoint",
-      "type": "function",
-      "name": "logout_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2137,
-        2162
-      ],
-      "summary": "POST /api/auth/logout - Invalidate active session and clear session cookie.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:auth_session_endpoint",
-      "type": "function",
-      "name": "auth_session_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2165,
-        2188
-      ],
-      "summary": "GET /api/auth/session - Verify active session and return user profile + quotas.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:auth_me_endpoint",
-      "type": "function",
-      "name": "auth_me_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2191,
-        2237
-      ],
-      "summary": "GET /api/auth/me - Retrieve current merchant profile, session, and quota details.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:demo_accounts_endpoint",
-      "type": "function",
-      "name": "demo_accounts_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2240,
-        2245
-      ],
-      "summary": "GET /api/auth/demo-accounts - Returns list of pre-seeded accounts for 1-tap switching.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_login_endpoint",
-      "type": "function",
-      "name": "admin_login_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2248,
-        2320
-      ],
-      "summary": "POST /api/admin/login Admin authentication portal: validates username 'pluto' and password 'plutosw4' (or any active admin credentials), creates an active session token, sets cookie, and records login audit log.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "function:web/server.py:admin_list_accounts_endpoint",
-      "type": "function",
-      "name": "admin_list_accounts_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2323,
-        2333
-      ],
-      "summary": "GET /api/admin/accounts & GET /api/admin/users Returns all accounts with usage and quota statistics, status, and validity dates.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_create_account_endpoint",
-      "type": "function",
-      "name": "admin_create_account_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2336,
-        2373
-      ],
-      "summary": "POST /api/admin/accounts & POST /api/admin/users Admin creates new commercial merchant or admin account with custom dates, quotas, and password.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_update_account_endpoint",
-      "type": "function",
-      "name": "admin_update_account_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2376,
-        2402
-      ],
-      "summary": "PATCH /api/admin/accounts/{user_id} & PATCH /api/admin/users/{user_id} Admin updates user password, status, valid_from, expires_at, daily/weekly quotas.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_account_logs_endpoint",
-      "type": "function",
-      "name": "admin_account_logs_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2405,
-        2428
-      ],
-      "summary": "GET /api/admin/accounts/{user_id}/logs Return activity audit log events recorded for a specific user account.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:web/server.py:admin_stats_endpoint",
-      "type": "function",
-      "name": "admin_stats_endpoint",
-      "filePath": "web/server.py",
-      "lineRange": [
-        2431,
-        2436
-      ],
-      "summary": "GET /api/admin/stats - Macro platform statistics overview.",
-      "tags": [
-        "function",
-        "python",
-        "exported"
-      ],
-      "complexity": "simple"
     },
     {
       "id": "file:web/pipeline_bridge.py",
@@ -12220,6 +10864,1764 @@
       "complexity": "moderate"
     },
     {
+      "id": "file:assets/models/face_detection_yunet_2023mar.onnx",
+      "type": "file",
+      "name": "face_detection_yunet_2023mar.onnx",
+      "filePath": "assets/models/face_detection_yunet_2023mar.onnx",
+      "summary": "Bundled offline YuNet ONNX face detection model (~233 KB) consumed by OpenCV FaceDetectorYN in web/face_blur.py.",
+      "tags": [
+        "model",
+        "onnx",
+        "face-detection",
+        "asset"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_video_captions.py",
+      "type": "file",
+      "name": "test_video_captions.py",
+      "filePath": "tests/test_video_captions.py",
+      "summary": "Unit and integration tests for acoustic word-chunk grouping, Groq 429 rotation and hallucination filtering, silent video handling, original audio preservation during ASS caption burn, /api/captions/transcribe, /api/video-captions, and UI contracts.",
+      "tags": [
+        "test",
+        "captions",
+        "stt",
+        "api",
+        "ui-contract"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:_make_test_video",
+      "type": "function",
+      "name": "_make_test_video",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        32,
+        50
+      ],
+      "summary": "Function _make_test_video in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "type": "function",
+      "name": "test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        53,
+        87
+      ],
+      "summary": "Function test_group_words_preserves_acoustic_timings_and_splits_on_pauses in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "type": "function",
+      "name": "test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        90,
+        124
+      ],
+      "summary": "Function test_groq_stt_rotates_on_429_and_filters_silence_hallucinations in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
+      "type": "function",
+      "name": "test_silent_or_no_audio_video_skips_stt_cleanly",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        127,
+        136
+      ],
+      "summary": "Function test_silent_or_no_audio_video_skips_stt_cleanly in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
+      "type": "function",
+      "name": "test_burn_video_voice_captions_preserves_original_audio",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        139,
+        202
+      ],
+      "summary": "Function test_burn_video_voice_captions_preserves_original_audio in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
+      "type": "function",
+      "name": "test_video_captions_api_endpoints_and_ui_contracts",
+      "filePath": "tests/test_video_captions.py",
+      "lineRange": [
+        205,
+        297
+      ],
+      "summary": "Function test_video_captions_api_endpoints_and_ui_contracts in tests/test_video_captions.py.",
+      "tags": [
+        "function",
+        "python"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/caption_templates.py",
+      "type": "file",
+      "name": "caption_templates.py",
+      "filePath": "web/caption_templates.py",
+      "summary": "CapCut-style animated ASS caption engine supporting AI/heuristic text splitting and word-level karaoke/bounce/typewriter styles.",
+      "tags": [
+        "captions",
+        "ass-subtitles",
+        "animation",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/caption_templates.py:normalize_template",
+      "type": "function",
+      "name": "normalize_template",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        129,
+        131
+      ],
+      "summary": "Function normalize_template in caption_templates.py (3 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:normalize_position",
+      "type": "function",
+      "name": "normalize_position",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        134,
+        140
+      ],
+      "summary": "Function normalize_position in caption_templates.py (7 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:normalize_size",
+      "type": "function",
+      "name": "normalize_size",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        143,
+        145
+      ],
+      "summary": "Function normalize_size in caption_templates.py (3 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:normalize_caption_color",
+      "type": "function",
+      "name": "normalize_caption_color",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        148,
+        154
+      ],
+      "summary": "Function normalize_caption_color in caption_templates.py (7 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:list_caption_colors",
+      "type": "function",
+      "name": "list_caption_colors",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        157,
+        167
+      ],
+      "summary": "Function list_caption_colors in caption_templates.py (11 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:list_caption_templates",
+      "type": "function",
+      "name": "list_caption_templates",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        170,
+        181
+      ],
+      "summary": "Function list_caption_templates in caption_templates.py (12 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_clean_text",
+      "type": "function",
+      "name": "_clean_text",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        188,
+        192
+      ],
+      "summary": "Function _clean_text in caption_templates.py (5 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_is_numberish",
+      "type": "function",
+      "name": "_is_numberish",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        195,
+        196
+      ],
+      "summary": "Function _is_numberish in caption_templates.py (2 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_bare",
+      "type": "function",
+      "name": "_bare",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        199,
+        200
+      ],
+      "summary": "Function _bare in caption_templates.py (2 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "function",
+      "name": "_pick_emphasis",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        203,
+        212
+      ],
+      "summary": "Function _pick_emphasis in caption_templates.py (10 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_balanced_split",
+      "type": "function",
+      "name": "_balanced_split",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        215,
+        251
+      ],
+      "summary": "Split a long clause into balanced chunks, preferring breaks before connectors.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:heuristic_split",
+      "type": "function",
+      "name": "heuristic_split",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        254,
+        284
+      ],
+      "summary": "Punctuation + connector aware splitting used when AI is unavailable.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_gemini_api_key",
+      "type": "function",
+      "name": "_gemini_api_key",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        287,
+        294
+      ],
+      "summary": "Function _gemini_api_key in caption_templates.py (8 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:ai_split",
+      "type": "function",
+      "name": "ai_split",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        297,
+        374
+      ],
+      "summary": "Ask Gemini to split the text into caption chunks. Returns None on any failure.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/caption_templates.py:smart_split_text",
+      "type": "function",
+      "name": "smart_split_text",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        377,
+        391
+      ],
+      "summary": "Split customer text into caption chunks (AI first, heuristic fallback).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_reading_seconds",
+      "type": "function",
+      "name": "_reading_seconds",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        398,
+        401
+      ],
+      "summary": "Function _reading_seconds in caption_templates.py (4 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_word_timings",
+      "type": "function",
+      "name": "_word_timings",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        404,
+        416
+      ],
+      "summary": "Function _word_timings in caption_templates.py (13 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_snap_to_shots",
+      "type": "function",
+      "name": "_snap_to_shots",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        419,
+        426
+      ],
+      "summary": "Function _snap_to_shots in caption_templates.py (8 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:assign_timings",
+      "type": "function",
+      "name": "assign_timings",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        429,
+        484
+      ],
+      "summary": "Distribute chunks across the video using reading speed, snapping starts to shot cuts.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/caption_templates.py:_normalize_acoustic_words",
+      "type": "function",
+      "name": "_normalize_acoustic_words",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        487,
+        516
+      ],
+      "summary": "Validate and clamp per-word STT timestamps inside a caption chunk.",
+      "tags": [
+        "captions",
+        "timing",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:group_words_into_chunks",
+      "type": "function",
+      "name": "group_words_into_chunks",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        519,
+        579
+      ],
+      "summary": "Group acoustic word timestamps into CapCut chunks on pauses, punctuation, and template max_words.",
+      "tags": [
+        "captions",
+        "timing",
+        "chunking",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "type": "function",
+      "name": "segments_to_timed_chunks",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        582,
+        605
+      ],
+      "summary": "Convert already-timed subtitle segments (e.g. narration captions) into timed chunks.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_ass_color",
+      "type": "function",
+      "name": "_ass_color",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        612,
+        615
+      ],
+      "summary": "Function _ass_color in caption_templates.py (4 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_inline_color",
+      "type": "function",
+      "name": "_inline_color",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        618,
+        620
+      ],
+      "summary": "Function _inline_color in caption_templates.py (3 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_ass_time",
+      "type": "function",
+      "name": "_ass_time",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        623,
+        629
+      ],
+      "summary": "Function _ass_time in caption_templates.py (7 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_ass_escape",
+      "type": "function",
+      "name": "_ass_escape",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        632,
+        633
+      ],
+      "summary": "Function _ass_escape in caption_templates.py (2 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:font_family_for_ass",
+      "type": "function",
+      "name": "font_family_for_ass",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        636,
+        672
+      ],
+      "summary": "Function font_family_for_ass in caption_templates.py (37 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_anchor",
+      "type": "function",
+      "name": "_anchor",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        675,
+        676
+      ],
+      "summary": "Function _anchor in caption_templates.py (2 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:_anchor_xy",
+      "type": "function",
+      "name": "_anchor_xy",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        679,
+        684
+      ],
+      "summary": "Function _anchor_xy in caption_templates.py (6 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:build_ass_document",
+      "type": "function",
+      "name": "build_ass_document",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        687,
+        871
+      ],
+      "summary": "Render timed chunks into a complete .ass document for the chosen animated template, font, and color.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/caption_templates.py:write_ass_file",
+      "type": "function",
+      "name": "write_ass_file",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        874,
+        901
+      ],
+      "summary": "Function write_ass_file in caption_templates.py (28 lines).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/caption_templates.py:prepare_caption_track",
+      "type": "function",
+      "name": "prepare_caption_track",
+      "filePath": "web/caption_templates.py",
+      "lineRange": [
+        904,
+        967
+      ],
+      "summary": "High level helper used by the pipeline. - custom_text: customer typed text -> smart split + calculated timings. - segments: already-timed narration captions -> styled with the template. Returns metadata dict...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/server.py",
+      "type": "file",
+      "name": "server.py",
+      "filePath": "web/server.py",
+      "summary": "Starlette ASGI web server providing studio UI static hosting, SaaS auth routes, async montage jobs, SSE/polling progress, and media streaming.",
+      "tags": [
+        "api-handler",
+        "entry-point",
+        "asgi",
+        "web-server",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/server.py:_ensure_env_loaded",
+      "type": "function",
+      "name": "_ensure_env_loaded",
+      "filePath": "web/server.py",
+      "lineRange": [
+        31,
+        52
+      ],
+      "summary": "Load GEMINI_API_KEY from .env if not currently present in os.environ.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:health_check",
+      "type": "function",
+      "name": "health_check",
+      "filePath": "web/server.py",
+      "lineRange": [
+        154,
+        163
+      ],
+      "summary": "GET /api/health - Service health and telemetry.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_presets",
+      "type": "function",
+      "name": "get_presets",
+      "filePath": "web/server.py",
+      "lineRange": [
+        166,
+        168
+      ],
+      "summary": "GET /api/presets - Returns catalog of Algerian real estate presets.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_music_tracks",
+      "type": "function",
+      "name": "get_music_tracks",
+      "filePath": "web/server.py",
+      "lineRange": [
+        171,
+        173
+      ],
+      "summary": "GET /api/music-tracks - Returns catalog of available open-source and local assets/music tracks.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:music_track_audio_endpoint",
+      "type": "function",
+      "name": "music_track_audio_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        186,
+        196
+      ],
+      "summary": "GET /api/music-tracks/{track_id}/audio - Stream selected background music track for preview.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_extract_candidate_tokens",
+      "type": "function",
+      "name": "_extract_candidate_tokens",
+      "filePath": "web/server.py",
+      "lineRange": [
+        199,
+        251
+      ],
+      "summary": "Extract and normalize all potential session or auth tokens from request: Authorization header, form fields, custom headers, query parameters, and cookies. Explicit request tokens take precedence over ambient cookies.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "function",
+      "name": "_get_authenticated_user_and_session",
+      "filePath": "web/server.py",
+      "lineRange": [
+        254,
+        276
+      ],
+      "summary": "Authenticate user and session by testing extracted candidate tokens. Returns: (user_dict, session_dict) if authenticated, else (None, None).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "function",
+      "name": "_get_authenticated_user_from_form_or_header",
+      "filePath": "web/server.py",
+      "lineRange": [
+        279,
+        285
+      ],
+      "summary": "Convenience alias returning only the authenticated user dictionary (or None).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_parse_caption_options",
+      "type": "function",
+      "name": "_parse_caption_options",
+      "filePath": "web/server.py",
+      "lineRange": [
+        288,
+        314
+      ],
+      "summary": "Parse CapCut-style animated caption options from the production form. Returns None when the customer did not pick a caption template. Raises ValueError if the custom caption text fails the prompt security guardrails.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_parse_screen_overlay_options",
+      "type": "function",
+      "name": "_parse_screen_overlay_options",
+      "filePath": "web/server.py",
+      "lineRange": [
+        317,
+        367
+      ],
+      "summary": "Parse persistent screen note / phone placement, font, and effect parameters.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:get_overlay_options_endpoint",
+      "type": "function",
+      "name": "get_overlay_options_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        370,
+        377
+      ],
+      "summary": "GET /api/overlay-options - Curated Arabic/Latin fonts, colors, and effects.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:overlay_font_file_endpoint",
+      "type": "function",
+      "name": "overlay_font_file_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        380,
+        397
+      ],
+      "summary": "GET /api/overlay-fonts/{font_id}/file - Safely stream an allowlisted TrueType font for live preview.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_caption_templates_endpoint",
+      "type": "function",
+      "name": "get_caption_templates_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        400,
+        408
+      ],
+      "summary": "GET /api/captions/templates - Catalogue of animated caption templates, colors, and fonts.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:split_captions_endpoint",
+      "type": "function",
+      "name": "split_captions_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        411,
+        437
+      ],
+      "summary": "POST /api/captions/split - Preview how the AI splits custom caption text into chunks.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_parse_optional_bool",
+      "type": "function",
+      "name": "_parse_optional_bool",
+      "filePath": "web/server.py",
+      "lineRange": [
+        440,
+        445
+      ],
+      "summary": "Parse optional form or JSON boolean flags uniformly across endpoints.",
+      "tags": [
+        "helper",
+        "validation",
+        "api"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:_execute_processing_job",
+      "type": "function",
+      "name": "_execute_processing_job",
+      "filePath": "web/server.py",
+      "lineRange": [
+        448,
+        679
+      ],
+      "summary": "Worker function executed synchronously or in a background thread.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/server.py:create_job_async",
+      "type": "function",
+      "name": "create_job_async",
+      "filePath": "web/server.py",
+      "lineRange": [
+        686,
+        990
+      ],
+      "summary": "POST /api/jobs/create Asynchronous ingestion endpoint: accepts multipart video upload, returns job_id immediately with HTTP 202, and runs processing in background. Supports auto_mode (Gemini Multimodal Vision script...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/server.py:upload_and_process",
+      "type": "function",
+      "name": "upload_and_process",
+      "filePath": "web/server.py",
+      "lineRange": [
+        993,
+        1409
+      ],
+      "summary": "POST /api/upload-and-process Synchronous processing endpoint for direct client calls and automated tests. Supports auto_mode (Gemini Multimodal Vision script & mood inference).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/server.py:_find_finalized_cut_file",
+      "type": "function",
+      "name": "_find_finalized_cut_file",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1412,
+        1452
+      ],
+      "summary": "Check candidate paths on disk to verify if the output video cut is finalized and non-empty. Returns (Path or None, web_url).",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_job_status",
+      "type": "function",
+      "name": "get_job_status",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1455,
+        1610
+      ],
+      "summary": "GET /api/status/{job_id} - Retrieve live telemetry, status and execution summary for a job.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:update_job_cuts_text_endpoint",
+      "type": "function",
+      "name": "update_job_cuts_text_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1613,
+        1701
+      ],
+      "summary": "POST /api/jobs/{job_id}/update-cuts-text Re-synthesize edited cut-by-cut narration text and re-render audio + captions onto the job's already-cut visual track without re-running Gemini Vision or re-cutting 1080p.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:blur_faces_only_endpoint",
+      "type": "function",
+      "name": "blur_faces_only_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1704,
+        1821
+      ],
+      "summary": "POST /api/blur-faces standalone authenticated privacy endpoint returning a face-blurred MP4 with original audio intact.",
+      "tags": [
+        "api-handler",
+        "privacy",
+        "face-blur",
+        "endpoint"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:transcribe_video_captions_endpoint",
+      "type": "function",
+      "name": "transcribe_video_captions_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1824,
+        1878
+      ],
+      "summary": "POST /api/captions/transcribe authenticated endpoint returning editable timed speech chunks.",
+      "tags": [
+        "api-handler",
+        "captions",
+        "stt",
+        "endpoint"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:video_voice_captions_endpoint",
+      "type": "function",
+      "name": "video_voice_captions_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        1881,
+        2037
+      ],
+      "summary": "POST /api/video-captions standalone endpoint burning CapCut captions over preserved original voice.",
+      "tags": [
+        "api-handler",
+        "captions",
+        "endpoint",
+        "video"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/server.py:get_mobile_cut_endpoint",
+      "type": "function",
+      "name": "get_mobile_cut_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2040,
+        2075
+      ],
+      "summary": "GET /outputs/mobile_cuts/{filename} Serve rendered job video cut with MIME type video/mp4, Accept-Ranges, and full HTTP 206 Partial Content range streaming support.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:index_page",
+      "type": "function",
+      "name": "index_page",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2078,
+        2086
+      ],
+      "summary": "GET / - Serve mobile web application index.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_page",
+      "type": "function",
+      "name": "admin_page",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2089,
+        2097
+      ],
+      "summary": "GET /admin - Serve dedicated Bootstrap admin portal.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:style_css_endpoint",
+      "type": "function",
+      "name": "style_css_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2100,
+        2105
+      ],
+      "summary": "GET /style.css - Root alias for CSS stylesheet.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:app_js_endpoint",
+      "type": "function",
+      "name": "app_js_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2108,
+        2113
+      ],
+      "summary": "GET /app.js - Root alias for JavaScript application bundle.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:favicon_endpoint",
+      "type": "function",
+      "name": "favicon_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2116,
+        2122
+      ],
+      "summary": "GET /favicon.ico - Returns clean SVG or empty icon to prevent 404.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_principles_endpoint",
+      "type": "function",
+      "name": "get_principles_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2123,
+        2125
+      ],
+      "summary": "GET /api/principles - Retrieve currently active production & voice principles.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:save_principles_endpoint",
+      "type": "function",
+      "name": "save_principles_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2128,
+        2140
+      ],
+      "summary": "POST /api/principles - Save updated user/AI production principles.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:reset_principles_endpoint",
+      "type": "function",
+      "name": "reset_principles_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2143,
+        2150
+      ],
+      "summary": "POST /api/principles/reset - Reset principles to factory defaults.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:annotate_video_endpoint",
+      "type": "function",
+      "name": "annotate_video_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2153,
+        2169
+      ],
+      "summary": "POST /api/video/annotate - Apply visual annotations and badges onto a video cut.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_prompts_history_endpoint",
+      "type": "function",
+      "name": "get_prompts_history_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2172,
+        2183
+      ],
+      "summary": "GET /api/prompts/history - Retrieve recent prompt descriptions history.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:create_prompt_endpoint",
+      "type": "function",
+      "name": "create_prompt_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2186,
+        2214
+      ],
+      "summary": "POST /api/prompts - Save prompt descriptions and title to SQLite. Accepts JSON: {\"visual_description\": \"...\", \"speech_description\": \"...\", \"title\": \"...\"}",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:delete_prompt_endpoint",
+      "type": "function",
+      "name": "delete_prompt_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2217,
+        2237
+      ],
+      "summary": "DELETE /api/prompts/{prompt_id} - Delete prompt record from SQLite.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:get_voices_endpoint",
+      "type": "function",
+      "name": "get_voices_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2240,
+        2245
+      ],
+      "summary": "GET /api/voices - Returns catalog of supported real estate voice profiles.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:voice_sample_endpoint",
+      "type": "function",
+      "name": "voice_sample_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2248,
+        2262
+      ],
+      "summary": "GET /api/voices/{voice_id}/sample - Stream audio preview sample for voice audition.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:login_endpoint",
+      "type": "function",
+      "name": "login_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2265,
+        2350
+      ],
+      "summary": "POST /api/auth/login Accepts JSON or form data: {\"username\": \"...\", \"password\": \"...\"} or {\"token\": \"...\"}. Validates credentials, creates authenticated session, sets cookie, and returns token + quotas. Recognizes...",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:logout_endpoint",
+      "type": "function",
+      "name": "logout_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2353,
+        2378
+      ],
+      "summary": "POST /api/auth/logout - Invalidate active session and clear session cookie.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:auth_session_endpoint",
+      "type": "function",
+      "name": "auth_session_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2381,
+        2404
+      ],
+      "summary": "GET /api/auth/session - Verify active session and return user profile + quotas.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:auth_me_endpoint",
+      "type": "function",
+      "name": "auth_me_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2407,
+        2453
+      ],
+      "summary": "GET /api/auth/me - Retrieve current merchant profile, session, and quota details.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:demo_accounts_endpoint",
+      "type": "function",
+      "name": "demo_accounts_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2456,
+        2461
+      ],
+      "summary": "GET /api/auth/demo-accounts - Returns list of pre-seeded accounts for 1-tap switching.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_login_endpoint",
+      "type": "function",
+      "name": "admin_login_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2464,
+        2536
+      ],
+      "summary": "POST /api/admin/login Admin authentication portal: validates username 'pluto' and password 'plutosw4' (or any active admin credentials), creates an active session token, sets cookie, and records login audit log.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/server.py:admin_list_accounts_endpoint",
+      "type": "function",
+      "name": "admin_list_accounts_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2539,
+        2549
+      ],
+      "summary": "GET /api/admin/accounts & GET /api/admin/users Returns all accounts with usage and quota statistics, status, and validity dates.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_create_account_endpoint",
+      "type": "function",
+      "name": "admin_create_account_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2552,
+        2589
+      ],
+      "summary": "POST /api/admin/accounts & POST /api/admin/users Admin creates new commercial merchant or admin account with custom dates, quotas, and password.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_update_account_endpoint",
+      "type": "function",
+      "name": "admin_update_account_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2592,
+        2618
+      ],
+      "summary": "PATCH /api/admin/accounts/{user_id} & PATCH /api/admin/users/{user_id} Admin updates user password, status, valid_from, expires_at, daily/weekly quotas.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_account_logs_endpoint",
+      "type": "function",
+      "name": "admin_account_logs_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2621,
+        2644
+      ],
+      "summary": "GET /api/admin/accounts/{user_id}/logs Return activity audit log events recorded for a specific user account.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/server.py:admin_stats_endpoint",
+      "type": "function",
+      "name": "admin_stats_endpoint",
+      "filePath": "web/server.py",
+      "lineRange": [
+        2647,
+        2652
+      ],
+      "summary": "GET /api/admin/stats - Macro platform statistics overview.",
+      "tags": [
+        "function",
+        "python",
+        "exported"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/video_captions.py",
+      "type": "file",
+      "name": "video_captions.py",
+      "filePath": "web/video_captions.py",
+      "summary": "Video-voice auto-captions engine preserving original speaker audio (-c:a copy) with Groq Whisper word-level timestamps, local faster-whisper fallback, FFmpeg+Gemini acoustic fallback, and optional face blur / screen overlay composition.",
+      "tags": [
+        "captions",
+        "stt",
+        "groq-whisper",
+        "ffmpeg",
+        "video-processing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/video_captions.py:_ensure_stt_env_loaded",
+      "type": "function",
+      "name": "_ensure_stt_env_loaded",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        69,
+        88
+      ],
+      "summary": "Load GROQ_API_KEY, GROQ_API_KEYS, and GEMINI_API_KEY from .env when absent from os.environ.",
+      "tags": [
+        "config",
+        "env",
+        "stt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_get_api_keys",
+      "type": "function",
+      "name": "_get_api_keys",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        91,
+        100
+      ],
+      "summary": "Collect comma-separated API keys across one or more env vars with deduplication.",
+      "tags": [
+        "config",
+        "auth",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_probe_video_geometry_and_audio",
+      "type": "function",
+      "name": "_probe_video_geometry_and_audio",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        103,
+        149
+      ],
+      "summary": "Probe rotation-aware video dimensions, duration, and audio stream presence via ffprobe.",
+      "tags": [
+        "ffmpeg",
+        "media-probe",
+        "video"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:extract_audio_for_stt",
+      "type": "function",
+      "name": "extract_audio_for_stt",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        152,
+        197
+      ],
+      "summary": "Extract lightweight 16kHz mono MP3 audio and reject silent or audio-less clips.",
+      "tags": [
+        "ffmpeg",
+        "audio",
+        "stt",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
+      "type": "function",
+      "name": "_detect_speech_intervals_ffmpeg",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        200,
+        236
+      ],
+      "summary": "Measure acoustic non-silent speech intervals using FFmpeg silencedetect.",
+      "tags": [
+        "ffmpeg",
+        "vad",
+        "audio"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_is_hallucination",
+      "type": "function",
+      "name": "_is_hallucination",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        239,
+        245
+      ],
+      "summary": "Filter empty text, high no_speech_prob segments, and common Whisper silence hallucinations.",
+      "tags": [
+        "stt",
+        "validation",
+        "helper"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_groq",
+      "type": "function",
+      "name": "_transcribe_with_groq",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        248,
+        333
+      ],
+      "summary": "Transcribe audio via Groq Whisper REST API with word timestamps and 429 key rotation.",
+      "tags": [
+        "groq",
+        "whisper",
+        "stt",
+        "api"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
+      "type": "function",
+      "name": "_transcribe_with_local_faster_whisper",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        336,
+        392
+      ],
+      "summary": "Offline fallback transcription using cached faster-whisper model with Silero VAD.",
+      "tags": [
+        "whisper",
+        "offline",
+        "stt"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
+      "type": "function",
+      "name": "_transcribe_with_gemini_acoustic",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        395,
+        473
+      ],
+      "summary": "Fallback transcription aligning Gemini verbatim Arabic/Darja chunks to FFmpeg speech bursts.",
+      "tags": [
+        "gemini",
+        "stt",
+        "fallback"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:transcribe_video_speech",
+      "type": "function",
+      "name": "transcribe_video_speech",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        476,
+        534
+      ],
+      "summary": "Orchestrate Groq -> local faster-whisper -> Gemini acoustic STT into timed CapCut chunks.",
+      "tags": [
+        "stt",
+        "orchestration",
+        "captions",
+        "exported"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/video_captions.py:burn_video_voice_captions",
+      "type": "function",
+      "name": "burn_video_voice_captions",
+      "filePath": "web/video_captions.py",
+      "lineRange": [
+        537,
+        662
+      ],
+      "summary": "Burn animated ASS captions onto video while preserving original voice untouched, with optional face blur and screen overlay.",
+      "tags": [
+        "captions",
+        "ffmpeg",
+        "video-processing",
+        "exported"
+      ],
+      "complexity": "complex"
+    },
+    {
       "id": "file:web/static/index.html",
       "type": "file",
       "name": "index.html",
@@ -12246,20 +12648,6 @@
         "responsive"
       ],
       "complexity": "complex"
-    },
-    {
-      "id": "file:assets/models/face_detection_yunet_2023mar.onnx",
-      "type": "file",
-      "name": "face_detection_yunet_2023mar.onnx",
-      "filePath": "assets/models/face_detection_yunet_2023mar.onnx",
-      "summary": "Bundled offline YuNet ONNX face detection model (~233 KB) consumed by OpenCV FaceDetectorYN in web/face_blur.py.",
-      "tags": [
-        "model",
-        "onnx",
-        "face-detection",
-        "asset"
-      ],
-      "complexity": "simple"
     }
   ],
   "edges": [
@@ -19978,734 +20366,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_position",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_position",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_size",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_size",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_caption_color",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:normalize_caption_color",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:list_caption_colors",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:list_caption_colors",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:list_caption_templates",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:list_caption_templates",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_is_numberish",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_is_numberish",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_bare",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_bare",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_balanced_split",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_balanced_split",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:heuristic_split",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:heuristic_split",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_gemini_api_key",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_gemini_api_key",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:ai_split",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:ai_split",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:smart_split_text",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:smart_split_text",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_reading_seconds",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_reading_seconds",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_word_timings",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_word_timings",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_snap_to_shots",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_snap_to_shots",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:assign_timings",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:assign_timings",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_color",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_color",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_inline_color",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_inline_color",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_time",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_time",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_escape",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_ass_escape",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:font_family_for_ass",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:font_family_for_ass",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_anchor",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_anchor",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_anchor_xy",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:_anchor_xy",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:build_ass_document",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:build_ass_document",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:write_ass_file",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:write_ass_file",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:prepare_caption_track",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/caption_templates.py",
-      "target": "function:web/caption_templates.py:prepare_caption_track",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:normalize_position",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:_pick_emphasis",
-      "target": "function:web/caption_templates.py:_is_numberish",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:_pick_emphasis",
-      "target": "function:web/caption_templates.py:_bare",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:_balanced_split",
-      "target": "function:web/caption_templates.py:_bare",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:_balanced_split",
-      "target": "function:web/caption_templates.py:_is_numberish",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:heuristic_split",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:heuristic_split",
-      "target": "function:web/caption_templates.py:_balanced_split",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:heuristic_split",
-      "target": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:ai_split",
-      "target": "function:web/caption_templates.py:_gemini_api_key",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:ai_split",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:ai_split",
-      "target": "function:web/caption_templates.py:_balanced_split",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:ai_split",
-      "target": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:smart_split_text",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:smart_split_text",
-      "target": "function:web/caption_templates.py:ai_split",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:smart_split_text",
-      "target": "function:web/caption_templates.py:heuristic_split",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:_word_timings",
-      "target": "function:web/caption_templates.py:_bare",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:assign_timings",
-      "target": "function:web/caption_templates.py:_reading_seconds",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:assign_timings",
-      "target": "function:web/caption_templates.py:_snap_to_shots",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:assign_timings",
-      "target": "function:web/caption_templates.py:_word_timings",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "target": "function:web/caption_templates.py:_pick_emphasis",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "target": "function:web/caption_templates.py:_word_timings",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:normalize_position",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:normalize_size",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:font_family_for_ass",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_anchor",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:normalize_caption_color",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_inline_color",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_ass_color",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_word_timings",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_ass_escape",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:build_ass_document",
-      "target": "function:web/caption_templates.py:_anchor_xy",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:write_ass_file",
-      "target": "function:web/caption_templates.py:build_ass_document",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:normalize_template",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:_clean_text",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:smart_split_text",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:assign_timings",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:font_family_for_ass",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:normalize_caption_color",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:write_ass_file",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:normalize_position",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/caption_templates.py:prepare_caption_track",
-      "target": "function:web/caption_templates.py:normalize_size",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:web/video_annotator.py",
       "target": "function:web/video_annotator.py:find_system_font",
       "type": "contains",
@@ -21089,762 +20749,6 @@
       "type": "tested_by",
       "direction": "forward",
       "weight": 0.5
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_ensure_env_loaded",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_ensure_env_loaded",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:health_check",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:health_check",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_presets",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_presets",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_music_tracks",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_music_tracks",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:music_track_audio_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:music_track_audio_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_extract_candidate_tokens",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_extract_candidate_tokens",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_parse_caption_options",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_parse_caption_options",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_parse_screen_overlay_options",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_parse_screen_overlay_options",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_overlay_options_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_overlay_options_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:overlay_font_file_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:overlay_font_file_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_caption_templates_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_caption_templates_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:split_captions_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:split_captions_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_execute_processing_job",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_execute_processing_job",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:create_job_async",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:create_job_async",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:upload_and_process",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:upload_and_process",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_find_finalized_cut_file",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_find_finalized_cut_file",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_job_status",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_job_status",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:update_job_cuts_text_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:update_job_cuts_text_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_mobile_cut_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_mobile_cut_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:index_page",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:index_page",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_page",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_page",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:style_css_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:style_css_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:app_js_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:app_js_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:favicon_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:favicon_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_principles_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_principles_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:save_principles_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:save_principles_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:reset_principles_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:reset_principles_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:annotate_video_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:annotate_video_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_prompts_history_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_prompts_history_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:create_prompt_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:create_prompt_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:delete_prompt_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:delete_prompt_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_voices_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:get_voices_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:voice_sample_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:voice_sample_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:login_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:login_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:logout_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:logout_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:auth_session_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:auth_session_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:auth_me_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:auth_me_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:demo_accounts_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:demo_accounts_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_login_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_login_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_list_accounts_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_list_accounts_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_create_account_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_create_account_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_update_account_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_update_account_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_account_logs_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_account_logs_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_stats_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:admin_stats_endpoint",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:_get_authenticated_user_and_session",
-      "target": "function:web/server.py:_extract_candidate_tokens",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:create_job_async",
-      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:create_job_async",
-      "target": "function:web/server.py:_parse_caption_options",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:create_job_async",
-      "target": "function:web/server.py:_parse_screen_overlay_options",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:upload_and_process",
-      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:upload_and_process",
-      "target": "function:web/server.py:_parse_caption_options",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:upload_and_process",
-      "target": "function:web/server.py:_parse_screen_overlay_options",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:get_job_status",
-      "target": "function:web/server.py:_find_finalized_cut_file",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:update_job_cuts_text_endpoint",
-      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:logout_endpoint",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:auth_session_endpoint",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "function:web/server.py:auth_me_endpoint",
-      "target": "function:web/server.py:_get_authenticated_user_and_session",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:_parse_optional_bool",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:web/server.py",
-      "target": "function:web/server.py:blur_faces_only_endpoint",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:web/server.py:blur_faces_only_endpoint",
-      "target": "function:web/face_blur.py:blur_faces_in_video",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.9
     },
     {
       "source": "file:web/pipeline_bridge.py",
@@ -23128,6 +22032,1679 @@
       "weight": 1
     },
     {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:_make_test_video",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_group_words_preserves_acoustic_timings_and_splits_on_pauses",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_groq_stt_rotates_on_429_and_filters_silence_hallucinations",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_silent_or_no_audio_video_skips_stt_cleanly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_burn_video_voice_captions_preserves_original_audio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "function:tests/test_video_captions.py:test_video_captions_api_endpoints_and_ui_contracts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/video_captions.py",
+      "type": "tests",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_position",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_position",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_size",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_size",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_caption_color",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:normalize_caption_color",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:list_caption_colors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:list_caption_colors",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:list_caption_templates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:list_caption_templates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_is_numberish",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_is_numberish",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_bare",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_bare",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_balanced_split",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_balanced_split",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:heuristic_split",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:heuristic_split",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_gemini_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_gemini_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:ai_split",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:ai_split",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:smart_split_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:smart_split_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_reading_seconds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_reading_seconds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_word_timings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_word_timings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_snap_to_shots",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_snap_to_shots",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:assign_timings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:assign_timings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_color",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_color",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_inline_color",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_inline_color",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_time",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_time",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_escape",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_ass_escape",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:font_family_for_ass",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:font_family_for_ass",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_anchor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_anchor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_anchor_xy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_anchor_xy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:build_ass_document",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:build_ass_document",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:write_ass_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:write_ass_file",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:prepare_caption_track",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:prepare_caption_track",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:normalize_position",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:_pick_emphasis",
+      "target": "function:web/caption_templates.py:_is_numberish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:_pick_emphasis",
+      "target": "function:web/caption_templates.py:_bare",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:_balanced_split",
+      "target": "function:web/caption_templates.py:_bare",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:_balanced_split",
+      "target": "function:web/caption_templates.py:_is_numberish",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:heuristic_split",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:heuristic_split",
+      "target": "function:web/caption_templates.py:_balanced_split",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:heuristic_split",
+      "target": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:ai_split",
+      "target": "function:web/caption_templates.py:_gemini_api_key",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:ai_split",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:ai_split",
+      "target": "function:web/caption_templates.py:_balanced_split",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:ai_split",
+      "target": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:smart_split_text",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:smart_split_text",
+      "target": "function:web/caption_templates.py:ai_split",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:smart_split_text",
+      "target": "function:web/caption_templates.py:heuristic_split",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:_word_timings",
+      "target": "function:web/caption_templates.py:_bare",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:assign_timings",
+      "target": "function:web/caption_templates.py:_reading_seconds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:assign_timings",
+      "target": "function:web/caption_templates.py:_snap_to_shots",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:assign_timings",
+      "target": "function:web/caption_templates.py:_word_timings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "target": "function:web/caption_templates.py:_pick_emphasis",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "target": "function:web/caption_templates.py:_word_timings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:normalize_position",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:normalize_size",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:font_family_for_ass",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_anchor",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:normalize_caption_color",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_inline_color",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_ass_color",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_word_timings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_ass_escape",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:build_ass_document",
+      "target": "function:web/caption_templates.py:_anchor_xy",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:write_ass_file",
+      "target": "function:web/caption_templates.py:build_ass_document",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:normalize_template",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:_clean_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:smart_split_text",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:assign_timings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:segments_to_timed_chunks",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:font_family_for_ass",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:normalize_caption_color",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:write_ass_file",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:normalize_position",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/caption_templates.py:prepare_caption_track",
+      "target": "function:web/caption_templates.py:normalize_size",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:_normalize_acoustic_words",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/caption_templates.py",
+      "target": "function:web/caption_templates.py:group_words_into_chunks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_ensure_env_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_ensure_env_loaded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:health_check",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:health_check",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_presets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_presets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_music_tracks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_music_tracks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:music_track_audio_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:music_track_audio_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_extract_candidate_tokens",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_extract_candidate_tokens",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_parse_caption_options",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_parse_caption_options",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_parse_screen_overlay_options",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_parse_screen_overlay_options",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_overlay_options_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_overlay_options_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:overlay_font_file_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:overlay_font_file_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_caption_templates_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_caption_templates_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:split_captions_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:split_captions_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_execute_processing_job",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_execute_processing_job",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:create_job_async",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:create_job_async",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:upload_and_process",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:upload_and_process",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_find_finalized_cut_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_find_finalized_cut_file",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_job_status",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_job_status",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:update_job_cuts_text_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:update_job_cuts_text_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_mobile_cut_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_mobile_cut_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:index_page",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:index_page",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_page",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_page",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:style_css_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:style_css_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:app_js_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:app_js_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:favicon_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:favicon_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_principles_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_principles_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:save_principles_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:save_principles_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:reset_principles_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:reset_principles_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:annotate_video_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:annotate_video_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_prompts_history_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_prompts_history_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:create_prompt_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:create_prompt_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:delete_prompt_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:delete_prompt_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_voices_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:get_voices_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:voice_sample_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:voice_sample_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:login_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:login_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:logout_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:logout_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:auth_session_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:auth_session_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:auth_me_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:auth_me_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:demo_accounts_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:demo_accounts_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_login_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_login_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_list_accounts_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_list_accounts_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_create_account_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_create_account_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_update_account_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_update_account_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_account_logs_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_account_logs_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_stats_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:admin_stats_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:_get_authenticated_user_and_session",
+      "target": "function:web/server.py:_extract_candidate_tokens",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:create_job_async",
+      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:create_job_async",
+      "target": "function:web/server.py:_parse_caption_options",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:create_job_async",
+      "target": "function:web/server.py:_parse_screen_overlay_options",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:upload_and_process",
+      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:upload_and_process",
+      "target": "function:web/server.py:_parse_caption_options",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:upload_and_process",
+      "target": "function:web/server.py:_parse_screen_overlay_options",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:get_job_status",
+      "target": "function:web/server.py:_find_finalized_cut_file",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:update_job_cuts_text_endpoint",
+      "target": "function:web/server.py:_get_authenticated_user_from_form_or_header",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:logout_endpoint",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:auth_session_endpoint",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:web/server.py:auth_me_endpoint",
+      "target": "function:web/server.py:_get_authenticated_user_and_session",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:_parse_optional_bool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:blur_faces_only_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:transcribe_video_captions_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/server.py",
+      "target": "function:web/server.py:video_voice_captions_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:web/server.py:transcribe_video_captions_endpoint",
+      "target": "function:web/video_captions.py:transcribe_video_speech",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "function:web/server.py:video_voice_captions_endpoint",
+      "target": "function:web/video_captions.py:burn_video_voice_captions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_ensure_stt_env_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_get_api_keys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_probe_video_geometry_and_audio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:extract_audio_for_stt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_detect_speech_intervals_ffmpeg",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_is_hallucination",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_groq",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_local_faster_whisper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:_transcribe_with_gemini_acoustic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:transcribe_video_speech",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "function:web/video_captions.py:burn_video_voice_captions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:web/video_captions.py:transcribe_video_speech",
+      "target": "function:web/caption_templates.py:group_words_into_chunks",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "function:web/video_captions.py:burn_video_voice_captions",
+      "target": "function:web/caption_templates.py:prepare_caption_track",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "function:web/video_captions.py:burn_video_voice_captions",
+      "target": "function:web/video_annotator.py:annotate_video",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "function:web/video_captions.py:burn_video_voice_captions",
+      "target": "function:web/face_blur.py:blur_faces_in_video",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
       "source": "file:tests/test_admin_portal_and_security.py",
       "target": "file:web/auth_db.py",
       "type": "imports",
@@ -24040,6 +24617,46 @@
       "recoveredFromImportMap": true
     },
     {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/auth_db.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/video_captions.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:tests/test_video_captions.py",
+      "target": "file:web/video_editor.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
       "source": "file:tests/test_video_editor_proxy_montage.py",
       "target": "file:web/video_editor.py",
       "type": "imports",
@@ -24352,6 +24969,22 @@
       "recoveredFromImportMap": true
     },
     {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/caption_templates.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:web/video_captions.py",
+      "target": "file:web/video_annotator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
       "source": "file:web/video_montage_mcp.py",
       "target": "file:frame_extractor.py",
       "type": "imports",
@@ -24429,7 +25062,8 @@
         "file:assemble_video.py",
         "file:frame_extractor.py",
         "file:web/video_editor.py",
-        "file:web/video_montage_mcp.py"
+        "file:web/video_montage_mcp.py",
+        "file:web/video_captions.py"
       ]
     },
     {
@@ -24512,7 +25146,8 @@
         "file:tests/test_music_selection_and_enable_fix.py",
         "file:tests/test_natural_tts_prosody.py",
         "file:tests/test_screen_overlay_designer.py",
-        "file:tests/test_face_blur.py"
+        "file:tests/test_face_blur.py",
+        "file:tests/test_video_captions.py"
       ]
     },
     {
