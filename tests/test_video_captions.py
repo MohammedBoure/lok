@@ -18,6 +18,7 @@ from web.caption_templates import (
 )
 from web.server import app
 from web.video_captions import (
+    _refine_chunks_with_gemini_audio,
     _transcribe_with_groq,
     burn_video_voice_captions,
     extract_audio_for_stt,
@@ -86,10 +87,79 @@ def test_group_words_preserves_acoustic_timings_and_splits_on_pauses():
     ass_doc = build_ass_document(overlap_chunks, template="single_word")
     assert "0:00:00.00,0:00:00.50" in ass_doc
 
+    # Short word (< 60ms) must never invert \t(start,end) in karaoke_highlight
+    short_chunk = [{
+        "text": "ما تعجبش",
+        "start_sec": 0.0,
+        "end_sec": 0.5,
+        "words": [
+            {"word": "ما", "start_sec": 0.0, "end_sec": 0.05},
+            {"word": "تعجبش", "start_sec": 0.06, "end_sec": 0.5},
+        ],
+    }]
+    karaoke_doc = build_ass_document(short_chunk, template="karaoke_highlight")
+    assert "\\t(71,50" not in karaoke_doc
+    assert "\\t(0,50," in karaoke_doc
+
+
+def test_gemini_darja_proofreader_fixes_spelling_and_keeps_acoustic_timings(monkeypatch, tmp_path: Path):
+    mp3 = tmp_path / "darja.mp3"
+    mp3.write_bytes(b"ID3" + b"\x00" * 120)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gem-key")
+
+    chunks = [
+        {
+            "text": "يضربوك بثاف",
+            "start_sec": 1.0,
+            "end_sec": 2.0,
+            "words": [
+                {"word": "يضربوك", "start_sec": 1.0, "end_sec": 1.45},
+                {"word": "بثاف", "start_sec": 1.50, "end_sec": 2.0},
+            ],
+        },
+        {
+            "text": "تربيه تعلو لا تعذوكا",
+            "start_sec": 2.1,
+            "end_sec": 3.4,
+            "words": [
+                {"word": "تربيه", "start_sec": 2.1, "end_sec": 2.4},
+                {"word": "تعلو", "start_sec": 2.4, "end_sec": 2.7},
+                {"word": "لا", "start_sec": 2.7, "end_sec": 3.0},
+                {"word": "تعذوكا", "start_sec": 3.0, "end_sec": 3.4},
+            ],
+        },
+    ]
+
+    def _fake_post(url, json, timeout):
+        return SimpleNamespace(
+            status_code=200,
+            json=lambda: {
+                "candidates": [{
+                    "content": {
+                        "parts": [{
+                            "text": '{"chunks": [{"i": 0, "text": "يضربوك بزاف"}, {"i": 1, "text": "التربية تاع الولاد تاع دوكا"}]}'
+                        }]
+                    }
+                }]
+            },
+        )
+
+    monkeypatch.setattr("web.video_captions.requests.post", _fake_post)
+    refined, ok = _refine_chunks_with_gemini_audio(mp3, chunks, detected_language="ar")
+    assert ok is True
+    assert refined[0]["text"] == "يضربوك بزاف"
+    # Same word count -> exact Whisper acoustic timestamps preserved!
+    assert refined[0]["words"][1]["start_sec"] == 1.5
+    assert refined[0]["words"][1]["word"] == "بزاف"
+    # Changed word count -> exact chunk start/end preserved cleanly
+    assert refined[1]["text"] == "التربية تاع الولاد تاع دوكا"
+    assert refined[1]["start_sec"] == 2.1 and refined[1]["end_sec"] == 3.4
+
 
 def test_groq_stt_rotates_on_429_and_filters_silence_hallucinations(monkeypatch, tmp_path: Path):
     mp3 = tmp_path / "speech.mp3"
     mp3.write_bytes(b"ID3" + b"\x00" * 200)
+    monkeypatch.setattr("web.video_captions._ensure_stt_env_loaded", lambda: None)
     monkeypatch.setenv("GROQ_API_KEYS", "key-rate-limited,key-good")
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
 

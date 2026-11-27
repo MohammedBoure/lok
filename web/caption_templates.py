@@ -543,6 +543,9 @@ def group_words_into_chunks(
         if total_duration is not None and total_duration > 0:
             ws = min(ws, total_duration)
             we = min(we, total_duration)
+        if clean_words and ws < clean_words[-1]["end_sec"]:
+            # Prevent backwards word overlap from Whisper from stacking two caption lines
+            ws = clean_words[-1]["end_sec"]
         if we <= ws:
             we = ws + 0.08
         clean_words.append({"word": w_txt, "start_sec": round(ws, 3), "end_sec": round(we, 3)})
@@ -576,6 +579,12 @@ def group_words_into_chunks(
                 flush()
         buf.append(w)
     flush()
+
+    # Guarantee strictly non-overlapping sequential caption lines
+    for i in range(len(chunks) - 1):
+        nxt_st = chunks[i + 1]["start_sec"]
+        if chunks[i]["end_sec"] > nxt_st:
+            chunks[i]["end_sec"] = round(max(chunks[i]["start_sec"] + 0.05, nxt_st), 3)
     return chunks
 
 
@@ -591,6 +600,8 @@ def segments_to_timed_chunks(segments: List[Dict[str, Any]], total_duration: flo
             et = min(total_duration, float(seg.get("end_sec", st + 2.0)))
         except Exception:
             continue
+        if out and st < out[-1]["end_sec"]:
+            out[-1]["end_sec"] = round(max(out[-1]["start_sec"] + 0.05, st), 3)
         if et <= st:
             continue
         words = txt.split()
@@ -798,9 +809,13 @@ def build_ass_document(
             parts = ["{\\fad(90,90)}"]
             for wd in words:
                 a, b = rel_ms(wd["start_sec"]), rel_ms(wd["end_sec"])
+                if b <= a:
+                    b = a + 40
+                t_on_end = min(b, a + 65)
+                t_off_start = max(t_on_end, b - 35)
                 parts.append(
-                    "{\\1c" + primary_inline + "\\t(" + f"{a},{a + 70}" + ",\\1c" + accent_inline + ")"
-                    + "\\t(" + f"{max(a + 71, b - 40)},{b}" + ",\\1c" + primary_inline + ")}"
+                    "{\\1c" + primary_inline + "\\t(" + f"{a},{t_on_end}" + ",\\1c" + accent_inline + ")"
+                    + "\\t(" + f"{t_off_start},{b}" + ",\\1c" + primary_inline + ")}"
                     + _ass_escape(wd["word"]) + " "
                 )
             add_event(st, et, "".join(parts).rstrip())
@@ -809,9 +824,13 @@ def build_ass_document(
             parts = ["{\\fad(120,100)}"]
             for wd in words:
                 a, b = rel_ms(wd["start_sec"]), rel_ms(wd["end_sec"])
+                if b <= a:
+                    b = a + 40
+                t_on_end = min(b, a + 55)
+                t_off_start = max(t_on_end, b - 35)
                 parts.append(
-                    "{\\1c" + primary_inline + "\\t(" + f"{a},{a + 60}" + ",\\1c" + accent_inline + ")"
-                    + "\\t(" + f"{max(a + 61, b - 40)},{b}" + ",\\1c" + primary_inline + ")}"
+                    "{\\1c" + primary_inline + "\\t(" + f"{a},{t_on_end}" + ",\\1c" + accent_inline + ")"
+                    + "\\t(" + f"{t_off_start},{b}" + ",\\1c" + primary_inline + ")}"
                     + _ass_escape(wd["word"]) + " "
                 )
             add_event(st, et, "".join(parts).rstrip())

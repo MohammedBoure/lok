@@ -44,8 +44,14 @@ logger = logging.getLogger("lok.video_captions")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GROQ_TRANSCRIPTION_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
-DEFAULT_GROQ_MODEL = "whisper-large-v3-turbo"
-GEMINI_AUDIO_MODEL = "gemini-3.6-flash"
+# Full whisper-large-v3 (32 decoder layers) is far stronger on Algerian Darja than turbo (4 layers)
+DEFAULT_GROQ_MODEL = "whisper-large-v3"
+GEMINI_AUDIO_MODEL = "gemini-2.5-flash"
+GEMINI_AUDIO_FALLBACK_MODELS = ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-3.6-flash")
+DARJA_WHISPER_PROMPT = (
+    "كلام بالدارجة الجزائرية والعربية: السلام عليكم خاوتي، شوفو معايا، تاع، دوكا، بزاف، "
+    "راني، راك، كيما، بلي، ما كانش، وليت، علاش، واش، الغاشي، الوالدين، كومبلي، هاد، دج."
+)
 
 # Common Whisper hallucinations on pure silence / music intros
 _WHISPER_HALLUCINATION_EXACT = {
@@ -265,8 +271,11 @@ def _transcribe_with_groq(
         ("timestamp_granularities[]", "word"),
         ("timestamp_granularities[]", "segment"),
     ]
-    if language and language.strip() and language.strip().lower() != "auto":
-        data.append(("language", language.strip().lower()[:5]))
+    lang_clean = language.strip().lower()[:5] if (language and language.strip()) else ""
+    if lang_clean and lang_clean != "auto":
+        data.append(("language", lang_clean))
+    if not lang_clean or lang_clean in ("auto", "ar"):
+        data.append(("prompt", DARJA_WHISPER_PROMPT))
 
     last_err = ""
     for key in keys:
@@ -473,6 +482,111 @@ def _transcribe_with_gemini_acoustic(
     return None
 
 
+def _refine_chunks_with_gemini_audio(
+    audio_mp3: Path,
+    chunks: List[Dict[str, Any]],
+    detected_language: str = "auto",
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """
+    Use Gemini listening directly to the audio to fix Whisper spelling/letter errors
+    in Algerian Darja & Arabic while keeping Whisper's exact acoustic timestamps.
+    """
+    if not chunks:
+        return chunks, False
+    keys = _get_api_keys("GEMINI_API_KEY", "GEMINI_API_KEYS")
+    if not keys:
+        return chunks, False
+
+    has_arabic = any(re.search(r"[\u0600-\u06FF]", str(c.get("text", ""))) for c in chunks)
+    lang_l = (detected_language or "").lower()
+    if not has_arabic and lang_l not in ("ar", "arabic", "auto", ""):
+        return chunks, False
+
+    compact_in = [
+        {"i": idx, "t": f"{c['start_sec']:.2f}-{c['end_sec']:.2f}", "text": c["text"]}
+        for idx, c in enumerate(chunks)
+    ]
+    prompt = (
+        "You are an expert Algerian Darja (الدارجة الجزائرية) and Arabic caption proofreader. "
+        "Listen carefully to the attached audio and compare it with the numbered Whisper ASR chunks below. "
+        "Whisper frequently adds/drops letters or mishears Algerian Darja words (for example: "
+        "'تربيه تعلو لا تعذوكا' -> 'التربية تاع الولاد تاع دوكا', 'بثاف' -> 'بزاف', "
+        "'لم يكن شاطئ' -> 'ما كانش عاطي', 'تعنس' -> 'تاع الناس', 'الغرش' -> 'الغاشي', 'رأني' -> 'راني').\n"
+        "STRICT RULES:\n"
+        "1. Fix ONLY misheard words, dropped letters, extra letters, and garbled Darja/Arabic/French spellings so each chunk matches the EXACT spoken words heard in the audio at that timestamp.\n"
+        "2. Keep authentic spoken Algerian Darja verbatim — do NOT translate Darja into formal Arabic, and do NOT summarize or rephrase.\n"
+        "3. Return the EXACT same chunk indices 0.."
+        f"{len(chunks) - 1} in JSON format: {{\"chunks\": [{{\"i\": 0, \"text\": \"...\"}}]}}.\n\n"
+        f"Whisper chunks:\n{json.dumps(compact_in, ensure_ascii=False)}"
+    )
+
+    audio_b64 = base64.b64encode(audio_mp3.read_bytes()).decode("utf-8")
+    body = {
+        "contents": [{
+            "parts": [
+                {"text": prompt},
+                {"inlineData": {"mimeType": "audio/mpeg", "data": audio_b64}},
+            ]
+        }],
+        "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"},
+    }
+
+    for model_name in GEMINI_AUDIO_FALLBACK_MODELS:
+        for key in keys:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
+                resp = requests.post(url, json=body, timeout=(10.0, 45.0))
+                if resp.status_code != 200:
+                    continue
+                cands = resp.json().get("candidates") or []
+                if not cands:
+                    continue
+                raw_txt = cands[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                raw_txt = re.sub(r"^```(?:json)?|```$", "", raw_txt, flags=re.MULTILINE).strip()
+                parsed = json.loads(raw_txt)
+                items = parsed.get("chunks") if isinstance(parsed, dict) else (parsed if isinstance(parsed, list) else None)
+                if not isinstance(items, list) or not items:
+                    continue
+
+                by_idx: Dict[int, str] = {}
+                for it in items:
+                    if not isinstance(it, dict) or "i" not in it:
+                        continue
+                    try:
+                        ci = int(it["i"])
+                    except (TypeError, ValueError):
+                        continue
+                    txt = str(it.get("text") or "").strip()
+                    if 0 <= ci < len(chunks) and txt:
+                        by_idx[ci] = txt
+
+                # Require high coverage so a truncated LLM reply never corrupts the clip
+                if len(by_idx) < max(1, int(len(chunks) * 0.7)):
+                    continue
+
+                updated: List[Dict[str, Any]] = []
+                for idx, orig in enumerate(chunks):
+                    new_txt = by_idx.get(idx, orig["text"])
+                    new_chunk = dict(orig)
+                    new_chunk["text"] = new_txt
+                    old_words = orig.get("words") or []
+                    new_tokens = new_txt.split()
+                    if len(old_words) == len(new_tokens):
+                        # Word count unchanged -> keep exact acoustic timestamps per word!
+                        new_chunk["words"] = [
+                            {**w, "word": tok} for w, tok in zip(old_words, new_tokens)
+                        ]
+                    else:
+                        # Word split/merge changed count -> let segments_to_timed_chunks fit inside acoustic window
+                        new_chunk["words"] = []
+                    updated.append(new_chunk)
+                return updated, True
+            except Exception as exc:
+                logger.warning("Gemini Darja proofreader (%s) skipped: %s", model_name, exc)
+
+    return chunks, False
+
+
 def transcribe_video_speech(
     video_path: Union[str, Path],
     template: Optional[str] = None,
@@ -505,25 +619,34 @@ def transcribe_video_speech(
             or _transcribe_with_gemini_acoustic(mp3_path, duration, language=language)
         )
 
-    if not raw:
-        raise RuntimeError(
-            "تعذر استخراج الكلام من الفيديو. تأكد من إضافة GROQ_API_KEY (مجاني) أو GEMINI_API_KEY في ملف .env."
-        )
+        if not raw:
+            raise RuntimeError(
+                "تعذر استخراج الكلام من الفيديو. تأكد من إضافة GROQ_API_KEY (مجاني) أو GEMINI_API_KEY في ملف .env."
+            )
 
-    words = raw.get("words") or []
-    segments = raw.get("segments") or []
-    if words:
-        chunks = group_words_into_chunks(words, template=tpl, total_duration=duration)
-    else:
-        chunks = segments_to_timed_chunks(segments, total_duration=max(duration, 1.0))
+        words = raw.get("words") or []
+        segments = raw.get("segments") or []
+        if words:
+            chunks = group_words_into_chunks(words, template=tpl, total_duration=duration)
+        else:
+            chunks = segments_to_timed_chunks(segments, total_duration=max(duration, 1.0))
+
+        engine_name = raw["engine"]
+        detected_lang = raw.get("language") or language or "auto"
+        # Audio-grounded Darja/Arabic spelling refinement on top of Whisper's acoustic timestamps
+        if chunks and not engine_name.startswith("gemini-acoustic"):
+            chunks, refined = _refine_chunks_with_gemini_audio(mp3_path, chunks, detected_language=detected_lang)
+            if refined:
+                chunks = segments_to_timed_chunks(chunks, total_duration=max(duration, 1.0))
+                engine_name = f"{engine_name}+gemini-darja"
 
     speech_detected = bool(chunks)
     return {
         "speech_detected": speech_detected,
-        "engine": raw["engine"],
-        "language": raw.get("language") or language or "auto",
+        "engine": engine_name,
+        "language": detected_lang,
         "duration": duration,
-        "full_text": raw.get("full_text") or " ".join(c["text"] for c in chunks),
+        "full_text": " ".join(c["text"] for c in chunks) if chunks else (raw.get("full_text") or ""),
         "words": words,
         "chunks": chunks,
         "message": (
