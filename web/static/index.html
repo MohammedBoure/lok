@@ -565,17 +565,23 @@
 
               <div class="capcut-textarea-wrap">
                 <div class="capcut-textarea-header">
-                  <label for="customCaptionTextarea" class="capcut-mini-label">النص المخصص للكابشن المتحرك (اختياري — يقسمه الذكاء الاصطناعي تلقائياً):</label>
-                  <button type="button" class="btn-bw-secondary btn-preview-split" id="btnPreviewSmartSplit">
-                    <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
-                    <span>معاينة التقسيم الذكي (AI)</span>
-                  </button>
+                  <label for="customCaptionTextarea" class="capcut-mini-label">النص المخصص للكابشن المتحرك (أو استخرج الكلام مباشرة من صوت الفيديو):</label>
+                  <div class="capcut-textarea-actions">
+                    <button type="button" class="btn-bw-secondary btn-preview-split" id="btnExtractVideoCaptions" title="استخراج كلام الشخص من الفيديو وتعديله قبل الحرق (مع الحفاظ على صوته الأصلي)">
+                      <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                      <span>استخراج كلام الفيديو (تعديل قبل الحرق)</span>
+                    </button>
+                    <button type="button" class="btn-bw-secondary btn-preview-split" id="btnPreviewSmartSplit">
+                      <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+                      <span>معاينة التقسيم الذكي (AI)</span>
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   id="customCaptionTextarea"
                   class="lok-prompt-textarea capcut-textarea"
                   rows="3"
-                  placeholder="اكتب هنا النص الذي تريد عرضه ككابشن متحرك على الفيديو (أو اتركه فارغاً لاستخدام نص التعليق الصوتي عند تفعيل الترجمة)...
+                  placeholder="اكتب هنا النص الذي تريد عرضه ككابشن متحرك على الفيديو (أو اتركه فارغاً واضغط على «كابشن من صوت الفيديو فقط» بالأسفل لاستخدام كلام الفيديو تلقائياً)...
 مثال: عرض محدود لشقة مفروشة بإطلالة بحرية، تواصل معنا على الرقم 0558815453"
                 ></textarea>
               </div>
@@ -587,6 +593,18 @@
                   <span class="split-preview-engine" id="splitPreviewEngine">AI</span>
                 </div>
                 <div class="split-chunks-list" id="splitChunksList"></div>
+              </div>
+
+              <!-- Editable Auto-Extracted Video Voice Captions (CapCut-style typo review) -->
+              <div class="video-caption-editor-wrap" id="videoCaptionEditorWrap" style="display: none;">
+                <div class="split-preview-header">
+                  <span class="split-preview-title">كلام الفيديو المستخرج (يمكنك تعديل أي كلمة قبل الحرق):</span>
+                  <div class="video-caption-editor-meta">
+                    <span class="split-preview-engine" id="videoCaptionEngineBadge">Whisper</span>
+                    <button type="button" class="btn-bw-secondary btn-sm-pill" id="btnClearVideoCaptions">مسح</button>
+                  </div>
+                </div>
+                <div class="video-caption-rows-list" id="videoCaptionRowsList"></div>
               </div>
             </div>
             </div>
@@ -602,6 +620,10 @@
               </div>
             </div>
             <div class="action-cta-group">
+              <button type="button" class="btn-bw-secondary btn-video-captions-only" id="btnAutoVideoCaptions" title="إضافة كابشن متحرك متزامن مع صوت الشخص في الفيديو مع الحفاظ على صوته الأصلي 100% دون استبداله بذكاء اصطناعي">
+                <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>
+                <span>كابشن من صوت الفيديو فقط</span>
+              </button>
               <button type="button" class="btn-bw-secondary btn-blur-only" id="btnBlurFacesOnly" title="تعتيم الوجوه في الفيديو المرفوع فقط دون إضافة صوت أو مونتاج ذكاء اصطناعي">
                 <svg class="lok-svg-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><circle cx="12" cy="10" r="2.5"/><path d="M9 16c.8-1.3 1.8-2 3-2s2.2.7 3 2"/></svg>
                 <span>تعتيم الوجوه فقط</span>

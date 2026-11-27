@@ -484,8 +484,103 @@ def assign_timings(
     return timed
 
 
+def _normalize_acoustic_words(
+    raw_words: Any,
+    chunk_start: float,
+    chunk_end: float,
+    expected_tokens: List[str],
+) -> Optional[List[Dict[str, Any]]]:
+    """Preserve real STT per-word timings when they match the chunk text cleanly."""
+    if not isinstance(raw_words, list) or not raw_words or len(raw_words) != len(expected_tokens):
+        return None
+    normalized: List[Dict[str, Any]] = []
+    prev_end = chunk_start
+    for idx, (item, tok) in enumerate(zip(raw_words, expected_tokens)):
+        if not isinstance(item, dict):
+            return None
+        try:
+            ws = float(item.get("start_sec", item.get("start", prev_end)))
+            we = float(item.get("end_sec", item.get("end", ws + 0.15)))
+        except (TypeError, ValueError):
+            return None
+        ws = max(chunk_start, min(chunk_end, ws))
+        if ws < prev_end:
+            ws = prev_end
+        we = max(ws + 0.05, min(chunk_end, we))
+        normalized.append({
+            "word": tok,
+            "start_sec": round(ws, 3),
+            "end_sec": round(we, 3),
+        })
+        prev_end = we
+    return normalized
+
+
+def group_words_into_chunks(
+    words: Sequence[Dict[str, Any]],
+    template: Optional[str] = None,
+    total_duration: Optional[float] = None,
+    pause_threshold: float = 0.45,
+) -> List[Dict[str, Any]]:
+    """
+    Group word-level acoustic timestamps into CapCut-sized caption chunks while
+    preserving every word's exact start/end timing.
+    """
+    tpl = normalize_template(template)
+    max_words = int(CAPTION_TEMPLATES[tpl]["max_words"])
+    clean_words: List[Dict[str, Any]] = []
+    for item in words or []:
+        if not isinstance(item, dict):
+            continue
+        w_txt = _clean_text(str(item.get("word", item.get("text", ""))))
+        if not w_txt:
+            continue
+        try:
+            ws = max(0.0, float(item.get("start_sec", item.get("start", 0.0))))
+            we = float(item.get("end_sec", item.get("end", ws + 0.18)))
+        except (TypeError, ValueError):
+            continue
+        if total_duration is not None and total_duration > 0:
+            ws = min(ws, total_duration)
+            we = min(we, total_duration)
+        if we <= ws:
+            we = ws + 0.08
+        clean_words.append({"word": w_txt, "start_sec": round(ws, 3), "end_sec": round(we, 3)})
+
+    if not clean_words:
+        return []
+
+    chunks: List[Dict[str, Any]] = []
+    buf: List[Dict[str, Any]] = []
+
+    def flush() -> None:
+        if not buf:
+            return
+        tokens = [w["word"] for w in buf]
+        st = buf[0]["start_sec"]
+        et = max(st + 0.12, buf[-1]["end_sec"])
+        chunks.append({
+            "text": " ".join(tokens),
+            "emphasis": _pick_emphasis(tokens),
+            "start_sec": round(st, 3),
+            "end_sec": round(et, 3),
+            "words": list(buf),
+        })
+        buf.clear()
+
+    for w in clean_words:
+        if buf:
+            gap = w["start_sec"] - buf[-1]["end_sec"]
+            prev_punct = buf[-1]["word"][-1:] in ".!؟?،,"
+            if gap >= pause_threshold or prev_punct or len(buf) >= max_words:
+                flush()
+        buf.append(w)
+    flush()
+    return chunks
+
+
 def segments_to_timed_chunks(segments: List[Dict[str, Any]], total_duration: float) -> List[Dict[str, Any]]:
-    """Convert already-timed subtitle segments (e.g. narration captions) into timed chunks."""
+    """Convert already-timed subtitle segments (narration or video STT) into timed chunks."""
     out: List[Dict[str, Any]] = []
     for seg in segments or []:
         txt = _clean_text(str(seg.get("text", ""))).replace("\n", " ").strip()
@@ -499,12 +594,13 @@ def segments_to_timed_chunks(segments: List[Dict[str, Any]], total_duration: flo
         if et <= st:
             continue
         words = txt.split()
+        acoustic = _normalize_acoustic_words(seg.get("words"), st, et, words)
         out.append({
             "text": txt,
-            "emphasis": _pick_emphasis(words),
+            "emphasis": seg.get("emphasis") or _pick_emphasis(words),
             "start_sec": round(st, 3),
             "end_sec": round(et, 3),
-            "words": _word_timings(words, st, et),
+            "words": acoustic or _word_timings(words, st, et),
         })
     return out
 
@@ -761,6 +857,10 @@ def build_ass_document(
         elif tpl == "single_word":
             for idx, wd in enumerate(words):
                 ws, we = float(wd["start_sec"]), float(wd["end_sec"])
+                if idx + 1 < len(words):
+                    next_ws = float(words[idx + 1]["start_sec"])
+                    if we > next_ws:
+                        we = max(ws + 0.05, next_ws)
                 color = accent_inline if (emphasis and wd["word"] == emphasis) else primary_inline
                 txt = (
                     "{\\1c" + color + "\\fscx65\\fscy65\\t(0,90,\\fscx114\\fscy114)\\t(90,170,\\fscx100\\fscy100)}"
@@ -816,15 +916,17 @@ def prepare_caption_track(
     font_id: Optional[str] = None,
     color_theme: Optional[str] = None,
     use_ai: bool = True,
+    engine_name: Optional[str] = None,
+    source_label: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     High level helper used by the pipeline.
     - custom_text: customer typed text -> smart split + calculated timings.
-    - segments: already-timed narration captions -> styled with the template.
+    - segments: already-timed narration or video-voice STT captions -> styled with the template.
     Returns metadata dict (ass_path, chunks, engine, template...) or None if nothing to render.
     """
     tpl = normalize_template(template)
-    engine = "segments"
+    engine = engine_name or "segments"
     if custom_text and _clean_text(custom_text):
         split = smart_split_text(custom_text, tpl, total_duration, use_ai=use_ai)
         engine = split["engine"]
@@ -861,5 +963,5 @@ def prepare_caption_track(
         "engine": engine,
         "chunks": [{k: v for k, v in c.items() if k != "words"} for c in timed],
         "chunks_count": len(timed),
-        "source": "custom_text" if engine != "segments" else "narration_subtitles",
+        "source": source_label or ("custom_text" if engine != "segments" else "narration_subtitles"),
     }
